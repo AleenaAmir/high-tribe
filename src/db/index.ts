@@ -4,12 +4,10 @@ import * as schema from './schema';
 
 // Database connection configuration
 const DB_CONFIG = {
-    user: 'postgres',
-    password: '123456',
-    host: 'localhost',
-    port: 5432,
-    database: 'highTribe',
-    ssl: false
+    connectionString: process.env.DATABASE_URL,
+    ssl: process.env.NODE_ENV === 'production' ? {
+        rejectUnauthorized: false
+    } : false
 };
 
 // Create a PostgreSQL connection pool
