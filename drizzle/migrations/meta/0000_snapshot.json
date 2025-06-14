@@ -1,5 +1,5 @@
 {
-  "id": "fa9849d0-44cf-49dd-b306-c0221c5254ab",
+  "id": "30203cab-0747-49f3-af12-e672555ae5bd",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -52,6 +52,13 @@
           "primaryKey": false,
           "notNull": false,
           "default": "now()"
+        },
+        "agree_to_terms": {
+          "name": "agree_to_terms",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
         }
       },
       "indexes": {},

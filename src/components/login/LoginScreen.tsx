@@ -39,7 +39,7 @@ const LoginScreen = () => {
       localStorage.setItem("token", result.access_token);
 
       // Redirect to home page or dashboard
-      router.push("/");
+      router.push("/map");
     } catch (error: any) {
       alert(
         error instanceof Error
@@ -53,12 +53,12 @@ const LoginScreen = () => {
     <div className="mx-auto grid min-h-screen max-w-[1440px] items-center justify-center bg-white p-4 font-sans md:grid-cols-3">
       {/* Left Side */}
       <div
-        className="hidden h-screen flex-col justify-between rounded-md bg-center bg-cover bg-no-repeat p-6 md:flex"
+        className="hidden flex-col justify-between p-6 h-screen bg-center bg-no-repeat bg-cover rounded-md md:flex"
         style={{ backgroundImage: "url('/loginbg.png')" }}
       >
         {/* Logo */}
         <div className="mb-4">
-          <div className="font-bold text-2xl text-white leading-tight">
+          <div className="text-2xl font-bold leading-tight text-white">
             High
             <br />
             Tribe
@@ -71,17 +71,17 @@ const LoginScreen = () => {
               Lorem ipsum dolor sit amet consectetur. Dolor nisl ac orci enim
               tellus mattis suspendisse. Pharetra
             </p>
-            <div className="mt-2 flex gap-4">
+            <div className="flex gap-4 mt-2">
               <img
                 src="https://randomuser.me/api/portraits/men/32.jpg"
                 alt="User"
-                className="h-16 w-16 rounded-md border-2 border-white object-contain"
+                className="object-contain w-16 h-16 rounded-md border-2 border-white"
               />
               <div>
-                <div className="font-semibold text-sm text-white leading-tight">
+                <div className="text-sm font-semibold leading-tight text-white">
                   Timson K
                 </div>
-                <div className="text-white/80 text-xs">User</div>
+                <div className="text-xs text-white/80">User</div>
               </div>
             </div>
           </div>
@@ -114,7 +114,7 @@ const LoginScreen = () => {
               error={errors.password?.message}
             />
           </div>
-          <div className="mb-2 flex items-center justify-between">
+          <div className="flex justify-between items-center mb-2">
             <div className="flex items-center">
               <input
                 type="checkbox"
@@ -140,24 +140,24 @@ const LoginScreen = () => {
           >
             {isSubmitting ? "Signing In..." : "Sign In"}
           </button>
-          <div className="my-4 flex items-center">
-            <div className="h-px flex-1 bg-gray-200" />
-            <span className="mx-2 text-gray-400 text-sm">Or register with</span>
-            <div className="h-px flex-1 bg-gray-200" />
+          <div className="flex items-center my-4">
+            <div className="flex-1 h-px bg-gray-200" />
+            <span className="mx-2 text-sm text-gray-400">Or register with</span>
+            <div className="flex-1 h-px bg-gray-200" />
           </div>
           <div className="flex gap-4">
             <button
               type="button"
-              className="flex flex-1 items-center justify-center gap-2 rounded-md border border-gray-300 bg-white py-2 font-medium text-gray-700 hover:bg-gray-50"
+              className="flex flex-1 gap-2 justify-center items-center py-2 font-medium text-gray-700 bg-white rounded-md border border-gray-300 hover:bg-gray-50"
             >
-              <img src="/googlesvg.svg" alt="Google" className="h-5 w-5" />{" "}
+              <img src="/googlesvg.svg" alt="Google" className="w-5 h-5" />{" "}
               Google
             </button>
             <button
               type="button"
-              className="flex flex-1 items-center justify-center gap-2 rounded-md border border-gray-300 bg-white py-2 font-medium text-gray-700 hover:bg-gray-50"
+              className="flex flex-1 gap-2 justify-center items-center py-2 font-medium text-gray-700 bg-white rounded-md border border-gray-300 hover:bg-gray-50"
             >
-              <img src="/facebooksvg.svg" alt="Facebook" className="h-5 w-5" />{" "}
+              <img src="/facebooksvg.svg" alt="Facebook" className="w-5 h-5" />{" "}
               Facebook
             </button>
           </div>

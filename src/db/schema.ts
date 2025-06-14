@@ -9,6 +9,7 @@ export const users = pgTable('users', {
     password: text('password').notNull(),
     createdAt: timestamp('created_at').defaultNow(),
     updatedAt: timestamp('updated_at').defaultNow(),
+    agreeToTerms: boolean('agree_to_terms').notNull().default(false),
 });
 
 export type User = typeof users.$inferSelect;
