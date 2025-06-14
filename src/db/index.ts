@@ -1,20 +1,24 @@
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { Pool } from 'pg';
 import * as schema from './schema';
+import dotenv from 'dotenv';
 
-// Database connection configuration
+// Load environment variables from .env
+dotenv.config();
+
+// Use env variables to build config
 const DB_CONFIG = {
-    connectionString: process.env.DATABASE_URL,
-    ssl: process.env.NODE_ENV === 'production' ? {
-        rejectUnauthorized: false
-    } : false
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    host: process.env.DB_HOST,
+    port: Number(process.env.DB_PORT),
+    database: process.env.DB_NAME,
+    ssl: process.env.DB_SSL === 'true'
 };
 
-// Create a PostgreSQL connection pool
+// Create PostgreSQL pool
 const pool = new Pool(DB_CONFIG);
 
-// Create a Drizzle ORM instance
+// Drizzle instance
 export const db = drizzle(pool, { schema });
-
-// Export the pool for direct database access if needed
 export { pool };
