@@ -1,5 +1,5 @@
 import { config } from 'dotenv';
-import type { Config } from 'drizzle-kit';
+import { defineConfig } from 'drizzle-kit';
 import env from './src/lib/env';
 
 if (!process.env.DATABASE_URL) {
@@ -7,19 +7,11 @@ if (!process.env.DATABASE_URL) {
 }
 config();
 
-// Parse the DATABASE_URL to get individual components
-const dbUrl = new URL(env.DATABASE_URL);
-
-export default {
-    schema: './src/db/schema.ts',
+export default defineConfig({
     out: './drizzle/migrations',
+    schema: './src/db/schema.ts',
     dialect: 'postgresql',
     dbCredentials: {
-        host: dbUrl.hostname,
-        port: parseInt(dbUrl.port),
-        user: dbUrl.username,
-        password: dbUrl.password,
-        database: dbUrl.pathname.slice(1),
-        ssl: false
+        url: env.DATABASE_URL,
     },
-} satisfies Config;
+});

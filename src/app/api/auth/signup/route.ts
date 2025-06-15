@@ -5,6 +5,7 @@ import { signupSchema } from '@/lib/validations/auth';
 import bcrypt from 'bcryptjs';
 import { eq } from 'drizzle-orm';
 import { generateToken } from '@/lib/jwt';
+import { sql } from 'drizzle-orm';
 
 export async function POST(req: Request) {
     try {
@@ -16,16 +17,30 @@ export async function POST(req: Request) {
         const validatedData = signupSchema.parse(body);
         console.log('Validated data:', validatedData);
 
-        // Check if user already exists
+        // Check if user already exists using raw SQL first
         console.log('Checking for existing user...');
-        const existingUsers = await db.select().from(users).where(eq(users.email, validatedData.email));
-        console.log('Existing users check result:', existingUsers);
+        try {
+            const existingUser = await db.execute(sql`
+                SELECT id, email 
+                FROM users 
+                WHERE email = ${validatedData.email}
+                LIMIT 1
+            `);
+            console.log('Existing user check result:', existingUser);
 
-        if (existingUsers.length > 0) {
-            return NextResponse.json(
-                { error: 'User with this email already exists' },
-                { status: 400 }
-            );
+            if (existingUser.length > 0) {
+                return NextResponse.json(
+                    { error: 'User with this email already exists' },
+                    { status: 400 }
+                );
+            }
+        } catch (queryError: any) {
+            console.error('Error checking existing user:', {
+                message: queryError.message,
+                code: queryError.code,
+                stack: queryError.stack
+            });
+            throw queryError;
         }
 
         // Hash password
@@ -35,39 +50,52 @@ export async function POST(req: Request) {
 
         // Create new user
         console.log('Creating new user...');
-        const [newUser] = await db.insert(users).values({
-            fullName: validatedData.fullName,
-            email: validatedData.email,
-            phoneNumber: validatedData.phoneNumber,
-            password: hashedPassword,
-        }).returning();
-        console.log('New user created:', { id: newUser.id, email: newUser.email });
+        try {
+            const [newUser] = await db.insert(users).values({
+                fullName: validatedData.fullName,
+                email: validatedData.email,
+                phoneNumber: validatedData.phoneNumber,
+                password: hashedPassword,
+                agreeToTerms: validatedData.agreeToTerms
+            }).returning();
+            console.log('New user created:', { id: newUser.id, email: newUser.email });
 
-        // Generate JWT token
-        const token = generateToken({
-            userId: newUser.id,
-            email: newUser.email,
-        });
+            // Generate JWT token
+            const token = generateToken({
+                userId: newUser.id,
+                email: newUser.email,
+            });
 
-        return NextResponse.json(
-            {
-                message: 'User registered successfully',
-                user: {
-                    id: newUser.id,
-                    email: newUser.email,
-                    fullName: newUser.fullName,
-                    phoneNumber: newUser.phoneNumber
+            return NextResponse.json(
+                {
+                    message: 'User registered successfully',
+                    user: {
+                        id: newUser.id,
+                        email: newUser.email,
+                        fullName: newUser.fullName,
+                        phoneNumber: newUser.phoneNumber
+                    },
+                    access_token: token
                 },
-                access_token: token
-            },
-            { status: 201 }
-        );
+                { status: 201 }
+            );
+        } catch (insertError: any) {
+            console.error('Error creating new user:', {
+                message: insertError.message,
+                code: insertError.code,
+                stack: insertError.stack,
+                details: insertError.detail
+            });
+            throw insertError;
+        }
     } catch (error: any) {
         console.error('Detailed error:', {
             name: error.name,
             message: error.message,
             stack: error.stack,
-            cause: error.cause
+            cause: error.cause,
+            code: error.code,
+            detail: error.detail
         });
 
         if (error.name === 'ZodError') {

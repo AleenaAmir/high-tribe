@@ -39,6 +39,14 @@ const NewSignUp = () => {
   } = useForm<SignUpForm>({
     resolver: zodResolver(signUpSchema),
     mode: "onTouched",
+    defaultValues: {
+      firstName: "TestFirstName",
+      lastName: "TestLastName",
+      phone: "1234567890",
+      email: "test@example.com",
+      password: "Test1234",
+      agreeToTerms: true,
+    },
   });
 
   const handleGoogleLogin = (credentialResponse: any) => {
@@ -83,7 +91,7 @@ const NewSignUp = () => {
       >
         {/* Logo */}
         <div className="mb-4">
-          <div className="font-bold text-2xl text-white leading-tight">
+          <div className="text-2xl font-bold leading-tight text-white">
             High
             <br />
             Tribe
@@ -96,17 +104,17 @@ const NewSignUp = () => {
               Lorem ipsum dolor sit amet consectetur. Dolor nisl ac orci enim
               tellus mattis suspendisse. Pharetra
             </p>
-            <div className="mt-2 flex gap-4">
+            <div className="flex gap-4 mt-2">
               <img
                 src="https://randomuser.me/api/portraits/men/32.jpg"
                 alt="User"
-                className="h-16 w-16 rounded-md border-2 border-white object-contain"
+                className="object-contain w-16 h-16 rounded-md border-2 border-white"
               />
               <div>
-                <div className="font-semibold text-sm text-white leading-tight">
+                <div className="text-sm font-semibold leading-tight text-white">
                   Timson K
                 </div>
-                <div className="text-white/80 text-xs">User</div>
+                <div className="text-xs text-white/80">User</div>
               </div>
             </div>
           </div>
@@ -159,7 +167,7 @@ const NewSignUp = () => {
             error={errors.password?.message}
           />
 
-          <div className="mb-2 flex items-center">
+          <div className="flex items-center mb-2">
             <input
               type="checkbox"
               id="agreeToTerms"
@@ -174,7 +182,7 @@ const NewSignUp = () => {
             </label>
           </div>
           {errors.agreeToTerms && (
-            <p className="mb-2 text-red-600 text-sm">
+            <p className="mb-2 text-sm text-red-600">
               {errors.agreeToTerms.message}
             </p>
           )}
@@ -185,18 +193,18 @@ const NewSignUp = () => {
           >
             {isSubmitting ? "Creating Account..." : "Create Account"}
           </button>
-          <div className="my-4 flex items-center">
-            <div className="h-px flex-1 bg-gray-200" />
-            <span className="mx-2 text-gray-400 text-sm">Or register with</span>
-            <div className="h-px flex-1 bg-gray-200" />
+          <div className="flex items-center my-4">
+            <div className="flex-1 h-px bg-gray-200" />
+            <span className="mx-2 text-sm text-gray-400">Or register with</span>
+            <div className="flex-1 h-px bg-gray-200" />
           </div>
-          <div className="flex justify-center items-center gap-4">
+          <div className="flex gap-4 justify-center items-center">
             <GoogleOAuthProvider clientId="814963512618-3rs252kucgkpbdvq5hmmrb10ehkkues4.apps.googleusercontent.com">
               {/* <button
                 type="button"
-                className="flex flex-1 items-center justify-center gap-2 rounded-md border border-gray-300 bg-white py-2 font-medium text-gray-700 hover:bg-gray-50"
+                className="flex flex-1 gap-2 justify-center items-center py-2 font-medium text-gray-700 bg-white rounded-md border border-gray-300 hover:bg-gray-50"
               >
-                <img src="/googlesvg.svg" alt="Google" className="h-5 w-5" />{" "}
+                <img src="/googlesvg.svg" alt="Google" className="w-5 h-5" />{" "}
                 Google
               </button> */}
               <GoogleLogin
@@ -212,12 +220,12 @@ const NewSignUp = () => {
 
             <button
               type="button"
-              className="flex px-4 items-center justify-center gap-2 rounded-md border border-gray-300 bg-white py-2 font-medium text-gray-700 hover:bg-gray-50"
+              className="flex gap-2 justify-center items-center px-4 py-2 font-medium text-gray-700 bg-white rounded-md border border-gray-300 hover:bg-gray-50"
             >
               <img
                 src="/facebooksvg.svg"
                 alt="Facebook"
-                className="h-6 w-6 flex-shrink-0"
+                className="flex-shrink-0 w-6 h-6"
               />{" "}
               Facebook
             </button>

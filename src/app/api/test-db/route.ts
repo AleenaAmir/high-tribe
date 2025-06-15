@@ -1,36 +1,45 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/db';
 import { users } from '@/db/schema';
+import { sql } from 'drizzle-orm';
 
 export async function GET() {
     try {
-        console.log('Testing database connection...');
+        // Test database connection
+        await db.execute(sql`SELECT 1`);
+        console.log('Database connection successful');
 
-        // Try to query the users table
-        const result = await db.select().from(users).limit(1);
-        console.log('Database query successful:', result);
+        // Check if users table exists and has correct structure
+        const tableInfo = await db.execute(sql`
+            SELECT column_name, data_type, is_nullable
+            FROM information_schema.columns
+            WHERE table_name = 'users'
+            ORDER BY ordinal_position;
+        `);
+        console.log('Users table structure:', tableInfo);
+
+        // Try to count users
+        const userCount = await db.select({ count: sql<number>`count(*)` }).from(users);
+        console.log('Total users:', userCount[0].count);
 
         return NextResponse.json({
             status: 'success',
-            message: 'Database connection successful',
-            result
+            message: 'Database connection and table structure verified',
+            tableInfo,
+            userCount: userCount[0].count
         });
     } catch (error: any) {
-        console.error('Database connection test failed:', {
-            name: error.name,
+        console.error('Database test failed:', {
             message: error.message,
-            code: error.code,
-            stack: error.stack
+            stack: error.stack,
+            code: error.code
         });
 
         return NextResponse.json({
             status: 'error',
-            message: 'Database connection failed',
-            error: {
-                name: error.name,
-                message: error.message,
-                code: error.code
-            }
+            message: 'Database test failed',
+            error: error.message,
+            code: error.code
         }, { status: 500 });
     }
 } 
