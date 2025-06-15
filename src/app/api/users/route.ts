@@ -11,7 +11,7 @@ export async function GET(request: Request) {
     try {
         // Apply authentication middleware
         const authResponse = await authMiddleware(request as any);
-        if (authResponse.status !== 200) {
+        if (authResponse?.status !== 200) {
             return authResponse;
         }
 
@@ -68,7 +68,7 @@ export async function GET(request: Request) {
             ` : sql``}
         `;
         const countResult = await db.execute(countQuery);
-        const totalCount = Number(countResult[0]?.count || 0);
+        const totalCount = Number(countResult?.count);
 
         return NextResponse.json({
             users: allUsers,

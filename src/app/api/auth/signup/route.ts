@@ -3,7 +3,6 @@ import { db } from '@/db';
 import { users } from '@/db/schema';
 import { signupSchema } from '@/lib/validations/auth';
 import bcrypt from 'bcryptjs';
-import { eq } from 'drizzle-orm';
 import { generateToken } from '@/lib/jwt';
 import { sql } from 'drizzle-orm';
 
