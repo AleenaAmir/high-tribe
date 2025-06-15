@@ -10,12 +10,18 @@ if (!process.env.DATABASE_URL) {
     throw new Error('DATABASE_URL environment variable is not set');
 }
 
+// Parse the connection string
+const connectionString = process.env.DATABASE_URL;
+
 // Database connection configuration
 const DB_CONFIG = {
-    connectionString: process.env.DATABASE_URL,
-    ssl: process.env.NODE_ENV === 'production' ? {
+    connectionString,
+    ssl: {
         rejectUnauthorized: false
-    } : false
+    },
+    max: 1, // Maximum number of clients in the pool
+    idleTimeoutMillis: 30000, // How long a client is allowed to remain idle before being closed
+    connectionTimeoutMillis: 2000, // How long to wait for a connection
 };
 
 // Create a PostgreSQL connection pool
