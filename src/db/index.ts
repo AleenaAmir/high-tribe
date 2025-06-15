@@ -60,7 +60,48 @@ import 'dotenv/config'
 import { drizzle } from 'drizzle-orm/postgres-js'
 import postgres from 'postgres'
 import * as schema from './schema'
-const connectionString = process.env.DATABASE_URL || '';
-// Disable prefetch as it is not supported for "Transaction" pool mode
-export const client = postgres(connectionString, { prepare: false });
+
+if (!process.env.DATABASE_URL) {
+    throw new Error('DATABASE_URL environment variable is not set');
+}
+
+// Parse the connection string and ensure it's using the direct connection format
+let connectionString = process.env.DATABASE_URL;
+if (connectionString.includes('db.')) {
+    // Convert pooled connection to direct connection
+    connectionString = connectionString.replace('db.', 'postgres.');
+}
+
+// Database connection configuration
+const client = postgres(connectionString, {
+    ssl: {
+        rejectUnauthorized: false
+    },
+    max: 1,
+    idle_timeout: 30,
+    connect_timeout: 10,
+    prepare: false,
+    debug: true // Enable debug mode to see connection details
+});
+
+// Test the connection
+const testConnection = async () => {
+    try {
+        await client`SELECT 1`;
+        console.log('Successfully connected to database');
+    } catch (error) {
+        const err = error as Error;
+        console.error('Error connecting to the database:', {
+            message: err.message,
+            stack: err.stack,
+            connectionString: connectionString.replace(/:[^:@]*@/, ':****@') // Hide password in logs
+        });
+        throw err; // Re-throw to prevent the app from starting with a bad connection
+    }
+};
+
+// Run the connection test
+testConnection();
+
 export const db = drizzle(client, { schema });
+export { client };

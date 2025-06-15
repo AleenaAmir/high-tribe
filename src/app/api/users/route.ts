@@ -68,10 +68,10 @@ export async function GET(request: Request) {
             ` : sql``}
         `;
         const countResult = await db.execute(countQuery);
-        const totalCount = Number(countResult.rows[0].count);
+        const totalCount = Number(countResult[0]?.count || 0);
 
         return NextResponse.json({
-            users: allUsers.rows,
+            users: allUsers,
             pagination: {
                 total: totalCount,
                 page,
