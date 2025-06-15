@@ -19,9 +19,12 @@ const DB_CONFIG = {
     ssl: {
         rejectUnauthorized: false
     },
-    max: 1, // Maximum number of clients in the pool
-    idleTimeoutMillis: 30000, // How long a client is allowed to remain idle before being closed
-    connectionTimeoutMillis: 2000, // How long to wait for a connection
+    max: 1,
+    idleTimeoutMillis: 30000,
+    connectionTimeoutMillis: 2000,
+    keepAlive: true,
+    keepAliveInitialDelayMillis: 1000,
+    allowExitOnIdle: true
 };
 
 // Create a PostgreSQL connection pool
@@ -38,7 +41,8 @@ pool.connect((err, client, release) => {
     if (err) {
         console.error('Error connecting to the database:', {
             message: err.message,
-            stack: err.stack
+            stack: err.stack,
+            connectionString: connectionString.replace(/:[^:@]*@/, ':****@') // Hide password in logs
         });
         return;
     }
