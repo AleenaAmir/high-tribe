@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { db } from '@/db';
-import { users } from '@/db/schema';
+import { db } from '@/lib/db/db';
+import { users } from '@/lib/db/schema';
 import { signupSchema } from '@/lib/validations/auth';
 import bcrypt from 'bcryptjs';
 import { generateToken } from '@/lib/jwt';
@@ -76,7 +76,7 @@ export async function POST(req: Request) {
                     },
                     access_token: token
                 },
-                { status: 201 }
+                { status: 200 }
             );
         } catch (insertError: any) {
             console.error('Error creating new user:', {

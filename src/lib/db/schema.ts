@@ -1,6 +1,5 @@
 import { sql } from 'drizzle-orm';
 import { pgTable, text, timestamp, boolean } from 'drizzle-orm/pg-core';
-
 export const users = pgTable('users', {
     id: text('id').primaryKey().default(sql`gen_random_uuid()`),
     fullName: text('full_name').notNull(),
@@ -11,6 +10,5 @@ export const users = pgTable('users', {
     updatedAt: timestamp('updated_at').defaultNow(),
     agreeToTerms: boolean('agree_to_terms').notNull().default(false),
 });
-
 export type User = typeof users.$inferSelect;
-export type NewUser = typeof users.$inferInsert; 
+export type NewUser = typeof users.$inferInsert;
