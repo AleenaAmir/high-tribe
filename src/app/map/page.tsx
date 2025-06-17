@@ -4,14 +4,15 @@ import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 
 // You'll need to replace this with your actual Mapbox access token
-mapboxgl.accessToken = "YOUR_MAPBOX_ACCESS_TOKEN";
+mapboxgl.accessToken =
+  "pk.eyJ1IjoidW1lcmh1c3NhaW4iLCJhIjoiY20wZ2ZpMHYxMDA2azJqc2hkYXg5Ym1zNiJ9.ANK-VYlXWIqxisVsSNAtPQ";
 
 export default function page() {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
-  const [lng, setLng] = useState(-70.9);
-  const [lat, setLat] = useState(42.35);
-  const [zoom, setZoom] = useState(9);
+  const [lng, setLng] = useState(73.1166);
+  const [lat, setLat] = useState(31.4273);
+  const [zoom, setZoom] = useState(8);
 
   useEffect(() => {
     if (map.current) return; // initialize map only once
