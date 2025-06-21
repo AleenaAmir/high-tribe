@@ -39,7 +39,7 @@ const LoginScreen = () => {
       localStorage.setItem("token", result.access_token);
 
       // Redirect to home page or dashboard
-      router.push("/map");
+      router.push("/dashboard");
     } catch (error: any) {
       alert(
         error instanceof Error

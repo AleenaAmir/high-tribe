@@ -1,0 +1,8 @@
+.swiper-button-next-custom,
+.swiper-button-prev-custom {
+  display: flex;
+}
+
+.swiper-button-disabled {
+  display: none;
+}

@@ -72,7 +72,7 @@ const NewSignUp = () => {
       localStorage.setItem("token", result.access_token);
 
       // Redirect to home page or dashboard
-      router.push("/");
+      router.push("/dashboard");
     } catch (error: any) {
       alert(
         error instanceof Error
