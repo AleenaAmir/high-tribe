@@ -4,23 +4,23 @@ import Image from "next/image";
 
 const navItems = [
   {
-    label: "Feed",
+    label: "Home",
     icon: "/dashboard/navsvg1.svg",
+  },
+  {
+    label: "Messaging",
+    icon: "/dashboard/navsvg3.svg",
+  },
+  {
+    label: "Notifications",
+    icon: "/dashboard/navsvg6.svg",
   },
   {
     label: "Friends",
     icon: "/dashboard/navsvg2.svg",
   },
   {
-    label: "Messages",
-    icon: "/dashboard/navsvg3.svg",
-  },
-  {
-    label: "Saved Events",
-    icon: "/dashboard/navsvg4.svg",
-  },
-  {
-    label: "My Trip Boards",
+    label: "My Tribe",
     icon: "/dashboard/navsvg5.svg",
   },
 ];

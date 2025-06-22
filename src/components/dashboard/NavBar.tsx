@@ -92,11 +92,11 @@ const NavBar = ({ onMenuClick }: NavBarProps) => {
             <NavIcon
               icon="/dashboard/navsvg3.svg"
               label="Messaging"
-              notificationCount={3}
+              // notificationCount={3}
             />
-            <NavIcon icon="/dashboard/navsvg2.svg" label="Notifications" />
-            <NavIcon icon="/dashboard/navsvg4.svg" label="Friends" />
-            <NavIcon icon="/dashboard/navsvg5.svg" label="My Trip" />
+            <NavIcon icon="/dashboard/navsvg6.svg" label="Notifications" />
+            <NavIcon icon="/dashboard/navsvg2.svg" label="Friends" />
+            <NavIcon icon="/dashboard/navsvg5.svg" label="My Tribe" />
           </nav>
 
           {/* Mobile Menu Button */}

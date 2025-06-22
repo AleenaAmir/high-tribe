@@ -81,15 +81,19 @@ const ReadyToHost = () => {
               className={`
                
                 absolute p-6 rounded-2xl text-white bg-cover bg-center bg-no-repeat
-                 max-w-[390px] w-full  min-h-60 h-fit flex flex-col
+                 max-w-[300px] w-full  min-h-[180px] h-fit flex flex-col
                 transition-all duration-300 ease-in-out cursor-pointer
-                ${zIndex} ${opacity} ${transform}
+                ${zIndex}  ${transform}
               `}
             >
-              <h3 className="text-2xl font-bold max-w-[215px]">{card.title}</h3>
-              <p className=" text-[16px] max-w-[215px]">{card.description}</p>
+              <h3 className="text-[20px] font-bold max-w-[215px] leading-none">
+                {card.title}
+              </h3>
+              <p className=" text-[16px] mt-2 max-w-[215px]">
+                {card.description}
+              </p>
               {isActive && card.longText && (
-                <p className="text-xs mt-1 font-light max-w-[215px]">
+                <p className="text-[9px] font-light max-w-[215px]">
                   {card.longText}
                 </p>
               )}
