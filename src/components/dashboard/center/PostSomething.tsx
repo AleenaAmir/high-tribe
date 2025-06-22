@@ -16,6 +16,7 @@ const PostSomething = () => {
             width={38}
             height={38}
             className="w-10 h-10 rounded-full object-cover"
+            unoptimized
           />
           <input
             type="text"

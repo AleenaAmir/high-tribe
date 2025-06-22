@@ -103,6 +103,7 @@ const UserProfileMenu = () => {
           width={32}
           height={32}
           className="rounded-full object-cover"
+          unoptimized
         />
         <span className="font-medium text-gray-700">Umer Hussain</span>
         <svg

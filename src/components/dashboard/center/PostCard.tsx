@@ -199,6 +199,7 @@ export const PostCard = ({ post }: { post: Post }) => {
               width={48}
               height={48}
               className="rounded-full object-cover"
+              unoptimized
             />
             <div>
               <p className="font-bold text-gray-800">{post.user.name}</p>
@@ -267,6 +268,7 @@ export const PostCard = ({ post }: { post: Post }) => {
                         width={24}
                         height={24}
                         className="rounded-full border-2 border-white object-cover"
+                        unoptimized
                       />
                     ))}
                   </div>

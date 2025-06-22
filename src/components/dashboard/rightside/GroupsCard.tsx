@@ -42,6 +42,7 @@ const GroupsCard = () => {
               width={25}
               height={25}
               className="rounded-full border-2 border-white object-cover"
+              unoptimized
             />
           ))}
         </div>

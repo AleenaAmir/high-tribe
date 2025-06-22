@@ -76,13 +76,19 @@ const ContactsList = () => {
             key={index}
             className="flex items-center gap-4 cursor-pointer group"
           >
-            <Image
-              src={contact.avatarUrl}
-              alt={contact.name}
-              width={40}
-              height={40}
-              className="rounded-full object-cover"
-            />
+            <div className="relative">
+              <div className="w-10 h-10">
+                <Image
+                  src={contact.avatarUrl}
+                  alt={contact.name}
+                  width={40}
+                  height={40}
+                  className="rounded-full object-cover"
+                  unoptimized
+                />
+              </div>
+              <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>
+            </div>
             <p className="text-sm text-custom-gray font-semibold group-hover:text-gray-800 transition-colors">
               {contact.name}
             </p>

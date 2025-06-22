@@ -61,6 +61,7 @@ const StoriesBar = () => {
                 width={64}
                 height={64}
                 className="w-16 h-16 rounded-full object-cover"
+                unoptimized
               />
               <div className="absolute bottom-0 right-0 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-white border-2 border-white">
                 +
@@ -85,6 +86,7 @@ const StoriesBar = () => {
                     width={64}
                     height={64}
                     className="w-full h-full rounded-full object-cover"
+                    unoptimized
                   />
                 </div>
               </div>

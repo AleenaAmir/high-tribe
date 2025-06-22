@@ -59,6 +59,7 @@ const NearbyPersonCard = ({ person }: { person: Person }) => {
               width={24}
               height={24}
               className="rounded-full object-cover border-2 border-white/80"
+              unoptimized
             />
           </div>
           <div>
