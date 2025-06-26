@@ -69,7 +69,7 @@ const Home = () => {
           onClose={() => setLoginModalOpen(false)}
         />
       )}
-      {signUp && <SignupFlowManager setSignUp={setSignUp} signUp={signUp} />}
+      {signUp && <SignupFlowManager setSignUp={setSignUp} />}
     </div>
   );
 };

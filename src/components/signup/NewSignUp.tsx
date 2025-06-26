@@ -10,7 +10,7 @@ import { toast } from "react-hot-toast";
 const SignupFlowManager = ({
   setSignUp,
 }: {
-  setSignUp: (signUp: boolean) => void;
+  setSignUp?: (signUp: boolean) => void;
 }) => {
   const router = useRouter();
   const [signupData, setSignupData] = useState<SignUpForm | null>(null);
@@ -27,7 +27,7 @@ const SignupFlowManager = ({
 
   const handleFormClose = () => {
     setShowForm(false);
-    setSignUp(false); // Close the entire signup flow
+    setSignUp?.(false); // Close the entire signup flow
   };
 
   const handlePhoneModalClose = () => {
@@ -57,7 +57,7 @@ const SignupFlowManager = ({
       );
       localStorage.setItem("token", result.access_token);
       toast.success("Signup successful! Redirecting...");
-      setSignUp(false); // Close the signup flow
+      setSignUp?.(false); // Close the signup flow
       router.push("/dashboard");
     } catch (err: any) {
       toast.error(
