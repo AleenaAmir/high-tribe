@@ -57,7 +57,7 @@ const GlobalAuthModal: React.FC<GlobalAuthModalProps> = ({
           onClick={(e) => e.stopPropagation()}
         >
           <button
-            className="absolute top-2 right-2 text-gray-400 hover:text-gray-600 focus:outline-none"
+            className="absolute top-3 right-4 text-gray-400 hover:text-gray-600 focus:outline-none"
             onClick={onClose}
             aria-label="Close modal"
           >

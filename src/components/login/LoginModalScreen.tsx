@@ -14,6 +14,7 @@ import { Eye, EyeOff } from "lucide-react";
 interface LoginModalScreenProps {
   isOpen: boolean;
   onClose: () => void;
+  onSwitchToSignup?: () => void;
 }
 
 const loginSchema = z.object({
@@ -23,7 +24,11 @@ const loginSchema = z.object({
 
 type LoginForm = z.infer<typeof loginSchema>;
 
-const LoginModalScreen = ({ isOpen, onClose }: LoginModalScreenProps) => {
+const LoginModalScreen = ({
+  isOpen,
+  onClose,
+  onSwitchToSignup,
+}: LoginModalScreenProps) => {
   const router = useRouter();
   const [showResetModal, setShowResetModal] = useState(false);
   const {
@@ -80,8 +85,8 @@ const LoginModalScreen = ({ isOpen, onClose }: LoginModalScreenProps) => {
               the beauty of nature
             </div>
             <div className="text-[13px] text-[#666666] text-center mb-6 max-w-[300px]">
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi
-              lobortis maximus.
+              Connect with fellow travelers and discover amazing destinations
+              together.
             </div>
           </div>
           <form
@@ -138,9 +143,15 @@ const LoginModalScreen = ({ isOpen, onClose }: LoginModalScreenProps) => {
           </button>
           <div className="text-xs text-gray-500 mt-2 text-center">
             Don't have an account?{" "}
-            <Link href="/signup" className="font-medium hover:underline">
+            <button
+              onClick={() => {
+                onClose();
+                onSwitchToSignup?.();
+              }}
+              className="font-medium hover:underline "
+            >
               Register
-            </Link>
+            </button>
           </div>
         </div>
       </GlobalAuthModal>
@@ -258,8 +269,11 @@ const PasswordResetModal = ({
             Reset Password
           </div>
           <div className="text-[13px] text-[#666666] text-center mb-6 max-w-[300px]">
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi
-            lobortis maximus.
+            {step === 1
+              ? "Enter your email to receive a password reset link."
+              : step === 2
+              ? "Enter your new password"
+              : "Password reset successful! You can now log in with your new password."}
           </div>
         </div>
         {step === 1 && (

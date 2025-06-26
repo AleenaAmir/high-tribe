@@ -5,13 +5,12 @@ import { z } from "zod";
 import GlobalInput from "@/components/global/GlobalInput";
 import GlobalAuthModal from "@/components/global/GlobalAuthModal";
 
-import Link from "next/link";
-
 interface SignUpModalScreenProps {
   isOpen: boolean;
   onClose: () => void;
   initialValues?: Partial<SignUpForm>;
   onSubmit: (data: SignUpForm) => void;
+  onSwitchToLogin?: () => void;
 }
 
 const signUpSchema = z
@@ -43,6 +42,7 @@ const SignUpModalScreen = ({
   onClose,
   initialValues,
   onSubmit,
+  onSwitchToLogin,
 }: SignUpModalScreenProps) => {
   const {
     register,
@@ -79,8 +79,8 @@ const SignUpModalScreen = ({
             Create an Account
           </div>
           <div className="text-[13px] text-[#666666] text-center mb-6 max-w-[300px]">
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi
-            lobortis maximus.
+            Create an account to connect with fellow travelers and start your
+            journey.
           </div>
         </div>
         <form
@@ -144,9 +144,15 @@ const SignUpModalScreen = ({
 
         <div className="text-xs text-gray-500 mt-2 text-center">
           Already have an account?{" "}
-          <Link href="/login" className="font-medium hover:underline">
+          <button
+            onClick={() => {
+              handleClose();
+              onSwitchToLogin?.();
+            }}
+            className="font-medium hover:underline"
+          >
             Sign in
-          </Link>
+          </button>
         </div>
       </div>
     </GlobalAuthModal>

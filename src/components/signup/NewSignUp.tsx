@@ -9,8 +9,10 @@ import { toast } from "react-hot-toast";
 
 const SignupFlowManager = ({
   setSignUp,
+  onSwitchToLogin,
 }: {
   setSignUp?: (signUp: boolean) => void;
+  onSwitchToLogin?: () => void;
 }) => {
   const router = useRouter();
   const [signupData, setSignupData] = useState<SignUpForm | null>(null);
@@ -77,6 +79,7 @@ const SignupFlowManager = ({
         isOpen={showForm}
         onClose={handleFormClose}
         onSubmit={handleFormSubmit}
+        onSwitchToLogin={onSwitchToLogin}
       />
       <PhoneVerificationModal
         isOpen={showPhoneModal}

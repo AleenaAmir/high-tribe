@@ -57,7 +57,7 @@ const PhoneVerificationModal = ({
     control,
   } = useForm<PhoneForm>({
     resolver: zodResolver(phoneSchema),
-    mode: "onTouched",
+    mode: "onSubmit",
   });
 
   const phoneNumber = watch("phoneNumber");
@@ -124,7 +124,7 @@ const PhoneVerificationModal = ({
       toast.success("Phone verified!");
       onVerified(phoneNumber || "");
     } else {
-      toast.error("Invalid code. Try 822222");
+      toast.error("Invalid code. Try 000000");
     }
   };
 
@@ -159,12 +159,11 @@ const PhoneVerificationModal = ({
           </div>
           {step === "phone" ? (
             <div className="text-[13px] text-[#666666] text-center mb-6 max-w-[300px]">
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi
-              lobortis maximus.
+              We'll send a verification code to your phone for security.
             </div>
           ) : (
             <div className="text-[15px] text-[#666666] text-center mb-6 max-w-[320px]">
-              We need to register your phone number before getting started !
+              Enter the 6-digit code to complete your registration.
             </div>
           )}
         </div>
@@ -186,15 +185,14 @@ const PhoneVerificationModal = ({
                     onChange={field.onChange}
                     inputClass="!w-full !h-12 !pl-16 !pr-10 !text-[18px] !font-medium !text-[#181818] !rounded-md !border !border-gray-300 !bg-white !shadow-none focus:!border-blue-500 placeholder:!text-gray-400 placeholder:!font-normal"
                     buttonClass="!border-none !bg-transparent !pl-4 !pr-2 !py-0 !h-full !flex !items-center !text-[22px]"
-                    containerClass="!w-full !max-w-[340px] !bg-white !rounded-md !border !border-gray-300 !overflow-hidden !mx-auto"
-                    dropdownClass="!rounded-md !border !border-gray-200 !shadow-none !mt-1 !z-[9999]"
+                    containerClass="!w-full !max-w-[340px] !bg-white !rounded-md !border !border-gray-300 !text-left !text-black  !mx-auto"
+                    dropdownClass="!rounded-md !border !border-gray-200 !shadow-none !text-[12px] !mt-1 !z-[9999]"
                     searchClass="!py-2 !px-3 !text-base !rounded-md !border !border-gray-200 !mb-2 !shadow-none"
                     inputProps={{
                       name: "phone",
                       required: true,
                       autoFocus: true,
                     }}
-                    enableSearch
                     specialLabel=""
                     placeholder="( +44 ) 22234 123423"
                     disableDropdown={false}

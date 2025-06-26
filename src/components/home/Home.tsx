@@ -67,9 +67,21 @@ const Home = () => {
         <LoginModalScreen
           isOpen={loginModalOpen}
           onClose={() => setLoginModalOpen(false)}
+          onSwitchToSignup={() => {
+            setLoginModalOpen(false);
+            setSignUp(true);
+          }}
         />
       )}
-      {signUp && <SignupFlowManager setSignUp={setSignUp} />}
+      {signUp && (
+        <SignupFlowManager
+          setSignUp={setSignUp}
+          onSwitchToLogin={() => {
+            setSignUp(false);
+            setLoginModalOpen(true);
+          }}
+        />
+      )}
     </div>
   );
 };
