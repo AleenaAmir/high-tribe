@@ -1,4 +1,5 @@
 import ky, { Options, KyInstance } from "ky";
+import { toast } from "react-hot-toast";
 
 // You can set your API base URL here
 const apiBaseUrl =
@@ -27,9 +28,28 @@ const api = ky.create({
 // Helper for typed requests
 export async function apiRequest<T>(
   input: string,
-  options?: Options
+  options?: Options,
+  successMessage?: string
 ): Promise<T> {
-  return api(input, options).json<T>();
+  try {
+    const result = await api(input, options).json<T>();
+    if (successMessage) {
+      toast.success(successMessage);
+    }
+    return result;
+  } catch (err: any) {
+    let message = "An unexpected error occurred.";
+    if (err?.response) {
+      try {
+        const data = await err.response.json();
+        message = data?.message || data?.error || message;
+      } catch {}
+    } else if (err?.message) {
+      message = err.message;
+    }
+    toast.error(message);
+    throw err;
+  }
 }
 
 export default api;
