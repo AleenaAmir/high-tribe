@@ -3,10 +3,12 @@ import { useState } from "react";
 import NavBar from "@/components/home/NavBar";
 import LoginModalScreen from "@/components/login/LoginModalScreen";
 import SignupFlowManager from "../signup/NewSignUp";
+import PasswordResetModal from "@/components/login/PasswordResetModal";
 
 const Home = () => {
   const [loginModalOpen, setLoginModalOpen] = useState(false);
   const [signUp, setSignUp] = useState(false);
+  const [showResetModal, setShowResetModal] = useState(false);
 
   return (
     <div
@@ -71,6 +73,10 @@ const Home = () => {
             setLoginModalOpen(false);
             setSignUp(true);
           }}
+          onShowResetModal={() => {
+            setLoginModalOpen(false);
+            setShowResetModal(true);
+          }}
         />
       )}
       {signUp && (
@@ -80,6 +86,12 @@ const Home = () => {
             setSignUp(false);
             setLoginModalOpen(true);
           }}
+        />
+      )}
+      {showResetModal && (
+        <PasswordResetModal
+          isOpen={showResetModal}
+          onClose={() => setShowResetModal(false)}
         />
       )}
     </div>

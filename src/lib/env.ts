@@ -10,6 +10,7 @@ const envSchema = z.object({
   DB_NAME: z.string().min(1),
   DB_PORT: z.coerce.number().min(1),
   DATABASE_URL: z.string().min(1),
+  NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN: z.string().min(1),
   // NEXTAUTH_SECRET: z.string().min(1),
 });
 

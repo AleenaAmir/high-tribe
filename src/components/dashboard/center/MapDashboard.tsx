@@ -1,11 +1,78 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Location from "../svgs/Location";
 import Filters from "../svgs/Filters";
+import InteractiveMap, { InteractiveMapRef } from "./InteractiveMap";
 import Image from "next/image";
+
+const MAPBOX_ACCESS_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
+
+export const filtersArray = [
+  {
+    img: "/dashboard/filtersvg1.svg",
+  },
+  {
+    img: "/dashboard/filtersvg2.svg",
+  },
+  {
+    img: "/dashboard/filtersvg3.svg",
+  },
+  {
+    img: "/dashboard/filtersvg4.svg",
+  },
+  {
+    img: "/dashboard/filtersvg5.svg",
+  },
+  {
+    img: "/dashboard/filtersvg6.svg",
+  },
+  {
+    img: "/dashboard/filtersvg7.svg",
+  },
+];
 
 const MapDashboard = () => {
   const [isExplore, setIsExplore] = useState<boolean>(true);
+  const [search, setSearch] = useState("");
+  const [suggestions, setSuggestions] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const mapRef = useRef<InteractiveMapRef>(null);
+  const [isFilters, setIsFilters] = useState<boolean>(false);
+
+  // Autocomplete for search input
+  useEffect(() => {
+    if (search.length < 2) {
+      setSuggestions([]);
+      return;
+    }
+    setIsLoading(true);
+    fetch(
+      `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(
+        search
+      )}.json?access_token=${MAPBOX_ACCESS_TOKEN}&autocomplete=true&limit=5`
+    )
+      .then((res) => res.json())
+      .then((data) => {
+        setSuggestions(data.features || []);
+        setIsLoading(false);
+      });
+  }, [search]);
+
+  // Handle suggestion click
+  const handleSuggestionClick = (feature: any) => {
+    setSearch(feature.place_name);
+    setSuggestions([]);
+    setShowSuggestions(false);
+    if (feature.center && mapRef.current) {
+      mapRef.current.centerMap(
+        feature.center[0],
+        feature.center[1],
+        feature.place_name
+      );
+    }
+  };
+
   return (
     <div className="rounded-lg shadow-md">
       <div className="flex items-center justify-between gap-4 p-6 bg-white rounded-t-lg">
@@ -37,22 +104,76 @@ const MapDashboard = () => {
           </button>
         </div>
       </div>
-      <div className="flex items-center justify-between p-3 bg-[#F8F8F8] md:px-6">
-        <div className="flex items-center gap-2">
-          <div className="flex items-center px-2 py-1 gap-2 bg-white border border-gray-500 rounded-full">
+      <div className="flex items-center justify-between p-3 bg-[#F8F8F8] md:px-6 relative">
+        <div className="flex items-center gap-2 w-full  relative">
+          <div className="flex items-center px-2 py-1 gap-2 bg-white border border-gray-500 rounded-full w-full relative max-w-[250px]">
             <Location className="flex-shrink-0" />
             <input
               type="text"
-              className="outline-none"
-              placeholder="Current location"
+              className="outline-none bg-transparent text-sm w-full"
+              placeholder="Search for places..."
+              value={search}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                setShowSuggestions(true);
+              }}
+              onFocus={() => setShowSuggestions(true)}
+              autoComplete="off"
+            />
+            {isLoading && (
+              <span className="ml-2 text-xs text-gray-400">Loading...</span>
+            )}
+            {showSuggestions && suggestions.length > 0 && (
+              <div className="absolute left-0 top-10 w-full bg-white border border-gray-200 rounded-lg shadow-lg z-20 max-h-60 overflow-auto">
+                {suggestions.map((feature) => (
+                  <div
+                    key={feature.id}
+                    className="px-4 py-2 cursor-pointer hover:bg-blue-50 text-sm"
+                    onClick={() => handleSuggestionClick(feature)}
+                  >
+                    {feature.place_name}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+          <div
+            className={`flex items-center justify-center p-2 rounded-full cursor-pointer hover:shadow-lg transition-all delay-300 ${
+              isFilters
+                ? "bg-gradient-to-r from-[#D6D5D4] to-white"
+                : "bg-gradient-to-r from-[#257CFF] to-[#0F62DE]"
+            }`}
+            onClick={() => setIsFilters(!isFilters)}
+          >
+            <Filters
+              className={`${
+                isFilters ? "text-[#6C6868]" : "text-white"
+              } flex-shrink-0`}
             />
           </div>
-          <div className="flex items-center justify-center p-2 rounded-full bg-gradient-to-r from-[#257CFF] to-[#0F62DE]">
-            <Filters className="text-white flex-shrink-0" />
+          <div
+            className={`${
+              isFilters ? "max-w-full" : "max-w-0"
+            } flex items-center gap-2 transition-all w-fit delay-300 overflow-hidden`}
+          >
+            {filtersArray.map((filter, i) => (
+              <div
+                key={i}
+                className="flex items-center justify-center p-2 rounded-full cursor-pointer hover:shadow-lg border border-gray-200"
+              >
+                <Image
+                  src={filter.img}
+                  width={17}
+                  height={17}
+                  alt="svg"
+                  className="w-[17px] object-contain flex-shrink-0"
+                />
+              </div>
+            ))}
           </div>
         </div>
         <button
-          className="p-2 rounded-lg text-white border-none"
+          className="p-2 rounded-lg w-fit text-white border-none cursor-pointer hover:shadow-lg transition-shadow"
           type="button"
           style={{
             background:
@@ -75,14 +196,8 @@ const MapDashboard = () => {
           </svg>
         </button>
       </div>
-      <div>
-        <Image
-          src="/dashboard/dashboardmap.png"
-          alt="map"
-          width={1000}
-          height={1000}
-          className="w-full object-cover"
-        />
+      <div className="overflow-hidden h-fit ">
+        <InteractiveMap ref={mapRef} />
       </div>
     </div>
   );
