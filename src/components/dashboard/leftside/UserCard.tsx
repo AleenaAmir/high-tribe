@@ -37,7 +37,9 @@ const UserCard = ({
       <div className="pt-8 px-4 pb-3">
         {/* User Info */}
         <div>
-          <h3 className="font-semibold text-gray-900">{name}</h3>
+          <h3 className="font-semibold text-gray-900">
+            Good Morning {name?.split(" ")[0]}
+          </h3>
           <p className="text-xs text-gray-500">{dateRange}</p>
           <p className="text-xs text-gray-600 mt-1.5">{subtitle}</p>
         </div>

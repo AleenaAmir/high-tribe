@@ -1,4 +1,5 @@
-import React from "react";
+"use client";
+import React, { useEffect, useState } from "react";
 import UserCard from "./leftside/UserCard";
 import NavMenu from "./leftside/NavMenu";
 import FriendsList from "./leftside/FriendsList";
@@ -79,10 +80,15 @@ interface SideBarProps {
 }
 
 const SideBar = ({ onItemClick }: SideBarProps) => {
+  const [userName, setUserName] = useState<string | null>(null);
+
+  useEffect(() => {
+    setUserName(localStorage.getItem("name"));
+  }, []);
   return (
     <>
       <UserCard
-        name="Good Morning Umer"
+        name={userName || "Umer Hussain"}
         subtitle="Lorem Ipsum is simply dummy text of the printing and typesetting industry.."
         avatarUrl="https://randomuser.me/api/portraits/men/32.jpg"
         // onClick={onItemClick}

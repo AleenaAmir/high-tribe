@@ -12,6 +12,11 @@ const NavBar = ({ onMenuClick }: NavBarProps) => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const profileRef = useRef<HTMLDivElement>(null);
+  const [userName, setUserName] = useState<string | null>(null);
+
+  useEffect(() => {
+    setUserName(localStorage.getItem("name"));
+  }, []);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -147,7 +152,7 @@ const NavBar = ({ onMenuClick }: NavBarProps) => {
                 className="w-8 h-8 rounded-full object-cover"
               />
               <span className="hidden md:block text-sm font-medium">
-                Umer Hussain
+                {userName?.split(" ")[0]}
               </span>
               <svg
                 className="w-4 h-4 text-gray-600"

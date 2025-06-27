@@ -54,7 +54,8 @@ const LoginModalScreen = ({
         },
         "Login successful!"
       );
-      localStorage.setItem("token", result.access_token);
+
+      localStorage.setItem("name", result.user.fullName);
       onClose();
       router.push("/dashboard");
     } catch (error: any) {

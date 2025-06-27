@@ -57,7 +57,8 @@ const SignupFlowManager = ({
         },
         "Signup successful!"
       );
-      localStorage.setItem("token", result.access_token);
+
+      localStorage.setItem("name", result.user.fullName);
       toast.success("Signup successful! Redirecting...");
       setSignUp?.(false); // Close the signup flow
       router.push("/dashboard");

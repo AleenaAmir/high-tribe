@@ -91,6 +91,12 @@ const UserProfileMenu = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  const [userName, setUserName] = useState<string | null>(null);
+
+  useEffect(() => {
+    setUserName(localStorage.getItem("name"));
+  }, []);
+
   return (
     <div className="relative" ref={menuRef}>
       <div
@@ -105,7 +111,7 @@ const UserProfileMenu = () => {
           className="rounded-full object-cover"
           unoptimized
         />
-        <span className="font-medium text-gray-700">Umer Hussain</span>
+        <span className="font-medium text-gray-700">{userName}</span>
         <svg
           className="w-4 h-4 text-gray-500"
           fill="none"
