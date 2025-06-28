@@ -43,7 +43,7 @@ const GlobalAuthModal: React.FC<GlobalAuthModalProps> = ({
       aria-modal="true"
       role="dialog"
       tabIndex={-1}
-      // onClick={onClose}
+      onClick={onClose}
     >
       <div
         className={`rounded-[20px] bg-gradient-to-r from-[rgba(255,23,23,0.51)] via-[rgba(9,0,255,0.51)] to-[rgba(228,31,100,0.51)] p-3 max-w-[434px] w-full`}
