@@ -12,7 +12,7 @@ export function middleware(request: NextRequest) {
 
   // If there's no token and the user is trying to access a protected route
   if (!token && pathname.startsWith("/dashboard")) {
-    return NextResponse.redirect(new URL("/login", request.url));
+    return NextResponse.redirect(new URL("/", request.url));
   }
 
   // If there is a token, you might want to verify it
