@@ -99,7 +99,7 @@ const LocationTagIcon = ({ className }: { className?: string }) => (
   </svg>
 );
 
-const MoreOptionsIcon = ({ className }: { className?: string }) => (
+export const MoreOptionsIcon = ({ className }: { className?: string }) => (
   <svg
     className={className}
     width="24"
@@ -108,9 +108,9 @@ const MoreOptionsIcon = ({ className }: { className?: string }) => (
     fill="none"
     xmlns="http://www.w3.org/2000/svg"
   >
-    <circle cx="12" cy="12" r="1.5" fill="#696969"></circle>
-    <circle cx="6" cy="12" r="1.5" fill="#696969"></circle>
-    <circle cx="18" cy="12" r="1.5" fill="#696969"></circle>
+    <circle cx="12" cy="12" r="1.5" fill="currentColor"></circle>
+    <circle cx="6" cy="12" r="1.5" fill="currentColor"></circle>
+    <circle cx="18" cy="12" r="1.5" fill="currentColor"></circle>
   </svg>
 );
 

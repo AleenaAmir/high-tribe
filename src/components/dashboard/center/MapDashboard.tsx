@@ -4,6 +4,7 @@ import Location from "../svgs/Location";
 import Filters from "../svgs/Filters";
 import InteractiveMap, { InteractiveMapRef } from "./InteractiveMap";
 import Image from "next/image";
+import DestinationSvg from "../svgs/DestinationSvg";
 
 const MAPBOX_ACCESS_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
 
@@ -76,7 +77,7 @@ const MapDashboard = () => {
   return (
     <div className="rounded-lg shadow-md">
       <div className="flex items-center justify-between gap-4 p-6 bg-white rounded-t-lg">
-        <p className="md:text-[18px] text-[14px] text-[#696969]">
+        <p className="md:text-[18px] text-[14px] text-[#696969] font-roboto">
           Trip Schedule
         </p>
         <div className="flex items-center border rounded-full border-gray-100">
@@ -106,8 +107,8 @@ const MapDashboard = () => {
       </div>
       <div className="flex items-center justify-between p-3 bg-[#F8F8F8] md:px-6 relative">
         <div className="flex items-center gap-2 w-full  relative">
-          <div className="flex items-center px-2 py-1 gap-2 bg-white border border-gray-500 rounded-full w-full relative max-w-[250px]">
-            <Location className="flex-shrink-0" />
+          <div className="flex items-center px-2 py-1 group gap-2 bg-white border border-[#EEEEEE] rounded-full w-full relative max-w-[160px]">
+            <Location className="flex-shrink-0 text-[#696969] group-hover:text-[#F6691D]" />
             <input
               type="text"
               className="outline-none bg-transparent text-sm w-full"
@@ -136,6 +137,14 @@ const MapDashboard = () => {
                 ))}
               </div>
             )}
+          </div>
+          <div className="flex items-center px-2 py-1 gap-2 bg-white border border-[#EEEEEE] rounded-full w-full relative max-w-[160px]">
+            <DestinationSvg className="flex-shrink-0" />
+            <input
+              type="text"
+              className="outline-none bg-transparent text-sm w-full"
+              placeholder="Search for places..."
+            />
           </div>
           <div
             className={`flex items-center justify-center p-2 rounded-full cursor-pointer hover:shadow-lg transition-all delay-300 ${

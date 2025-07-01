@@ -15,7 +15,7 @@ const Location = ({ className }: SvgProps) => {
       className={className}
     >
       <g
-        stroke="#F6691D"
+        stroke="currentColor"
         strokeLinecap="round"
         strokeLinejoin="round"
         clipPath="url(#clip0_477_16569)"

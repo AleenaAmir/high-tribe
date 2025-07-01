@@ -7,6 +7,11 @@ export default {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        gilroy: ["var(--font-gilroy)", "sans-serif"],
+        roboto: ["var(--font-roboto)", "sans-serif"],
+        poppins: ["var(--font-poppins)", "sans-serif"],
+      },
       colors: {
         "custom-gray": "#696969",
         "gradient-start": "#257CFF",

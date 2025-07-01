@@ -1,113 +1,167 @@
 "use client";
-import React, { useState } from "react";
+import Image from "next/image";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Pagination, Autoplay } from "swiper/modules";
+import "swiper/css";
+import "swiper/css/pagination";
+import { MoreOptionsIcon } from "./PostCard";
+import React from "react";
 
-const ReadyToHost = () => {
-  const [activeCard, setActiveCard] = useState(1);
+const cardDetails = [
+  {
+    img: "/dashboard/cardbg2.png",
+    icon: "/dashboard/navsvg2.svg",
+    title: "Host an Experience",
+    description: "Share your local knowledge with travelers",
+    color: "bg-[#247CFF] text-white",
+  },
+  {
+    img: "/dashboard/cardbg3.png",
+    icon: "/dashboard/navsvg3.svg",
+    title: "Host a Stay",
+    description: "Offer your space to travelers",
+    color: "bg-[#FF9900] text-white",
+  },
+  {
+    img: "/dashboard/cardbg1.png",
+    icon: "/dashboard/navsvg1.svg",
+    title: "Host a Food Experience",
+    description: "Share your culinary skills with others",
+    color: "bg-[#22C55E] text-white",
+  },
+];
 
-  const cardDetails = [
-    {
-      id: 0,
-      bgColor: "/dashboard/cardbg1.png",
-      title: "Host an Food Experience",
-      description: "Share your culinary skills with others",
-    },
-    {
-      id: 1,
-      bgColor: "/dashboard/cardbg2.png",
-      title: "Host an Experience",
-      description: "Share your local knowledge with travelers",
-      longText:
-        "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dumm",
-      readMore: true,
-    },
-    {
-      id: 2,
-      bgColor: "/dashboard/cardbg3.png",
-      title: "Host Tours & Trips",
-      description: "Guide travelers through unique adventures",
-    },
-  ];
+const participants = [
+  { avatarUrl: "https://randomuser.me/api/portraits/men/51.jpg" },
+  { avatarUrl: "https://randomuser.me/api/portraits/women/52.jpg" },
+  { avatarUrl: "https://randomuser.me/api/portraits/men/53.jpg" },
+  { avatarUrl: "https://randomuser.me/api/portraits/women/54.jpg" },
+  { avatarUrl: "https://randomuser.me/api/portraits/men/55.jpg" },
+];
 
+const star = (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="10"
+    height="9"
+    fill="none"
+    viewBox="0 0 10 9"
+  >
+    <path
+      fill="#F28321"
+      d="m5 7.638-2.075 1.25a.45.45 0 0 1-.288.075.5.5 0 0 1-.262-.1.6.6 0 0 1-.175-.219.44.44 0 0 1-.025-.294l.55-2.362L.887 4.4a.48.48 0 0 1-.137-.537.53.53 0 0 1 .15-.225.5.5 0 0 1 .275-.113L3.6 3.313l.937-2.225a.45.45 0 0 1 .194-.225A.54.54 0 0 1 5 .788q.136 0 .268.075t.194.225L6.4 3.313l2.425.212a.5.5 0 0 1 .275.113.54.54 0 0 1 .169.506.47.47 0 0 1-.157.256L7.275 5.988l.55 2.362a.44.44 0 0 1-.025.294.6.6 0 0 1-.175.219.5.5 0 0 1-.263.1.45.45 0 0 1-.287-.075z"
+    ></path>
+  </svg>
+);
+
+export default function ReadyToHost() {
   return (
-    <div className="bg-white rounded-lg shadow-md p-6 my-4">
-      <div className="flex justify-between items-start mb-8">
-        <div>
-          <h2 className="text-xl font-bold text-gray-800">Ready to Host?</h2>
-          <p className="text-custom-gray mt-1">
+    <section className="bg-white overflow-hidden rounded-[10px] shadow-md">
+      <div className="p-4 md:p-6 flex items-center justify-between gap-4">
+        <div className="text-[#656565]">
+          <p className="text-[14px] md:text-[20px] font-semibold font-roboto">
+            Ready to Host?
+          </p>
+          <p className="text-[10px] md:text-[12px]">
             Connect with travelers by sharing what you love about your location.
           </p>
         </div>
-        <div className="flex items-center gap-4">
-          <button
-            className="text-gray-500 hover:text-gray-800 text-2xl"
-            title="More options"
-          >
-            ...
-          </button>
-          <button
-            className="text-gray-500 hover:text-gray-800 text-2xl"
-            title="Close"
-          >
-            ×
-          </button>
+        <div className="flex items-center gap-2 text-[#656565]">
+          <span className="text-sm ">
+            <MoreOptionsIcon className="hover:text-[#0F62DE]" />
+          </span>
+          <button className="text-2xl text-gray-500">&times;</button>
         </div>
       </div>
-
-      <div className="relative flex justify-center items-center h-[28rem] md:h-64">
-        {cardDetails.map((card) => {
-          const offset = card.id - activeCard;
-          const isActive = offset === 0;
-
-          let transform = "";
-          if (isActive) {
-            transform = "scale-105";
-          } else if (offset === 1 || offset === -2) {
-            transform =
-              "scale-95 translate-y-[75%] md:translate-y-0 md:translate-x-[60%]";
-          } else {
-            // offset === -1 || offset === 2
-            transform =
-              "scale-95 -translate-y-[75%] md:translate-y-0 md:-translate-x-[60%]";
-          }
-
-          const zIndex = isActive ? "z-20" : "z-10";
-          const opacity = isActive ? "opacity-100" : "opacity-70";
-
-          return (
-            <div
-              key={card.id}
-              onClick={() => setActiveCard(card.id)}
-              style={{ backgroundImage: `url(${card.bgColor})` }}
-              className={`
-               
-                absolute p-6 rounded-2xl text-white bg-cover bg-center bg-no-repeat
-                 max-w-[300px] w-full  min-h-[180px] h-fit flex flex-col
-                transition-all duration-300 ease-in-out cursor-pointer
-                ${zIndex}  ${transform}
-              `}
-            >
-              <h3 className="text-[20px] font-bold max-w-[215px] leading-none">
-                {card.title}
-              </h3>
-              <p className=" text-[16px] mt-2 max-w-[215px]">
-                {card.description}
-              </p>
-              {isActive && card.longText && (
-                <p className="text-[9px] font-light max-w-[215px]">
-                  {card.longText}
-                </p>
-              )}
-              {isActive && card.readMore && (
-                <a href="#" className="text-[10px] mt-auto underline">
-                  Read more
-                </a>
-              )}
+      <div className="grid grid-cols-1 border-t border-[#EEEEEE] lg:grid-cols-2 items-center gap-[20px] md:gap-[60px]  p-4 md:pl-10 md:py-6 md:pr-0 overflow-hidden min-h-[340px]">
+        {/* Left Side */}
+        <div className="flex flex-col justify-center h-full gap-4">
+          <div className="flex items-center gap-2 mb-2">
+            {/* Avatars */}
+            <div className="flex -space-x-2">
+              {participants.slice(0, 5).map((p, i) => (
+                <Image
+                  key={i}
+                  src={p.avatarUrl}
+                  alt={`participant ${i}`}
+                  width={32}
+                  height={32}
+                  className="rounded-full border-2 border-white object-cover"
+                  unoptimized
+                />
+              ))}
             </div>
-          );
-        })}
+            <div className="flex items-center gap-1 ml-2">
+              {[...Array(5)].map((_, i) => (
+                <span key={i}>{star}</span>
+              ))}
+            </div>
+            <span className="ml-2 text-xs text-[#888]">1000+ Happy Hosts</span>
+          </div>
+          <h2 className="text-3xl md:text-4xl font-extrabold text-[#222] mb-2 leading-tight">
+            Ready to Host?
+          </h2>
+          <p className="text-[#696969] text-base font-normal max-w-xs">
+            Connect with travelers by sharing what you love about your location.
+          </p>
+        </div>
+        {/* Right Side: Swiper Carousel */}
+        <div className="flex flex-col items-center justify-center w-full h-full relative">
+          <Swiper
+            modules={[Pagination, Autoplay]}
+            spaceBetween={24}
+            slidesPerView={1.2}
+            centeredSlides={true}
+            loop={false}
+            autoplay={{
+              delay: 3500,
+              disableOnInteraction: false,
+            }}
+            pagination={{
+              clickable: true,
+              el: ".swiper-pagination",
+              bulletClass: "swiper-pagination-bullet",
+              bulletActiveClass: "swiper-pagination-bullet-active",
+            }}
+            className="w-full max-w-[420px]"
+            style={
+              {
+                // Swiper custom properties
+                // @ts-ignore
+                "--swiper-pagination-color": "#247CFF",
+                "--swiper-pagination-bullet-inactive-color": "#D9D9D9",
+                "--swiper-pagination-bullet-inactive-opacity": "1",
+                "--swiper-pagination-bullet-size": "16px",
+                "--swiper-pagination-bullet-horizontal-gap": "8px",
+              } as React.CSSProperties
+            }
+          >
+            {cardDetails.map((card, idx) => (
+              <SwiperSlide key={idx} style={{ width: 260, maxWidth: 300 }}>
+                <div
+                  className={`rounded-[32px] flex flex-col items-center justify-center shadow-lg cursor-pointer transition-all duration-300 px-8 py-10 text-center select-none border-2 ${card.color} border-transparent z-10 min-h-[340px]`}
+                >
+                  <div className="mb-6 flex justify-center items-center">
+                    <Image
+                      src={card.icon}
+                      alt="icon"
+                      width={80}
+                      height={80}
+                      className="w-20 h-20 object-contain mx-auto"
+                    />
+                  </div>
+                  <h3 className="font-bold text-xl mb-2 text-white">
+                    {card.title}
+                  </h3>
+                  <p className="text-base text-white/90">{card.description}</p>
+                </div>
+              </SwiperSlide>
+            ))}
+          </Swiper>
+          {/* Swiper Pagination Dots */}
+          <div className="swiper-pagination lg:flex gap-2 justify-center absolute -bottom-5 hidden "></div>
+        </div>
       </div>
-    </div>
+    </section>
   );
-};
-
-export default ReadyToHost;
+}

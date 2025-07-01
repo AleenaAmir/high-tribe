@@ -1,7 +1,7 @@
 "use client";
 
 import MapDashboard from "@/components/dashboard/center/MapDashboard";
-import PostSomething from "@/components/dashboard/center/PostSomething";
+import PostFootPrint from "@/components/dashboard/center/PostFootPrint";
 import ReadyToHost from "@/components/dashboard/center/ReadyToHost";
 import StoriesBar from "@/components/dashboard/center/StoriesBar";
 import ContactsList from "@/components/dashboard/rightside/ContactsList";
@@ -27,7 +27,7 @@ const DashboardContent = () => {
       {/* Center Content */}
       <div className="lg:col-span-3 flex flex-col gap-6">
         <StoriesBar />
-        <PostSomething />
+        <PostFootPrint />
         <MapDashboard />
         <ReadyToHost />
         <UserFeed />

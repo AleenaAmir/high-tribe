@@ -39,7 +39,7 @@ const GlobalAuthModal: React.FC<GlobalAuthModalProps> = ({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/10 transition-opacity"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 transition-opacity"
       aria-modal="true"
       role="dialog"
       tabIndex={-1}

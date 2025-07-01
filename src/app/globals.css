@@ -1,7 +1,13 @@
 @import "tailwindcss";
 
+:root {
+  --font-gilroy: 'Gilroy', sans-serif;
+  --font-roboto: 'Roboto', sans-serif;
+  --font-poppins: 'Poppins', sans-serif;
+}
+
 body {
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-gilroy);
 }
 
 .border-gradient-custom {
