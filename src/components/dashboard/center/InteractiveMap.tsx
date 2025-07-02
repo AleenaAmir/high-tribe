@@ -32,6 +32,123 @@ interface MapProps {
   className?: string;
 }
 
+// --- POI ICON MAP & PLACE DETAILS UTILS (shared) ---
+const poiIconMap: Record<string, string> = {
+  restaurant:
+    '<svg width="22" height="22" viewBox="0 0 24 24" fill="#F35735"><path d="M7 2c-.55 0-1 .45-1 1v7c0 1.66 1.34 3 3 3s3-1.34 3-3V3c0-.55-.45-1-1-1s-1 .45-1 1v7c0 .55-.45 1-1 1s-1-.45-1-1V3c0-.55-.45-1-1-1zm7.5 0c-.28 0-.5.22-.5.5V10c0 2.21 1.79 4 4 4s4-1.79 4-4V2.5c0-.28-.22-.5-.5-.5s-.5.22-.5.5V10c0 1.38-1.12 2.5-2.5 2.5S17 11.38 17 10V2.5c0-.28-.22-.5-.5-.5z"/></svg>',
+  attraction:
+    '<svg width="22" height="22" viewBox="0 0 24 24" fill="#257CFF"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>',
+  park: '<svg width="22" height="22" viewBox="0 0 24 24" fill="#4CAF50"><circle cx="12" cy="12" r="10"/></svg>',
+  entertainment:
+    '<svg width="22" height="22" viewBox="0 0 24 24" fill="#A020F0"><circle cx="12" cy="12" r="10"/></svg>',
+  default:
+    '<svg width="22" height="22" viewBox="0 0 24 24" fill="#333"><circle cx="12" cy="12" r="10"/></svg>',
+};
+const getPlaceDetails = (placeName: string, category: string) => {
+  const foodSpots = {
+    "Joe's Pizza": {
+      type: "🍕 Famous Pizza Joint",
+      rating: "4.8/5",
+      price: "$$",
+      hours: "11 AM - 11 PM",
+      description:
+        "Best pizza in NYC since 1975. Famous for their classic Margherita and pepperoni slices.",
+      image:
+        "https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=300&h=200&fit=crop",
+      popular: "Margherita Pizza, Pepperoni Slice",
+    },
+    "Katz's Delicatessen": {
+      type: "🥪 Iconic Deli",
+      rating: "4.6/5",
+      price: "$$$",
+      hours: "8 AM - 10:45 PM",
+      description:
+        "Famous Jewish deli known for pastrami sandwiches. Featured in 'When Harry Met Sally'.",
+      image:
+        "https://images.unsplash.com/photo-1551504734-5ee1c4a1479b?w=300&h=200&fit=crop",
+      popular: "Pastrami Sandwich, Matzo Ball Soup",
+    },
+    "Magnolia Bakery": {
+      type: "🧁 Famous Bakery",
+      rating: "4.4/5",
+      price: "$$",
+      hours: "8 AM - 9 PM",
+      description:
+        "Iconic bakery famous for cupcakes and banana pudding. A must-visit dessert spot.",
+      image:
+        "https://images.unsplash.com/photo-1551024506-0bccd828d307?w=300&h=200&fit=crop",
+      popular: "Vanilla Cupcakes, Banana Pudding",
+    },
+  };
+
+  const attractions = {
+    "Empire State Building": {
+      type: "🏢 Iconic Skyscraper",
+      rating: "4.5/5",
+      price: "$28",
+      hours: "8 AM - 2 AM",
+      description:
+        "Art Deco masterpiece offering stunning 360° views of NYC from the 86th floor observatory.",
+      image:
+        "https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?w=300&h=200&fit=crop",
+      popular: "86th Floor Observatory, Sunset Views",
+    },
+    "Central Park": {
+      type: "🌳 Urban Oasis",
+      rating: "4.8/5",
+      price: "Free",
+      hours: "6 AM - 10 PM",
+      description:
+        "843-acre park in the heart of Manhattan. Perfect for walking, biking, and outdoor activities.",
+      image:
+        "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=300&h=200&fit=crop",
+      popular: "Bethesda Fountain, Bow Bridge",
+    },
+  };
+
+  const events = {
+    "Broadway Show": {
+      type: "🎭 Live Theater",
+      rating: "4.9/5",
+      price: "$80-200",
+      hours: "Varies by show",
+      description:
+        "Experience world-class theater on Broadway. From musicals to dramas, there's something for everyone.",
+      image:
+        "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=200&fit=crop",
+      popular: "Hamilton, Wicked, The Lion King",
+    },
+  };
+
+  // Return appropriate data based on place name or category
+  if (foodSpots[placeName as keyof typeof foodSpots]) {
+    return foodSpots[placeName as keyof typeof foodSpots];
+  } else if (attractions[placeName as keyof typeof attractions]) {
+    return attractions[placeName as keyof typeof attractions];
+  } else if (events[placeName as keyof typeof events]) {
+    return events[placeName as keyof typeof events];
+  } else {
+    // Default data for unknown places
+    return {
+      type:
+        category === "restaurant"
+          ? "🍽️ Local Restaurant"
+          : category === "museum"
+          ? "🏛️ Museum"
+          : category === "park"
+          ? "🌳 Park"
+          : "📍 Point of Interest",
+      rating: "4.2/5",
+      price: "$$",
+      hours: "9 AM - 6 PM",
+      description: `A great ${category || "place"} to visit in the area.`,
+      image:
+        "https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=300&h=200&fit=crop",
+      popular: "Local favorites",
+    };
+  }
+};
+
 const InteractiveMap = forwardRef<InteractiveMapRef, MapProps>(
   ({ className = "" }, ref) => {
     const mapContainer = useRef<HTMLDivElement>(null);
@@ -229,31 +346,31 @@ const InteractiveMap = forwardRef<InteractiveMapRef, MapProps>(
         footprints.forEach((footprint) => {
           const markerEl = document.createElement("div");
           markerEl.className = "footprint-marker";
-          markerEl.style.width = "40px";
-          markerEl.style.height = "40px";
+          markerEl.style.width = "44px";
+          markerEl.style.height = "44px";
           markerEl.style.borderRadius = "50%";
-          markerEl.style.background =
-            "linear-gradient(135deg, #257CFF, #0F62DE)";
-          markerEl.style.border = "3px solid white";
-          markerEl.style.boxShadow = "0 4px 12px rgba(37, 124, 255, 0.3)";
+          markerEl.style.background = "#fff";
+          markerEl.style.border = "3px solid #257CFF";
+          markerEl.style.boxShadow = "0 2px 8px rgba(37, 124, 255, 0.18)";
           markerEl.style.cursor = "pointer";
           markerEl.style.display = "flex";
           markerEl.style.alignItems = "center";
           markerEl.style.justifyContent = "center";
           markerEl.style.position = "relative";
-          markerEl.style.transition = "all 0.3s ease";
+
           if (footprint.userAvatar) {
             const avatar = document.createElement("img");
             avatar.src = footprint.userAvatar;
-            avatar.style.width = "32px";
-            avatar.style.height = "32px";
+            avatar.style.width = "36px";
+            avatar.style.height = "36px";
             avatar.style.borderRadius = "50%";
             avatar.style.objectFit = "cover";
+            avatar.style.border = "2px solid #fff";
             markerEl.appendChild(avatar);
           } else {
             markerEl.innerHTML = `
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="white">
-              <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="#257CFF">
+              <circle cx="12" cy="12" r="12"/>
             </svg>
           `;
           }
@@ -298,14 +415,135 @@ const InteractiveMap = forwardRef<InteractiveMapRef, MapProps>(
             .setPopup(popup)
             .addTo(map.current!);
           markerEl.addEventListener("mouseenter", () => {
-            markerEl.style.transform = "scale(1.15) translateY(-2px)";
             markerEl.style.boxShadow = "0 6px 20px rgba(37, 124, 255, 0.4)";
           });
           markerEl.addEventListener("mouseleave", () => {
-            markerEl.style.transform = "scale(1) translateY(0)";
             markerEl.style.boxShadow = "0 4px 12px rgba(37, 124, 255, 0.3)";
           });
         });
+
+        // Add initial POI markers with dummy data
+        const initialPOIs = [
+          {
+            name: "Joe's Pizza",
+            coordinates: [-73.9855, 40.758] as [number, number],
+            category: "restaurant",
+          },
+          {
+            name: "Empire State Building",
+            coordinates: [-73.9857, 40.7484] as [number, number],
+            category: "attraction",
+          },
+          {
+            name: "Central Park",
+            coordinates: [-73.9654, 40.7829] as [number, number],
+            category: "park",
+          },
+          {
+            name: "Katz's Delicatessen",
+            coordinates: [-73.9911, 40.7223] as [number, number],
+            category: "restaurant",
+          },
+          {
+            name: "Magnolia Bakery",
+            coordinates: [-74.006, 40.7421] as [number, number],
+            category: "restaurant",
+          },
+          {
+            name: "Broadway Show",
+            coordinates: [-73.9877, 40.7505] as [number, number],
+            category: "entertainment",
+          },
+        ];
+
+        initialPOIs.forEach((poi) => {
+          const poiMarker = document.createElement("div");
+          poiMarker.className = "poi-marker";
+          poiMarker.style.width = "44px";
+          poiMarker.style.height = "44px";
+          poiMarker.style.borderRadius = "50%";
+          poiMarker.style.background = "#fff";
+          poiMarker.style.border = `3px solid ${
+            poi.category === "restaurant"
+              ? "#F35735"
+              : poi.category === "attraction"
+              ? "#257CFF"
+              : poi.category === "park"
+              ? "#4CAF50"
+              : poi.category === "entertainment"
+              ? "#A020F0"
+              : "#333"
+          }`;
+          poiMarker.style.boxShadow = "0 2px 8px rgba(0,0,0,0.18)";
+          poiMarker.style.display = "flex";
+          poiMarker.style.alignItems = "center";
+          poiMarker.style.justifyContent = "center";
+          poiMarker.style.cursor = "pointer";
+          poiMarker.innerHTML = poiIconMap[poi.category] || poiIconMap.default;
+          const placeDetails = getPlaceDetails(poi.name, poi.category);
+
+          // --- POI POPUP STYLE ---
+          const poiPopup = new mapboxgl.Popup({
+            offset: 15,
+            maxWidth: "340px",
+            className: "poi-popup",
+          }).setHTML(`
+            <div style="display: flex; height: 150px; min-width: 320px; max-width: 340px; background: #fff; border-radius: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.13); overflow: hidden;">
+              <div style="flex: 0 0 150px; height: 150px; overflow: hidden; position: relative;">
+                <img src="${placeDetails.image}" alt="${
+            poi.name
+          }" style="width: 100%; height: 100%; object-fit: cover; border-radius: 16px 0 0 16px;" />
+                <div style="position: absolute; top: 8px; left: 8px; background: rgba(0,0,0,0.7); color: #fff; padding: 2px 8px; border-radius: 8px; font-size: 12px; font-weight: 600;">${
+                  placeDetails.rating
+                }</div>
+              </div>
+              <div style="flex: 1; padding: 14px 16px 14px 12px; display: flex; flex-direction: column; justify-content: space-between; min-width: 0; overflow: hidden;">
+                <div style="display: flex; align-items: flex-start; justify-content: space-between;">
+                  <div style="display: flex; align-items: center; gap: 8px; min-width: 0;">
+                    <span style="font-size: 20px; flex-shrink: 0;">${
+                      placeDetails.type.split(" ")[0]
+                    }</span>
+                    <span style="font-size: 15px; font-weight: 700; color: #222; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 120px; display: inline-block;">${
+                      poi.name
+                    }</span>
+                  </div>
+                  <div style="display: flex; gap: 6px; align-items: center; flex-shrink: 0;">
+                    <span style="font-size: 15px; color: #257CFF;">★</span>
+                    <span style="font-size: 13px; color: #666;">${
+                      placeDetails.rating
+                    }</span>
+                  </div>
+                </div>
+                <div style="font-size: 12px; color: #888; margin: 2px 0 4px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">New York, NY</div>
+                <div style="font-size: 12px; color: #444; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${
+                  placeDetails.description
+                }</div>
+                <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                  <span style="background: #f0f8ff; color: #257CFF; padding: 2px 8px; border-radius: 8px; font-size: 11px; font-weight: 500; white-space: nowrap;">💰 ${
+                    placeDetails.price
+                  }</span>
+                  <span style="background: #fff3cd; color: #856404; padding: 2px 8px; border-radius: 8px; font-size: 11px; font-weight: 500; white-space: nowrap;">🕒 ${
+                    placeDetails.hours
+                  }</span>
+                  <span style="background: #f8f9fa; color: #666; padding: 2px 8px; border-radius: 8px; font-size: 11px; font-weight: 500; white-space: nowrap;">${
+                    placeDetails.popular
+                  }</span>
+                </div>
+              </div>
+            </div>
+          `);
+          const marker = new mapboxgl.Marker(poiMarker)
+            .setLngLat(poi.coordinates)
+            .setPopup(poiPopup)
+            .addTo(map.current!);
+          poiMarker.addEventListener("mouseenter", () => {
+            poiMarker.style.boxShadow = "0 3px 10px rgba(243, 87, 53, 0.4)";
+          });
+          poiMarker.addEventListener("mouseleave", () => {
+            poiMarker.style.boxShadow = "0 2px 6px rgba(243, 87, 53, 0.3)";
+          });
+        });
+
         setIsLoading(false);
       });
       return () => {
@@ -334,27 +572,81 @@ const InteractiveMap = forwardRef<InteractiveMapRef, MapProps>(
           data.features.forEach((poi: any) => {
             const poiMarker = document.createElement("div");
             poiMarker.className = "poi-marker";
-            poiMarker.style.width = "16px";
-            poiMarker.style.height = "16px";
+            poiMarker.style.width = "44px";
+            poiMarker.style.height = "44px";
             poiMarker.style.borderRadius = "50%";
-            poiMarker.style.background = "#F35735";
-            poiMarker.style.border = "2px solid white";
-            poiMarker.style.boxShadow = "0 2px 6px rgba(243, 87, 53, 0.3)";
+            poiMarker.style.background = "#fff";
+            poiMarker.style.border = `3px solid ${
+              poi.properties?.category === "restaurant"
+                ? "#F35735"
+                : poi.properties?.category === "attraction"
+                ? "#257CFF"
+                : poi.properties?.category === "park"
+                ? "#4CAF50"
+                : poi.properties?.category === "entertainment"
+                ? "#A020F0"
+                : "#333"
+            }`;
+            poiMarker.style.boxShadow = "0 2px 8px rgba(0,0,0,0.18)";
+            poiMarker.style.display = "flex";
+            poiMarker.style.alignItems = "center";
+            poiMarker.style.justifyContent = "center";
             poiMarker.style.cursor = "pointer";
-            poiMarker.style.transition = "all 0.2s ease";
-            const poiPopup = new mapboxgl.Popup({ offset: 15 }).setHTML(`
-              <div style="min-width: 200px;">
-                <h4 style="font-size: 14px; font-weight: 600; margin: 0 0 4px 0; color: #333;">${
-                  poi.text
-                }</h4>
-                <p style="font-size: 12px; color: #666; margin: 0; line-height: 1.3;">${
-                  poi.properties?.address || poi.place_name
-                }</p>
-                ${
-                  poi.properties?.category
-                    ? `<div style=\"margin-top: 6px;\"><span style=\"background: #f0f0f0; color: #666; padding: 2px 6px; border-radius: 8px; font-size: 10px;\">${poi.properties.category}</span></div>`
-                    : ""
-                }
+            poiMarker.innerHTML =
+              poiIconMap[poi.properties?.category] || poiIconMap.default;
+
+            const placeDetails = getPlaceDetails(
+              poi.text,
+              poi.properties?.category
+            );
+
+            const poiPopup = new mapboxgl.Popup({
+              offset: 15,
+              maxWidth: "340px",
+              className: "poi-popup",
+            }).setHTML(`
+              <div style="display: flex; height: 150px; min-width: 320px; max-width: 340px; background: #fff; border-radius: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.13); overflow: hidden;">
+                <div style="flex: 0 0 150px; height: 150px; overflow: hidden; position: relative;">
+                  <img src="${placeDetails.image}" alt="${
+              poi.text
+            }" style="width: 100%; height: 100%; object-fit: cover; border-radius: 16px 0 0 16px;" />
+                  <div style="position: absolute; top: 8px; left: 8px; background: rgba(0,0,0,0.7); color: #fff; padding: 2px 8px; border-radius: 8px; font-size: 12px; font-weight: 600;">${
+                    placeDetails.rating
+                  }</div>
+                </div>
+                <div style="flex: 1; padding: 14px 16px 14px 12px; display: flex; flex-direction: column; justify-content: space-between; min-width: 0; overflow: hidden;">
+                  <div style="display: flex; align-items: flex-start; justify-content: space-between;">
+                    <div style="display: flex; align-items: center; gap: 8px; min-width: 0;">
+                      <span style="font-size: 20px; flex-shrink: 0;">${
+                        placeDetails.type.split(" ")[0]
+                      }</span>
+                      <span style="font-size: 15px; font-weight: 700; color: #222; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 120px; display: inline-block;">${
+                        poi.text
+                      }</span>
+                    </div>
+                    <div style="display: flex; gap: 6px; align-items: center; flex-shrink: 0;">
+                      <span style="font-size: 15px; color: #257CFF;">★</span>
+                      <span style="font-size: 13px; color: #666;">${
+                        placeDetails.rating
+                      }</span>
+                    </div>
+                  </div>
+                  <div style="font-size: 12px; color: #888; margin: 2px 0 4px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">New York, NY</div>
+                  <div style="font-size: 12px; color: #444; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${
+                    placeDetails.description
+                  }</div>
+                  <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                    <span style="background: #f0f8ff; color: #257CFF; padding: 2px 8px; border-radius: 8px; font-size: 11px; font-weight: 500; white-space: nowrap;">💰 ${
+                      placeDetails.price
+                    }</span>
+                    <span style="background: #fff3cd; color: #856404; padding: 2px 8px; border-radius: 8px; font-size: 11px; font-weight: 500; white-space: nowrap;">🕒 ${
+                      placeDetails.hours
+                    }</span>
+                    <span style="background: #f8f9fa; color: #666; padding: 2px 8px; border-radius: 8px; font-size: 11px; font-weight: 500; white-space: nowrap;">${
+                      placeDetails.popular
+                    }</span>
+                  </div>
+                </div>
               </div>
             `);
             const marker = new mapboxgl.Marker(poiMarker)
@@ -362,11 +654,9 @@ const InteractiveMap = forwardRef<InteractiveMapRef, MapProps>(
               .setPopup(poiPopup)
               .addTo(map.current!);
             poiMarker.addEventListener("mouseenter", () => {
-              poiMarker.style.transform = "scale(1.2)";
               poiMarker.style.boxShadow = "0 3px 10px rgba(243, 87, 53, 0.4)";
             });
             poiMarker.addEventListener("mouseleave", () => {
-              poiMarker.style.transform = "scale(1)";
               poiMarker.style.boxShadow = "0 2px 6px rgba(243, 87, 53, 0.3)";
             });
             newMarkers.push(marker);
@@ -397,6 +687,12 @@ const InteractiveMap = forwardRef<InteractiveMapRef, MapProps>(
           style={{ minHeight: "400px" }}
         />
         <style jsx global>{`
+          .footprint-marker {
+            transition: box-shadow 0.2s;
+          }
+          .poi-marker {
+            transition: box-shadow 0.2s;
+          }
           .footprint-popup .mapboxgl-popup-content {
             padding: 0;
             border-radius: 16px;
@@ -405,6 +701,18 @@ const InteractiveMap = forwardRef<InteractiveMapRef, MapProps>(
             overflow: hidden;
           }
           .footprint-popup .mapboxgl-popup-tip {
+            border-top-color: white;
+          }
+          .poi-popup .mapboxgl-popup-content {
+            padding: 0;
+            border-radius: 16px;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+            border: none;
+            overflow: hidden;
+            min-width: 320px;
+            max-width: 340px;
+          }
+          .poi-popup .mapboxgl-popup-tip {
             border-top-color: white;
           }
           .mapboxgl-ctrl-group {

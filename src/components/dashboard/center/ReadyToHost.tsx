@@ -91,12 +91,16 @@ export default function ReadyToHost() {
                 />
               ))}
             </div>
-            <div className="flex items-center gap-1 ml-2">
-              {[...Array(5)].map((_, i) => (
-                <span key={i}>{star}</span>
-              ))}
+            <div className="flex items-center gap-2 flex-wrap">
+              <div className="flex items-center gap-1 ml-2">
+                {[...Array(5)].map((_, i) => (
+                  <span key={i}>{star}</span>
+                ))}
+              </div>
+              <span className="ml-2 text-xs text-[#888]">
+                1000+ Happy Hosts
+              </span>
             </div>
-            <span className="ml-2 text-xs text-[#888]">1000+ Happy Hosts</span>
           </div>
           <h2 className="text-3xl md:text-4xl font-extrabold text-[#222] mb-2 leading-tight">
             Ready to Host?
@@ -123,7 +127,7 @@ export default function ReadyToHost() {
               bulletClass: "swiper-pagination-bullet",
               bulletActiveClass: "swiper-pagination-bullet-active",
             }}
-            className="w-full max-w-[420px]"
+            className="w-full md:min-w-[420px] max-w-[430px]"
             style={
               {
                 // Swiper custom properties
