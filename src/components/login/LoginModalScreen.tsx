@@ -7,10 +7,10 @@ import GlobalInput from "@/components/global/GlobalInput";
 import GlobalAuthModal from "@/components/global/GlobalAuthModal";
 import PhoneVerificationModal from "@/components/signup/PhoneVerificationModal";
 import { apiRequest } from "@/lib/api";
-import Link from "next/link";
+
 import { toast } from "react-hot-toast";
-import { useState, useRef, useEffect } from "react";
-import { Eye, EyeOff } from "lucide-react";
+import { useState, useRef } from "react";
+
 import { GoogleOAuthProvider, GoogleLogin } from "@react-oauth/google";
 
 interface LoginModalScreenProps {
@@ -52,18 +52,18 @@ const LoginModalScreen = ({
   const onSubmit = async (data: LoginForm) => {
     try {
       const result = await apiRequest<any>(
-        "/api/auth/login",
+        "login",
         {
           method: "POST",
-          json: {
+          body: JSON.stringify({
             email: data.email,
             password: data.password,
-          },
+          }),
         },
         "Login successful!"
       );
 
-      localStorage.setItem("name", result.user.fullName);
+      localStorage.setItem("name", result?.user?.fullName);
       onClose();
       router.push("/dashboard");
     } catch (error: any) {
@@ -79,7 +79,7 @@ const LoginModalScreen = ({
     try {
       console.log("Google OAuth success:", credentialResponse);
 
-      const result = await apiRequest<any>("/api/auth/google", {
+      const result = await apiRequest<any>("login", {
         method: "POST",
         json: {
           credential: credentialResponse.credential,

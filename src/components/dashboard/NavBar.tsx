@@ -297,17 +297,17 @@ const NavIcon = ({
   notificationCount?: number;
 }) => (
   <button
-    className={`relative flex flex-col items-center ${
-      isActive ? "text-blue-600" : "text-gray-700"
+    className={`relative flex group cursor-pointer flex-col items-center ${
+      isActive ? "text-blue-600" : "text-[#6C6C6C] hover:text-blue-600"
     }`}
   >
     <div className="p-1.5 relative">
       <Image
         src={icon}
         alt={label}
-        width={24}
-        height={24}
-        className="w-6 h-6"
+        width={19}
+        height={19}
+        className="w-5 h-5"
       />
       {notificationCount && (
         <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-xs font-medium rounded-full flex items-center justify-center">
@@ -315,10 +315,13 @@ const NavIcon = ({
         </span>
       )}
     </div>
-    <span className="text-xs font-medium mt-0.5">{label}</span>
-    {isActive && (
-      <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600 transform translate-y-2" />
-    )}
+    <span className="text-[8px] font-medium mt-0.5">{label}</span>
+
+    <div
+      className={`absolute bottom-0 left-0 right-0 h-0.5 transition-all duration-300  transform translate-y-2 ${
+        isActive ? "bg-blue-600" : "bg-transparent group-hover:bg-blue-600"
+      }`}
+    />
   </button>
 );
 

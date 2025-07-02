@@ -81,30 +81,30 @@ const EventsCard = () => {
           className="object-cover"
         />
       </div>
-      <div className="p-6">
-        <div className="flex justify-between items-center text-sm text-custom-gray mb-4">
-          <span className="flex items-center gap-2">
+      <div className="px-2 py-4">
+        <div className="flex justify-between items-center text-[12px] text-[#696969] mb-4">
+          <span className="flex items-center gap-1">
             <CalendarIcon />
             {event.time}
           </span>
-          <span className="flex items-center gap-2">
+          <span className="flex items-center gap-1">
             <LocationPinIcon />
             {event.location}
           </span>
         </div>
-        <h3 className="font-bold text-lg text-gray-800">{event.title}</h3>
-        <p className="text-sm text-custom-gray mt-2">{event.description}</p>
-        <div className="flex flex-wrap justify-center gap-2 my-4">
+        <h3 className="text-[15px] text-[#5E5E5E]">{event.title}</h3>
+        <p className="text-[12px] text-[#959595] ">{event.description}</p>
+        <div className="flex flex-wrap justify-center gap-2 mt-3">
           {event.tags.map((tag) => (
             <span
               key={tag}
-              className="bg-[#414141] text-white text-xs font-semibold px-3 py-1.5 rounded-md"
+              className="bg-[#414141] text-white text-[8px]  px-2 py-1 rounded-md"
             >
               {tag}
             </span>
           ))}
         </div>
-        <button className="w-full bg-gradient-to-r from-[#257CFF] to-[#0F62DE] text-white font-bold py-3 rounded-lg hover:opacity-90 transition-opacity">
+        <button className="w-full bg-gradient-to-r mt-6 from-[#257CFF] to-[#0F62DE] text-white font-bold py-3 rounded-lg hover:opacity-90 transition-opacity">
           Join Events
         </button>
       </div>

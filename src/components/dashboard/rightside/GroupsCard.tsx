@@ -32,7 +32,7 @@ const GroupsCard = () => {
           </button>
         </div>
       </div>
-      <div className="p-4 flex items-center gap-3">
+      <div className="p-2 flex items-center gap-3">
         <div className="flex -space-x-3">
           {joinedFriends.slice(0, 4).map((friend, i) => (
             <Image
@@ -46,7 +46,7 @@ const GroupsCard = () => {
             />
           ))}
         </div>
-        <p className="text-[12px] text-custom-gray">
+        <p className="text-[10px] text-[#696969] text-left">
           <span className="font-bold text-gray-800">Josh</span> And{" "}
           {joinedFriends.length - 1} Friends Joined Group
         </p>

@@ -9,7 +9,7 @@ const FindPeopleCard = () => {
         <br />
         Message
       </h2>
-      <button className="mt-4 bg-gray-800 text-white px-8 py-3 rounded-lg text-sm font-bold hover:bg-gray-900 transition-colors">
+      <button className="mt-4 bg-gray-800 text-white px-8 py-3 rounded-lg text-[12px] font-bold hover:bg-gray-900 transition-colors">
         Start your 7 days free trial
       </button>
     </div>

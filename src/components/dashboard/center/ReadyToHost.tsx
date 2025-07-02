@@ -9,22 +9,22 @@ import React from "react";
 
 const cardDetails = [
   {
-    img: "/dashboard/cardbg2.png",
-    icon: "/dashboard/navsvg2.svg",
+    img: "/dashboard/cardbgblue.png",
+    icon: "/dashboard/cardicon1.svg",
     title: "Host an Experience",
     description: "Share your local knowledge with travelers",
     color: "bg-[#247CFF] text-white",
   },
   {
-    img: "/dashboard/cardbg3.png",
-    icon: "/dashboard/navsvg3.svg",
+    img: "/dashboard/cardbgorange.png",
+    icon: "/dashboard/cardicon2.svg",
     title: "Host a Stay",
     description: "Offer your space to travelers",
     color: "bg-[#FF9900] text-white",
   },
   {
-    img: "/dashboard/cardbg1.png",
-    icon: "/dashboard/navsvg1.svg",
+    img: "/dashboard/cardbg3.png",
+    icon: "/dashboard/navsvg5.svg",
     title: "Host a Food Experience",
     description: "Share your culinary skills with others",
     color: "bg-[#22C55E] text-white",
@@ -109,10 +109,10 @@ export default function ReadyToHost() {
         <div className="flex flex-col items-center justify-center w-full h-full relative">
           <Swiper
             modules={[Pagination, Autoplay]}
-            spaceBetween={24}
-            slidesPerView={1.2}
-            centeredSlides={true}
-            loop={false}
+            spaceBetween={10}
+            slidesPerView={1.5}
+            centeredSlides={false}
+            loop={true}
             autoplay={{
               delay: 3500,
               disableOnInteraction: false,
@@ -137,23 +137,28 @@ export default function ReadyToHost() {
             }
           >
             {cardDetails.map((card, idx) => (
-              <SwiperSlide key={idx} style={{ width: 260, maxWidth: 300 }}>
+              <SwiperSlide key={idx} style={{ width: 260, maxWidth: 360 }}>
                 <div
-                  className={`rounded-[32px] flex flex-col items-center justify-center shadow-lg cursor-pointer transition-all duration-300 px-8 py-10 text-center select-none border-2 ${card.color} border-transparent z-10 min-h-[340px]`}
+                  style={{
+                    backgroundImage: `url(${card.img})`,
+                  }}
+                  className={`rounded-[32px] min-w-[225px] bg-cover bg-center bg-no-repeat flex flex-col items-center justify-end  cursor-pointer transition-all duration-300  p-4 py-8 text-center select-none border-2  border-transparent z-10 min-h-[340px]`}
                 >
-                  <div className="mb-6 flex justify-center items-center">
+                  <div className="mb-10 flex justify-center items-center">
                     <Image
                       src={card.icon}
                       alt="icon"
-                      width={80}
-                      height={80}
-                      className="w-20 h-20 object-contain mx-auto"
+                      width={130}
+                      height={130}
+                      className="h-32 w-auto object-contain mx-auto"
                     />
                   </div>
-                  <h3 className="font-bold text-xl mb-2 text-white">
+                  <h3 className="font-bold text-[14px] md:text-[18px] mb-2 text-white">
                     {card.title}
                   </h3>
-                  <p className="text-base text-white/90">{card.description}</p>
+                  <p className="md:text-[14px] text-[12px] text-white">
+                    {card.description}
+                  </p>
                 </div>
               </SwiperSlide>
             ))}

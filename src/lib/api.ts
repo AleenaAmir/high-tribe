@@ -2,14 +2,10 @@ import ky, { Options, KyInstance } from "ky";
 import { toast } from "react-hot-toast";
 
 // You can set your API base URL here
-const apiBaseUrl =
-  typeof window === "undefined" ? process.env.NEXT_PUBLIC_API_URL || "" : "";
+const apiBaseUrl = "https://high-tribe-backend.hiconsolutions.com/api/";
 
 const api = ky.create({
   prefixUrl: apiBaseUrl,
-  headers: {
-    "Content-Type": "application/json",
-  },
   hooks: {
     beforeRequest: [
       (request) => {
@@ -19,6 +15,14 @@ const api = ky.create({
           if (token) {
             request.headers.set("Authorization", `Bearer ${token}`);
           }
+        }
+        
+        // Set Content-Type to application/json only if not sending FormData
+        if (!(request.body instanceof FormData)) {
+          request.headers.set("Content-Type", "application/json");
+        }
+        if (request.body instanceof FormData) {
+          request.headers.set("Content-Type", "multipart/form-data");
         }
       },
     ],

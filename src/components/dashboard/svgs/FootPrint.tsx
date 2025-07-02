@@ -2,10 +2,9 @@ import React from "react";
 
 type SvgProps = {
   className?: string;
-  fill?: string;
 };
 
-const FootPrint = ({ className, fill }: SvgProps) => {
+const FootPrint = ({ className }: SvgProps) => {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"

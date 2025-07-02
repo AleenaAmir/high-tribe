@@ -16,6 +16,7 @@ const SignupFlowManager = ({
 }) => {
   const router = useRouter();
   const [signupData, setSignupData] = useState<SignUpForm | null>(null);
+  const [phoneNumber, setPhoneNumber] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(true);
@@ -41,19 +42,36 @@ const SignupFlowManager = ({
     setShowPhoneModal(false);
     setLoading(true);
     setError(null);
+    setPhoneNumber(verifiedPhone);
+
+    // Check if signupData exists
+    if (!signupData) {
+      toast.error("Signup data is missing. Please try again.");
+      setShowForm(true);
+      setShowPhoneModal(false);
+      setLoading(false);
+      return;
+    }
+
     try {
+      const body = {
+        name: signupData.fullName,
+        username: signupData.username,
+        email: signupData.email,
+        date_of_birth: signupData.dateOfBirth,
+        phone: verifiedPhone,
+        password: signupData.password,
+        password_confirmation: signupData.confirmPassword,
+      };
+
       const result = await apiRequest<any>(
-        "/api/auth/signup",
+        "register",
         {
           method: "POST",
-          json: {
-            fullName: signupData?.fullName,
-            email: signupData?.email,
-            password: signupData?.password,
-            confirmPassword: signupData?.confirmPassword,
-            agreeToTerms: signupData?.agreeToTerms,
-            phoneNumber: verifiedPhone,
+          headers: {
+            "Content-Type": "application/json",
           },
+          body: JSON.stringify(body),
         },
         "Signup successful!"
       );
@@ -63,12 +81,37 @@ const SignupFlowManager = ({
       setSignUp?.(false); // Close the signup flow
       router.push("/dashboard");
     } catch (err: any) {
-      toast.error(
-        err instanceof Error ? err.message : "An error occurred during sign up"
-      );
-      setShowForm(true);
-      setShowPhoneModal(false);
-      setSignupData(null);
+      // Handle specific username already used error
+      if (err.message && err.message.toLowerCase().includes("username")) {
+        toast.error(
+          "Username is already taken. Please choose a different username."
+        );
+
+        setShowForm(true);
+        setShowPhoneModal(false);
+        setSignupData(null);
+      } else if (err.message && err.message.toLowerCase().includes("email")) {
+        toast.error("Email is already used. Please choose a different email.");
+        setShowForm(true);
+        setShowPhoneModal(false);
+        setSignupData(null);
+      } else if (err.message && err.message.toLowerCase().includes("phone")) {
+        toast.error(
+          "Phone number is already used. Please choose a different phone number."
+        );
+        setShowForm(false);
+        setShowPhoneModal(true);
+        setSignupData(null);
+      } else {
+        toast.error(
+          err instanceof Error
+            ? err.message
+            : "An error occurred during sign up"
+        );
+        setShowForm(true);
+        setShowPhoneModal(false);
+        setSignupData(null);
+      }
     } finally {
       setLoading(false);
     }

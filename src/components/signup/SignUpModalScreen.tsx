@@ -16,7 +16,24 @@ interface SignUpModalScreenProps {
 const signUpSchema = z
   .object({
     fullName: z.string().min(2, "Full name is required"),
+    username: z
+      .string()
+      .min(3, "Username must be at least 3 characters")
+      .max(20, "Username must not exceed 20 characters")
+      .regex(
+        /^[a-zA-Z0-9_]+$/,
+        "Username can only contain letters, numbers, and underscores"
+      )
+      .regex(/^[a-zA-Z]/, "Username must start with a letter"),
     email: z.string().email("Please enter a valid email address"),
+    dateOfBirth: z
+      .string()
+      .min(1, "Date of birth is required")
+      .refine((date) => {
+        const birthDate = new Date(date);
+        const today = new Date();
+        return birthDate <= today;
+      }, "Date of birth cannot be in the future"),
     password: z
       .string()
       .min(8, "Password must be at least 8 characters")
@@ -93,10 +110,21 @@ const SignUpModalScreen = ({
             error={errors.fullName?.message}
           />
           <GlobalInput
+            placeholder="Username"
+            {...register("username")}
+            error={errors.username?.message}
+          />
+          <GlobalInput
             placeholder="Email address"
             type="email"
             {...register("email")}
             error={errors.email?.message}
+          />
+          <GlobalInput
+            placeholder="Date of Birth"
+            type="date"
+            {...register("dateOfBirth")}
+            error={errors.dateOfBirth?.message}
           />
           <div className="relative">
             <GlobalInput
@@ -151,7 +179,7 @@ const SignUpModalScreen = ({
             }}
             className="font-medium hover:underline"
           >
-            Sign in
+            Login
           </button>
         </div>
       </div>

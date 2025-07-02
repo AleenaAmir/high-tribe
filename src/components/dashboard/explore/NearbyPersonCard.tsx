@@ -72,12 +72,12 @@ const NearbyPersonCard = ({ person }: { person: Person }) => {
         </div>
 
         {/* Bottom Actions */}
-        <div className="flex items-center gap-1 justify-between mb-1">
-          <button className="flex items-center gap-0.5 hover:underline text-[8px]">
+        <div className="flex items-center gap-1 justify-between mb-1 text-left">
+          <button className="flex items-center gap-0.5 hover:underline text-[6px]">
             <ChatIcon />
             Request to chat
           </button>
-          <button className="flex items-center gap-0.5 hover:underline text-[8px]">
+          <button className="flex items-center gap-0.5 hover:underline text-[6px]">
             <FollowIcon />
             Follow
           </button>
