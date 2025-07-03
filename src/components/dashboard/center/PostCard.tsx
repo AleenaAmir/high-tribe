@@ -6,6 +6,10 @@ import LocationSmall from "../svgs/LocationSmall";
 // --- TYPE DEFINITIONS ---
 export type Post = {
   id: string;
+  isTravelAdvisory?: boolean;
+  travelAdvisoryHead?: string;
+  travelAdvisoryContent?: string;
+  tags?: string[];
   user: {
     name: string;
     avatarUrl: string;
@@ -119,54 +123,203 @@ const ImageGrid = ({ images }: { images: { url: string }[] }) => {
   const count = images.length;
   if (count === 0) return null;
 
-  const renderImage = (src: string, className: string, altIndex: number) => (
-    <div className={`relative ${className}`}>
+  // State to store image dimensions
+  const [imageDimensions, setImageDimensions] = React.useState<
+    Array<{ width: number; height: number; aspectRatio: number }>
+  >([]);
+  const [loadedImages, setLoadedImages] = React.useState(0);
+
+  // Load image dimensions
+  React.useEffect(() => {
+    if (images.length === 0) return;
+
+    const loadImageDimensions = async () => {
+      const dimensions = await Promise.all(
+        images.map((image) => {
+          return new Promise<{
+            width: number;
+            height: number;
+            aspectRatio: number;
+          }>((resolve) => {
+            const img = new window.Image();
+            img.onload = () => {
+              const aspectRatio = img.width / img.height;
+              resolve({ width: img.width, height: img.height, aspectRatio });
+            };
+            img.onerror = () => {
+              // Fallback to square aspect ratio if image fails to load
+              resolve({ width: 1, height: 1, aspectRatio: 1 });
+            };
+            img.src = image.url;
+          });
+        })
+      );
+      setImageDimensions(dimensions);
+    };
+
+    loadImageDimensions();
+  }, [images]);
+
+  // Type definitions for layout
+  type LayoutType =
+    | { type: "single"; aspectRatio: number }
+    | { type: "two-column"; aspectRatio: string }
+    | { type: "three-layout"; firstPortrait: boolean }
+    | { type: "grid-2x2" }
+    | { type: "smart-grid"; columns: number };
+
+  // Determine optimal layout based on image count and aspect ratios
+  const getLayout = (): LayoutType => {
+    if (count === 1) {
+      const aspectRatio = imageDimensions[0]?.aspectRatio || 4 / 3;
+      return {
+        type: "single",
+        aspectRatio: Math.min(Math.max(aspectRatio, 0.5), 2.5), // Clamp between 0.5 and 2.5
+      };
+    }
+
+    if (count === 2) {
+      const avgAspectRatio =
+        imageDimensions.reduce((sum, dim) => sum + dim.aspectRatio, 0) / count;
+      return {
+        type: "two-column",
+        aspectRatio: avgAspectRatio > 1.5 ? "16/9" : "4/3",
+      };
+    }
+
+    if (count === 3) {
+      const firstAspectRatio = imageDimensions[0]?.aspectRatio || 1;
+      const isFirstPortrait = firstAspectRatio < 1;
+
+      return {
+        type: "three-layout",
+        firstPortrait: isFirstPortrait,
+      };
+    }
+
+    if (count === 4) {
+      return { type: "grid-2x2" };
+    }
+
+    // For 5+ images, use a smart grid layout
+    return {
+      type: "smart-grid",
+      columns: count <= 6 ? 3 : 4,
+    };
+  };
+
+  const renderImage = (
+    src: string,
+    className: string,
+    altIndex: number,
+    customAspectRatio?: string
+  ) => (
+    <div
+      className={`relative ${className}`}
+      style={customAspectRatio ? { aspectRatio: customAspectRatio } : undefined}
+    >
       <Image
         src={src}
         alt={`Post image ${altIndex + 1}`}
         layout="fill"
         className="object-cover"
+        onLoad={() => setLoadedImages((prev) => prev + 1)}
       />
     </div>
   );
 
-  if (count === 1)
+  const layout = getLayout();
+
+  // Single image layout
+  if (layout.type === "single") {
     return (
-      <div className="mt-4 aspect-[4/3] relative rounded-lg overflow-hidden">
+      <div
+        className="mt-4 relative rounded-lg overflow-hidden"
+        style={{ aspectRatio: layout.aspectRatio }}
+      >
         {renderImage(images[0].url, "w-full h-full", 0)}
       </div>
     );
-  if (count === 2)
+  }
+
+  // Two images layout
+  if (layout.type === "two-column") {
     return (
-      <div className="mt-4 grid grid-cols-2 gap-1 aspect-[4/3] rounded-lg overflow-hidden">
+      <div
+        className={`mt-4 grid grid-cols-2 gap-1 rounded-lg overflow-hidden`}
+        style={{ aspectRatio: layout.aspectRatio }}
+      >
         {renderImage(images[0].url, "", 0)}
         {renderImage(images[1].url, "", 1)}
       </div>
     );
-  if (count === 3)
-    return (
-      <div className="mt-4 grid grid-cols-2 grid-rows-2 gap-1 aspect-[4/3] rounded-lg overflow-hidden">
-        {renderImage(images[0].url, "row-span-2", 0)}
-        {renderImage(images[1].url, "", 1)}
-        {renderImage(images[2].url, "", 2)}
-      </div>
-    );
-  if (count >= 4)
-    return (
-      <div className="mt-4 grid grid-cols-2 grid-rows-2 gap-1 aspect-[4/3] rounded-lg overflow-hidden">
-        {renderImage(images[0].url, "", 0)}
-        {renderImage(images[1].url, "", 1)}
-        {renderImage(images[2].url, "", 2)}
-        <div className="relative">
-          {renderImage(images[3].url, "w-full h-full", 3)}
-          {count > 4 && (
-            <div className="absolute inset-0 bg-black/50 flex justify-center items-center text-white text-2xl font-bold">
-              +{count - 4}
-            </div>
-          )}
+  }
+
+  // Three images layout
+  if (layout.type === "three-layout") {
+    if (layout.firstPortrait) {
+      return (
+        <div className="mt-4 grid grid-cols-3 gap-1 aspect-[16/9] rounded-lg overflow-hidden">
+          {renderImage(images[0].url, "row-span-2", 0)}
+          {renderImage(images[1].url, "", 1)}
+          {renderImage(images[2].url, "", 2)}
         </div>
+      );
+    } else {
+      return (
+        <div className="mt-4 grid grid-cols-2 grid-rows-2 gap-1 aspect-[4/3] rounded-lg overflow-hidden">
+          {renderImage(images[0].url, "col-span-2", 0)}
+          {renderImage(images[1].url, "", 1)}
+          {renderImage(images[2].url, "", 2)}
+        </div>
+      );
+    }
+  }
+
+  // Four images grid
+  if (layout.type === "grid-2x2") {
+    return (
+      <div className="mt-4 grid grid-cols-2 grid-rows-2 gap-1 aspect-square rounded-lg overflow-hidden">
+        {images
+          .slice(0, 4)
+          .map((image, index) => renderImage(image.url, "", index))}
       </div>
     );
+  }
+
+  // Smart grid for 5+ images
+  if (layout.type === "smart-grid") {
+    const gridCols = layout.columns;
+    const gridRows = Math.ceil(count / gridCols);
+
+    return (
+      <div
+        className={`mt-4 grid gap-1 rounded-lg overflow-hidden`}
+        style={{
+          gridTemplateColumns: `repeat(${gridCols}, 1fr)`,
+          gridTemplateRows: `repeat(${gridRows}, 1fr)`,
+          aspectRatio: gridCols === 3 ? "4/3" : "16/9",
+        }}
+      >
+        {images.map((image, index) => {
+          const isLastImage = index === gridCols * gridRows - 1;
+          const remainingCount = count - gridCols * gridRows;
+
+          return (
+            <div key={index} className="relative">
+              {renderImage(image.url, "w-full h-full", index)}
+              {isLastImage && remainingCount > 0 && (
+                <div className="absolute inset-0 bg-black/50 flex justify-center items-center text-white text-lg font-bold">
+                  +{remainingCount}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    );
+  }
+
   return null;
 };
 
@@ -226,8 +379,16 @@ export const PostCard = ({ post }: { post: Post }) => {
 
         {/* Post Body */}
         <div className="mt-4">
-          {post.content && (
-            <p className="text-[#959595] text-[12px]">{post.content}</p>
+          {post?.content && (
+            <p
+              className={`${
+                post?.media
+                  ? "text-[#959595] text-[12px]"
+                  : "text-black text-[35px] font-medium"
+              }`}
+            >
+              {post.content}
+            </p>
           )}
 
           {post.isTripBoard && post.tripDetails?.tags && (
@@ -246,6 +407,19 @@ export const PostCard = ({ post }: { post: Post }) => {
 
           {post.media && <ImageGrid images={post.media} />}
         </div>
+
+        {post?.tags && (
+          <div className="flex flex-wrap gap-2 my-2">
+            {post?.tags.map((tag, i) => (
+              <span
+                key={i}
+                className="border rounded-full px-2 py-1 cursor-pointer border-[#E1E1E1] text-[#696969] text-[11px] bg-white hover:bg-[#E1E1E1] transition-all duration-200"
+              >
+                {tag}
+              </span>
+            ))}
+          </div>
+        )}
 
         {/* Post Footer */}
         <div className="mt-4">

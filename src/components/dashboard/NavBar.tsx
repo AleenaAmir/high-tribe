@@ -2,6 +2,9 @@
 import Image from "next/image";
 import React, { useState, useEffect, useRef } from "react";
 import NavMenu from "./leftside/NavMenu";
+import { apiRequest, removeTokenCookie } from "@/lib/api";
+import { useRouter } from "next/navigation";
+import { toast } from "react-hot-toast";
 
 interface NavBarProps {
   onMenuClick: () => void;
@@ -13,6 +16,7 @@ const NavBar = ({ onMenuClick }: NavBarProps) => {
   const menuRef = useRef<HTMLDivElement>(null);
   const profileRef = useRef<HTMLDivElement>(null);
   const [userName, setUserName] = useState<string | null>(null);
+  const router = useRouter();
 
   useEffect(() => {
     setUserName(localStorage.getItem("name"));
@@ -36,6 +40,20 @@ const NavBar = ({ onMenuClick }: NavBarProps) => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
+
+  const handleLogout = async () => {
+    try {
+      await apiRequest("logout", { method: "POST" });
+      localStorage.removeItem("token");
+      localStorage.removeItem("name");
+      removeTokenCookie();
+      toast.success("Logged out successfully!");
+      router.push("/");
+    } catch (error) {
+      toast.error("Logout failed. Please try again.");
+      console.error("Logout error:", error);
+    }
+  };
 
   return (
     <div className="sticky top-0 lg:z-50 z-40 bg-white ">
@@ -244,8 +262,11 @@ const NavBar = ({ onMenuClick }: NavBarProps) => {
                   </svg>
                   Help & Support
                 </button>
-                <div className="border-t border-gray-100 mt-1 pt-1">
-                  <button className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-gray-50 flex items-center gap-2">
+                <div className="border-t border-gray-100  pt-1S">
+                  <button
+                    className="w-full cursor-pointer px-4 py-2 text-left text-sm text-red-600 hover:bg-gray-50 flex items-center gap-2"
+                    onClick={handleLogout}
+                  >
                     <svg
                       className="w-4 h-4"
                       fill="none"

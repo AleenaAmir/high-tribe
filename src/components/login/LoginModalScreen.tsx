@@ -6,7 +6,7 @@ import { z } from "zod";
 import GlobalInput from "@/components/global/GlobalInput";
 import GlobalAuthModal from "@/components/global/GlobalAuthModal";
 import PhoneVerificationModal from "@/components/signup/PhoneVerificationModal";
-import { apiRequest } from "@/lib/api";
+import { apiRequest, setTokenCookie } from "@/lib/api";
 
 import { toast } from "react-hot-toast";
 import { useState, useRef } from "react";
@@ -63,6 +63,13 @@ const LoginModalScreen = ({
       if (result && result.user && (result.user.name || result.user.fullName)) {
         const userName = result.user.name || result.user.fullName;
         localStorage.setItem("name", userName);
+
+        // Store token in localStorage and cookie
+        if (result.token) {
+          localStorage.setItem("token", result.token);
+          setTokenCookie(result.token);
+        }
+
         toast.success("Welcome back! 🎉");
         onClose();
         router.push("/dashboard");
@@ -100,8 +107,11 @@ const LoginModalScreen = ({
       const userName = result.user.name || result.user.fullName;
       localStorage.setItem("name", userName);
 
-      // Note: JWT token is automatically set as httpOnly cookie by the API
-      // No need to manually store it in localStorage
+      // Store token in localStorage and cookie
+      if (result.token) {
+        localStorage.setItem("token", result.token);
+        setTokenCookie(result.token);
+      }
 
       toast.success("Welcome back! 🎉");
       onClose();
@@ -130,6 +140,12 @@ const LoginModalScreen = ({
       // Store user info in localStorage
       const userName = result.user.name || result.user.fullName;
       localStorage.setItem("name", userName);
+
+      // Store token in localStorage and cookie
+      if (result.token) {
+        localStorage.setItem("token", result.token);
+        setTokenCookie(result.token);
+      }
 
       toast.success("Account created successfully! Welcome to High Tribe! 🎉");
       setShowPhoneModal(false);

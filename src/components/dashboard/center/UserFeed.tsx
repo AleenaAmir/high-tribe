@@ -48,26 +48,9 @@ const dummyPosts: Post[] = [
     },
     timestamp: "8 hours ago",
     location: "Barcelona, Spain",
-    content:
-      "Lorem ipsum dolor sit amet consectetur. Venenatis in ligula tempus et diam vel viverra et. Nunc habitiant moecenas at magna pulvinar velit.",
-    media: [
-      {
-        type: "image",
-        url: "https://picsum.photos/seed/post2-1/800/800",
-      },
-      {
-        type: "image",
-        url: "https://picsum.photos/seed/post2-2/800/800",
-      },
-      {
-        type: "image",
-        url: "https://picsum.photos/seed/post2-3/800/800",
-      },
-      {
-        type: "image",
-        url: "https://picsum.photos/seed/post2-4/800/800",
-      },
-    ],
+    content: "Its very hot today?",
+    tags: ["🏛️ Cultural Exploration", "🛍️ Shopping Spree", "🌺 Relaxing Parks"],
+
     love: 750,
     likes: 254,
     comments: 4,
@@ -80,6 +63,7 @@ const dummyPosts: Post[] = [
   },
   {
     id: "3",
+    isTravelAdvisory: true,
     user: {
       name: "Sarah Parker",
       avatarUrl: "https://randomuser.me/api/portraits/women/32.jpg",

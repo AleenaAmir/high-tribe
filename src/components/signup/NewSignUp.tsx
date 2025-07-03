@@ -1,6 +1,6 @@
 "use client";
 
-import { apiRequest, getErrorMessage } from "@/lib/api";
+import { apiRequest, getErrorMessage, setTokenCookie } from "@/lib/api";
 import SignUpModalScreen, { SignUpForm } from "./SignUpModalScreen";
 import PhoneVerificationModal from "./PhoneVerificationModal";
 import { useState } from "react";
@@ -76,6 +76,13 @@ const SignupFlowManager = ({
       if (result && result.user && (result.user.name || result.user.fullName)) {
         const userName = result.user.name || result.user.fullName;
         localStorage.setItem("name", userName);
+
+        // Store token in localStorage and cookie if it exists in the response
+        if (result.token) {
+          localStorage.setItem("token", result.token);
+          setTokenCookie(result.token);
+        }
+
         toast.success(
           "Account created successfully! Welcome to High Tribe! 🎉"
         );

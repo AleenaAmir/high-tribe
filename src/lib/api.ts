@@ -187,4 +187,17 @@ export function getErrorMessage(error: any, context?: string): string {
   return error?.message || "An unexpected error occurred. Please try again.";
 }
 
+// Utility function to set token cookie
+export function setTokenCookie(token: string) {
+  const maxAge = 60 * 60 * 24 * 7; // 1 week
+  const secure = process.env.NODE_ENV === 'production';
+  const cookieValue = `token=${token}; path=/; max-age=${maxAge}; SameSite=Strict${secure ? '; Secure' : ''}`;
+  document.cookie = cookieValue;
+}
+
+// Utility function to remove token cookie
+export function removeTokenCookie() {
+  document.cookie = 'token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+}
+
 export default api;

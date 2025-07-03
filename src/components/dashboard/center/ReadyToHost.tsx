@@ -9,25 +9,13 @@ import React from "react";
 
 const cardDetails = [
   {
-    img: "/dashboard/cardbgblue.png",
-    icon: "/dashboard/cardicon1.svg",
-    title: "Host an Experience",
-    description: "Share your local knowledge with travelers",
-    color: "bg-[#247CFF] text-white",
+    img: "/dashboard/cardbgblue.svg",
   },
   {
-    img: "/dashboard/cardbgorange.png",
-    icon: "/dashboard/cardicon2.svg",
-    title: "Host a Stay",
-    description: "Offer your space to travelers",
-    color: "bg-[#FF9900] text-white",
+    img: "/dashboard/cardbgorange.svg",
   },
   {
-    img: "/dashboard/cardbg3.png",
-    icon: "/dashboard/navsvg5.svg",
-    title: "Host a Food Experience",
-    description: "Share your culinary skills with others",
-    color: "bg-[#22C55E] text-white",
+    img: "/dashboard/cardbgyellow.svg",
   },
 ];
 
@@ -73,10 +61,10 @@ export default function ReadyToHost() {
           <button className="text-2xl text-gray-500">&times;</button>
         </div>
       </div>
-      <div className="grid grid-cols-1 border-t border-[#EEEEEE] lg:grid-cols-2 items-center gap-[20px] md:gap-[60px]  p-4 md:pl-10 md:py-6 md:pr-0 overflow-hidden min-h-[340px]">
+      <div className="grid grid-cols-1 border-t border-[#EEEEEE] lg:grid-cols-2 items-center gap-[20px] md:gap-[60px]  p-4 md:pl-10 md:py-6 md:pr-0 overflow-hidden ">
         {/* Left Side */}
-        <div className="flex flex-col justify-center h-full gap-4">
-          <div className="flex items-center gap-2 mb-2">
+        <div className="flex flex-col justify-center h-full ">
+          <div className="flex items-center gap-2">
             {/* Avatars */}
             <div className="flex -space-x-2">
               {participants.slice(0, 5).map((p, i) => (
@@ -127,7 +115,7 @@ export default function ReadyToHost() {
               bulletClass: "swiper-pagination-bullet",
               bulletActiveClass: "swiper-pagination-bullet-active",
             }}
-            className="w-full md:min-w-[420px] max-w-[430px]"
+            className="w-full md:min-w-[330px] max-w-[330px]"
             style={
               {
                 // Swiper custom properties
@@ -141,29 +129,17 @@ export default function ReadyToHost() {
             }
           >
             {cardDetails.map((card, idx) => (
-              <SwiperSlide key={idx} style={{ width: 260, maxWidth: 360 }}>
-                <div
-                  style={{
-                    backgroundImage: `url(${card.img})`,
-                  }}
-                  className={`rounded-[32px] min-w-[225px] bg-cover bg-center bg-no-repeat flex flex-col items-center justify-end  cursor-pointer transition-all duration-300  p-4 py-8 text-center select-none border-2  border-transparent z-10 min-h-[340px]`}
-                >
-                  <div className="mb-10 flex justify-center items-center">
-                    <Image
-                      src={card.icon}
-                      alt="icon"
-                      width={130}
-                      height={130}
-                      className="h-32 w-auto object-contain mx-auto"
-                    />
-                  </div>
-                  <h3 className="font-bold text-[14px] md:text-[18px] mb-2 text-white">
-                    {card.title}
-                  </h3>
-                  <p className="md:text-[14px] text-[12px] text-white">
-                    {card.description}
-                  </p>
-                </div>
+              <SwiperSlide
+                key={idx}
+                style={{ width: 230, maxWidth: 360, height: 230 }}
+              >
+                <Image
+                  src={card.img}
+                  height={200}
+                  width={205}
+                  alt="Image"
+                  className="object-contain min-w-[210px]"
+                />
               </SwiperSlide>
             ))}
           </Swiper>
