@@ -1,6 +1,6 @@
 "use client";
 
-import { apiRequest } from "@/lib/api";
+import { apiRequest, getErrorMessage } from "@/lib/api";
 import SignUpModalScreen, { SignUpForm } from "./SignUpModalScreen";
 import PhoneVerificationModal from "./PhoneVerificationModal";
 import { useState } from "react";
@@ -64,54 +64,45 @@ const SignupFlowManager = ({
         password_confirmation: signupData.confirmPassword,
       };
 
-      const result = await apiRequest<any>(
-        "register",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(body),
+      const result = await apiRequest<any>("register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
         },
-        "Signup successful!"
-      );
+        body: JSON.stringify(body),
+      });
 
-      localStorage.setItem("name", result.user.fullName);
-      toast.success("Signup successful! Redirecting...");
-      setSignUp?.(false); // Close the signup flow
-      router.push("/dashboard");
+      // Validate the response
+      if (result && result.user && (result.user.name || result.user.fullName)) {
+        const userName = result.user.name || result.user.fullName;
+        localStorage.setItem("name", userName);
+        toast.success(
+          "Account created successfully! Welcome to High Tribe! 🎉"
+        );
+        setSignUp?.(false); // Close the signup flow
+        router.push("/dashboard");
+      } else {
+        throw new Error("Invalid response from server");
+      }
     } catch (err: any) {
-      // Handle specific username already used error
-      if (err.message && err.message.toLowerCase().includes("username")) {
-        toast.error(
-          "Username is already taken. Please choose a different username."
-        );
+      console.error("Signup error:", err);
 
-        setShowForm(true);
-        setShowPhoneModal(false);
-        setSignupData(null);
-      } else if (err.message && err.message.toLowerCase().includes("email")) {
-        toast.error("Email is already used. Please choose a different email.");
-        setShowForm(true);
-        setShowPhoneModal(false);
-        setSignupData(null);
-      } else if (err.message && err.message.toLowerCase().includes("phone")) {
-        toast.error(
-          "Phone number is already used. Please choose a different phone number."
-        );
+      // Get user-friendly error message
+      const errorMessage = getErrorMessage(err, "signup");
+      toast.error(errorMessage);
+
+      // Handle specific error types for UI state management
+      if (err.message && err.message.toLowerCase().includes("phone")) {
+        // Keep phone modal open for phone-related errors
         setShowForm(false);
         setShowPhoneModal(true);
-        setSignupData(null);
       } else {
-        toast.error(
-          err instanceof Error
-            ? err.message
-            : "An error occurred during sign up"
-        );
+        // Go back to form for other errors
         setShowForm(true);
         setShowPhoneModal(false);
-        setSignupData(null);
       }
+
+      setSignupData(null);
     } finally {
       setLoading(false);
     }

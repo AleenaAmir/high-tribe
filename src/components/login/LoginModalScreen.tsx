@@ -51,27 +51,29 @@ const LoginModalScreen = ({
 
   const onSubmit = async (data: LoginForm) => {
     try {
-      const result = await apiRequest<any>(
-        "login",
-        {
-          method: "POST",
-          body: JSON.stringify({
-            email: data.email,
-            password: data.password,
-          }),
-        },
-        "Login successful!"
-      );
+      const result = await apiRequest<any>("login", {
+        method: "POST",
+        body: JSON.stringify({
+          email: data.email,
+          password: data.password,
+        }),
+      });
 
-      localStorage.setItem("name", result?.user?.fullName);
-      onClose();
-      router.push("/dashboard");
+      // Only proceed if we have a valid result with user data
+      if (result && result.user && (result.user.name || result.user.fullName)) {
+        const userName = result.user.name || result.user.fullName;
+        localStorage.setItem("name", userName);
+        toast.success("Welcome back! 🎉");
+        onClose();
+        router.push("/dashboard");
+      } else {
+        throw new Error("Invalid response from server");
+      }
     } catch (error: any) {
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : "An error occurred during login"
-      );
+      // Don't show toast here as apiRequest already shows it
+      console.error("Login error:", error);
+      // Don't proceed with navigation - stay on login page
+      return;
     }
   };
 
@@ -95,12 +97,13 @@ const LoginModalScreen = ({
       }
 
       // Store user info in localStorage
-      localStorage.setItem("name", result.user.fullName);
+      const userName = result.user.name || result.user.fullName;
+      localStorage.setItem("name", userName);
 
       // Note: JWT token is automatically set as httpOnly cookie by the API
       // No need to manually store it in localStorage
 
-      toast.success("Google login successful!");
+      toast.success("Welcome back! 🎉");
       onClose();
       router.push("/dashboard");
     } catch (error: any) {
@@ -125,9 +128,10 @@ const LoginModalScreen = ({
       });
 
       // Store user info in localStorage
-      localStorage.setItem("name", result.user.fullName);
+      const userName = result.user.name || result.user.fullName;
+      localStorage.setItem("name", userName);
 
-      toast.success("Account created successfully!");
+      toast.success("Account created successfully! Welcome to High Tribe! 🎉");
       setShowPhoneModal(false);
       onClose();
       router.push("/dashboard");
