@@ -9,8 +9,9 @@ import EventsCard from "@/components/dashboard/rightside/EventsCard";
 import FindPeopleCard from "@/components/dashboard/rightside/FindPeopleCard";
 import GroupsCard from "@/components/dashboard/rightside/GroupsCard";
 import YourGroups from "@/components/dashboard/rightside/YourGroups";
-import React from "react";
+import React, { useState } from "react";
 import dynamic from "next/dynamic";
+import MainJourney from "@/components/dashboard/modals/journey/MainJourney";
 
 const UserFeed = dynamic(
   () => import("@/components/dashboard/center/UserFeed"),
@@ -22,12 +23,13 @@ const NearbyPeopleGrid = dynamic(
 );
 
 const DashboardContent = () => {
+  const [journyMap, setJournyMap] = useState<boolean>(false);
   return (
     <div className="p-6 grid grid-cols-1 lg:grid-cols-4 gap-6">
       {/* Center Content */}
       <div className="lg:col-span-3 flex flex-col gap-6">
         <StoriesBar />
-        <PostFootPrint />
+        <PostFootPrint setJournyMap={setJournyMap} />
         <MapDashboard />
         <ReadyToHost />
         <UserFeed />
@@ -44,6 +46,7 @@ const DashboardContent = () => {
           <ContactsList />
         </div>
       </div>
+      <MainJourney journyMap={journyMap} setJournyMap={setJournyMap} />
     </div>
   );
 };

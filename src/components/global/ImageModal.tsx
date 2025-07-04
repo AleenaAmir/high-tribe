@@ -55,21 +55,25 @@ const ImageModal: React.FC<ImageModalProps> = ({
     if (!isOpen || !images[currentIndex]) return;
 
     setIsLoading(true);
-    const img = new window.Image();
-    img.onload = () => {
-      const aspectRatio = img.width / img.height;
-      setImageDimensions({
-        width: img.width,
-        height: img.height,
-        aspectRatio,
-      });
-      setIsLoading(false);
-    };
-    img.onerror = () => {
-      setImageDimensions({ width: 1, height: 1, aspectRatio: 1 });
-      setIsLoading(false);
-    };
-    img.src = images[currentIndex].url;
+
+    // Only run on client
+    if (typeof window !== "undefined") {
+      const img = new window.Image();
+      img.onload = () => {
+        const aspectRatio = img.width / img.height;
+        setImageDimensions({
+          width: img.width,
+          height: img.height,
+          aspectRatio,
+        });
+        setIsLoading(false);
+      };
+      img.onerror = () => {
+        setImageDimensions({ width: 1, height: 1, aspectRatio: 1 });
+        setIsLoading(false);
+      };
+      img.src = images[currentIndex].url;
+    }
   }, [currentIndex, images, isOpen]);
 
   // Prevent body scroll when modal is open

@@ -5,7 +5,7 @@ import { Pagination, Autoplay } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/pagination";
 import { MoreOptionsIcon } from "./PostCard";
-import React from "react";
+import React, { useEffect, useState } from "react";
 
 const cardDetails = [
   {
@@ -42,7 +42,18 @@ const star = (
   </svg>
 );
 
-export default function ReadyToHost() {
+const ReadyToHost: React.FC = () => {
+  const [slidesPerView, setSlidesPerView] = useState(1.5);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setSlidesPerView(window.innerWidth < 1024 ? 3 : 1.5);
+    };
+    handleResize(); // Set initial value
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   return (
     <section className="bg-white overflow-hidden rounded-[10px] shadow-md">
       <div className="p-4 md:p-6 flex items-center justify-between gap-4">
@@ -102,7 +113,7 @@ export default function ReadyToHost() {
           <Swiper
             modules={[Pagination, Autoplay]}
             spaceBetween={10}
-            slidesPerView={window.innerWidth < 1024 ? 3 : 1.5}
+            slidesPerView={slidesPerView}
             centeredSlides={false}
             loop={true}
             autoplay={{
@@ -150,4 +161,6 @@ export default function ReadyToHost() {
       </div>
     </section>
   );
-}
+};
+
+export default ReadyToHost;

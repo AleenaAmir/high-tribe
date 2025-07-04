@@ -3,7 +3,11 @@ import React from "react";
 import FootPrint from "../svgs/FootPrint";
 import { MoreOptionsIcon } from "./PostCard";
 
-const PostFootPrint = () => {
+const PostFootPrint = ({
+  setJournyMap,
+}: {
+  setJournyMap: (value: boolean) => void;
+}) => {
   const options = [
     {
       name: "Journey Mapping",
@@ -13,9 +17,12 @@ const PostFootPrint = () => {
           alt={"footprint1"}
           width={24}
           height={24}
+          className="md:w-[20px] md:h-[20px] w-[14px] h-[14px]"
         />
       ),
-      onclick: () => {},
+      onclick: () => {
+        setJournyMap(true);
+      },
     },
     {
       name: "Travel Advisory",
@@ -25,6 +32,7 @@ const PostFootPrint = () => {
           alt={"footprint2"}
           width={24}
           height={24}
+          className="md:w-[20px] md:h-[20px] w-[14px] h-[14px]"
         />
       ),
       onclick: () => {},
@@ -37,6 +45,7 @@ const PostFootPrint = () => {
           alt={"footprint3"}
           width={24}
           height={24}
+          className="md:w-[20px] md:h-[20px] w-[14px] h-[14px]"
         />
       ),
       onclick: () => {},
@@ -78,7 +87,7 @@ const PostFootPrint = () => {
             type="button"
             key={i}
             onClick={option?.onclick || (() => {})}
-            className="flex items-center gap-1 p-2 cursor-pointer hover:shadow-md transition-all duration-300 px-4 rounded-full bg-white"
+            className="flex items-center text-[9px] md:text-[11px] gap-1 p-1 md:p-2 cursor-pointer hover:shadow-md transition-all duration-300 px-2 md:px-4 rounded-full bg-white"
           >
             {option?.img && option?.img}
             {option?.name && <p>{option.name}</p>}
