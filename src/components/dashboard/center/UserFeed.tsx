@@ -70,18 +70,20 @@ const dummyPosts: Post[] = [
     },
     timestamp: "8 hours ago",
     location: "Barcelona, Spain",
+    travelAdvisoryHead: "Bail volcano activity update",
     content:
-      "Planning my road trip through the Swiss Alps this summer! 🏔️ Looking for people to join or share tips if you've done this route before.",
+      "Lorem ipsum dolor sit amet consectetur. Venenatis in ligula tempus et diam vel viverra et. Nunc habitant maecenas at magna pulvinar velit. Fringilla amet commodo tincidunt quis. Lorem ipsum dolor sit amet consectetur. Venenatis in ligula tempus et diam vel viverra et. Nunc habitant maecenas at magna pulvinar velit. Fringilla.",
     media: [
       {
         type: "image",
-        url: "https://picsum.photos/seed/post3-1/800/600",
+        url: "https://res.cloudinary.com/dtfzklzek/image/upload/v1751646394/Post-Img_fqfik8.png",
       },
     ],
     love: 150,
     likes: 254,
     comments: 4,
     shares: 2,
+    tags: ["🏛️ Concerned", "🛍️ Helpful"],
     participants: [
       { avatarUrl: "https://randomuser.me/api/portraits/men/51.jpg" },
       { avatarUrl: "https://randomuser.me/api/portraits/women/52.jpg" },
@@ -90,9 +92,58 @@ const dummyPosts: Post[] = [
       { avatarUrl: "https://randomuser.me/api/portraits/men/55.jpg" },
     ],
     isTripBoard: true,
-    tripDetails: {
-      tags: ["Zurich", "Interlaken", "Zermatt"],
+  },
+  {
+    id: "4",
+    journeyHead:
+      "<p>Trip to Khunjrab with <span className='text-[#247BFE]'>Noor Ali</span> and <span className='text-[#247BFE]'>Kamal Khan</span></p>",
+    user: {
+      name: "Sarah Parker",
+      avatarUrl: "https://randomuser.me/api/portraits/women/32.jpg",
     },
+    timestamp: "8 hours ago",
+    location: "Barcelona, Spain",
+    content:
+      "Breathe in the silence of the mountains. Ride into the roof of the world.",
+    journeyContent: {
+      travelDetails: {
+        locationDistance: "43,975 m",
+        distanceCovered: "1,475.21 km",
+        date: "July 15 - 30",
+        mapView:
+          "https://res.cloudinary.com/dtfzklzek/image/upload/v1751659619/Post-Img_8_hjbtrh.png",
+      },
+      images: [
+        {
+          url: "https://res.cloudinary.com/dtfzklzek/image/upload/v1751650271/Post-Img_1_udv8oj.png",
+        },
+        {
+          url: "https://res.cloudinary.com/dtfzklzek/image/upload/v1751650270/Post-Img_2_wisytz.png",
+        },
+        {
+          url: "https://res.cloudinary.com/dtfzklzek/image/upload/v1751650270/Post-Img_3_qca6te.png",
+        },
+        {
+          url: "https://res.cloudinary.com/dtfzklzek/image/upload/v1751650269/Post-Img_4_ke33lo.png",
+        },
+        {
+          url: "https://res.cloudinary.com/dtfzklzek/image/upload/v1751650272/Post-Img_5_oqcawh.png",
+        },
+      ],
+    },
+    love: 150,
+    likes: 254,
+    comments: 4,
+    shares: 2,
+
+    participants: [
+      { avatarUrl: "https://randomuser.me/api/portraits/men/51.jpg" },
+      { avatarUrl: "https://randomuser.me/api/portraits/women/52.jpg" },
+      { avatarUrl: "https://randomuser.me/api/portraits/men/53.jpg" },
+      { avatarUrl: "https://randomuser.me/api/portraits/women/54.jpg" },
+      { avatarUrl: "https://randomuser.me/api/portraits/men/55.jpg" },
+    ],
+    isTripBoard: true,
   },
 ];
 

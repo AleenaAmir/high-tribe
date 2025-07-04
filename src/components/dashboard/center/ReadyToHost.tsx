@@ -102,7 +102,7 @@ export default function ReadyToHost() {
           <Swiper
             modules={[Pagination, Autoplay]}
             spaceBetween={10}
-            slidesPerView={1.5}
+            slidesPerView={window.innerWidth < 1024 ? 3 : 1.5}
             centeredSlides={false}
             loop={true}
             autoplay={{
@@ -115,7 +115,7 @@ export default function ReadyToHost() {
               bulletClass: "swiper-pagination-bullet",
               bulletActiveClass: "swiper-pagination-bullet-active",
             }}
-            className="w-full md:min-w-[330px] max-w-[330px]"
+            className="w-full lg:min-w-[330px] lg:max-w-[330px]"
             style={
               {
                 // Swiper custom properties
@@ -131,14 +131,15 @@ export default function ReadyToHost() {
             {cardDetails.map((card, idx) => (
               <SwiperSlide
                 key={idx}
-                style={{ width: 230, maxWidth: 360, height: 230 }}
+                style={{ width: 230, maxWidth: 360, maxHeight: 230 }}
+                className="lg:min-h-[230px]"
               >
                 <Image
                   src={card.img}
                   height={200}
                   width={205}
                   alt="Image"
-                  className="object-contain min-w-[210px]"
+                  className="object-contain w-[150px] md:w-[210px]"
                 />
               </SwiperSlide>
             ))}

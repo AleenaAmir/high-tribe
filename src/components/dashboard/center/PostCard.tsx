@@ -1,18 +1,29 @@
 "use client";
-import React from "react";
+import React, { useState } from "react";
 import Image from "next/image";
 import LocationSmall from "../svgs/LocationSmall";
+import ImageModal from "../../global/ImageModal";
 
 // --- TYPE DEFINITIONS ---
 export type Post = {
   id: string;
   isTravelAdvisory?: boolean;
   travelAdvisoryHead?: string;
-  travelAdvisoryContent?: string;
+
   tags?: string[];
   user: {
     name: string;
     avatarUrl: string;
+  };
+  journeyHead?: string;
+  journeyContent?: {
+    travelDetails: {
+      locationDistance: string;
+      distanceCovered: string;
+      date: string;
+      mapView: string;
+    };
+    images: { url: string }[];
   };
   timestamp: string;
   location?: string;
@@ -119,7 +130,13 @@ export const MoreOptionsIcon = ({ className }: { className?: string }) => (
 );
 
 // --- IMAGE GRID COMPONENT ---
-const ImageGrid = ({ images }: { images: { url: string }[] }) => {
+const ImageGrid = ({
+  images,
+  onImageClick,
+}: {
+  images: { url: string }[];
+  onImageClick: (images: { url: string }[], index: number) => void;
+}) => {
   const count = images.length;
   if (count === 0) return null;
 
@@ -215,8 +232,9 @@ const ImageGrid = ({ images }: { images: { url: string }[] }) => {
     customAspectRatio?: string
   ) => (
     <div
-      className={`relative ${className}`}
+      className={`relative ${className} cursor-pointer hover:opacity-90 transition-opacity`}
       style={customAspectRatio ? { aspectRatio: customAspectRatio } : undefined}
+      onClick={() => onImageClick(images, altIndex)}
     >
       <Image
         src={src}
@@ -260,17 +278,17 @@ const ImageGrid = ({ images }: { images: { url: string }[] }) => {
     if (layout.firstPortrait) {
       return (
         <div className="mt-4 grid grid-cols-3 gap-1 aspect-[16/9] rounded-lg overflow-hidden">
-          {renderImage(images[0].url, "row-span-2", 0)}
           {renderImage(images[1].url, "", 1)}
           {renderImage(images[2].url, "", 2)}
+          {renderImage(images[0].url, "row-span-2", 0)}
         </div>
       );
     } else {
       return (
         <div className="mt-4 grid grid-cols-2 grid-rows-2 gap-1 aspect-[4/3] rounded-lg overflow-hidden">
-          {renderImage(images[0].url, "col-span-2", 0)}
           {renderImage(images[1].url, "", 1)}
           {renderImage(images[2].url, "", 2)}
+          {renderImage(images[0].url, "col-span-2", 0)}
         </div>
       );
     }
@@ -325,6 +343,28 @@ const ImageGrid = ({ images }: { images: { url: string }[] }) => {
 
 // --- MAIN POST CARD COMPONENT ---
 export const PostCard = ({ post }: { post: Post }) => {
+  // Modal state
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [currentImages, setCurrentImages] = useState<{ url: string }[]>([]);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+  // Handle image click
+  const handleImageClick = (images: { url: string }[], index: number) => {
+    setCurrentImages(images);
+    setCurrentImageIndex(index);
+    setIsModalOpen(true);
+  };
+
+  // Handle modal close
+  const handleModalClose = () => {
+    setIsModalOpen(false);
+  };
+
+  // Handle image index change in modal
+  const handleImageIndexChange = (index: number) => {
+    setCurrentImageIndex(index);
+  };
+
   return (
     <div className="bg-white rounded-lg shadow-md my-4 overflow-hidden">
       {/* Trip Board Header */}
@@ -370,6 +410,14 @@ export const PostCard = ({ post }: { post: Post }) => {
             </div>
           </div>
           <div className="flex items-center gap-2">
+            {post.isTravelAdvisory && (
+              <button
+                type="button"
+                className="text-[#0C8C38] bg-[#DCFCE7] rounded-md p-3 font-bold text-[11px] hover:bg-[#DCFCE7]/80 transition-all duration-200"
+              >
+                Mark as Resolved
+              </button>
+            )}
             <button>
               <MoreOptionsIcon />
             </button>
@@ -377,18 +425,135 @@ export const PostCard = ({ post }: { post: Post }) => {
           </div>
         </div>
 
+        {post.isTravelAdvisory && (
+          <div className="mt-4 flex items-center gap-4 flex-wrap">
+            <h3 className="text-[18px] md:text-[25px] font-medium">
+              {post.travelAdvisoryHead}
+            </h3>
+            <div className="flex items-center gap-0.5">
+              <Image
+                src={"/dashboard/footprint2.svg"}
+                alt={"footprint2"}
+                width={16}
+                height={16}
+              />
+              <p className="text-[8px] md:text-[11px] text-[#FF0000]">
+                Travel Advisory
+              </p>
+            </div>
+          </div>
+        )}
+
+        {post.journeyHead && (
+          <div className="mt-4">
+            <h3
+              className="md:text-[18px] text-[16px] font-medium"
+              dangerouslySetInnerHTML={{ __html: post.journeyHead || "" }}
+            />
+          </div>
+        )}
+
         {/* Post Body */}
-        <div className="mt-4">
+        <div className="">
           {post?.content && (
             <p
               className={`${
                 post?.media
-                  ? "text-[#959595] text-[12px]"
-                  : "text-black text-[35px] font-medium"
+                  ? "text-[#959595] text-[12px] mt-4"
+                  : post?.journeyHead
+                  ? "text-[#959595] text-[16px] mt-1"
+                  : "text-black text-[35px] font-medium mt-4"
               }`}
             >
               {post.content}
             </p>
+          )}
+
+          {post.journeyContent && (
+            <div className="mt-4">
+              <div>
+                <div className="flex items-center justify-between gap-2 bg-[#F9F7F7] rounded-t-lg p-2">
+                  <div className="flex items-center gap-4 md:gap-8">
+                    <div className="flex items-center gap-2">
+                      <Image
+                        src={
+                          "https://res.cloudinary.com/dtfzklzek/image/upload/v1751658950/Frame_2147227427_mhsuyc.svg"
+                        }
+                        alt="svg"
+                        height={30}
+                        width={30}
+                      />
+                      <div>
+                        <p className="text-[10px]">Elev. gain</p>
+                        <p className="text-[14px] font-medium">
+                          {
+                            post?.journeyContent?.travelDetails
+                              ?.locationDistance
+                          }
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Image
+                        src={
+                          "https://res.cloudinary.com/dtfzklzek/image/upload/v1751658944/Outlines_kjz5ur.svg"
+                        }
+                        alt="svg"
+                        height={24}
+                        width={24}
+                      />
+                      <div>
+                        <p className="text-[10px]">Distance Covered</p>
+                        <p className="text-[14px] font-medium">
+                          {post?.journeyContent?.travelDetails?.distanceCovered}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 rounded-full bg-white px-3 py-1">
+                    <Image
+                      src={
+                        "https://res.cloudinary.com/dtfzklzek/image/upload/v1751658947/fi-sr-calendar_x1iti8.svg"
+                      }
+                      alt="svg"
+                      height={16}
+                      width={16}
+                    />
+                    <p className="text-[14px]">
+                      {post?.journeyContent?.travelDetails?.date}
+                    </p>
+                  </div>
+                </div>
+                <Image
+                  src={post?.journeyContent?.travelDetails?.mapView}
+                  alt="mapView"
+                  height={320}
+                  width={700}
+                  className="w-full object-cover rounded-b-lg"
+                />
+                {post?.journeyContent?.images && (
+                  <div className="grid grid-cols-5 gap-2 mt-2">
+                    {post?.journeyContent?.images.map((image, i) => (
+                      <div
+                        key={i}
+                        className="relative cursor-pointer hover:opacity-90 transition-opacity"
+                        onClick={() =>
+                          handleImageClick(post.journeyContent!.images, i)
+                        }
+                      >
+                        <Image
+                          src={image.url}
+                          alt="journeyImage"
+                          height={137}
+                          width={112}
+                          className="object-cover rounded-lg w-full"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
           )}
 
           {post.isTripBoard && post.tripDetails?.tags && (
@@ -405,7 +570,12 @@ export const PostCard = ({ post }: { post: Post }) => {
             </div>
           )}
 
-          {post.media && <ImageGrid images={post.media} />}
+          {post.media && (
+            <ImageGrid
+              images={post.media.map((item) => ({ url: item.url }))}
+              onImageClick={handleImageClick}
+            />
+          )}
         </div>
 
         {post?.tags && (
@@ -482,6 +652,15 @@ export const PostCard = ({ post }: { post: Post }) => {
           )}
         </div>
       </div>
+
+      {/* Image Modal */}
+      <ImageModal
+        isOpen={isModalOpen}
+        onClose={handleModalClose}
+        images={currentImages}
+        currentIndex={currentImageIndex}
+        onIndexChange={handleImageIndexChange}
+      />
     </div>
   );
 };
