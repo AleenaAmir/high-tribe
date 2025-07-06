@@ -11,7 +11,6 @@ import GroupsCard from "@/components/dashboard/rightside/GroupsCard";
 import YourGroups from "@/components/dashboard/rightside/YourGroups";
 import React, { useState } from "react";
 import dynamic from "next/dynamic";
-import MainJourney from "@/components/dashboard/modals/journey/MainJourney";
 
 const UserFeed = dynamic(
   () => import("@/components/dashboard/center/UserFeed"),
@@ -19,6 +18,10 @@ const UserFeed = dynamic(
 );
 const NearbyPeopleGrid = dynamic(
   () => import("@/components/dashboard/explore/NearbyPeopleGrid"),
+  { ssr: false }
+);
+const MainJourney = dynamic(
+  () => import("@/components/dashboard/modals/journey/MainJourney"),
   { ssr: false }
 );
 
