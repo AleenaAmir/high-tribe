@@ -23,18 +23,18 @@ import FaqInfoIcon from "@/components/dashboard/svgs/FaqInfoIcon";
 import TraveLocationIcon from "@/components/dashboard/svgs/TraveLocationIcon";
 
 const TAGS = [
-  "Cultural Exploration",
-  "Historical Sites",
-  "Local Cuisine",
-  "Art & Crafts",
-  "Shopping Spree",
-  "Nature Walks",
-  "City Tours",
-  "Positive Celebrations",
-  "Photography Spots",
-  "Local Music",
-  "Traditional Markets",
-  "Relaxing Parks",
+  "🏛️ Cultural Exploration",
+  "🏰 Historical Sites",
+  "🍛 Local Cuisine",
+  "🎨 Art & Crafts",
+  "🛍️ Shopping Spree",
+  "🌳 Nature Walks",
+  "🏙️ City Tours",
+  "🎉 Positive Celebrations",
+  "📸 Photography Spots",
+  "🎵 Local Music",
+  "🛒 Traditional Markets",
+  "🌺 Relaxing Parks",
 ];
 
 const plusIcon = (
@@ -474,7 +474,7 @@ export default function NewJourney() {
                   <div className="flex items-center gap-2 rounded-lg border pl-5 pr-2 py-3 border-[#848484]">
                     <input
                       ref={startInputRef}
-                      className=" placeholder:text-[#AFACAC]  text-[9px] w-full outline-none"
+                      className=" placeholder:text-[#AFACAC]  text-[10px] w-full outline-none"
                       value={startLocation.name}
                       placeholder="Enter a place"
                       onChange={async (e) => {
@@ -531,7 +531,7 @@ export default function NewJourney() {
                   <div className="flex items-center gap-2 rounded-lg border pl-5 pr-2 py-3 border-[#848484]">
                     <input
                       ref={endInputRef}
-                      className=" placeholder:text-[#AFACAC]  text-[9px] w-full outline-none"
+                      className=" placeholder:text-[#AFACAC]  text-[10px] w-full outline-none"
                       value={endLocation.name}
                       placeholder="Enter a place"
                       onChange={async (e) => {
@@ -586,16 +586,16 @@ export default function NewJourney() {
               error={errors.description?.message}
             />
             <div className="flex items-center justify-between mt-2">
-              <span className="font-semibold text-base">Journey Steps</span>
+              <span className="font-semibold text-[13px]">Journey Stops</span>
               <button
                 type="button"
-                className="px-3 py-1 text-[10px] flex items-center gap-1"
+                className="px-3 py-1 text-[12px] flex items-center gap-1"
                 onClick={() => {
                   handleAddStep();
                   setOpenStepIndex(steps.length); // open the new step
                 }}
               >
-                Add step
+                Add Stop
                 <span className="p-2 w-fit bg-blue-500 text-white rounded-full text-[15px] flex items-center justify-center">
                   {plusIcon}
                 </span>
@@ -723,16 +723,32 @@ export default function NewJourney() {
                       <div className="p-4">
                         <div className="flex items-center justify-between mb-2">
                           <span className="text-[10px] text-[#5E6368] font-semibold">
-                            {step.location.name || `Step ${idx + 1}`}
+                            {step.location.name || `Stop ${idx + 1}`}
                           </span>
-                          <button
-                            type="button"
-                            className="text-gray-400 hover:text-black text-lg"
-                            onClick={() => setOpenStepIndex(-1)}
-                            title="Close"
-                          >
-                            ×
-                          </button>
+                          <div className="flex items-center gap-2">
+                            <button
+                              type="button"
+                              className="text-gray-400 hover:text-black text-lg"
+                              onClick={() => setOpenStepIndex(-1)}
+                              title="Close"
+                            >
+                              -
+                            </button>
+                            <button
+                              type="button"
+                              className="text-gray-400 hover:text-black text-lg rotate-45"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSteps((steps) =>
+                                  steps.filter((_, i) => i !== idx)
+                                );
+                                if (openStepIndex === idx) setOpenStepIndex(-1);
+                              }}
+                              title="Delete step"
+                            >
+                              +
+                            </button>
+                          </div>
                         </div>
                         <div className="flex flex-col gap-1">
                           <label className="text-[10px] font-medium text-[#5E6368] z-10 translate-y-3 translate-x-4 bg-white w-fit px-1">
@@ -968,7 +984,7 @@ function StepLocationInput({
     <div className="relative">
       <div className="flex items-center gap-1 border px-5 py-3 border-[#848484] rounded-lg">
         <input
-          className="  placeholder:text-[#AFACAC]  text-[9px] w-full focus:outline-none"
+          className="  placeholder:text-[#AFACAC]  text-[10px] w-full focus:outline-none"
           value={input}
           placeholder="Enter a place"
           onChange={async (e) => {

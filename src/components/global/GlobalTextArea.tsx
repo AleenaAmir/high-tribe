@@ -21,7 +21,7 @@ const GlobalTextArea: React.FC<GlobalTextAreaProps> = ({
       )}
       <textarea
         {...props}
-        className={`rounded-lg border px-5 py-3 text-[9px] placeholder:text-[#AFACAC] focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all resize-none ${
+        className={`rounded-lg border px-5 py-3 text-[10px] placeholder:text-[#AFACAC] focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all resize-none ${
           error ? "border-red-400" : "border-[#848484]"
         }`}
       />

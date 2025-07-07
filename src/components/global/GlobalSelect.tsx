@@ -23,7 +23,7 @@ const GlobalSelect: React.FC<GlobalSelectProps> = ({
       )}
       <select
         {...props}
-        className={`rounded-lg border px-5 py-3 text-[9px] placeholder:text-[#AFACAC] focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all ${
+        className={`rounded-lg border px-5 py-3 text-[10px] placeholder:text-[#AFACAC] focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all ${
           error ? "border-red-400" : "border-[#848484]"
         }`}
       >
