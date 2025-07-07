@@ -133,7 +133,7 @@ const JourneyMap = forwardRef<any, JourneyMapProps>(
         preserveDrawingBuffer: false,
         antialias: false,
       });
-      map.current.addControl(new mapboxgl.NavigationControl(), "top-right");
+      // map.current.addControl(new mapboxgl.NavigationControl(), "top-right");
 
       // Listen for style.load event
       map.current.on("style.load", () => {
@@ -199,7 +199,7 @@ const JourneyMap = forwardRef<any, JourneyMapProps>(
           layout: { "line-join": "round", "line-cap": "round" },
           paint: {
             "line-color": "#fff",
-            "line-width": 2,
+            "line-width": 4,
             "line-dasharray": [2, 2],
             "line-opacity": 1,
           },
@@ -214,7 +214,8 @@ const JourneyMap = forwardRef<any, JourneyMapProps>(
           width: "100%",
           height: "100%",
           minHeight: 400,
-          borderRadius: 16,
+          borderTopRightRadius: 16,
+          borderBottomRightRadius: 16,
           overflow: "hidden",
           position: "relative",
           zIndex: 1,

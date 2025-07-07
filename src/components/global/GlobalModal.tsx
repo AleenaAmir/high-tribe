@@ -21,6 +21,27 @@ const GlobalModal: React.FC<GlobalModalProps> = ({
 }) => {
   const modalRef = useRef<HTMLDivElement>(null);
 
+  // Prevent body scroll when modal is open
+  useEffect(() => {
+    if (isOpen) {
+      // Store the current scroll position
+      const scrollY = window.scrollY;
+
+      // Add styles to prevent scrolling
+      document.body.style.position = "fixed";
+      document.body.style.top = `-${scrollY}px`;
+      document.body.style.width = "100%";
+
+      // Cleanup function to restore scrolling
+      return () => {
+        document.body.style.position = "";
+        document.body.style.top = "";
+        document.body.style.width = "";
+        window.scrollTo(0, scrollY);
+      };
+    }
+  }, [isOpen]);
+
   // Close on ESC key
   useEffect(() => {
     if (!isOpen) return;
@@ -49,7 +70,7 @@ const GlobalModal: React.FC<GlobalModalProps> = ({
       onClick={onClose}
     >
       <div
-        className={`rounded-[20px] bg-gradient-to-r from-[rgba(255,23,23,0.51)] via-[rgba(9,0,255,0.51)] to-[rgba(228,31,100,0.51)] p-3 ${maxWidth} w-full`}
+        className={`rounded-[20px] bg-gradient-to-r from-[rgba(255,23,23,0.51)] via-[rgba(9,0,255,0.51)] to-[rgba(228,31,100,0.51)] p-2 ${maxWidth} w-full`}
       >
         <div
           className={`bg-white rounded-[20px] shadow-lg  w-full ${customPadding} relative ${
@@ -60,7 +81,7 @@ const GlobalModal: React.FC<GlobalModalProps> = ({
           onClick={(e) => e.stopPropagation()}
         >
           <button
-            className="absolute top-3 right-4 text-gray-400 hover:text-gray-600 focus:outline-none bg-white rounded-full p-1 hover:bg-gray-100 cursor-pointer"
+            className="absolute top-3 right-4 z-10 text-gray-400 hover:text-gray-600 focus:outline-none bg-white rounded-full p-1 hover:bg-gray-100 cursor-pointer"
             onClick={onClose}
             aria-label="Close modal"
           >

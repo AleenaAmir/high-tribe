@@ -65,7 +65,7 @@ const MainJourney = ({
       <GlobalModal
         isOpen={newJournyMap}
         onClose={() => setNewJournyMap(false)}
-        maxWidth="max-w-[950px]"
+        maxWidth="max-w-[1200px]"
         customPadding="p-0"
       >
         <NewJourney />
