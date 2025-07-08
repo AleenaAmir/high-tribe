@@ -93,7 +93,7 @@ const JourneyMap = forwardRef<any, JourneyMapProps>(
     // Fly to location on map
     function flyToOnMap(lng: number, lat: number) {
       if (map.current && map.current.flyTo) {
-        map.current.flyTo({ center: [lng, lat], zoom: 10 });
+        map.current.flyTo({ center: [lng, lat], zoom: 4 });
       }
     }
 
@@ -129,7 +129,7 @@ const JourneyMap = forwardRef<any, JourneyMapProps>(
         container: mapContainer.current,
         style: "mapbox://styles/mapbox/standard",
         center: [69.2, 41.3], // Central Asia default
-        zoom: 4,
+        zoom: 2,
         preserveDrawingBuffer: false,
         antialias: false,
       });
@@ -198,7 +198,7 @@ const JourneyMap = forwardRef<any, JourneyMapProps>(
           source: "route",
           layout: { "line-join": "round", "line-cap": "round" },
           paint: {
-            "line-color": "#fff",
+            "line-color": "#000",
             "line-width": 4,
             "line-dasharray": [2, 2],
             "line-opacity": 1,

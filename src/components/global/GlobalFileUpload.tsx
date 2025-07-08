@@ -206,7 +206,7 @@ const GlobalFileUpload: React.FC<GlobalFileUploadProps> = ({
   return (
     <div className={`flex flex-col gap-1 ${className}`}>
       {label && (
-        <label className="text-[9px] font-medium text-[#5E6368] mb-1">
+        <label className="text-[12px] font-medium text-black mb-1">
           {label}
         </label>
       )}
@@ -263,9 +263,7 @@ const GlobalFileUpload: React.FC<GlobalFileUploadProps> = ({
         {headLine && (
           <span className="text-black text-[8px] mt-2">{headLine}</span>
         )}
-        {subLine && (
-          <span className="text-[#00000066] text-[8px]">{subLine}</span>
-        )}
+        {subLine && <span className="text-black text-[8px]">{subLine}</span>}
         <input
           ref={inputRef}
           type="file"

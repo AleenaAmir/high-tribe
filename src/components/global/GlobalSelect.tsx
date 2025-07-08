@@ -17,13 +17,13 @@ const GlobalSelect: React.FC<GlobalSelectProps> = ({
   return (
     <div className={`flex flex-col gap-1 ${className}`}>
       {label && (
-        <label className="text-[10px] font-medium text-[#5E6368] translate-y-3 translate-x-4 bg-white w-fit px-1">
+        <label className="text-[12px] font-medium text-black translate-y-3 translate-x-4 bg-white w-fit px-1">
           {label}
         </label>
       )}
       <select
         {...props}
-        className={`rounded-lg border px-5 py-3 text-[10px] placeholder:text-[#AFACAC] focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all ${
+        className={`rounded-lg border px-5 py-3 text-[12px] placeholder:text-[#AFACAC] focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all ${
           error ? "border-red-400" : "border-[#848484]"
         }`}
       >

@@ -21,6 +21,7 @@ import WalkIcon from "@/components/dashboard/svgs/WalkIcon";
 import BikeIcon from "@/components/dashboard/svgs/BikeIcon";
 import FaqInfoIcon from "@/components/dashboard/svgs/FaqInfoIcon";
 import TraveLocationIcon from "@/components/dashboard/svgs/TraveLocationIcon";
+import GlobalDateInput from "@/components/global/GlobalDateInput";
 
 const TAGS = [
   "🏛️ Cultural Exploration",
@@ -110,43 +111,43 @@ const TravelMedium = [
   {
     name: "plane",
     icon: (
-      <PlaneIcon className="w-[11px] h-[11px] text-black hover:text-[#2379FC] cursor-pointer" />
+      <PlaneIcon className="w-[18px] h-[18px] text-black hover:text-[#2379FC] cursor-pointer" />
     ),
   },
   {
     name: "train",
     icon: (
-      <TrainIcon className="w-[11px] h-[11px] text-black hover:text-[#2379FC] cursor-pointer" />
+      <TrainIcon className="w-[18px] h-[18px] text-black hover:text-[#2379FC] cursor-pointer" />
     ),
   },
   {
     name: "car",
     icon: (
-      <CarIcon className="w-[11px] h-[11px] text-black hover:text-[#2379FC] cursor-pointer" />
+      <CarIcon className="w-[18px] h-[18px] text-black hover:text-[#2379FC] cursor-pointer" />
     ),
   },
   {
     name: "bus",
     icon: (
-      <BusIcon className="w-[11px] h-[11px] text-black hover:text-[#2379FC] cursor-pointer" />
+      <BusIcon className="w-[18px] h-[18px] text-black hover:text-[#2379FC] cursor-pointer" />
     ),
   },
   {
     name: "walk",
     icon: (
-      <WalkIcon className="w-[11px] h-[11px] text-black hover:text-[#2379FC] cursor-pointer" />
+      <WalkIcon className="w-[18px] h-[18px] text-black hover:text-[#2379FC] cursor-pointer" />
     ),
   },
   {
     name: "bike",
     icon: (
-      <BikeIcon className="w-[11px] h-[11px] text-black hover:text-[#2379FC] cursor-pointer" />
+      <BikeIcon className="w-[18px] h-[18px] text-black hover:text-[#2379FC] cursor-pointer" />
     ),
   },
   {
     name: "info",
     icon: (
-      <FaqInfoIcon className="w-[11px] h-[11px] text-black hover:text-[#2379FC] cursor-pointer" />
+      <FaqInfoIcon className="w-[18px] h-[18px] text-black hover:text-[#2379FC] cursor-pointer" />
     ),
   },
 ];
@@ -156,12 +157,16 @@ type Step = {
   notes: string;
   media: File[];
   mediumOfTravel: string;
+  startDate: string;
+  endDate: string;
 };
 
 type NewJourneyForm = {
   title: string;
   startLocation: string;
   endLocation: string;
+  startDate: string;
+  endDate: string;
   description: string;
   steps: Step[];
   summary: string;
@@ -174,8 +179,19 @@ const defaultValues: NewJourneyForm = {
   title: "",
   startLocation: "",
   endLocation: "",
+  startDate: "",
+  endDate: "",
   description: "",
-  steps: [{ location: "", notes: "", media: [], mediumOfTravel: "" }],
+  steps: [
+    {
+      location: "",
+      notes: "",
+      media: [],
+      mediumOfTravel: "",
+      startDate: "",
+      endDate: "",
+    },
+  ],
   summary: "",
   summaryMedia: [],
   friends: "",
@@ -238,6 +254,7 @@ export default function NewJourney() {
   const [visibility, setVisibility] = useState<"public" | "tribe" | "private">(
     "public"
   );
+  const [showVisibilityDropdown, setShowVisibilityDropdown] = useState(false);
 
   // Store both coordinates and place names for start/end
   const [startLocation, setStartLocation] = useState<{
@@ -253,13 +270,15 @@ export default function NewJourney() {
     "start"
   );
 
-  // Steps: each step has { location: { coords, name }, notes, media, mediumOfTravel }
+  // Steps: each step has { location: { coords, name }, notes, media, mediumOfTravel, startDate, endDate }
   const [steps, setSteps] = useState<
     Array<{
       location: { coords: LatLng | null; name: string };
       notes: string;
       media: File[];
       mediumOfTravel: string;
+      startDate: string;
+      endDate: string;
     }>
   >([
     {
@@ -267,6 +286,8 @@ export default function NewJourney() {
       notes: "",
       media: [],
       mediumOfTravel: "",
+      startDate: "",
+      endDate: "",
     },
   ]);
 
@@ -390,6 +411,8 @@ export default function NewJourney() {
         notes: "",
         media: [],
         mediumOfTravel: "",
+        startDate: "",
+        endDate: "",
       },
     ]);
   }
@@ -422,6 +445,8 @@ export default function NewJourney() {
       notes: step.notes,
       media: step.media,
       mediumOfTravel: step.mediumOfTravel,
+      startDate: step.startDate,
+      endDate: step.endDate,
     }));
 
     // Create the complete form data
@@ -461,22 +486,20 @@ export default function NewJourney() {
           >
             <GlobalTextInput
               label="Title"
-              placeholder="Title"
               {...register("title", { required: true })}
               error={errors.title?.message}
             />
             <div className="grid grid-cols-2 gap-2">
               <div className="flex flex-col gap-1">
-                <label className="text-[10px] font-medium text-[#5E6368] z-10 translate-y-3 translate-x-4 bg-white w-fit px-1">
+                <label className="text-[12px] font-medium text-black z-10 translate-y-3 translate-x-4 bg-white w-fit px-1">
                   Start Location
                 </label>
                 <div className="relative">
                   <div className="flex items-center gap-2 rounded-lg border pl-5 pr-2 py-3 border-[#848484]">
                     <input
                       ref={startInputRef}
-                      className=" placeholder:text-[#AFACAC]  text-[10px] w-full outline-none"
+                      className=" placeholder:text-[#AFACAC]  text-[12px] w-full outline-none"
                       value={startLocation.name}
-                      placeholder="Enter a place"
                       onChange={async (e) => {
                         setStartLocation({
                           ...startLocation,
@@ -513,7 +536,7 @@ export default function NewJourney() {
                       {startSuggestions.map((s, i) => (
                         <li
                           key={s.id}
-                          className="px-3 py-2 text-[10px] cursor-pointer hover:bg-blue-100"
+                          className="px-3 py-2 text-[12px] cursor-pointer hover:bg-blue-100"
                           onMouseDown={() => handleStartSelect(s)}
                         >
                           {s.place_name}
@@ -524,16 +547,15 @@ export default function NewJourney() {
                 </div>
               </div>
               <div className="flex flex-col gap-1">
-                <label className="text-[10px] font-medium text-[#5E6368] z-10 translate-y-3 translate-x-4 bg-white w-fit px-1">
+                <label className="text-[12px] font-medium text-black z-10 translate-y-3 translate-x-4 bg-white w-fit px-1">
                   End Location
                 </label>
                 <div className="relative">
                   <div className="flex items-center gap-2 rounded-lg border pl-5 pr-2 py-3 border-[#848484]">
                     <input
                       ref={endInputRef}
-                      className=" placeholder:text-[#AFACAC]  text-[10px] w-full outline-none"
+                      className=" placeholder:text-[#AFACAC]  text-[12px] w-full outline-none"
                       value={endLocation.name}
-                      placeholder="Enter a place"
                       onChange={async (e) => {
                         setEndLocation({
                           ...endLocation,
@@ -567,7 +589,7 @@ export default function NewJourney() {
                       {endSuggestions.map((s, i) => (
                         <li
                           key={s.id}
-                          className="px-3 py-2 text-[10px] cursor-pointer hover:bg-blue-100"
+                          className="px-3 py-2 text-[12px] cursor-pointer hover:bg-blue-100"
                           onMouseDown={() => handleEndSelect(s)}
                         >
                           {s.place_name}
@@ -578,9 +600,20 @@ export default function NewJourney() {
                 </div>
               </div>
             </div>
+            <div className="grid grid-cols-2 gap-2">
+              <GlobalDateInput
+                label="Start Date"
+                {...register("startDate", { required: true })}
+                error={errors.startDate?.message}
+              />
+              <GlobalDateInput
+                label="End Date"
+                {...register("endDate", { required: true })}
+                error={errors.endDate?.message}
+              />
+            </div>
             <GlobalTextArea
               label="Description"
-              placeholder="Description"
               rows={3}
               {...register("description")}
               error={errors.description?.message}
@@ -653,22 +686,22 @@ export default function NewJourney() {
                               step.mediumOfTravel !== "info" && (
                                 <div className="w-[12px] h-[12px] text-white">
                                   {step.mediumOfTravel === "plane" && (
-                                    <PlaneIcon className="w-[11px] h-[11px]" />
+                                    <PlaneIcon className="w-[18px] h-[18px]" />
                                   )}
                                   {step.mediumOfTravel === "train" && (
-                                    <TrainIcon className="w-[11px] h-[11px]" />
+                                    <TrainIcon className="w-[18px] h-[18px]" />
                                   )}
                                   {step.mediumOfTravel === "car" && (
-                                    <CarIcon className="w-[11px] h-[11px]" />
+                                    <CarIcon className="w-[18px] h-[18px]" />
                                   )}
                                   {step.mediumOfTravel === "bus" && (
-                                    <BusIcon className="w-[11px] h-[11px]" />
+                                    <BusIcon className="w-[18px] h-[18px]" />
                                   )}
                                   {step.mediumOfTravel === "walk" && (
-                                    <WalkIcon className="w-[11px] h-[11px]" />
+                                    <WalkIcon className="w-[18px] h-[18px]" />
                                   )}
                                   {step.mediumOfTravel === "bike" && (
-                                    <BikeIcon className="w-[11px] h-[11px]" />
+                                    <BikeIcon className="w-[18px] h-[18px]" />
                                   )}
                                 </div>
                               )}
@@ -751,20 +784,20 @@ export default function NewJourney() {
                           </div>
                         </div>
                         <div className="flex flex-col gap-1">
-                          <label className="text-[10px] font-medium text-[#5E6368] z-10 translate-y-3 translate-x-4 bg-white w-fit px-1">
+                          <label className="text-[12px] font-medium text-black z-10 translate-y-3 translate-x-4 bg-white w-fit px-1">
                             Location
                           </label>
                           <StepLocationInput
-                            mediumOfTravel={step.mediumOfTravel}
-                            setMediumOfTravel={(medium: string) =>
-                              setSteps((steps) =>
-                                steps.map((s, i) =>
-                                  i === idx
-                                    ? { ...s, mediumOfTravel: medium }
-                                    : s
-                                )
-                              )
-                            }
+                            // mediumOfTravel={step.mediumOfTravel}
+                            // setMediumOfTravel={(medium: string) =>
+                            //   setSteps((steps) =>
+                            //     steps.map((s, i) =>
+                            //       i === idx
+                            //         ? { ...s, mediumOfTravel: medium }
+                            //         : s
+                            //     )
+                            //   )
+                            // }
                             value={step.location.name}
                             onSelect={async (place: any) => {
                               const coords: [number, number] = [
@@ -788,10 +821,85 @@ export default function NewJourney() {
                             fetchSuggestions={fetchStepSuggestions}
                           />
                         </div>
+                        <div>
+                          <div className="flex items-center gap-1 justify-end mt-2">
+                            {TravelMedium.map((t, i) => {
+                              const isSelected = step.mediumOfTravel === t.name;
+                              return (
+                                <button
+                                  key={i}
+                                  className={`p-1 rounded-md bg-[#F8F6F6] border w-fit cursor-pointer ${
+                                    isSelected
+                                      ? "text-[#2379FC] border-[#DFDFDF]"
+                                      : "text-black hover:text-[#2379FC] border-[#F8F6F6] hover:border-[#DFDFDF]"
+                                  }`}
+                                  onClick={() =>
+                                    setSteps((steps) =>
+                                      steps.map((s, i) =>
+                                        i === idx
+                                          ? { ...s, mediumOfTravel: t.name }
+                                          : s
+                                      )
+                                    )
+                                  }
+                                >
+                                  {t.name === "plane" && (
+                                    <PlaneIcon className="w-[18px] h-[18px]" />
+                                  )}
+                                  {t.name === "train" && (
+                                    <TrainIcon className="w-[18px] h-[18px]" />
+                                  )}
+                                  {t.name === "car" && (
+                                    <CarIcon className="w-[18px] h-[18px]" />
+                                  )}
+                                  {t.name === "bus" && (
+                                    <BusIcon className="w-[18px] h-[18px]" />
+                                  )}
+                                  {t.name === "walk" && (
+                                    <WalkIcon className="w-[18px] h-[18px]" />
+                                  )}
+                                  {t.name === "bike" && (
+                                    <BikeIcon className="w-[18px] h-[18px]" />
+                                  )}
+                                  {t.name === "info" && (
+                                    <FaqInfoIcon className="w-[18px] h-[18px]" />
+                                  )}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-2 mt-3">
+                          <GlobalDateInput
+                            label="Start Date"
+                            value={step.startDate}
+                            onChange={(e) =>
+                              setSteps((steps) =>
+                                steps.map((s, i) =>
+                                  i === idx
+                                    ? { ...s, startDate: e.target.value }
+                                    : s
+                                )
+                              )
+                            }
+                          />
+                          <GlobalDateInput
+                            label="End Date"
+                            value={step.endDate}
+                            onChange={(e) =>
+                              setSteps((steps) =>
+                                steps.map((s, i) =>
+                                  i === idx
+                                    ? { ...s, endDate: e.target.value }
+                                    : s
+                                )
+                              )
+                            }
+                          />
+                        </div>
                         <GlobalTextArea
                           label="Notes"
-                          placeholder="Notes"
-                          rows={3}
+                          rows={1}
                           value={step.notes}
                           onChange={(e) =>
                             setSteps((steps) =>
@@ -821,107 +929,66 @@ export default function NewJourney() {
                 );
               })}
             </div>
-            <GlobalTextArea
-              label="Journey Summary"
-              placeholder="Tell us about your journey..."
-              rows={3}
-              {...register("summary")}
-              error={errors.summary?.message}
-            />
-            <Controller
-              control={control}
-              name="summaryMedia"
-              render={({ field: { value, onChange } }) => (
-                <GlobalFileUpload
-                  label="Photos / Videos (Max 5)"
-                  value={value}
-                  onChange={onChange}
-                  multiple={true}
-                  maxFiles={5}
-                />
-              )}
-            />
+
             <GlobalTextInput
               label="Tag Friends"
-              placeholder="@username"
               {...register("friends")}
               error={errors.friends?.message}
             />
-            <Controller
-              control={control}
-              name="tags"
-              render={({ field: { value, onChange } }) => (
-                <div>
-                  <div className="flex flex-wrap gap-2 mb-2">
-                    {TAGS.map((tag) => (
-                      <button
-                        type="button"
-                        key={tag}
-                        className={`px-3 py-1 rounded-full text-xs border transition-all ${
-                          value?.includes(tag)
-                            ? "bg-blue-500 text-white border-blue-500"
-                            : "bg-gray-100 text-gray-700 border-gray-300 hover:bg-blue-100"
-                        }`}
-                        onClick={() => {
-                          if (value?.includes(tag)) {
-                            onChange(value.filter((t) => t !== tag));
-                          } else {
-                            onChange([...(value || []), tag]);
-                          }
-                        }}
-                      >
-                        {tag}
-                      </button>
-                    ))}
-                  </div>
-                  {/* <GlobalTagInput
-                label="Need Tags"
-                value={value}
-                onChange={onChange}
-              /> */}
-                </div>
-              )}
-            />
           </div>
           <div className="flex items-center justify-between p-4 border-t border-[#D9D9D9]">
-            <div className="flex gap-2">
+            <div className="relative">
               <button
                 type="button"
-                className={`px-3 py-1 rounded-full text-[9px] font-medium border transition-all focus:outline-none ${
-                  visibility === "public"
-                    ? "bg-blue-600 text-white border-blue-600"
-                    : "bg-[#F7F8FA] text-[#6B7280] border-[#F7F8FA]"
-                } flex items-center gap-1`}
-                onClick={() => setVisibility("public")}
+                className={`px-6 py-2 rounded-full text-[13px] bg-blue-600 text-white border-blue-600 font-medium border focus:outline-none flex items-center gap-2 transition-all w-36 justify-between`}
+                onClick={() => setShowVisibilityDropdown((v) => !v)}
               >
-                Public
+                {visibility === "public"
+                  ? "Public"
+                  : visibility === "tribe"
+                  ? "Tribe Only"
+                  : "Private"}
+                <svg
+                  className="w-4 h-4 ml-2"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 9l-7 7-7-7"
+                  />
+                </svg>
               </button>
-              <button
-                type="button"
-                className={`px-3 py-1 rounded-full text-[9px] font-medium border transition-all focus:outline-none ${
-                  visibility === "tribe"
-                    ? "bg-blue-600 text-white border-blue-600"
-                    : "bg-[#F7F8FA] text-[#6B7280] border-[#F7F8FA]"
-                }`}
-                onClick={() => setVisibility("tribe")}
-              >
-                Tribe Only
-              </button>
-              <button
-                type="button"
-                className={`px-3 py-1 rounded-full text-[9px] font-medium border transition-all focus:outline-none ${
-                  visibility === "private"
-                    ? "bg-blue-600 text-white border-blue-600"
-                    : "bg-[#F7F8FA] text-[#6B7280] border-[#F7F8FA]"
-                }`}
-                onClick={() => setVisibility("private")}
-              >
-                Private
-              </button>
+              {showVisibilityDropdown && (
+                <ul className="absolute left-0 mt-1 w-36 bg-white rounded-lg shadow z-20">
+                  {["public", "tribe", "private"]
+                    .filter((v) => v !== visibility)
+                    .map((v) => (
+                      <li
+                        key={v}
+                        className="px-6 py-1 text-[13px] cursor-pointer hover:bg-blue-100 text-[#6B7280]"
+                        onClick={() => {
+                          setVisibility(v as typeof visibility);
+                          setShowVisibilityDropdown(false);
+                        }}
+                      >
+                        {v === "public"
+                          ? "Public"
+                          : v === "tribe"
+                          ? "Tribe Only"
+                          : "Private"}
+                      </li>
+                    ))}
+                </ul>
+              )}
             </div>
             <button
               type="submit"
-              className="ml-4 px-6 py-2 text-[12px] rounded-lg border border-blue-600 text-blue-600 font-semibold bg-white hover:bg-blue-50 transition-all"
+              className="ml-4 px-6 py-2 text-[12px] rounded-lg border border-blue-600 text-black cursor-pointer font-semibold bg-white hover:bg-blue-50 transition-all"
             >
               Share Post
             </button>
@@ -949,14 +1016,10 @@ export default function NewJourney() {
 
 // StepLocationInput component for step location autocomplete
 function StepLocationInput({
-  mediumOfTravel,
-  setMediumOfTravel,
   value,
   onSelect,
   fetchSuggestions,
 }: {
-  mediumOfTravel: string;
-  setMediumOfTravel: (medium: string) => void;
   value: string;
   onSelect: (place: any) => void;
   fetchSuggestions: (q: string) => Promise<any[]>;
@@ -986,7 +1049,6 @@ function StepLocationInput({
         <input
           className="  placeholder:text-[#AFACAC]  text-[10px] w-full focus:outline-none"
           value={input}
-          placeholder="Enter a place"
           onChange={async (e) => {
             setInput(e.target.value);
             setShowDropdown(true);
@@ -1009,40 +1071,6 @@ function StepLocationInput({
           }}
           onBlur={() => setTimeout(() => setShowDropdown(false), 150)}
         />
-        <div className="flex items-center gap-1">
-          {TravelMedium.map((t, i) => {
-            const isSelected = mediumOfTravel === t.name;
-            return (
-              <button
-                key={i}
-                className={`w-[12px] h-[12px] cursor-pointer ${
-                  isSelected
-                    ? "text-[#2379FC]"
-                    : "text-black hover:text-[#2379FC]"
-                }`}
-                onClick={() => setMediumOfTravel(t.name)}
-              >
-                {t.name === "plane" && (
-                  <PlaneIcon className="w-[11px] h-[11px]" />
-                )}
-                {t.name === "train" && (
-                  <TrainIcon className="w-[11px] h-[11px]" />
-                )}
-                {t.name === "car" && <CarIcon className="w-[11px] h-[11px]" />}
-                {t.name === "bus" && <BusIcon className="w-[11px] h-[11px]" />}
-                {t.name === "walk" && (
-                  <WalkIcon className="w-[11px] h-[11px]" />
-                )}
-                {t.name === "bike" && (
-                  <BikeIcon className="w-[11px] h-[11px]" />
-                )}
-                {t.name === "info" && (
-                  <FaqInfoIcon className="w-[11px] h-[11px]" />
-                )}
-              </button>
-            );
-          })}
-        </div>
       </div>
       {showDropdown && suggestions.length > 0 && (
         <ul className="absolute z-10 left-0 right-0 bg-white border rounded-lg shadow mt-1 max-h-48 overflow-y-auto">
