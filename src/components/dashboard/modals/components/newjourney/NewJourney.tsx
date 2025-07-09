@@ -530,9 +530,7 @@ export default function NewJourney() {
       .then((data) => setUsers(data?.users || []))
       .catch(() => setUsers([]))
       .finally(() => setLoadingCategories(false));
-    apiRequest<any>("post/journeys", { method: "get" }).then((data) => {
-      console.log(data);
-    });
+   
   }, []);
 
   // User search function
