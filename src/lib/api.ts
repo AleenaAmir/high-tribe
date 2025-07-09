@@ -11,7 +11,11 @@ const api = ky.create({
       (request) => {
         // Optionally add auth token from localStorage if available
         if (typeof window !== "undefined") {
-          const token = localStorage.getItem("token");
+          let token = localStorage.getItem("token");
+          // TEMP: Hardcoded token for testing. REMOVE after testing!
+          if (!token) {
+            token = "<PASTE_VALID_TOKEN_HERE>";
+          }
           if (token) {
             request.headers.set("Authorization", `Bearer ${token}`);
           }

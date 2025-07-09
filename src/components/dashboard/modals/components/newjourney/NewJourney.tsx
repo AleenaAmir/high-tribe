@@ -12,6 +12,7 @@ import GlobalTextArea from "@/components/global/GlobalTextArea";
 import GlobalSelect from "@/components/global/GlobalSelect";
 import GlobalTagInput from "@/components/global/GlobalTagInput";
 import GlobalFileUpload from "@/components/global/GlobalFileUpload";
+import GlobalMultiSelect from "@/components/global/GlobalMultiSelect";
 import JourneyMap, { LatLng } from "./JourneyMap";
 import PlaneIcon from "@/components/dashboard/svgs/PlaneIcon";
 import TrainIcon from "@/components/dashboard/svgs/TrainIcon";
@@ -22,6 +23,7 @@ import BikeIcon from "@/components/dashboard/svgs/BikeIcon";
 import FaqInfoIcon from "@/components/dashboard/svgs/FaqInfoIcon";
 import TraveLocationIcon from "@/components/dashboard/svgs/TraveLocationIcon";
 import GlobalDateInput from "@/components/global/GlobalDateInput";
+import { apiRequest } from "@/lib/api";
 
 const TAGS = [
   "🏛️ Cultural Exploration",
@@ -159,6 +161,8 @@ type Step = {
   mediumOfTravel: string;
   startDate: string;
   endDate: string;
+  category?: string; // <-- add category
+  dateError?: string; // <-- add dateError for validation
 };
 
 type NewJourneyForm = {
@@ -171,7 +175,7 @@ type NewJourneyForm = {
   steps: Step[];
   summary: string;
   summaryMedia: File[];
-  friends: string;
+  friends: { id: number; name: string; email?: string; avatar?: string }[];
   tags: string[];
 };
 
@@ -190,11 +194,12 @@ const defaultValues: NewJourneyForm = {
       mediumOfTravel: "",
       startDate: "",
       endDate: "",
+      category: "",
     },
   ],
   summary: "",
   summaryMedia: [],
-  friends: "",
+  friends: [],
   tags: [],
 };
 
@@ -279,6 +284,8 @@ export default function NewJourney() {
       mediumOfTravel: string;
       startDate: string;
       endDate: string;
+      category?: string;
+      dateError?: string;
     }>
   >([
     {
@@ -288,6 +295,8 @@ export default function NewJourney() {
       mediumOfTravel: "",
       startDate: "",
       endDate: "",
+      category: "",
+      dateError: "",
     },
   ]);
 
@@ -303,6 +312,21 @@ export default function NewJourney() {
 
   const mapRef = useRef<any>(null);
 
+  const [stopCategories, setStopCategories] = useState<any[]>([]);
+  const [users, setUsers] = useState<any[]>([]);
+  const [userSuggestions, setUserSuggestions] = useState<any[]>([]);
+  const [loadingCategories, setLoadingCategories] = useState(false);
+  const [loadingUsers, setLoadingUsers] = useState(false);
+
+  // Validation states
+  const [titleError, setTitleError] = useState("");
+  const [startLocationError, setStartLocationError] = useState("");
+  const [endLocationError, setEndLocationError] = useState("");
+  const [startDateError, setStartDateError] = useState("");
+  const [endDateError, setEndDateError] = useState("");
+
+  console.log(users, "users");
+
   // Debug: Log when activeMapSelect changes
   useEffect(() => {
     console.log("activeMapSelect changed to:", activeMapSelect);
@@ -314,15 +338,69 @@ export default function NewJourney() {
     setActiveMapSelect(value);
   }, []);
 
+  // Validation functions
+  const validateTitle = (title: string) => {
+    if (!title || title.trim() === "") {
+      setTitleError("Title is required");
+      return false;
+    }
+    setTitleError("");
+    return true;
+  };
+
+  const validateStartLocation = () => {
+    if (!startLocation.coords || !startLocation.name.trim()) {
+      setStartLocationError("Start location is required");
+      return false;
+    }
+    setStartLocationError("");
+    return true;
+  };
+
+  const validateEndLocation = () => {
+    if (!endLocation.coords || !endLocation.name.trim()) {
+      setEndLocationError("End location is required");
+      return false;
+    }
+    setEndLocationError("");
+    return true;
+  };
+
+  const validateDates = (startDate: string, endDate: string) => {
+    if (startDate && endDate) {
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+      if (end < start) {
+        setEndDateError("End date cannot be before start date");
+        return false;
+      }
+    }
+    setEndDateError("");
+    return true;
+  };
+
+  const validateStepTravelMedium = (step: any) => {
+    return step.mediumOfTravel && step.mediumOfTravel.trim() !== "";
+  };
+
+  // Check if locations are filled to enable add step
+  const canAddStep =
+    startLocation.coords &&
+    startLocation.name.trim() &&
+    endLocation.coords &&
+    endLocation.name.trim();
+
   // Memoized callback functions to prevent unnecessary re-renders
   const handleStartChange = useCallback(async (loc: LatLng) => {
     const name = await reverseGeocode(loc[0], loc[1]);
     setStartLocation({ coords: loc, name });
+    validateStartLocation();
   }, []);
 
   const handleEndChange = useCallback(async (loc: LatLng) => {
     const name = await reverseGeocode(loc[0], loc[1]);
     setEndLocation({ coords: loc, name });
+    validateEndLocation();
   }, []);
 
   // Helper: bounding box filter for steps
@@ -391,6 +469,7 @@ export default function NewJourney() {
     });
     setShowStartDropdown(false);
     flyToOnMap(place.center[0], place.center[1]);
+    validateStartLocation();
   }
   // When user selects an end location (input, dropdown, or map)
   async function handleEndSelect(place: any) {
@@ -400,6 +479,7 @@ export default function NewJourney() {
     });
     setShowEndDropdown(false);
     flyToOnMap(place.center[0], place.center[1]);
+    validateEndLocation();
   }
 
   // Add step button handler
@@ -413,6 +493,8 @@ export default function NewJourney() {
         mediumOfTravel: "",
         startDate: "",
         endDate: "",
+        category: "",
+        dateError: "",
       },
     ]);
   }
@@ -438,30 +520,118 @@ export default function NewJourney() {
     });
   }
 
-  const onSubmit = (data: NewJourneyForm) => {
-    // Transform local steps data to match form structure
-    const formSteps = steps.map((step) => ({
-      location: step.location.name,
-      notes: step.notes,
-      media: step.media,
-      mediumOfTravel: step.mediumOfTravel,
-      startDate: step.startDate,
-      endDate: step.endDate,
-    }));
+  useEffect(() => {
+    setLoadingCategories(true);
+    apiRequest<any>("post/journeys/stops/categories", { method: "get" })
+      .then((data) => setStopCategories(data?.categories || []))
+      .catch(() => setStopCategories([]))
+      .finally(() => setLoadingCategories(false));
+    apiRequest<any>("users", { method: "get" })
+      .then((data) => setUsers(data?.users || []))
+      .catch(() => setUsers([]))
+      .finally(() => setLoadingCategories(false));
+    apiRequest<any>("post/journeys", { method: "get" }).then((data) => {
+      console.log(data);
+    });
+  }, []);
 
-    // Create the complete form data
-    const completeData = {
-      ...data,
-      steps: formSteps,
-      startLocation: startLocation.name,
-      endLocation: endLocation.name,
-    };
+  // User search function
+  const handleUserSearch = async (query: string) => {
+    if (!query.trim()) {
+      setUserSuggestions([]);
+      return;
+    }
 
-    // handle form submission
-    console.log(completeData);
+    setLoadingUsers(true);
+    try {
+      // Filter users based on query
+      const filteredUsers = users.filter(
+        (user) =>
+          user.name?.toLowerCase().includes(query.toLowerCase()) ||
+          user.email?.toLowerCase().includes(query.toLowerCase())
+      );
+      setUserSuggestions(filteredUsers);
+    } catch (error) {
+      console.error("Error searching users:", error);
+      setUserSuggestions([]);
+    } finally {
+      setLoadingUsers(false);
+    }
   };
 
-  const tags = watch("tags");
+  const onSubmit = async (data: NewJourneyForm) => {
+    // Validate all required fields
+    const isTitleValid = validateTitle(data.title);
+    const isStartLocationValid = validateStartLocation();
+    const isEndLocationValid = validateEndLocation();
+    const isDateValid = validateDates(data.startDate, data.endDate);
+
+    // Validate steps
+    const invalidSteps = steps.filter(
+      (step) => !validateStepTravelMedium(step)
+    );
+    if (invalidSteps.length > 0) {
+      alert("Please select travel medium for all steps");
+      return;
+    }
+
+    if (
+      !isTitleValid ||
+      !isStartLocationValid ||
+      !isEndLocationValid ||
+      !isDateValid
+    ) {
+      return;
+    }
+
+    try {
+      // Transform local steps data to match desired API format
+      const stops = steps.map((step) => ({
+        title: step.location.name || "Untitled Stop",
+        stop_category_id: step.category ? parseInt(step.category) : null,
+        location: {
+          name: step.location.name,
+          lat: step.location.coords ? step.location.coords[1] : null,
+          lng: step.location.coords ? step.location.coords[0] : null,
+        },
+        transport_mode: step.mediumOfTravel || null,
+        start_date: step.startDate,
+        end_date: step.endDate,
+        notes: step.notes,
+        media: step.media.map((file) => URL.createObjectURL(file)), // Convert files to URLs for demo
+      }));
+
+      // Extract user IDs from selected friends
+      const taggedUsers = data.friends.map((user) => user.id);
+
+      // Create the complete form data in the desired format
+      const completeData = {
+        title: data.title,
+        start_location_name: startLocation.name,
+        start_lat: startLocation.coords ? startLocation.coords[1] : null,
+        start_lng: startLocation.coords ? startLocation.coords[0] : null,
+        end_location_name: endLocation.name,
+        end_lat: endLocation.coords ? endLocation.coords[1] : null,
+        end_lng: endLocation.coords ? endLocation.coords[0] : null,
+        start_date: data.startDate,
+        end_date: data.endDate,
+        description: data.description,
+        privacy: visibility,
+        tagged_users: taggedUsers,
+        stops: stops,
+      };
+
+      // Post data to the API
+      const response = await apiRequest("post/journeys", {
+        method: "POST",
+        body: JSON.stringify(completeData),
+      });
+
+      console.log("Journey created successfully:", response);
+    } catch (error) {
+      console.error("Error creating journey:", error);
+    }
+  };
 
   return (
     <div className="grid lg:grid-cols-2 grid-cols-1 ">
@@ -486,8 +656,11 @@ export default function NewJourney() {
           >
             <GlobalTextInput
               label="Title"
-              {...register("title", { required: true })}
-              error={errors.title?.message}
+              {...register("title", {
+                required: true,
+                onChange: (e) => validateTitle(e.target.value),
+              })}
+              error={titleError || errors.title?.message}
             />
             <div className="grid grid-cols-2 gap-2">
               <div className="flex flex-col gap-1">
@@ -495,7 +668,11 @@ export default function NewJourney() {
                   Start Location
                 </label>
                 <div className="relative">
-                  <div className="flex items-center gap-2 rounded-lg border pl-5 pr-2 py-3 border-[#848484]">
+                  <div
+                    className={`flex items-center gap-2 rounded-lg border pl-5 pr-2 py-3 ${
+                      startLocationError ? "border-red-500" : "border-[#848484]"
+                    }`}
+                  >
                     <input
                       ref={startInputRef}
                       className=" placeholder:text-[#AFACAC]  text-[12px] w-full outline-none"
@@ -507,11 +684,13 @@ export default function NewJourney() {
                         });
                         fetchStartSuggestions(e.target.value);
                         setShowStartDropdown(true);
+                        validateStartLocation();
                       }}
                       onFocus={async () => setShowStartDropdown(true)}
-                      onBlur={() =>
-                        setTimeout(() => setShowStartDropdown(false), 150)
-                      }
+                      onBlur={() => {
+                        setTimeout(() => setShowStartDropdown(false), 150);
+                        validateStartLocation();
+                      }}
                       onKeyDown={async (e) => {
                         if (e.key === "Enter") {
                           e.preventDefault();
@@ -524,6 +703,7 @@ export default function NewJourney() {
                               name: startLocation.name,
                             });
                             flyToOnMap(coords[0], coords[1]);
+                            validateStartLocation();
                           }
                           setShowStartDropdown(false);
                         }
@@ -531,8 +711,13 @@ export default function NewJourney() {
                     />
                     <TraveLocationIcon className="w-[14px] h-[14px] text-black hover:text-[#2379FC] cursor-pointer" />
                   </div>
+                  {startLocationError && (
+                    <p className="text-red-500 text-[10px] mt-1">
+                      {startLocationError}
+                    </p>
+                  )}
                   {showStartDropdown && startSuggestions.length > 0 && (
-                    <ul className="absolute z-10 left-0 right-0 bg-white border rounded-lg shadow mt-1 max-h-48 overflow-y-auto">
+                    <ul className="absolute z-20 left-0 right-0 bg-white border rounded-lg shadow mt-1 max-h-48 overflow-y-auto">
                       {startSuggestions.map((s, i) => (
                         <li
                           key={s.id}
@@ -551,7 +736,11 @@ export default function NewJourney() {
                   End Location
                 </label>
                 <div className="relative">
-                  <div className="flex items-center gap-2 rounded-lg border pl-5 pr-2 py-3 border-[#848484]">
+                  <div
+                    className={`flex items-center gap-2 rounded-lg border pl-5 pr-2 py-3 ${
+                      endLocationError ? "border-red-500" : "border-[#848484]"
+                    }`}
+                  >
                     <input
                       ref={endInputRef}
                       className=" placeholder:text-[#AFACAC]  text-[12px] w-full outline-none"
@@ -563,11 +752,13 @@ export default function NewJourney() {
                         });
                         fetchEndSuggestions(e.target.value);
                         setShowEndDropdown(true);
+                        validateEndLocation();
                       }}
                       onFocus={async () => setShowEndDropdown(true)}
-                      onBlur={() =>
-                        setTimeout(() => setShowEndDropdown(false), 150)
-                      }
+                      onBlur={() => {
+                        setTimeout(() => setShowEndDropdown(false), 150);
+                        validateEndLocation();
+                      }}
                       onKeyDown={async (e) => {
                         if (e.key === "Enter") {
                           e.preventDefault();
@@ -577,6 +768,7 @@ export default function NewJourney() {
                           if (coords) {
                             setEndLocation({ coords, name: endLocation.name });
                             flyToOnMap(coords[0], coords[1]);
+                            validateEndLocation();
                           }
                           setShowEndDropdown(false);
                         }
@@ -584,8 +776,13 @@ export default function NewJourney() {
                     />
                     <TraveLocationIcon className="w-[14px] h-[14px] text-black hover:text-[#2379FC] cursor-pointer" />
                   </div>
+                  {endLocationError && (
+                    <p className="text-red-500 text-[10px] mt-1">
+                      {endLocationError}
+                    </p>
+                  )}
                   {showEndDropdown && endSuggestions.length > 0 && (
-                    <ul className="absolute z-10 left-0 right-0 bg-white border rounded-lg shadow mt-1 max-h-48 overflow-y-auto">
+                    <ul className="absolute z-20 left-0 right-0 bg-white border rounded-lg shadow mt-1 max-h-48 overflow-y-auto">
                       {endSuggestions.map((s, i) => (
                         <li
                           key={s.id}
@@ -603,13 +800,21 @@ export default function NewJourney() {
             <div className="grid grid-cols-2 gap-2">
               <GlobalDateInput
                 label="Start Date"
-                {...register("startDate", { required: true })}
-                error={errors.startDate?.message}
+                {...register("startDate", {
+                  required: true,
+                  onChange: (e) =>
+                    validateDates(e.target.value, watch("endDate")),
+                })}
+                error={startDateError || errors.startDate?.message}
               />
               <GlobalDateInput
                 label="End Date"
-                {...register("endDate", { required: true })}
-                error={errors.endDate?.message}
+                {...register("endDate", {
+                  required: true,
+                  onChange: (e) =>
+                    validateDates(watch("startDate"), e.target.value),
+                })}
+                error={endDateError || errors.endDate?.message}
               />
             </div>
             <GlobalTextArea
@@ -622,14 +827,25 @@ export default function NewJourney() {
               <span className="font-semibold text-[13px]">Journey Stops</span>
               <button
                 type="button"
-                className="px-3 py-1 text-[12px] flex items-center gap-1"
+                className={`px-3 py-1 text-[12px] flex items-center gap-1 ${
+                  canAddStep ? "text-black" : "text-gray-400 cursor-not-allowed"
+                }`}
                 onClick={() => {
-                  handleAddStep();
-                  setOpenStepIndex(steps.length); // open the new step
+                  if (canAddStep) {
+                    handleAddStep();
+                    setOpenStepIndex(steps.length); // open the new step
+                  }
                 }}
+                disabled={!canAddStep}
               >
                 Add Stop
-                <span className="p-2 w-fit bg-blue-500 text-white rounded-full text-[15px] flex items-center justify-center">
+                <span
+                  className={`p-2 w-fit rounded-full text-[15px] flex items-center justify-center ${
+                    canAddStep
+                      ? "bg-blue-500 text-white"
+                      : "bg-gray-300 text-gray-500"
+                  }`}
+                >
                   {plusIcon}
                 </span>
               </button>
@@ -868,34 +1084,122 @@ export default function NewJourney() {
                               );
                             })}
                           </div>
+                          {!step.mediumOfTravel && (
+                            <p className="text-red-500 text-[10px] mt-1 text-right">
+                              Travel medium is required
+                            </p>
+                          )}
                         </div>
                         <div className="grid grid-cols-2 gap-2 mt-3">
                           <GlobalDateInput
                             label="Start Date"
                             value={step.startDate}
-                            onChange={(e) =>
+                            onChange={(e) => {
+                              const newStartDate = e.target.value;
                               setSteps((steps) =>
                                 steps.map((s, i) =>
                                   i === idx
-                                    ? { ...s, startDate: e.target.value }
+                                    ? { ...s, startDate: newStartDate }
                                     : s
                                 )
-                              )
-                            }
+                              );
+                              // Validate step dates
+                              if (newStartDate && step.endDate) {
+                                const start = new Date(newStartDate);
+                                const end = new Date(step.endDate);
+                                if (end < start) {
+                                  // Update the step with error state
+                                  setSteps((steps) =>
+                                    steps.map((s, i) =>
+                                      i === idx
+                                        ? {
+                                            ...s,
+                                            dateError:
+                                              "End date cannot be before start date",
+                                          }
+                                        : s
+                                    )
+                                  );
+                                } else {
+                                  // Clear error
+                                  setSteps((steps) =>
+                                    steps.map((s, i) =>
+                                      i === idx ? { ...s, dateError: "" } : s
+                                    )
+                                  );
+                                }
+                              }
+                            }}
+                            error={step.dateError}
                           />
                           <GlobalDateInput
                             label="End Date"
                             value={step.endDate}
+                            onChange={(e) => {
+                              const newEndDate = e.target.value;
+                              setSteps((steps) =>
+                                steps.map((s, i) =>
+                                  i === idx ? { ...s, endDate: newEndDate } : s
+                                )
+                              );
+                              // Validate step dates
+                              if (step.startDate && newEndDate) {
+                                const start = new Date(step.startDate);
+                                const end = new Date(newEndDate);
+                                if (end < start) {
+                                  // Update the step with error state
+                                  setSteps((steps) =>
+                                    steps.map((s, i) =>
+                                      i === idx
+                                        ? {
+                                            ...s,
+                                            dateError:
+                                              "End date cannot be before start date",
+                                          }
+                                        : s
+                                    )
+                                  );
+                                } else {
+                                  // Clear error
+                                  setSteps((steps) =>
+                                    steps.map((s, i) =>
+                                      i === idx ? { ...s, dateError: "" } : s
+                                    )
+                                  );
+                                }
+                              }
+                            }}
+                            error={step.dateError}
+                          />
+                        </div>
+                        <div className="flex flex-col gap-2 mb-2">
+                          <label className="text-[12px] font-medium text-black z-10 translate-y-3 translate-x-4 bg-white w-fit px-1">
+                            Stop Category
+                          </label>
+                          <select
+                            className="border px-3 py-2 rounded-lg text-[12px]"
+                            value={step.category || ""}
                             onChange={(e) =>
                               setSteps((steps) =>
                                 steps.map((s, i) =>
                                   i === idx
-                                    ? { ...s, endDate: e.target.value }
+                                    ? { ...s, category: e.target.value }
                                     : s
                                 )
                               )
                             }
-                          />
+                          >
+                            <option value="" disabled>
+                              {loadingCategories
+                                ? "Loading..."
+                                : "Select a category"}
+                            </option>
+                            {stopCategories.map((cat: any) => (
+                              <option key={cat.id} value={cat.id}>
+                                {cat.name || cat.label}
+                              </option>
+                            ))}
+                          </select>
                         </div>
                         <GlobalTextArea
                           label="Notes"
@@ -930,9 +1234,13 @@ export default function NewJourney() {
               })}
             </div>
 
-            <GlobalTextInput
+            <GlobalMultiSelect
               label="Tag Friends"
-              {...register("friends")}
+              value={watch("friends")}
+              onChange={(users) => setValue("friends", users)}
+              suggestions={userSuggestions}
+              onSearch={handleUserSearch}
+              loading={loadingUsers}
               error={errors.friends?.message}
             />
           </div>
@@ -1073,7 +1381,7 @@ function StepLocationInput({
         />
       </div>
       {showDropdown && suggestions.length > 0 && (
-        <ul className="absolute z-10 left-0 right-0 bg-white border rounded-lg shadow mt-1 max-h-48 overflow-y-auto">
+        <ul className="absolute z-20 left-0 right-0 bg-white border rounded-lg shadow mt-1 max-h-48 overflow-y-auto">
           {suggestions.map((s, i) => (
             <li
               key={s.id}
