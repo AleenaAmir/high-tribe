@@ -260,6 +260,9 @@ export default function NewJourney() {
               stopCategories={journeyForm.stopCategories}
               loadingCategories={journeyForm.loadingCategories}
               stepErrors={journeyForm.stepErrors}
+              showAddButton={true}
+              previousSteps={[]}
+              showPreviousSteps={false}
             />
 
             {/* Tag Friends */}

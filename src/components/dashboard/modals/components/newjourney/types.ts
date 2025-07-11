@@ -102,4 +102,45 @@ export interface VisibilitySelectorProps {
   value: VisibilityType;
   onChange: (visibility: VisibilityType) => void;
   options?: VisibilityType[];
+}
+
+// Existing Journey Types
+export interface ExistingJourney {
+  id: string;
+  title: string;
+  description: string;
+  startLocation: LocationData;
+  endLocation: LocationData;
+  startDate: string;
+  endDate: string;
+  steps: Step[];
+  visibility: VisibilityType;
+  createdAt: string;
+  updatedAt: string;
+  userId: string;
+  friends: User[];
+  tags: string[];
+  totalDistance?: number;
+  totalDuration?: string;
+  status: "completed" | "ongoing" | "planned";
+}
+
+export interface ExistingJourneyUpdate {
+  journeyId: string;
+  newSteps: Step[];
+  updatedFields?: Partial<Pick<ExistingJourney, 'title' | 'description' | 'endDate' | 'visibility'>> & {
+    taggedFriends?: User[];
+  };
+}
+
+export interface ExistingJourneyListItem {
+  id: string;
+  title: string;
+  startLocation: string;
+  endLocation: string;
+  startDate: string;
+  endDate: string;
+  status: "completed" | "ongoing" | "planned";
+  totalSteps: number;
+  thumbnail?: string;
 } 

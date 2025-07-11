@@ -6,7 +6,12 @@ import BusIcon from "@/components/dashboard/svgs/BusIcon";
 import WalkIcon from "@/components/dashboard/svgs/WalkIcon";
 import BikeIcon from "@/components/dashboard/svgs/BikeIcon";
 import FaqInfoIcon from "@/components/dashboard/svgs/FaqInfoIcon";
-import { TravelMedium, NewJourneyForm } from "./types";
+import {
+  TravelMedium,
+  NewJourneyForm,
+  ExistingJourney,
+  ExistingJourneyListItem,
+} from "./types";
 
 export const TAGS = [
   "🏛️ Cultural Exploration",
@@ -182,3 +187,246 @@ export const ChevronDownIcon = (
     />
   </svg>
 );
+
+// Mock data for existing journeys - matching NewJourneyForm structure
+export const MOCK_EXISTING_JOURNEYS: ExistingJourney[] = [
+  {
+    id: "journey-1",
+    title: "Lahore to Hunza Adventure",
+    description:
+      "An amazing journey through northern Pakistan exploring beautiful landscapes and cultural sites.",
+    startLocation: {
+      coords: [74.3587, 31.5204],
+      name: "Lahore, Pakistan",
+    },
+    endLocation: {
+      coords: [74.6506, 36.3167],
+      name: "Hunza Valley, Pakistan",
+    },
+    startDate: "2024-01-15",
+    endDate: "2024-01-25",
+    steps: [
+      {
+        name: "Islamabad Stopover",
+        location: {
+          coords: [73.0479, 33.6844],
+          name: "Islamabad, Pakistan",
+        },
+        notes: "Quick rest and preparation for mountain journey",
+        media: [],
+        mediumOfTravel: "car",
+        startDate: "2024-01-16",
+        endDate: "2024-01-16",
+        category: "1",
+      },
+      {
+        name: "Naran Valley",
+        location: {
+          coords: [73.6553, 34.9069],
+          name: "Naran, Pakistan",
+        },
+        notes: "Beautiful mountain views and lake visit",
+        media: [],
+        mediumOfTravel: "car",
+        startDate: "2024-01-17",
+        endDate: "2024-01-19",
+        category: "3",
+      },
+      {
+        name: "Gilgit City",
+        location: {
+          coords: [74.3063, 35.9206],
+          name: "Gilgit, Pakistan",
+        },
+        notes: "Local markets and cultural experience",
+        media: [],
+        mediumOfTravel: "car",
+        startDate: "2024-01-20",
+        endDate: "2024-01-22",
+        category: "1",
+      },
+    ],
+    visibility: "public",
+    createdAt: "2024-01-10T08:00:00Z",
+    updatedAt: "2024-01-25T18:00:00Z",
+    userId: "user-1",
+    friends: [
+      { id: 1, name: "Ahmad Ali", email: "ahmad@example.com" },
+      { id: 2, name: "Sara Khan", email: "sara@example.com" },
+    ],
+    tags: ["🏔️ Mountains", "🚗 Road Trip", "🎨 Culture"],
+    totalDistance: 1200,
+    totalDuration: "10 days",
+    status: "completed",
+  },
+  {
+    id: "journey-2",
+    title: "USA Coast to Coast",
+    description:
+      "Epic road trip across the United States from east coast to west coast.",
+    startLocation: {
+      coords: [-74.006, 40.7128],
+      name: "New York, NY, USA",
+    },
+    endLocation: {
+      coords: [-118.2437, 34.0522],
+      name: "Los Angeles, CA, USA",
+    },
+    startDate: "2023-06-01",
+    endDate: "2023-06-20",
+    steps: [
+      {
+        name: "Philadelphia Historic Tour",
+        location: {
+          coords: [-75.1652, 39.9526],
+          name: "Philadelphia, PA, USA",
+        },
+        notes: "Liberty Bell and Independence Hall visit",
+        media: [],
+        mediumOfTravel: "car",
+        startDate: "2023-06-02",
+        endDate: "2023-06-03",
+        category: "2",
+      },
+      {
+        name: "Chicago Deep Dish",
+        location: {
+          coords: [-87.6298, 41.8781],
+          name: "Chicago, IL, USA",
+        },
+        notes: "Must try deep dish pizza and explore downtown",
+        media: [],
+        mediumOfTravel: "car",
+        startDate: "2023-06-05",
+        endDate: "2023-06-07",
+        category: "1",
+      },
+      {
+        name: "Rocky Mountains",
+        location: {
+          coords: [-104.9903, 39.7392],
+          name: "Denver, CO, USA",
+        },
+        notes: "Hiking and mountain views in Rocky Mountain National Park",
+        media: [],
+        mediumOfTravel: "car",
+        startDate: "2023-06-10",
+        endDate: "2023-06-13",
+        category: "3",
+      },
+      {
+        name: "Grand Canyon South Rim",
+        location: {
+          coords: [-112.1401, 36.0544],
+          name: "Grand Canyon, AZ, USA",
+        },
+        notes: "Sunrise and sunset photography at the canyon",
+        media: [],
+        mediumOfTravel: "car",
+        startDate: "2023-06-16",
+        endDate: "2023-06-18",
+        category: "3",
+      },
+    ],
+    visibility: "tribe",
+    createdAt: "2023-05-20T10:00:00Z",
+    updatedAt: "2023-06-21T20:00:00Z",
+    userId: "user-1",
+    friends: [{ id: 3, name: "Mike Johnson", email: "mike@example.com" }],
+    tags: ["🚗 Road Trip", "🇺🇸 USA", "📸 Photography"],
+    totalDistance: 2800,
+    totalDuration: "20 days",
+    status: "completed",
+  },
+  {
+    id: "journey-3",
+    title: "Greek Islands Paradise",
+    description:
+      "Island hopping adventure through the most beautiful Greek islands with rich history and stunning beaches.",
+    startLocation: {
+      coords: [23.7275, 37.9755],
+      name: "Athens, Greece",
+    },
+    endLocation: {
+      coords: [25.3737, 36.3932],
+      name: "Santorini, Greece",
+    },
+    startDate: "2024-05-01",
+    endDate: "2024-05-15",
+    steps: [
+      {
+        name: "Acropolis & Ancient Athens",
+        location: {
+          coords: [23.7265, 37.9715],
+          name: "Acropolis, Athens, Greece",
+        },
+        notes: "Explore ancient history and visit Parthenon",
+        media: [],
+        mediumOfTravel: "walk",
+        startDate: "2024-05-02",
+        endDate: "2024-05-02",
+        category: "2",
+      },
+      {
+        name: "Mykonos Beaches",
+        location: {
+          coords: [25.3289, 37.4467],
+          name: "Mykonos, Greece",
+        },
+        notes: "Paradise Beach and vibrant nightlife experience",
+        media: [],
+        mediumOfTravel: "plane",
+        startDate: "2024-05-04",
+        endDate: "2024-05-07",
+        category: "3",
+      },
+      {
+        name: "Naxos Traditional Village",
+        location: {
+          coords: [25.3756, 37.1036],
+          name: "Naxos, Greece",
+        },
+        notes: "Authentic Greek culture and amazing local food",
+        media: [],
+        mediumOfTravel: "plane",
+        startDate: "2024-05-08",
+        endDate: "2024-05-11",
+        category: "1",
+      },
+      {
+        name: "Paros Marble Quarries",
+        location: {
+          coords: [25.1448, 37.0857],
+          name: "Paros, Greece",
+        },
+        notes: "Historic marble quarries and fishing villages",
+        media: [],
+        mediumOfTravel: "plane",
+        startDate: "2024-05-12",
+        endDate: "2024-05-13",
+        category: "2",
+      },
+    ],
+    visibility: "private",
+    createdAt: "2024-04-15T09:00:00Z",
+    updatedAt: "2024-05-16T16:00:00Z",
+    userId: "user-1",
+    friends: [],
+    tags: ["🏝️ Islands", "🇬🇷 Greece", "🏛️ History", "🏖️ Beaches"],
+    totalDistance: 800,
+    totalDuration: "15 days",
+    status: "ongoing",
+  },
+];
+
+export const MOCK_JOURNEY_LIST: ExistingJourneyListItem[] =
+  MOCK_EXISTING_JOURNEYS.map((journey) => ({
+    id: journey.id,
+    title: journey.title,
+    startLocation: journey.startLocation.name,
+    endLocation: journey.endLocation.name,
+    startDate: journey.startDate,
+    endDate: journey.endDate,
+    status: journey.status,
+    totalSteps: journey.steps.length,
+  }));

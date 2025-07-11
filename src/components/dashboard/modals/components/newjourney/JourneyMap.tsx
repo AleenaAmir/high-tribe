@@ -72,7 +72,7 @@ const JourneyMap = forwardRef<any, JourneyMapProps>(
     useImperativeHandle(ref, () => ({
       flyTo: (opts: { center: [number, number]; zoom?: number }) => {
         if (map.current) {
-          map.current.flyTo({ center: opts.center, zoom: opts.zoom || 10 });
+          map.current.flyTo({ center: opts.center, zoom: opts.zoom || 4 });
         }
       },
     }));

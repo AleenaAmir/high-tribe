@@ -34,11 +34,6 @@ export default function TravelModeSelector({
         })}
       </div>
       {error && <p className="text-red-500 text-[10px] text-right">{error}</p>}
-      {!selectedMode && (
-        <p className="text-red-500 text-[10px] text-right">
-          Travel medium is required
-        </p>
-      )}
     </div>
   );
 }

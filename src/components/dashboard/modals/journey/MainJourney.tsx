@@ -2,6 +2,7 @@ import GlobalModal from "@/components/global/GlobalModal";
 import Image from "next/image";
 import React, { useState } from "react";
 import NewJourney from "../components/newjourney/NewJourney";
+import ExistingJourneyComponent from "../components/newjourney/ExistingJourney";
 
 const MainJourney = ({
   journyMap,
@@ -69,6 +70,14 @@ const MainJourney = ({
         customPadding="p-0"
       >
         <NewJourney />
+      </GlobalModal>
+      <GlobalModal
+        isOpen={existingJournyMap}
+        onClose={() => setExistingJournyMap(false)}
+        maxWidth="max-w-[1200px]"
+        customPadding="p-0"
+      >
+        <ExistingJourneyComponent />
       </GlobalModal>
     </>
   );
