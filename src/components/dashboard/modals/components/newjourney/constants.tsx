@@ -191,7 +191,7 @@ export const ChevronDownIcon = (
 // Mock data for existing journeys - matching NewJourneyForm structure
 export const MOCK_EXISTING_JOURNEYS: ExistingJourney[] = [
   {
-    id: "journey-1",
+    id: "1",
     title: "Lahore to Hunza Adventure",
     description:
       "An amazing journey through northern Pakistan exploring beautiful landscapes and cultural sites.",
@@ -257,10 +257,10 @@ export const MOCK_EXISTING_JOURNEYS: ExistingJourney[] = [
     tags: ["🏔️ Mountains", "🚗 Road Trip", "🎨 Culture"],
     totalDistance: 1200,
     totalDuration: "10 days",
-    status: "completed",
+    status: "draft",
   },
   {
-    id: "journey-2",
+    id: "2",
     title: "USA Coast to Coast",
     description:
       "Epic road trip across the United States from east coast to west coast.",
@@ -336,10 +336,10 @@ export const MOCK_EXISTING_JOURNEYS: ExistingJourney[] = [
     tags: ["🚗 Road Trip", "🇺🇸 USA", "📸 Photography"],
     totalDistance: 2800,
     totalDuration: "20 days",
-    status: "completed",
+    status: "draft",
   },
   {
-    id: "journey-3",
+    id: "3",
     title: "Greek Islands Paradise",
     description:
       "Island hopping adventure through the most beautiful Greek islands with rich history and stunning beaches.",
@@ -415,7 +415,7 @@ export const MOCK_EXISTING_JOURNEYS: ExistingJourney[] = [
     tags: ["🏝️ Islands", "🇬🇷 Greece", "🏛️ History", "🏖️ Beaches"],
     totalDistance: 800,
     totalDuration: "15 days",
-    status: "ongoing",
+    status: "draft",
   },
 ];
 

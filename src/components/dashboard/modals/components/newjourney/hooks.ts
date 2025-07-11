@@ -327,63 +327,64 @@ export function useJourneyForm() {
       try {
         console.log('Fetching categories and users...');
         
-        // Try different possible endpoints for categories
-        const categoriesPromise = Promise.race([
-          // Try the current endpoint
-          apiRequest<any>("posts/stops/categories", { method: "get" }).catch(err => {
-            console.log('First endpoint failed:', err.message);
-            // Try alternative endpoints
-            return apiRequest<any>("journeys/stops/categories", { method: "get" });
-          }).catch(err => {
-            console.log('Second endpoint failed:', err.message);
-            return apiRequest<any>("stops/categories", { method: "get" });
-          }).catch(err => {
-            console.log('Third endpoint failed:', err.message);
-            return apiRequest<any>("categories", { method: "get" });
-          })
-        ]);
-        
-        const usersPromise = apiRequest<any>("users", { method: "get" });
+        // Fetch categories and users from API
+        const categoriesPromise = apiRequest<any>("posts/stops/categories", { method: "GET" });
+        const usersPromise = apiRequest<any>("users", { method: "GET" });
         
         const [categoriesData, usersData] = await Promise.all([categoriesPromise, usersPromise]);
         
         console.log('Categories data received:', categoriesData);
         console.log('Users data received:', usersData);
         
-        // Handle different possible data structures for categories
+        // Handle categories data structure
         let categories = [];
         if (Array.isArray(categoriesData)) {
           categories = categoriesData;
         } else if (categoriesData?.categories && Array.isArray(categoriesData.categories)) {
           categories = categoriesData.categories;
-        } else if (categoriesData?.data && Array.isArray(categoriesData.data)) {
+        } else if (categoriesData && typeof categoriesData === 'object' && categoriesData.data && Array.isArray(categoriesData.data)) {
           categories = categoriesData.data;
-        } else if (categoriesData?.items && Array.isArray(categoriesData.items)) {
-          categories = categoriesData.items;
         }
         
-        console.log('Processed categories:', categories);
+        // Map categories to expected structure
+        const mappedCategories = categories.map((cat: any) => ({
+          id: cat.id,
+          name: cat.name,
+          label: cat.name,
+        }));
         
-        // Handle different possible data structures for users
+        console.log('Processed categories:', mappedCategories);
+        
+        // Handle users data structure
         let users = [];
         if (Array.isArray(usersData)) {
           users = usersData;
         } else if (usersData?.users && Array.isArray(usersData.users)) {
           users = usersData.users;
-        } else if (usersData?.data && Array.isArray(usersData.data)) {
+        } else if (usersData && typeof usersData === 'object' && usersData.data && Array.isArray(usersData.data)) {
           users = usersData.data;
         }
         
-        setStopCategories(categories);
-        setUsers(users);
+        // Map users to expected structure
+        const mappedUsers = users.map((user: any) => ({
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          avatar: user.avatar,
+        }));
+        
+        console.log('Processed users:', mappedUsers);
+        
+        setStopCategories(mappedCategories);
+        setUsers(mappedUsers);
         
       } catch (error) {
         console.error('Error fetching data:', error);
         
         // Set some default categories for testing
         const defaultCategories = [
-          { id: 1, name: "Restaurant", label: "Restaurant" },
-          { id: 2, name: "Hotel", label: "Hotel" },
+          { id: 1, name: "Hotel", label: "Hotel" },
+          { id: 2, name: "Restaurant", label: "Restaurant" },
           { id: 3, name: "Tourist Attraction", label: "Tourist Attraction" },
           { id: 4, name: "Shopping", label: "Shopping" },
           { id: 5, name: "Entertainment", label: "Entertainment" },
@@ -452,65 +453,95 @@ export function useJourneyForm() {
         return false;
       }
 
-      // Transform data for API
-      const stops = steps.map((step) => {
-        const modeMapping: { [key: string]: string } = {
-          plane: "airplane",
-          train: "train",
-          car: "car",
-          bus: "bus",
-          walk: "foot",
-          bike: "bike",
-          info: "other",
-        };
-        const transportMode = modeMapping[step.mediumOfTravel] || step.mediumOfTravel;
+      // Validate that we have at least basic journey data
+      if (!startLocation.coords || !endLocation.coords) {
+        validation.setErrors({
+          startLocation: !startLocation.coords ? "Start location is required" : "",
+          endLocation: !endLocation.coords ? "End location is required" : "",
+        });
+        return false;
+      }
 
-        return {
-          title: step.location.name || "Untitled Stop",
-          stop_category_id: step.category ? parseInt(step.category) : null,
-          location: {
-            name: step.location.name,
-            lat: step.location.coords ? step.location.coords[1] : null,
-            lng: step.location.coords ? step.location.coords[0] : null,
-          },
-          transport_mode: transportMode,
-          transport_mode_other: step.mediumOfTravel === "info" ? step.notes : null,
-          start_date: step.startDate,
-          end_date: step.endDate,
-          notes: step.notes,
-          media: step.media.map((file) => URL.createObjectURL(file)),
-        };
-      });
+      // Transform data for API - match the API structure
+      const stops = steps
+        .filter(step => step.location.coords && step.location.name) // Only include steps with valid location
+        .map((step) => {
+          const modeMapping: { [key: string]: string } = {
+            plane: "airplane",
+            train: "train",
+            car: "car",
+            bus: "bus",
+            walk: "foot",
+            bike: "bike",
+            info: "other",
+          };
+          const transportMode = modeMapping[step.mediumOfTravel] || step.mediumOfTravel || "car";
 
-      const taggedUsers = data.friends.map((user) => user.id);
+          return {
+            title: step.name || step.location.name || "Untitled Stop",
+            stop_category_id: step.category ? parseInt(step.category) : 1, // Default to first category
+            location: {
+              name: step.location.name,
+              lat: step.location.coords ? step.location.coords[1].toString() : null,
+              lng: step.location.coords ? step.location.coords[0].toString() : null,
+            },
+            transport_mode: transportMode,
+            transport_mode_other: step.mediumOfTravel === "info" ? step.notes : null,
+            start_date: step.startDate,
+            end_date: step.endDate,
+            notes: step.notes,
+            // Don't include media for now - need proper file upload handling
+            media: [],
+          };
+        });
+
+      const taggedUserIds = data.friends.map((user) => user.id);
 
       const completeData = {
         title: data.title.trim(),
         description: data.description?.trim() || "",
         start_location_name: startLocation.name,
-        start_lat: startLocation.coords ? startLocation.coords[1] : null,
-        start_lng: startLocation.coords ? startLocation.coords[0] : null,
+        start_lat: startLocation.coords ? startLocation.coords[1].toString() : null,
+        start_lng: startLocation.coords ? startLocation.coords[0].toString() : null,
         end_location_name: endLocation.name,
-        end_lat: endLocation.coords ? endLocation.coords[1] : null,
-        end_lng: endLocation.coords ? endLocation.coords[0] : null,
+        end_lat: endLocation.coords ? endLocation.coords[1].toString() : null,
+        end_lng: endLocation.coords ? endLocation.coords[0].toString() : null,
         start_date: data.startDate,
         end_date: data.endDate,
         privacy: visibility,
         planning_mode: "manual",
-        date_mode: "specific",
-        journey_types: ["adventure"],
-        tagged_users: taggedUsers,
+        date_mode: "specific", // Use specific since we have start_date and end_date
+        type: "mapping_journey",
+        status: "draft",
+        tagged_user_ids: taggedUserIds,
         stops: stops,
       };
 
+      console.log("Creating journey with data:", completeData);
+      console.log("Number of valid stops:", stops.length);
+      console.log("Valid stops data:", stops);
+
+      // Validate stops data before submission
+      if (stops.length === 0) {
+        console.warn("No valid stops to submit - creating journey without stops");
+      }
+
       // Submit to API
-      const response = await apiRequest("post/journeys", {
+      const response = await apiRequest<{ post: any }>("posts", {
         method: "POST",
-        body: JSON.stringify(completeData),
-      });
+        json: completeData,
+      }, "Journey created successfully!");
 
       console.log("Journey created successfully:", response);
-      return true;
+      
+      // Handle successful response
+      if (response && response.post) {
+        console.log("Created journey details:", response.post);
+        return true;
+      } else {
+        console.log("Journey created but no post data returned");
+        return true;
+      }
     } catch (error) {
       console.error("Error creating journey:", error);
       return false;

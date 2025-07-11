@@ -33,6 +33,12 @@ const nextConfig: NextConfig = {
         port: "",
         pathname: "/**",
       },
+      {
+        protocol: "https",
+        hostname: "high-tribe-backend.hiconsolutions.com",
+        port: "",
+        pathname: "/**",
+      },
     ],
   },
 };

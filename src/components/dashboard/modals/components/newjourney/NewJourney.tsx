@@ -149,11 +149,36 @@ export default function NewJourney() {
   // Form submission
   const handleSubmit = async () => {
     const formData = journeyForm.form.getValues();
-    const success = await journeyForm.submitJourney(formData);
+
+    // Add draft status for new journeys
+    const journeyData = {
+      ...formData,
+      status: "draft",
+    };
+
+    const success = await journeyForm.submitJourney(journeyData);
 
     if (success) {
       // Handle successful submission (e.g., close modal, show success message)
       console.log("Journey created successfully!");
+
+      // Reset form after successful submission
+      journeyForm.form.reset();
+      journeyForm.setStartLocation({ coords: null, name: "" });
+      journeyForm.setEndLocation({ coords: null, name: "" });
+      journeyForm.setSteps([
+        {
+          name: "Stop 1",
+          location: { coords: null, name: "" },
+          notes: "",
+          media: [],
+          mediumOfTravel: "",
+          startDate: "",
+          endDate: "",
+          category: "",
+          dateError: "",
+        },
+      ]);
     }
   };
 

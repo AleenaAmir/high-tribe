@@ -122,13 +122,13 @@ export interface ExistingJourney {
   tags: string[];
   totalDistance?: number;
   totalDuration?: string;
-  status: "completed" | "ongoing" | "planned";
+  status: "draft" | "pending" | "published" | "archived";
 }
 
 export interface ExistingJourneyUpdate {
   journeyId: string;
   newSteps: Step[];
-  updatedFields?: Partial<Pick<ExistingJourney, 'title' | 'description' | 'endDate' | 'visibility'>> & {
+  updatedFields?: Partial<Pick<ExistingJourney, 'title' | 'description' | 'endDate' | 'visibility' | 'status'>> & {
     taggedFriends?: User[];
   };
 }
@@ -140,7 +140,7 @@ export interface ExistingJourneyListItem {
   endLocation: string;
   startDate: string;
   endDate: string;
-  status: "completed" | "ongoing" | "planned";
+  status: "draft" | "pending" | "published" | "archived";
   totalSteps: number;
   thumbnail?: string;
 } 
