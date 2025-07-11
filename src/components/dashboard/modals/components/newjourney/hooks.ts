@@ -271,7 +271,7 @@ export function useJourneyForm() {
 
   const flyToOnMap = useCallback((lng: number, lat: number) => {
     if (mapRef.current && mapRef.current.flyTo) {
-      mapRef.current.flyTo({ center: [lng, lat], zoom: 10 });
+      mapRef.current.flyTo({ center: [lng, lat], zoom: 2 });
     }
   }, []);
 
@@ -330,7 +330,7 @@ export function useJourneyForm() {
         // Try different possible endpoints for categories
         const categoriesPromise = Promise.race([
           // Try the current endpoint
-          apiRequest<any>("post/journeys/stops/categories", { method: "get" }).catch(err => {
+          apiRequest<any>("posts/stops/categories", { method: "get" }).catch(err => {
             console.log('First endpoint failed:', err.message);
             // Try alternative endpoints
             return apiRequest<any>("journeys/stops/categories", { method: "get" });
