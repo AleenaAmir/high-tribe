@@ -30,6 +30,7 @@ export default function ExistingJourneyComponent() {
 
   // Form states
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isEndAndPublish, setIsEndAndPublish] = useState(false);
   const [visibility, setVisibility] = useState<VisibilityType>("public");
   const [newSteps, setNewSteps] = useState<Step[]>([]);
   const [taggedFriends, setTaggedFriends] = useState<
@@ -160,6 +161,14 @@ export default function ExistingJourneyComponent() {
         status:
           (post.status as "draft" | "pending" | "published" | "archived") ||
           "draft",
+        userData: post.user
+          ? {
+              id: post.user.id,
+              name: post.user.name,
+              email: post.user.email,
+              avatar: post.user.avatar,
+            }
+          : undefined,
       };
 
       console.log("Normalized journey:", normalizedJourney);
@@ -325,28 +334,84 @@ export default function ExistingJourneyComponent() {
     setIsSubmitting(true);
 
     try {
+      // Map existing steps to API format
+      const existingStopsData = (selectedJourney?.steps || [])
+        .filter((step) => step.location.coords && step.location.name) // Only include steps with valid location
+        .map((step) => {
+          // Transport mode mapping to match API expectations
+          const modeMapping: { [key: string]: string } = {
+            plane: "airplane",
+            train: "train",
+            car: "car",
+            bus: "bus",
+            walk: "foot",
+            bike: "bike",
+            info: "other",
+          };
+          const transportMode =
+            modeMapping[step.mediumOfTravel] || step.mediumOfTravel || "car";
+
+          return {
+            title: step.name,
+            location: {
+              name: step.location.name,
+              lat: step.location.coords
+                ? step.location.coords[1].toString()
+                : null,
+              lng: step.location.coords
+                ? step.location.coords[0].toString()
+                : null,
+            },
+            transport_mode: transportMode,
+            start_date: step.startDate,
+            end_date: step.endDate,
+            notes: step.notes,
+            stop_category_id: 1, // Default category, you might want to map this properly
+            // Don't include media for now - need proper file upload handling
+            media: step.media || [],
+          };
+        });
+
       // Map new steps to API format
       const newStopsData = newSteps
         .filter((step) => step.location.coords && step.location.name) // Only include steps with valid location
-        .map((step) => ({
-          title: step.name,
-          location: {
-            name: step.location.name,
-            lat: step.location.coords
-              ? step.location.coords[1].toString()
-              : null,
-            lng: step.location.coords
-              ? step.location.coords[0].toString()
-              : null,
-          },
-          transport_mode: step.mediumOfTravel || "car",
-          start_date: step.startDate,
-          end_date: step.endDate,
-          notes: step.notes,
-          stop_category_id: 1, // Default category, you might want to map this properly
-          // Don't include media for now - need proper file upload handling
-          media: [],
-        }));
+        .map((step) => {
+          // Transport mode mapping to match API expectations
+          const modeMapping: { [key: string]: string } = {
+            plane: "airplane",
+            train: "train",
+            car: "car",
+            bus: "bus",
+            walk: "foot",
+            bike: "bike",
+            info: "other",
+          };
+          const transportMode =
+            modeMapping[step.mediumOfTravel] || step.mediumOfTravel || "car";
+
+          return {
+            title: step.name,
+            location: {
+              name: step.location.name,
+              lat: step.location.coords
+                ? step.location.coords[1].toString()
+                : null,
+              lng: step.location.coords
+                ? step.location.coords[0].toString()
+                : null,
+            },
+            transport_mode: transportMode,
+            start_date: step.startDate,
+            end_date: step.endDate,
+            notes: step.notes,
+            stop_category_id: 1, // Default category, you might want to map this properly
+            // Don't include media for now - need proper file upload handling
+            media: [],
+          };
+        });
+
+      // Combine existing and new stops
+      const allStopsData = [...existingStopsData, ...newStopsData];
 
       const updateData = {
         title: selectedJourney.title,
@@ -373,14 +438,16 @@ export default function ExistingJourneyComponent() {
         type: "mapping_journey",
         tagged_user_ids: taggedFriends.map((friend) => friend.id),
         status: "pending", // Update & Publish sets status to pending
-        new_stops: newStopsData,
+        stops: allStopsData,
       };
 
       console.log(
         "Updating journey with pending status - Full request data:",
         updateData
       );
+      console.log("Number of existing stops:", existingStopsData.length);
       console.log("Number of new stops:", newStopsData.length);
+      console.log("Total stops:", allStopsData.length);
       console.log("Request URL:", `posts/${selectedJourney.id}`);
       console.log("Tagged friends:", taggedFriends);
 
@@ -415,31 +482,87 @@ export default function ExistingJourneyComponent() {
   const handleEndAndPublish = async () => {
     if (!selectedJourney) return;
 
-    setIsSubmitting(true);
+    setIsEndAndPublish(true);
 
     try {
+      // Map existing steps to API format
+      const existingStopsData = (selectedJourney?.steps || [])
+        .filter((step) => step.location.coords && step.location.name) // Only include steps with valid location
+        .map((step) => {
+          // Transport mode mapping to match API expectations
+          const modeMapping: { [key: string]: string } = {
+            plane: "airplane",
+            train: "train",
+            car: "car",
+            bus: "bus",
+            walk: "foot",
+            bike: "bike",
+            info: "other",
+          };
+          const transportMode =
+            modeMapping[step.mediumOfTravel] || step.mediumOfTravel || "car";
+
+          return {
+            title: step.name,
+            location: {
+              name: step.location.name,
+              lat: step.location.coords
+                ? step.location.coords[1].toString()
+                : null,
+              lng: step.location.coords
+                ? step.location.coords[0].toString()
+                : null,
+            },
+            transport_mode: transportMode,
+            start_date: step.startDate,
+            end_date: step.endDate,
+            notes: step.notes,
+            stop_category_id: 1, // Default category, you might want to map this properly
+            // Don't include media for now - need proper file upload handling
+            media: step.media || [],
+          };
+        });
+
       // Map new steps to API format
       const newStopsData = newSteps
         .filter((step) => step.location.coords && step.location.name) // Only include steps with valid location
-        .map((step) => ({
-          title: step.name,
-          location: {
-            name: step.location.name,
-            lat: step.location.coords
-              ? step.location.coords[1].toString()
-              : null,
-            lng: step.location.coords
-              ? step.location.coords[0].toString()
-              : null,
-          },
-          transport_mode: step.mediumOfTravel || "car",
-          start_date: step.startDate,
-          end_date: step.endDate,
-          notes: step.notes,
-          stop_category_id: 1, // Default category, you might want to map this properly
-          // Don't include media for now - need proper file upload handling
-          media: [],
-        }));
+        .map((step) => {
+          // Transport mode mapping to match API expectations
+          const modeMapping: { [key: string]: string } = {
+            plane: "airplane",
+            train: "train",
+            car: "car",
+            bus: "bus",
+            walk: "foot",
+            bike: "bike",
+            info: "other",
+          };
+          const transportMode =
+            modeMapping[step.mediumOfTravel] || step.mediumOfTravel || "car";
+
+          return {
+            title: step.name,
+            location: {
+              name: step.location.name,
+              lat: step.location.coords
+                ? step.location.coords[1].toString()
+                : null,
+              lng: step.location.coords
+                ? step.location.coords[0].toString()
+                : null,
+            },
+            transport_mode: transportMode,
+            start_date: step.startDate,
+            end_date: step.endDate,
+            notes: step.notes,
+            stop_category_id: 1, // Default category, you might want to map this properly
+            // Don't include media for now - need proper file upload handling
+            media: [],
+          };
+        });
+
+      // Combine existing and new stops
+      const allStopsData = [...existingStopsData, ...newStopsData];
 
       const updateData = {
         title: selectedJourney.title,
@@ -466,14 +589,16 @@ export default function ExistingJourneyComponent() {
         type: "mapping_journey",
         tagged_user_ids: taggedFriends.map((friend) => friend.id),
         status: "published", // End & Publish sets status to published
-        new_stops: newStopsData,
+        new_stops: allStopsData,
       };
 
       console.log(
         "Publishing journey with published status - Full request data:",
         updateData
       );
+      console.log("Number of existing stops:", existingStopsData.length);
       console.log("Number of new stops:", newStopsData.length);
+      console.log("Total stops:", allStopsData.length);
       console.log("Request URL:", `posts/${selectedJourney.id}`);
       console.log("Tagged friends:", taggedFriends);
 
@@ -501,7 +626,7 @@ export default function ExistingJourneyComponent() {
       console.error("Error publishing journey with published status:", error);
       alert("Failed to publish journey. Please try again.");
     } finally {
-      setIsSubmitting(false);
+      setIsEndAndPublish(false);
     }
   };
 
@@ -632,6 +757,18 @@ export default function ExistingJourneyComponent() {
                       : []
                   }
                   showPreviousSteps={!!selectedJourney}
+                  userData={selectedJourney?.userData}
+                  journeyData={
+                    selectedJourney
+                      ? {
+                          title: selectedJourney.title,
+                          startLocation: selectedJourney.startLocation,
+                          endLocation: selectedJourney.endLocation,
+                          startDate: selectedJourney.startDate,
+                          endDate: selectedJourney.endDate,
+                        }
+                      : undefined
+                  }
                 />
               </div>
             </div>
@@ -676,7 +813,7 @@ export default function ExistingJourneyComponent() {
                     : "border-blue-600 text-black bg-white bg-gradient-to-r from-[#257CFF] to-[#1063E0] cursor-pointer"
                 }`}
               >
-                {isSubmitting ? (
+                {isEndAndPublish ? (
                   <div className="flex items-center gap-2">
                     <div className="w-4 h-4 border-2 border-gray-300 border-t-blue-600 rounded-full animate-spin"></div>
                     Publishing...

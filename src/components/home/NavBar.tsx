@@ -1,4 +1,5 @@
 "use client";
+import Image from "next/image";
 import Link from "next/link";
 import { useState, useEffect } from "react";
 
@@ -21,14 +22,21 @@ const NavBar = ({
   }, []);
   return (
     <div className="my-2 flex w-full items-center justify-between px-3 md:px-6 lg:px-10">
-      <div className="flex flex-col items-start">
+      {/* <div className="flex flex-col items-start">
         <span className="font-bold text-2xl text-white leading-none drop-shadow-md sm:text-3xl">
           High
         </span>
         <span className="font-bold text-2xl text-white leading-none drop-shadow-md sm:text-3xl">
           Tribe
         </span>
-      </div>
+      </div> */}
+      <Image
+        src="/logo.svg"
+        alt="High Tribe"
+        width={130}
+        height={47}
+        className="h-11 w-auto"
+      />
       {isLogin ? (
         <div>
           <Link

@@ -293,13 +293,13 @@ const UserFeed = () => {
   useEffect(() => {
     const fetchPosts = async () => {
       try {
-        const response = await apiRequest<{ posts: ApiPost[] }>("posts", {
+        const response = await apiRequest<{ data: ApiPost[] }>("posts", {
           method: "get",
         });
 
-        if (Array.isArray(response?.posts)) {
+        if (Array.isArray(response?.data)) {
           // Transform API posts to match Post interface
-          const transformedPosts = response.posts.map(transformApiPostToPost);
+          const transformedPosts = response.data.map(transformApiPostToPost);
 
           // Combine with dummy posts (other post types)
           const allPosts = [...dummyPosts, ...transformedPosts];

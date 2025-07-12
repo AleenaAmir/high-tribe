@@ -82,9 +82,9 @@ const NavBar = ({ onMenuClick }: NavBarProps) => {
           <Image
             src="/logo.svg"
             alt="High Tribe"
-            width={80}
-            height={32}
-            className="h-8 w-auto"
+            width={130}
+            height={47}
+            className="h-11 w-auto"
           />
         </div>
 

@@ -123,6 +123,7 @@ export interface ExistingJourney {
   totalDistance?: number;
   totalDuration?: string;
   status: "draft" | "pending" | "published" | "archived";
+  userData?: User;
 }
 
 export interface ExistingJourneyUpdate {
