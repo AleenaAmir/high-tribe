@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import GlobalTextInput from "@/components/global/GlobalTextInput";
 import GlobalTextArea from "@/components/global/GlobalTextArea";
 import GlobalMultiSelect from "@/components/global/GlobalMultiSelect";
@@ -14,7 +14,11 @@ import {
 } from "./hooks";
 import { MapboxFeature } from "./types";
 
-export default function NewJourney() {
+interface NewJourneyProps {
+  onClose?: () => void;
+}
+
+export default function NewJourney({ onClose }: NewJourneyProps) {
   const journeyForm = useJourneyForm();
   const startLocationAutocomplete = useLocationAutocomplete();
   const endLocationAutocomplete = useLocationAutocomplete();
@@ -24,6 +28,15 @@ export default function NewJourney() {
     "start"
   );
   const [userSuggestions, setUserSuggestions] = useState<any[]>([]);
+
+  // State to track which fields have been touched/interacted with
+  const [touchedFields, setTouchedFields] = useState<{
+    [key: string]: boolean;
+  }>({});
+  const [touchedSteps, setTouchedSteps] = useState<{
+    [key: string]: { [key: string]: boolean };
+  }>({});
+  const [hasAttemptedSubmit, setHasAttemptedSubmit] = useState(false);
 
   // Location change handlers for map interaction
   const handleStartChange = useCallback(
@@ -50,6 +63,7 @@ export default function NewJourney() {
       ...journeyForm.startLocation,
       name: value,
     });
+    markFieldAsTouched("startLocation");
   };
 
   const handleStartLocationSelect = (feature: MapboxFeature) => {
@@ -59,7 +73,7 @@ export default function NewJourney() {
       name: feature.place_name,
     });
     journeyForm.flyToOnMap(coords[0], coords[1]);
-    journeyForm.clearFieldError("startLocation");
+    markFieldAsTouched("startLocation");
   };
 
   const handleEndLocationChange = (value: string) => {
@@ -67,6 +81,7 @@ export default function NewJourney() {
       ...journeyForm.endLocation,
       name: value,
     });
+    markFieldAsTouched("endLocation");
   };
 
   const handleEndLocationSelect = (feature: MapboxFeature) => {
@@ -76,19 +91,14 @@ export default function NewJourney() {
       name: feature.place_name,
     });
     journeyForm.flyToOnMap(coords[0], coords[1]);
-    journeyForm.clearFieldError("endLocation");
+    markFieldAsTouched("endLocation");
   };
 
   // Form field handlers
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const title = e.target.value;
     journeyForm.form.setValue("title", title);
-    const error = journeyForm.validateTitle(title);
-    if (error) {
-      journeyForm.setFieldError("title", error);
-    } else {
-      journeyForm.clearFieldError("title");
-    }
+    markFieldAsTouched("title");
   };
 
   const handleDescriptionChange = (
@@ -96,48 +106,17 @@ export default function NewJourney() {
   ) => {
     const description = e.target.value;
     journeyForm.form.setValue("description", description);
-    const error = journeyForm.validateDescription(description);
-    if (error) {
-      journeyForm.setFieldError("description", error);
-    } else {
-      journeyForm.clearFieldError("description");
-    }
+    markFieldAsTouched("description");
   };
 
   const handleStartDateChange = (date: string) => {
     journeyForm.form.setValue("startDate", date);
-    const endDate = journeyForm.form.watch("endDate");
-    const dateErrors = journeyForm.validateDates(date, endDate);
-
-    if (dateErrors.startDate) {
-      journeyForm.setFieldError("startDate", dateErrors.startDate);
-    } else {
-      journeyForm.clearFieldError("startDate");
-    }
-
-    if (dateErrors.endDate) {
-      journeyForm.setFieldError("endDate", dateErrors.endDate);
-    } else {
-      journeyForm.clearFieldError("endDate");
-    }
+    markFieldAsTouched("startDate");
   };
 
   const handleEndDateChange = (date: string) => {
     journeyForm.form.setValue("endDate", date);
-    const startDate = journeyForm.form.watch("startDate");
-    const dateErrors = journeyForm.validateDates(startDate, date);
-
-    if (dateErrors.startDate) {
-      journeyForm.setFieldError("startDate", dateErrors.startDate);
-    } else {
-      journeyForm.clearFieldError("startDate");
-    }
-
-    if (dateErrors.endDate) {
-      journeyForm.setFieldError("endDate", dateErrors.endDate);
-    } else {
-      journeyForm.clearFieldError("endDate");
-    }
+    markFieldAsTouched("endDate");
   };
 
   // User search handler
@@ -146,8 +125,183 @@ export default function NewJourney() {
     setUserSuggestions(results);
   };
 
+  // Helper functions to mark fields as touched
+  const markFieldAsTouched = (fieldName: string) => {
+    setTouchedFields((prev) => ({ ...prev, [fieldName]: true }));
+  };
+
+  const markStepFieldAsTouched = (stepIndex: number, fieldName: string) => {
+    setTouchedSteps((prev) => ({
+      ...prev,
+      [stepIndex]: { ...prev[stepIndex], [fieldName]: true },
+    }));
+  };
+
+  // Validation function that only shows errors for touched fields or after submit attempt
+  const validateAndUpdateErrors = useCallback(() => {
+    const formData = journeyForm.form.getValues();
+    const newErrors: any = {};
+    const newStepErrors: any = {};
+
+    // Only validate and show errors for touched fields or if user attempted submit
+    if (touchedFields.title || hasAttemptedSubmit) {
+      const titleError = journeyForm.validateTitle(formData.title);
+      if (titleError) newErrors.title = titleError;
+    }
+
+    if (touchedFields.description || hasAttemptedSubmit) {
+      const descriptionError = journeyForm.validateDescription(
+        formData.description
+      );
+      if (descriptionError) newErrors.description = descriptionError;
+    }
+
+    if (touchedFields.startLocation || hasAttemptedSubmit) {
+      const startLocationError = journeyForm.validateLocation(
+        journeyForm.startLocation,
+        "Start location"
+      );
+      if (startLocationError) newErrors.startLocation = startLocationError;
+    }
+
+    if (touchedFields.endLocation || hasAttemptedSubmit) {
+      const endLocationError = journeyForm.validateLocation(
+        journeyForm.endLocation,
+        "End location"
+      );
+      if (endLocationError) newErrors.endLocation = endLocationError;
+    }
+
+    if (touchedFields.startDate || hasAttemptedSubmit) {
+      const dateErrors = journeyForm.validateDates(
+        formData.startDate,
+        formData.endDate
+      );
+      if (dateErrors.startDate) newErrors.startDate = dateErrors.startDate;
+      if (dateErrors.endDate) newErrors.endDate = dateErrors.endDate;
+    }
+
+    if (touchedFields.endDate || hasAttemptedSubmit) {
+      const dateErrors = journeyForm.validateDates(
+        formData.startDate,
+        formData.endDate
+      );
+      if (dateErrors.startDate) newErrors.startDate = dateErrors.startDate;
+      if (dateErrors.endDate) newErrors.endDate = dateErrors.endDate;
+    }
+
+    // Validate steps
+    journeyForm.steps.forEach((step, index) => {
+      const stepTouched = touchedSteps[index];
+      if (stepTouched || hasAttemptedSubmit) {
+        const stepError = journeyForm.validateStep(
+          step,
+          index,
+          journeyForm.stopCategories
+        );
+        const filteredStepError: any = {};
+
+        // Only include errors for touched step fields or if submit was attempted
+        Object.keys(stepError).forEach((key) => {
+          if (stepTouched?.[key] || hasAttemptedSubmit) {
+            filteredStepError[key] = stepError[key];
+          }
+        });
+
+        if (Object.keys(filteredStepError).length > 0) {
+          newStepErrors[index] = filteredStepError;
+        }
+      }
+    });
+
+    journeyForm.setErrors(newErrors);
+    journeyForm.setStepErrors(newStepErrors);
+  }, [
+    touchedFields,
+    touchedSteps,
+    hasAttemptedSubmit,
+    journeyForm.form.watch("title"),
+    journeyForm.form.watch("description"),
+    journeyForm.form.watch("startDate"),
+    journeyForm.form.watch("endDate"),
+    JSON.stringify(journeyForm.startLocation),
+    JSON.stringify(journeyForm.endLocation),
+    JSON.stringify(journeyForm.steps),
+    journeyForm.stopCategories.length,
+  ]);
+
+  // Run validation when dependencies change
+  useEffect(() => {
+    validateAndUpdateErrors();
+  }, [validateAndUpdateErrors]);
+
+  // Check if form has actual validation errors (regardless of touched state)
+  const hasValidationErrors = useCallback(() => {
+    const formData = journeyForm.form.getValues();
+
+    // Check main form errors
+    const titleError = journeyForm.validateTitle(formData.title);
+    const descriptionError = journeyForm.validateDescription(
+      formData.description
+    );
+    const startLocationError = journeyForm.validateLocation(
+      journeyForm.startLocation,
+      "Start location"
+    );
+    const endLocationError = journeyForm.validateLocation(
+      journeyForm.endLocation,
+      "End location"
+    );
+    const dateErrors = journeyForm.validateDates(
+      formData.startDate,
+      formData.endDate
+    );
+
+    const hasMainErrors = !!(
+      titleError ||
+      descriptionError ||
+      startLocationError ||
+      endLocationError ||
+      dateErrors.startDate ||
+      dateErrors.endDate
+    );
+
+    // Check step errors
+    const hasStepErrors = journeyForm.steps.some((step, index) => {
+      const stepError = journeyForm.validateStep(
+        step,
+        index,
+        journeyForm.stopCategories
+      );
+      return Object.keys(stepError).length > 0;
+    });
+
+    return hasMainErrors || hasStepErrors;
+  }, [
+    journeyForm.form.watch("title"),
+    journeyForm.form.watch("description"),
+    journeyForm.form.watch("startDate"),
+    journeyForm.form.watch("endDate"),
+    JSON.stringify(journeyForm.startLocation),
+    JSON.stringify(journeyForm.endLocation),
+    JSON.stringify(journeyForm.steps),
+    journeyForm.stopCategories.length,
+  ]);
+
   // Form submission
   const handleSubmit = async () => {
+    setHasAttemptedSubmit(true);
+
+    // This will trigger validation to show all errors
+    setTimeout(() => {
+      validateAndUpdateErrors();
+    }, 0);
+
+    // Check if there are validation errors
+    if (hasValidationErrors()) {
+      return; // Don't submit if there are errors
+    }
+
     const formData = journeyForm.form.getValues();
 
     // Add draft status for new journeys
@@ -179,6 +333,14 @@ export default function NewJourney() {
           dateError: "",
         },
       ]);
+
+      // Reset touched state
+      setTouchedFields({});
+      setTouchedSteps({});
+      setHasAttemptedSubmit(false);
+
+      // Close the modal
+      onClose?.();
     }
   };
 
@@ -279,7 +441,10 @@ export default function NewJourney() {
             {/* Journey Steps */}
             <StepsList
               steps={journeyForm.steps}
-              onStepsChange={journeyForm.setSteps}
+              onStepsChange={(newSteps) => {
+                journeyForm.setSteps(newSteps);
+              }}
+              onStepFieldTouch={markStepFieldAsTouched}
               canAddStep={!!journeyForm.canAddStep}
               fetchStepSuggestions={journeyForm.fetchStepSuggestions}
               stopCategories={journeyForm.stopCategories}
@@ -308,10 +473,7 @@ export default function NewJourney() {
             onVisibilityChange={journeyForm.setVisibility}
             onSubmit={handleSubmit}
             isSubmitting={journeyForm.isSubmitting}
-            disabled={
-              Object.keys(journeyForm.errors).length > 0 ||
-              Object.keys(journeyForm.stepErrors).length > 0
-            }
+            disabled={hasValidationErrors()}
           />
         </form>
       </div>

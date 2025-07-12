@@ -23,6 +23,7 @@ interface JourneyStepProps {
   onToggleEdit: () => void;
   onDelete: () => void;
   onUpdate: (updatedStep: Partial<Step>) => void;
+  onFieldTouch?: (fieldName: string) => void;
   fetchStepSuggestions?: (query: string) => Promise<MapboxFeature[]>;
   stopCategories: StopCategory[];
   loadingCategories: boolean;
@@ -39,6 +40,7 @@ export default function JourneyStep({
   onToggleEdit,
   onDelete,
   onUpdate,
+  onFieldTouch,
   fetchStepSuggestions,
   stopCategories,
   loadingCategories,
@@ -76,6 +78,7 @@ export default function JourneyStep({
           name,
         },
       });
+      onFieldTouch?.("location");
     }
   };
 
@@ -87,6 +90,7 @@ export default function JourneyStep({
           name: value,
         },
       });
+      onFieldTouch?.("location");
     }
   };
 
@@ -98,22 +102,27 @@ export default function JourneyStep({
 
   const handleModeSelect = (mode: string) => {
     onUpdate({ mediumOfTravel: mode });
+    onFieldTouch?.("travelMode");
   };
 
   const handleStartDateChange = (date: string) => {
     onUpdate({ startDate: date });
+    onFieldTouch?.("startDate");
   };
 
   const handleEndDateChange = (date: string) => {
     onUpdate({ endDate: date });
+    onFieldTouch?.("endDate");
   };
 
   const handleNotesChange = (notes: string) => {
     onUpdate({ notes });
+    onFieldTouch?.("notes");
   };
 
   const handleCategoryChange = (category: string) => {
     onUpdate({ category });
+    onFieldTouch?.("category");
   };
 
   const handleMediaChange = (files: File[]) => {

@@ -15,7 +15,11 @@ import {
   ExistingJourneyListItem,
 } from "./types";
 
-export default function ExistingJourneyComponent() {
+interface ExistingJourneyProps {
+  onClose?: () => void;
+}
+
+export default function ExistingJourneyComponent({ onClose }: ExistingJourneyProps) {
   // State for journey list and selection
   const [journeysList, setJourneysList] = useState<ExistingJourneyListItem[]>(
     []
@@ -471,6 +475,9 @@ export default function ExistingJourneyComponent() {
       if (selectedJourneyId) {
         await fetchJourneyData(selectedJourneyId);
       }
+      
+      // Close the modal after successful update
+      onClose?.();
     } catch (error) {
       console.error("Error updating journey with pending status:", error);
       alert("Failed to update journey. Please try again.");
@@ -622,6 +629,9 @@ export default function ExistingJourneyComponent() {
       if (selectedJourneyId) {
         await fetchJourneyData(selectedJourneyId);
       }
+      
+      // Close the modal after successful publication
+      onClose?.();
     } catch (error) {
       console.error("Error publishing journey with published status:", error);
       alert("Failed to publish journey. Please try again.");

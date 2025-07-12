@@ -69,7 +69,7 @@ const MainJourney = ({
         maxWidth="max-w-[1200px]"
         customPadding="p-0"
       >
-        <NewJourney />
+        <NewJourney onClose={() => setNewJournyMap(false)} />
       </GlobalModal>
       <GlobalModal
         isOpen={existingJournyMap}
@@ -77,7 +77,7 @@ const MainJourney = ({
         maxWidth="max-w-[1200px]"
         customPadding="p-0"
       >
-        <ExistingJourneyComponent />
+        <ExistingJourneyComponent onClose={() => setExistingJournyMap(false)} />
       </GlobalModal>
     </>
   );
