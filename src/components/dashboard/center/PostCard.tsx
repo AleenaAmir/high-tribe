@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import Image from "next/image";
 import LocationSmall from "../svgs/LocationSmall";
-import ImageModal from "../../global/ImageModal";
+import MediaModal from "../../global/MediaModal";
 
 // --- TYPE DEFINITIONS ---
 export type Post = {
@@ -129,16 +129,38 @@ export const MoreOptionsIcon = ({ className }: { className?: string }) => (
   </svg>
 );
 
-// --- IMAGE GRID COMPONENT ---
-const ImageGrid = ({
-  images,
-  onImageClick,
+// Play icon for videos
+const PlayIcon = ({ className }: { className?: string }) => (
+  <svg
+    className={className}
+    width="48"
+    height="48"
+    viewBox="0 0 48 48"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <circle cx="24" cy="24" r="24" fill="rgba(0,0,0,0.5)" />
+    <path d="M20 16L32 24L20 32V16Z" fill="white" />
+  </svg>
+);
+
+// --- MEDIA GRID COMPONENT ---
+const MediaGrid = ({
+  media,
+  onMediaClick,
 }: {
-  images: { url: string }[];
-  onImageClick: (images: { url: string }[], index: number) => void;
+  media: { type: "image" | "video"; url: string }[];
+  onMediaClick: (
+    media: { type: "image" | "video"; url: string }[],
+    index: number
+  ) => void;
 }) => {
-  const count = images.length;
+  const count = media.length;
   if (count === 0) return null;
+
+  // Separate images and videos
+  const images = media.filter((item) => item.type === "image");
+  const videos = media.filter((item) => item.type === "video");
 
   // State to store image dimensions
   const [imageDimensions, setImageDimensions] = React.useState<
@@ -185,7 +207,7 @@ const ImageGrid = ({
     | { type: "grid-2x2" }
     | { type: "smart-grid"; columns: number };
 
-  // Determine optimal layout based on image count and aspect ratios
+  // Determine optimal layout based on media count and aspect ratios
   const getLayout = (): LayoutType => {
     if (count === 1) {
       const aspectRatio = imageDimensions[0]?.aspectRatio || 4 / 3;
@@ -218,15 +240,15 @@ const ImageGrid = ({
       return { type: "grid-2x2" };
     }
 
-    // For 5+ images, use a smart grid layout
+    // For 5+ media, use a smart grid layout
     return {
       type: "smart-grid",
       columns: count <= 6 ? 3 : 4,
     };
   };
 
-  const renderImage = (
-    src: string,
+  const renderMedia = (
+    mediaItem: { type: "image" | "video"; url: string },
     className: string,
     altIndex: number,
     customAspectRatio?: string
@@ -234,78 +256,92 @@ const ImageGrid = ({
     <div
       className={`relative ${className} cursor-pointer hover:opacity-90 transition-opacity`}
       style={customAspectRatio ? { aspectRatio: customAspectRatio } : undefined}
-      onClick={() => onImageClick(images, altIndex)}
+      onClick={() => onMediaClick(media, altIndex)}
     >
-      <Image
-        src={src}
-        alt={`Post image ${altIndex + 1}`}
-        layout="fill"
-        className="object-cover"
-        onLoad={() => setLoadedImages((prev) => prev + 1)}
-      />
+      {mediaItem.type === "image" ? (
+        <Image
+          src={mediaItem.url}
+          alt={`Post image ${altIndex + 1}`}
+          layout="fill"
+          className="object-cover"
+          onLoad={() => setLoadedImages((prev) => prev + 1)}
+        />
+      ) : (
+        <div className="w-full h-full relative">
+          <video
+            src={mediaItem.url}
+            className="w-full h-full object-cover"
+            preload="metadata"
+            muted
+          />
+          <div className="absolute inset-0 flex items-center justify-center">
+            <PlayIcon className="w-12 h-12" />
+          </div>
+        </div>
+      )}
     </div>
   );
 
   const layout = getLayout();
 
-  // Single image layout
+  // Single media layout
   if (layout.type === "single") {
     return (
       <div
         className="mt-4 relative rounded-lg overflow-hidden"
         style={{ aspectRatio: layout.aspectRatio }}
       >
-        {renderImage(images[0].url, "w-full h-full", 0)}
+        {renderMedia(media[0], "w-full h-full", 0)}
       </div>
     );
   }
 
-  // Two images layout
+  // Two media layout
   if (layout.type === "two-column") {
     return (
       <div
         className={`mt-4 grid grid-cols-2 gap-1 rounded-lg overflow-hidden`}
         style={{ aspectRatio: layout.aspectRatio }}
       >
-        {renderImage(images[0].url, "", 0)}
-        {renderImage(images[1].url, "", 1)}
+        {renderMedia(media[0], "", 0)}
+        {renderMedia(media[1], "", 1)}
       </div>
     );
   }
 
-  // Three images layout
+  // Three media layout
   if (layout.type === "three-layout") {
     if (layout.firstPortrait) {
       return (
         <div className="mt-4 grid grid-cols-3 gap-1 aspect-[16/9] rounded-lg overflow-hidden">
-          {renderImage(images[1].url, "", 1)}
-          {renderImage(images[2].url, "", 2)}
-          {renderImage(images[0].url, "row-span-2", 0)}
+          {renderMedia(media[1], "", 1)}
+          {renderMedia(media[2], "", 2)}
+          {renderMedia(media[0], "row-span-2", 0)}
         </div>
       );
     } else {
       return (
         <div className="mt-4 grid grid-cols-2 grid-rows-2 gap-1 aspect-[4/3] rounded-lg overflow-hidden">
-          {renderImage(images[1].url, "", 1)}
-          {renderImage(images[2].url, "", 2)}
-          {renderImage(images[0].url, "col-span-2", 0)}
+          {renderMedia(media[1], "", 1)}
+          {renderMedia(media[2], "", 2)}
+          {renderMedia(media[0], "col-span-2", 0)}
         </div>
       );
     }
   }
 
-  // Four images grid
+  // Four media grid
   if (layout.type === "grid-2x2") {
     return (
       <div className="mt-4 grid grid-cols-2 grid-rows-2 gap-1 aspect-square rounded-lg overflow-hidden">
-        {images
+        {media
           .slice(0, 4)
-          .map((image, index) => renderImage(image.url, "", index))}
+          .map((mediaItem, index) => renderMedia(mediaItem, "", index))}
       </div>
     );
   }
 
-  // Smart grid for 5+ images
+  // Smart grid for 5+ media
   if (layout.type === "smart-grid") {
     const gridCols = layout.columns;
     const gridRows = Math.ceil(count / gridCols);
@@ -319,14 +355,14 @@ const ImageGrid = ({
           aspectRatio: gridCols === 3 ? "4/3" : "16/9",
         }}
       >
-        {images.map((image, index) => {
-          const isLastImage = index === gridCols * gridRows - 1;
+        {media.map((mediaItem, index) => {
+          const isLastMedia = index === gridCols * gridRows - 1;
           const remainingCount = count - gridCols * gridRows;
 
           return (
             <div key={index} className="relative">
-              {renderImage(image.url, "w-full h-full", index)}
-              {isLastImage && remainingCount > 0 && (
+              {renderMedia(mediaItem, "w-full h-full", index)}
+              {isLastMedia && remainingCount > 0 && (
                 <div className="absolute inset-0 bg-black/50 flex justify-center items-center text-white text-lg font-bold">
                   +{remainingCount}
                 </div>
@@ -345,13 +381,18 @@ const ImageGrid = ({
 export const PostCard = ({ post }: { post: Post }) => {
   // Modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [currentImages, setCurrentImages] = useState<{ url: string }[]>([]);
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [currentMedia, setCurrentMedia] = useState<
+    { type: "image" | "video"; url: string }[]
+  >([]);
+  const [currentMediaIndex, setCurrentMediaIndex] = useState(0);
 
-  // Handle image click
-  const handleImageClick = (images: { url: string }[], index: number) => {
-    setCurrentImages(images);
-    setCurrentImageIndex(index);
+  // Handle media click
+  const handleMediaClick = (
+    media: { type: "image" | "video"; url: string }[],
+    index: number
+  ) => {
+    setCurrentMedia(media);
+    setCurrentMediaIndex(index);
     setIsModalOpen(true);
   };
 
@@ -360,9 +401,9 @@ export const PostCard = ({ post }: { post: Post }) => {
     setIsModalOpen(false);
   };
 
-  // Handle image index change in modal
-  const handleImageIndexChange = (index: number) => {
-    setCurrentImageIndex(index);
+  // Handle media index change in modal
+  const handleMediaIndexChange = (index: number) => {
+    setCurrentMediaIndex(index);
   };
 
   return (
@@ -538,7 +579,10 @@ export const PostCard = ({ post }: { post: Post }) => {
                         key={i}
                         className="relative cursor-pointer hover:opacity-90 transition-opacity"
                         onClick={() =>
-                          handleImageClick(post.journeyContent!.images, i)
+                          handleMediaClick(
+                            [{ type: "image", url: image.url }],
+                            0
+                          )
                         }
                       >
                         <Image
@@ -571,10 +615,7 @@ export const PostCard = ({ post }: { post: Post }) => {
           )}
 
           {post.media && (
-            <ImageGrid
-              images={post.media.map((item) => ({ url: item.url }))}
-              onImageClick={handleImageClick}
-            />
+            <MediaGrid media={post.media} onMediaClick={handleMediaClick} />
           )}
         </div>
 
@@ -653,13 +694,13 @@ export const PostCard = ({ post }: { post: Post }) => {
         </div>
       </div>
 
-      {/* Image Modal */}
-      <ImageModal
+      {/* Media Modal */}
+      <MediaModal
         isOpen={isModalOpen}
         onClose={handleModalClose}
-        images={currentImages}
-        currentIndex={currentImageIndex}
-        onIndexChange={handleImageIndexChange}
+        media={currentMedia}
+        currentIndex={currentMediaIndex}
+        onIndexChange={handleMediaIndexChange}
       />
     </div>
   );

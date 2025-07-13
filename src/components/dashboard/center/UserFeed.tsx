@@ -68,6 +68,99 @@ interface ApiPost {
   updated_at: string;
 }
 
+// Fallback dummy data for when API fails
+const fallbackPosts: Post[] = [
+  {
+    id: "fallback-1",
+    user: {
+      name: "Terrylucas",
+      avatarUrl: "https://randomuser.me/api/portraits/women/44.jpg",
+    },
+    timestamp: "8 hours ago",
+    location: "Barcelona, Spain",
+    content:
+      "Lorem ipsum dolor sit amet consectetur. Venenatis in ligula tempus et diam vel viverra et. Nunc habitiant moecenas at magna pulvinar velit.",
+    media: [
+      {
+        type: "image",
+        url: "https://picsum.photos/seed/post1-1/800/600",
+      },
+      {
+        type: "image",
+        url: "https://picsum.photos/seed/post1-2/800/800",
+      },
+      {
+        type: "image",
+        url: "https://picsum.photos/seed/post1-3/800/800",
+      },
+    ],
+    love: 350,
+    likes: 254,
+    comments: 4,
+    shares: 2,
+    participants: [
+      { avatarUrl: "https://randomuser.me/api/portraits/men/45.jpg" },
+      { avatarUrl: "https://randomuser.me/api/portraits/women/46.jpg" },
+      { avatarUrl: "https://randomuser.me/api/portraits/men/47.jpg" },
+      { avatarUrl: "https://randomuser.me/api/portraits/women/48.jpg" },
+      { avatarUrl: "https://randomuser.me/api/portraits/men/49.jpg" },
+      { avatarUrl: "https://randomuser.me/api/portraits/women/50.jpg" },
+    ],
+  },
+  {
+    id: "fallback-2",
+    user: {
+      name: "Sarah Parker",
+      avatarUrl: "https://randomuser.me/api/portraits/women/32.jpg",
+    },
+    timestamp: "8 hours ago",
+    location: "Barcelona, Spain",
+    content: "Its very hot today?",
+    tags: ["🏛️ Cultural Exploration", "🛍️ Shopping Spree", "🌺 Relaxing Parks"],
+    love: 750,
+    likes: 254,
+    comments: 4,
+    shares: 2,
+    participants: [
+      { avatarUrl: "https://randomuser.me/api/portraits/men/51.jpg" },
+      { avatarUrl: "https://randomuser.me/api/portraits/women/52.jpg" },
+      { avatarUrl: "https://randomuser.me/api/portraits/men/53.jpg" },
+    ],
+  },
+  {
+    id: "fallback-3",
+    isTravelAdvisory: true,
+    user: {
+      name: "Sarah Parker",
+      avatarUrl: "https://randomuser.me/api/portraits/women/32.jpg",
+    },
+    timestamp: "8 hours ago",
+    location: "Barcelona, Spain",
+    travelAdvisoryHead: "Bail volcano activity update",
+    content:
+      "Lorem ipsum dolor sit amet consectetur. Venenatis in ligula tempus et diam vel viverra et. Nunc habitant maecenas at magna pulvinar velit. Fringilla amet commodo tincidunt quis. Lorem ipsum dolor sit amet consectetur. Venenatis in ligula tempus et diam vel viverra et. Nunc habitant maecenas at magna pulvinar velit. Fringilla.",
+    media: [
+      {
+        type: "image",
+        url: "https://res.cloudinary.com/dtfzklzek/image/upload/v1751646394/Post-Img_fqfik8.png",
+      },
+    ],
+    love: 150,
+    likes: 254,
+    comments: 4,
+    shares: 2,
+    tags: ["🏛️ Concerned", "🛍️ Helpful"],
+    participants: [
+      { avatarUrl: "https://randomuser.me/api/portraits/men/51.jpg" },
+      { avatarUrl: "https://randomuser.me/api/portraits/women/52.jpg" },
+      { avatarUrl: "https://randomuser.me/api/portraits/men/53.jpg" },
+      { avatarUrl: "https://randomuser.me/api/portraits/women/54.jpg" },
+      { avatarUrl: "https://randomuser.me/api/portraits/men/55.jpg" },
+    ],
+    isTripBoard: true,
+  },
+];
+
 // Helper function to format timestamp
 const formatTimestamp = (dateString: string): string => {
   const date = new Date(dateString);
@@ -148,13 +241,12 @@ const transformApiPostToPost = (apiPost: ApiPost): Post => {
     apiPost.end_lng
   );
 
-  // Collect all media from stops
+  // Collect all media from stops (both photos and videos)
   const allMedia = apiPost.stops.flatMap((stop) =>
-    stop.media
-      .filter((media) => media.type === "photo") // Only include photos for now
-      .map((media) => ({
-        url: `https://high-tribe-backend.hiconsolutions.com${media.url}`,
-      }))
+    stop.media.map((media) => ({
+      type: media.type === "photo" ? "image" : ("video" as "image" | "video"),
+      url: `https://high-tribe-backend.hiconsolutions.com${media.url}`,
+    }))
   );
 
   // Create participants from tagged users (with placeholder avatars)
@@ -184,8 +276,11 @@ const transformApiPostToPost = (apiPost: ApiPost): Post => {
         mapView:
           "https://res.cloudinary.com/dtfzklzek/image/upload/v1751659619/Post-Img_8_hjbtrh.png", // Placeholder map
       },
-      images: allMedia,
+      images: allMedia
+        .filter((media) => media.type === "image")
+        .map((media) => ({ url: media.url })),
     },
+    media: allMedia.length > 0 ? allMedia : undefined,
     love: Math.floor(Math.random() * 500) + 50, // Random for now
     likes: Math.floor(Math.random() * 300) + 50, // Random for now
     comments: Math.floor(Math.random() * 20) + 1, // Random for now
@@ -194,126 +289,64 @@ const transformApiPostToPost = (apiPost: ApiPost): Post => {
   };
 };
 
-const dummyPosts: Post[] = [
-  {
-    id: "1",
-    user: {
-      name: "Terrylucas",
-      avatarUrl: "https://randomuser.me/api/portraits/women/44.jpg",
-    },
-    timestamp: "8 hours ago",
-    location: "Barcelona, Spain",
-    content:
-      "Lorem ipsum dolor sit amet consectetur. Venenatis in ligula tempus et diam vel viverra et. Nunc habitiant moecenas at magna pulvinar velit.",
-    media: [
-      {
-        type: "image",
-        url: "https://picsum.photos/seed/post1-1/800/600",
-      },
-      {
-        type: "image",
-        url: "https://picsum.photos/seed/post1-2/800/800",
-      },
-      {
-        type: "image",
-        url: "https://picsum.photos/seed/post1-3/800/800",
-      },
-    ],
-    love: 350,
-    likes: 254,
-    comments: 4,
-    shares: 2,
-    participants: [
-      { avatarUrl: "https://randomuser.me/api/portraits/men/45.jpg" },
-      { avatarUrl: "https://randomuser.me/api/portraits/women/46.jpg" },
-      { avatarUrl: "https://randomuser.me/api/portraits/men/47.jpg" },
-      { avatarUrl: "https://randomuser.me/api/portraits/women/48.jpg" },
-      { avatarUrl: "https://randomuser.me/api/portraits/men/49.jpg" },
-      { avatarUrl: "https://randomuser.me/api/portraits/women/50.jpg" },
-    ],
-  },
-  {
-    id: "2",
-    user: {
-      name: "Sarah Parker",
-      avatarUrl: "https://randomuser.me/api/portraits/women/32.jpg",
-    },
-    timestamp: "8 hours ago",
-    location: "Barcelona, Spain",
-    content: "Its very hot today?",
-    tags: ["🏛️ Cultural Exploration", "🛍️ Shopping Spree", "🌺 Relaxing Parks"],
-
-    love: 750,
-    likes: 254,
-    comments: 4,
-    shares: 2,
-    participants: [
-      { avatarUrl: "https://randomuser.me/api/portraits/men/51.jpg" },
-      { avatarUrl: "https://randomuser.me/api/portraits/women/52.jpg" },
-      { avatarUrl: "https://randomuser.me/api/portraits/men/53.jpg" },
-    ],
-  },
-  {
-    id: "3",
-    isTravelAdvisory: true,
-    user: {
-      name: "Sarah Parker",
-      avatarUrl: "https://randomuser.me/api/portraits/women/32.jpg",
-    },
-    timestamp: "8 hours ago",
-    location: "Barcelona, Spain",
-    travelAdvisoryHead: "Bail volcano activity update",
-    content:
-      "Lorem ipsum dolor sit amet consectetur. Venenatis in ligula tempus et diam vel viverra et. Nunc habitant maecenas at magna pulvinar velit. Fringilla amet commodo tincidunt quis. Lorem ipsum dolor sit amet consectetur. Venenatis in ligula tempus et diam vel viverra et. Nunc habitant maecenas at magna pulvinar velit. Fringilla.",
-    media: [
-      {
-        type: "image",
-        url: "https://res.cloudinary.com/dtfzklzek/image/upload/v1751646394/Post-Img_fqfik8.png",
-      },
-    ],
-    love: 150,
-    likes: 254,
-    comments: 4,
-    shares: 2,
-    tags: ["🏛️ Concerned", "🛍️ Helpful"],
-    participants: [
-      { avatarUrl: "https://randomuser.me/api/portraits/men/51.jpg" },
-      { avatarUrl: "https://randomuser.me/api/portraits/women/52.jpg" },
-      { avatarUrl: "https://randomuser.me/api/portraits/men/53.jpg" },
-      { avatarUrl: "https://randomuser.me/api/portraits/women/54.jpg" },
-      { avatarUrl: "https://randomuser.me/api/portraits/men/55.jpg" },
-    ],
-    isTripBoard: true,
-  },
-];
-
 const UserFeed = () => {
-  const [posts, setPosts] = useState<Post[]>(dummyPosts);
-  console.log(posts);
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
   useEffect(() => {
     const fetchPosts = async () => {
       try {
+        setLoading(true);
+        setError(null);
+
         const response = await apiRequest<{ data: ApiPost[] }>("posts", {
           method: "get",
         });
 
-        if (Array.isArray(response?.data)) {
+        if (Array.isArray(response?.data) && response.data.length > 0) {
           // Transform API posts to match Post interface
           const transformedPosts = response.data.map(transformApiPostToPost);
-
-          // Combine with dummy posts (other post types)
-          const allPosts = [...dummyPosts, ...transformedPosts];
-          setPosts(allPosts);
+          setPosts(transformedPosts);
+        } else {
+          // If API returns empty data, use fallback
+          console.log("API returned empty data, using fallback posts");
+          setPosts(fallbackPosts);
         }
       } catch (error) {
-        // If API fails, use dummy data
-        console.log("Failed to fetch posts, using dummy data:", error);
-        setPosts(dummyPosts);
+        // If API fails, use fallback data
+        console.log("Failed to fetch posts, using fallback data:", error);
+        setError("Failed to load posts");
+        setPosts(fallbackPosts);
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchPosts();
   }, []);
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center py-8">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  if (error && posts.length === 0) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-gray-500 mb-4">{error}</p>
+        <button
+          onClick={() => window.location.reload()}
+          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div>

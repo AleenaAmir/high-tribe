@@ -1,19 +1,19 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import Image from "next/image";
 
-interface ImageModalProps {
+interface MediaModalProps {
   isOpen: boolean;
   onClose: () => void;
-  images: { url: string }[];
+  media: { type: "image" | "video"; url: string }[];
   currentIndex: number;
   onIndexChange: (index: number) => void;
 }
 
-const ImageModal: React.FC<ImageModalProps> = ({
+const MediaModal: React.FC<MediaModalProps> = ({
   isOpen,
   onClose,
-  images,
+  media,
   currentIndex,
   onIndexChange,
 }) => {
@@ -23,6 +23,7 @@ const ImageModal: React.FC<ImageModalProps> = ({
     aspectRatio: number;
   } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   // Handle keyboard navigation
   useEffect(() => {
@@ -39,8 +40,19 @@ const ImageModal: React.FC<ImageModalProps> = ({
           }
           break;
         case "ArrowRight":
-          if (currentIndex < images.length - 1) {
+          if (currentIndex < media.length - 1) {
             onIndexChange(currentIndex + 1);
+          }
+          break;
+        case " ":
+          // Space bar to play/pause video
+          e.preventDefault();
+          if (videoRef.current && media[currentIndex]?.type === "video") {
+            if (videoRef.current.paused) {
+              videoRef.current.play();
+            } else {
+              videoRef.current.pause();
+            }
           }
           break;
       }
@@ -48,33 +60,49 @@ const ImageModal: React.FC<ImageModalProps> = ({
 
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen, currentIndex, images.length, onClose, onIndexChange]);
+  }, [isOpen, currentIndex, media.length, onClose, onIndexChange, media]);
 
-  // Load image dimensions when current image changes
+  // Load image dimensions when current media changes
   useEffect(() => {
-    if (!isOpen || !images[currentIndex]) return;
+    if (!isOpen || !media[currentIndex]) return;
 
-    setIsLoading(true);
+    const currentMedia = media[currentIndex];
 
-    // Only run on client
-    if (typeof window !== "undefined") {
-      const img = new window.Image();
-      img.onload = () => {
-        const aspectRatio = img.width / img.height;
-        setImageDimensions({
-          width: img.width,
-          height: img.height,
-          aspectRatio,
-        });
-        setIsLoading(false);
-      };
-      img.onerror = () => {
-        setImageDimensions({ width: 1, height: 1, aspectRatio: 1 });
-        setIsLoading(false);
-      };
-      img.src = images[currentIndex].url;
+    if (currentMedia.type === "image") {
+      setIsLoading(true);
+
+      // Only run on client
+      if (typeof window !== "undefined") {
+        const img = new window.Image();
+        img.onload = () => {
+          const aspectRatio = img.width / img.height;
+          setImageDimensions({
+            width: img.width,
+            height: img.height,
+            aspectRatio,
+          });
+          setIsLoading(false);
+        };
+        img.onerror = () => {
+          setImageDimensions({ width: 1, height: 1, aspectRatio: 1 });
+          setIsLoading(false);
+        };
+        img.src = currentMedia.url;
+      }
+    } else {
+      // For videos, we don't need to load dimensions
+      setIsLoading(false);
+      setImageDimensions(null);
     }
-  }, [currentIndex, images, isOpen]);
+  }, [currentIndex, media, isOpen]);
+
+  // Handle video play/pause when switching between media
+  useEffect(() => {
+    if (videoRef.current) {
+      videoRef.current.pause();
+      videoRef.current.currentTime = 0;
+    }
+  }, [currentIndex]);
 
   // Prevent body scroll when modal is open
   useEffect(() => {
@@ -91,9 +119,8 @@ const ImageModal: React.FC<ImageModalProps> = ({
 
   if (!isOpen) return null;
 
-  const currentImage = images[currentIndex];
-  const hasMultipleImages = images.length > 1;
-  
+  const currentMedia = media[currentIndex];
+  const hasMultipleMedia = media.length > 1;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90">
@@ -119,14 +146,14 @@ const ImageModal: React.FC<ImageModalProps> = ({
       </button>
 
       {/* Navigation buttons */}
-      {hasMultipleImages && (
+      {hasMultipleMedia && (
         <>
           {/* Previous button */}
           {currentIndex > 0 && (
             <button
               onClick={() => onIndexChange(currentIndex - 1)}
               className="absolute left-4 top-1/2 -translate-y-1/2 z-10 bg-black/50 text-white p-3 rounded-full hover:bg-black/70 transition-colors"
-              aria-label="Previous image"
+              aria-label="Previous media"
             >
               <svg
                 width="24"
@@ -144,11 +171,11 @@ const ImageModal: React.FC<ImageModalProps> = ({
           )}
 
           {/* Next button */}
-          {currentIndex < images.length - 1 && (
+          {currentIndex < media.length - 1 && (
             <button
               onClick={() => onIndexChange(currentIndex + 1)}
               className="absolute right-4 top-1/2 -translate-y-1/2 z-10 bg-black/50 text-white p-3 rounded-full hover:bg-black/70 transition-colors"
-              aria-label="Next image"
+              aria-label="Next media"
             >
               <svg
                 width="24"
@@ -167,28 +194,41 @@ const ImageModal: React.FC<ImageModalProps> = ({
         </>
       )}
 
-      {/* Image counter */}
-      {hasMultipleImages && (
+      {/* Media counter */}
+      {hasMultipleMedia && (
         <div className="absolute top-4 left-4 z-10 text-white bg-black/50 px-3 py-1 rounded-full text-sm">
-          {currentIndex + 1} / {images.length}
+          {currentIndex + 1} / {media.length}
         </div>
       )}
 
-      {/* Main image container */}
+      {/* Main media container */}
       <div className="relative w-full h-full flex items-center justify-center p-4">
         {isLoading ? (
           <div className="text-white text-lg">Loading...</div>
         ) : (
           <div className="relative w-full h-full flex items-center justify-center">
-            <Image
-              src={currentImage.url}
-              alt={`Image ${currentIndex + 1}`}
-              width={imageDimensions?.width || 800}
-              height={imageDimensions?.height || 600}
-              className="max-w-full max-h-full object-contain"
-              unoptimized
-              priority
-            />
+            {currentMedia.type === "image" ? (
+              <Image
+                src={currentMedia.url}
+                alt={`Image ${currentIndex + 1}`}
+                width={imageDimensions?.width || 800}
+                height={imageDimensions?.height || 600}
+                className="max-w-full max-h-full object-contain"
+                unoptimized
+                priority
+              />
+            ) : (
+              <video
+                ref={videoRef}
+                src={currentMedia.url}
+                className="max-w-full max-h-full object-contain"
+                controls
+                autoPlay
+                muted
+                loop
+                playsInline
+              />
+            )}
           </div>
         )}
       </div>
@@ -203,4 +243,4 @@ const ImageModal: React.FC<ImageModalProps> = ({
   );
 };
 
-export default ImageModal;
+export default MediaModal;
