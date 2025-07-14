@@ -276,11 +276,9 @@ const transformApiPostToPost = (apiPost: ApiPost): Post => {
         mapView:
           "https://res.cloudinary.com/dtfzklzek/image/upload/v1751659619/Post-Img_8_hjbtrh.png", // Placeholder map
       },
-      images: allMedia
-        .filter((media) => media.type === "image")
-        .map((media) => ({ url: media.url })),
+      media: allMedia,
     },
-    media: allMedia.length > 0 ? allMedia : undefined,
+    // media: allMedia.length > 0 ? allMedia : undefined,
     love: Math.floor(Math.random() * 500) + 50, // Random for now
     likes: Math.floor(Math.random() * 300) + 50, // Random for now
     comments: Math.floor(Math.random() * 20) + 1, // Random for now

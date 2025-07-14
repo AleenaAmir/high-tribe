@@ -23,7 +23,7 @@ export type Post = {
       date: string;
       mapView: string;
     };
-    images: { url: string }[];
+    media: { type: "image" | "video"; url: string }[];
   };
   timestamp: string;
   location?: string;
@@ -262,7 +262,7 @@ const MediaGrid = ({
         <Image
           src={mediaItem.url}
           alt={`Post image ${altIndex + 1}`}
-          layout="fill"
+          fill
           className="object-cover"
           onLoad={() => setLoadedImages((prev) => prev + 1)}
         />
@@ -437,13 +437,16 @@ export const PostCard = ({ post }: { post: Post }) => {
             />
             <div>
               <p className="font-bold text-gray-800">{post.user.name}</p>
-              <div className="flex items-center gap-2 text-xs text-[#656565]">
+              <div className="flex items-center gap-2 text-xs text-[#656565] whitespace-nowrap">
                 <span>{post.timestamp}</span>
                 {post.location && (
                   <>
                     <span>|</span>
-                    <span className="flex items-center gap-1">
-                      <LocationSmall className="scale-150" /> {post.location}
+                    <span className="flex items-center gap-1 ">
+                      <LocationSmall className="scale-150 ml-0.5" />{" "}
+                      <span className="truncate max-w-[350px] xl:max-w-[450px] w-full">
+                        {post.location}
+                      </span>
                     </span>
                   </>
                 )}
@@ -513,7 +516,7 @@ export const PostCard = ({ post }: { post: Post }) => {
           {post.journeyContent && (
             <div className="mt-4">
               <div>
-                <div className="flex items-center justify-between gap-2 bg-[#F9F7F7] rounded-t-lg p-2">
+                {/* <div className="flex items-center justify-between gap-2 bg-[#F9F7F7] rounded-t-lg p-2">
                   <div className="flex items-center gap-4 md:gap-8">
                     <div className="flex items-center gap-2">
                       <Image
@@ -564,7 +567,7 @@ export const PostCard = ({ post }: { post: Post }) => {
                       {post?.journeyContent?.travelDetails?.date}
                     </p>
                   </div>
-                </div>
+                </div> */}
                 <Image
                   src={post?.journeyContent?.travelDetails?.mapView}
                   alt="mapView"
@@ -572,26 +575,36 @@ export const PostCard = ({ post }: { post: Post }) => {
                   width={700}
                   className="w-full object-cover rounded-b-lg"
                 />
-                {post?.journeyContent?.images && (
+                {post?.journeyContent?.media && (
                   <div className="grid grid-cols-5 gap-2 mt-2">
-                    {post?.journeyContent?.images.map((image, i) => (
+                    {post?.journeyContent?.media.map((mediaItem, i) => (
                       <div
                         key={i}
-                        className="relative cursor-pointer hover:opacity-90 transition-opacity"
+                        className="relative cursor-pointer hover:opacity-90 transition-opacity aspect-square"
                         onClick={() =>
-                          handleMediaClick(
-                            [{ type: "image", url: image.url }],
-                            0
-                          )
+                          handleMediaClick(post.journeyContent!.media, i)
                         }
                       >
-                        <Image
-                          src={image.url}
-                          alt="journeyImage"
-                          height={137}
-                          width={112}
-                          className="object-cover rounded-lg w-full"
-                        />
+                        {mediaItem.type === "image" ? (
+                          <Image
+                            src={mediaItem.url}
+                            alt="journeyMedia"
+                            fill
+                            className="object-cover rounded-lg"
+                          />
+                        ) : (
+                          <div className="relative w-full h-full">
+                            <video
+                              src={mediaItem.url}
+                              className="w-full h-full object-cover rounded-lg"
+                              preload="metadata"
+                              muted
+                            />
+                            <div className="absolute inset-0 flex items-center justify-center">
+                              <PlayIcon className="w-8 h-8" />
+                            </div>
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>

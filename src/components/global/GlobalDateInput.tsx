@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useRef, useState, useEffect } from "react";
 
 const CalendarIcon = () => (
   <svg
@@ -17,6 +17,32 @@ const CalendarIcon = () => (
   </svg>
 );
 
+const ChevronLeftIcon = () => (
+  <svg
+    width="16"
+    height="16"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+  >
+    <polyline points="15,18 9,12 15,6"></polyline>
+  </svg>
+);
+
+const ChevronRightIcon = () => (
+  <svg
+    width="16"
+    height="16"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+  >
+    <polyline points="9,18 15,12 9,6"></polyline>
+  </svg>
+);
+
 interface GlobalDateInputProps
   extends React.InputHTMLAttributes<HTMLInputElement> {
   label?: string;
@@ -26,45 +52,140 @@ interface GlobalDateInputProps
 const GlobalDateInput: React.FC<GlobalDateInputProps> = ({
   label,
   error,
+  value,
+  onChange,
   ...props
 }) => {
   const inputRef = useRef<HTMLInputElement>(null);
+  const calendarRef = useRef<HTMLDivElement>(null);
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
 
-  // CSS to hide native date icon
-  React.useEffect(() => {
-    const style = document.createElement("style");
-    style.innerHTML = `
-      input[type="date"]::-webkit-calendar-picker-indicator {
-        opacity: 0;
-        display: none;
+  // Initialize current date and selected date from value
+  useEffect(() => {
+    if (value) {
+      const date = new Date(value as string);
+      if (!isNaN(date.getTime())) {
+        setSelectedDate(date);
+        setCurrentDate(date);
       }
-      input[type="date"]::-webkit-input-placeholder { color: #AFACAC; }
-      input[type="date"]::-moz-placeholder { color: #AFACAC; }
-      input[type="date"]:-ms-input-placeholder { color: #AFACAC; }
-      input[type="date"]::placeholder { color: #AFACAC; }
-      input[type="date"]::-ms-clear { display: none; }
-      input[type="date"]::-ms-reveal { display: none; }
-      input[type="date"]::-o-clear { display: none; }
-      input[type="date"]::-o-reveal { display: none; }
-    `;
-    document.head.appendChild(style);
-    return () => {
-      document.head.removeChild(style);
+    } else {
+      setSelectedDate(null);
+    }
+  }, [value]);
+
+  // Close calendar when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Node;
+      if (
+        calendarRef.current &&
+        !calendarRef.current.contains(target) &&
+        inputRef.current &&
+        !inputRef.current.contains(target)
+      ) {
+        setIsCalendarOpen(false);
+      }
     };
-  }, []);
+
+    if (isCalendarOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isCalendarOpen]);
 
   const handleIconClick = () => {
-    if (inputRef.current) {
-      // Try to use showPicker if available
-      // @ts-ignore
-      if (typeof inputRef.current.showPicker === "function") {
-        // @ts-ignore
-        inputRef.current.showPicker();
-      } else {
-        inputRef.current.focus();
-      }
-    }
+    setIsCalendarOpen(!isCalendarOpen);
   };
+
+  const handleDateSelect = (date: Date) => {
+    setSelectedDate(date);
+    setCurrentDate(date);
+
+    // Format date for input value (YYYY-MM-DD)
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    const formattedDate = `${year}-${month}-${day}`;
+
+    // Call the onChange handler if provided
+    if (onChange) {
+      const event = {
+        target: { value: formattedDate },
+      } as React.ChangeEvent<HTMLInputElement>;
+      onChange(event);
+    }
+
+    setIsCalendarOpen(false);
+  };
+
+  const getDaysInMonth = (date: Date) => {
+    return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
+  };
+
+  const getFirstDayOfMonth = (date: Date) => {
+    return new Date(date.getFullYear(), date.getMonth(), 1).getDay();
+  };
+
+  const getCalendarDays = () => {
+    const daysInMonth = getDaysInMonth(currentDate);
+    const firstDay = getFirstDayOfMonth(currentDate);
+    const days = [];
+
+    // Add empty cells for days before the first day of the month
+    for (let i = 0; i < firstDay; i++) {
+      days.push(null);
+    }
+
+    // Add days of the month
+    for (let i = 1; i <= daysInMonth; i++) {
+      days.push(new Date(currentDate.getFullYear(), currentDate.getMonth(), i));
+    }
+
+    return days;
+  };
+
+  const formatDate = (date: Date) => {
+    return date.toLocaleDateString("en-US", {
+      month: "long",
+      year: "numeric",
+    });
+  };
+
+  const isToday = (date: Date) => {
+    const today = new Date();
+    return date.toDateString() === today.toDateString();
+  };
+
+  const isSelected = (date: Date) => {
+    return selectedDate && date.toDateString() === selectedDate.toDateString();
+  };
+
+  const isCurrentMonth = (date: Date) => {
+    return date.getMonth() === currentDate.getMonth();
+  };
+
+  const navigateMonth = (direction: "prev" | "next") => {
+    setCurrentDate((prev) => {
+      const newDate = new Date(prev);
+      if (direction === "prev") {
+        newDate.setMonth(newDate.getMonth() - 1);
+      } else {
+        newDate.setMonth(newDate.getMonth() + 1);
+      }
+      return newDate;
+    });
+  };
+
+  const calendarDays = getCalendarDays();
+
+  // Format value for display
+  const stringValue = typeof value === "string" ? value : "";
+  const displayValue = stringValue.length === 10 ? stringValue : "";
 
   return (
     <div className="flex flex-col gap-1 w-full">
@@ -76,20 +197,115 @@ const GlobalDateInput: React.FC<GlobalDateInputProps> = ({
       <div className="relative w-full">
         <input
           ref={inputRef}
-          type="date"
-          className="w-full border rounded-lg pl-4 pr-10 py-2 text-[12px] focus:outline-none focus:ring-2 focus:ring-blue-200 border-[#848484] placeholder:italic"
-          // placeholder="mm/dd/yyyy"
+          type="text"
+          className="w-full border max-h-[36px] h-full rounded-lg pl-4 pr-10 py-2.5 text-[12px] focus:outline-none focus:ring-2 focus:ring-blue-200 border-[#848484] cursor-pointer"
+          value={displayValue}
+          readOnly
+          onClick={handleIconClick}
           {...props}
         />
         <button
           type="button"
           tabIndex={-1}
-          className="absolute right-3 top-1/2 -translate-y-1/2 p-0 m-0 bg-transparent border-none cursor-pointer"
+          className="absolute right-3 top-1/2 -translate-y-1/2 p-0 m-0 bg-transparent border-none cursor-pointer hover:opacity-70 transition-opacity"
           onClick={handleIconClick}
           aria-label="Open calendar"
         >
           <CalendarIcon />
         </button>
+
+        {/* Calendar Popup */}
+        {isCalendarOpen && (
+          <div
+            ref={calendarRef}
+            className="absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-50 min-w-[280px]"
+          >
+            {/* Calendar Header */}
+            <div className="flex items-center justify-between p-4 border-b border-gray-100">
+              <button
+                onClick={() => navigateMonth("prev")}
+                className="p-1 hover:bg-gray-100 rounded-full transition-colors"
+              >
+                <ChevronLeftIcon />
+              </button>
+              <h3 className="text-sm font-semibold text-gray-900">
+                {formatDate(currentDate)}
+              </h3>
+              <button
+                onClick={() => navigateMonth("next")}
+                className="p-1 hover:bg-gray-100 rounded-full transition-colors"
+              >
+                <ChevronRightIcon />
+              </button>
+            </div>
+
+            {/* Calendar Grid */}
+            <div className="p-4">
+              {/* Day headers */}
+              <div className="grid grid-cols-7 gap-1 mb-2">
+                {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(
+                  (day) => (
+                    <div
+                      key={day}
+                      className="text-xs text-gray-500 text-center py-1"
+                    >
+                      {day}
+                    </div>
+                  )
+                )}
+              </div>
+
+              {/* Calendar days */}
+              <div className="grid grid-cols-7 gap-1">
+                {calendarDays.map((day, index) => (
+                  <button
+                    key={index}
+                    onClick={() => day && handleDateSelect(day)}
+                    disabled={!day || !isCurrentMonth(day)}
+                    className={`
+                      w-8 h-8 text-xs rounded-full flex items-center justify-center transition-colors
+                      ${
+                        !day || !isCurrentMonth(day)
+                          ? "text-gray-300 cursor-default"
+                          : "hover:bg-blue-50 cursor-pointer"
+                      }
+                      ${
+                        day && isToday(day)
+                          ? "bg-blue-100 text-blue-600 font-semibold"
+                          : ""
+                      }
+                      ${
+                        day && isSelected(day)
+                          ? "bg-blue-600 text-white font-semibold hover:bg-blue-700"
+                          : ""
+                      }
+                      ${
+                        day &&
+                        isCurrentMonth(day) &&
+                        !isToday(day) &&
+                        !isSelected(day)
+                          ? "text-gray-700"
+                          : ""
+                      }
+                    `}
+                  >
+                    {day ? day.getDate() : ""}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Today button */}
+            <div className="p-3 border-t border-gray-100">
+              <button
+                onClick={() => handleDateSelect(new Date())}
+                className="w-full text-xs text-blue-600 hover:text-blue-700 font-medium py-1 rounded transition-colors"
+              >
+                Today
+              </button>
+            </div>
+          </div>
+        )}
       </div>
       {error && <span className="text-xs text-red-500 mt-1">{error}</span>}
     </div>

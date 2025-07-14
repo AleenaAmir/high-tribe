@@ -19,7 +19,9 @@ interface ExistingJourneyProps {
   onClose?: () => void;
 }
 
-export default function ExistingJourneyComponent({ onClose }: ExistingJourneyProps) {
+export default function ExistingJourneyComponent({
+  onClose,
+}: ExistingJourneyProps) {
   // State for journey list and selection
   const [journeysList, setJourneysList] = useState<ExistingJourneyListItem[]>(
     []
@@ -475,7 +477,7 @@ export default function ExistingJourneyComponent({ onClose }: ExistingJourneyPro
       if (selectedJourneyId) {
         await fetchJourneyData(selectedJourneyId);
       }
-      
+
       // Close the modal after successful update
       onClose?.();
     } catch (error) {
@@ -629,7 +631,7 @@ export default function ExistingJourneyComponent({ onClose }: ExistingJourneyPro
       if (selectedJourneyId) {
         await fetchJourneyData(selectedJourneyId);
       }
-      
+
       // Close the modal after successful publication
       onClose?.();
     } catch (error) {

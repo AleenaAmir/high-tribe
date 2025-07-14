@@ -29,7 +29,7 @@ export default function LocationSelector({
   suggestions = [],
   showDropdown,
   error,
-  placeholder = "Enter location...",
+  placeholder = "",
   disabled = false,
   debounceMs = 300,
   maxSuggestions = 10,
@@ -216,13 +216,13 @@ export default function LocationSelector({
       </label>
       <div className="relative">
         <div
-          className={`flex items-center gap-2 rounded-lg border pl-5 pr-2 py-3 ${
+          className={`flex items-center gap-2 rounded-lg border max-h-[36px] h-full pl-5 pr-2 py-3 ${
             error ? "border-red-500" : "border-[#848484]"
           } ${disabled ? "bg-gray-100 cursor-not-allowed" : "bg-white"}`}
         >
           <input
             ref={inputRef}
-            className={`placeholder:text-[#AFACAC] text-[12px] w-full outline-none ${
+            className={`placeholder:text-[#AFACAC] max-h-[36px] h-full text-[12px] w-full outline-none ${
               disabled ? "cursor-not-allowed" : ""
             }`}
             value={value}

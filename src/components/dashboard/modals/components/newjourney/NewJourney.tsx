@@ -380,7 +380,7 @@ export default function NewJourney({ onClose }: NewJourneyProps) {
               value={journeyForm.form.watch("title")}
               onChange={handleTitleChange}
               error={journeyForm.errors.title}
-              placeholder="Enter journey title..."
+              placeholder=" "
             />
 
             {/* Location Selectors */}
@@ -398,7 +398,7 @@ export default function NewJourney({ onClose }: NewJourneyProps) {
                 onSearch={startLocationAutocomplete.fetchSuggestions}
                 suggestions={startLocationAutocomplete.suggestions}
                 error={journeyForm.errors.startLocation}
-                placeholder="Enter start location..."
+                placeholder=" "
               />
 
               <LocationSelector
@@ -414,7 +414,7 @@ export default function NewJourney({ onClose }: NewJourneyProps) {
                 onSearch={endLocationAutocomplete.fetchSuggestions}
                 suggestions={endLocationAutocomplete.suggestions}
                 error={journeyForm.errors.endLocation}
-                placeholder="Enter end location..."
+                placeholder=" "
               />
             </div>
 
@@ -435,7 +435,7 @@ export default function NewJourney({ onClose }: NewJourneyProps) {
               value={journeyForm.form.watch("description")}
               onChange={handleDescriptionChange}
               error={journeyForm.errors.description}
-              placeholder="Describe your journey..."
+              placeholder=" "
             />
 
             {/* Journey Steps */}

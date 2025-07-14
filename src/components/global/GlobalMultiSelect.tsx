@@ -120,7 +120,7 @@ const GlobalMultiSelect: React.FC<GlobalMultiSelectProps> = ({
       )}
       <div className="relative">
         <div
-          className={`flex flex-wrap items-center gap-2 rounded-lg border px-3 py-2 min-h-[44px] focus-within:ring-2 focus-within:ring-blue-400 transition-all ${
+          className={`flex flex-wrap items-center gap-2 rounded-lg max-h-[36px] h-full border px-3 py-2 min-h-[44px] focus-within:ring-2 focus-within:ring-blue-400 transition-all ${
             error ? "border-red-400" : "border-[#848484]"
           }`}
         >
@@ -151,7 +151,7 @@ const GlobalMultiSelect: React.FC<GlobalMultiSelectProps> = ({
             <input
               ref={inputRef}
               type="text"
-              className="flex-1 min-w-[100px] border-none outline-none bg-transparent text-sm"
+              className="flex-1 min-w-[100px] max-h-[36px] h-full border-none outline-none bg-transparent text-sm"
               value={input}
               onChange={handleInputChange}
               onKeyDown={handleKeyDown}

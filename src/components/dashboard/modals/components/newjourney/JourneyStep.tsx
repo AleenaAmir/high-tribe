@@ -269,11 +269,7 @@ export default function JourneyStep({
               onSearch={handleStepLocationSearch}
               suggestions={stepSuggestions}
               error={!canAddStep ? undefined : errors.location}
-              placeholder={
-                canAddStep
-                  ? "Click to see locations between your start and end points..."
-                  : "Please set start and end locations first"
-              }
+              placeholder={" "}
               disabled={!canAddStep}
               isStepLocation={true}
             />
@@ -337,7 +333,7 @@ export default function JourneyStep({
               value={step.notes}
               onChange={(e) => handleNotesChange(e.target.value)}
               error={errors.notes}
-              placeholder="Add notes about this stop..."
+              placeholder=" "
             />
 
             {/* Media Upload */}
