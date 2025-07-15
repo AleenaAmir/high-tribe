@@ -5,8 +5,10 @@ import { MoreOptionsIcon } from "./PostCard";
 
 const PostFootPrint = ({
   setJournyMap,
+  setFootprintModal,
 }: {
   setJournyMap: (value: boolean) => void;
+  setFootprintModal: (value: boolean) => void;
 }) => {
   const options = [
     {
@@ -73,7 +75,10 @@ const PostFootPrint = ({
               placeholder="What's on your mind"
             />
           </div>
-          <button className="text-white font-bold cursor-pointer outline-none text-[10px] group flex items-center gap-2 justify-end font-poppins bg-gradient-to-r from-[#247CFF] to-[#0F62DE] rounded-full w-[100px] p-1">
+          <button
+            className="text-white font-bold cursor-pointer outline-none text-[10px] group flex items-center gap-2 justify-end font-poppins bg-gradient-to-r from-[#247CFF] to-[#0F62DE] rounded-full w-[100px] p-1"
+            onClick={() => setFootprintModal(true)}
+          >
             <span>Footprint</span>
             <span className="bg-white text-[#176BEA] group-hover:text-white group-hover:bg-[#176BEA] transition-all duration-300 rounded-full p-1">
               <FootPrint className="" />

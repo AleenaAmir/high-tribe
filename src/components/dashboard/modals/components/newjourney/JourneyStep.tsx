@@ -145,7 +145,7 @@ export default function JourneyStep({
   };
 
   const handleMediaChange = (files: File[]) => {
-    onUpdate({ media: files });
+    // onUpdate({ media: files });
   };
 
   const handleHeaderEditSave = () => {

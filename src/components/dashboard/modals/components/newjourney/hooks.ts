@@ -476,7 +476,8 @@ export function useJourneyForm() {
             info: "other",
           };
           const transportMode = modeMapping[step.mediumOfTravel] || step.mediumOfTravel || "car";
-
+          console.log("Images going to ssend in API", step.media)
+          // debugger;
           return {
             title: step.name || step.location.name || "Untitled Stop",
             stop_category_id: step.category ? parseInt(step.category) : 1, // Default to first category
@@ -490,8 +491,8 @@ export function useJourneyForm() {
             start_date: step.startDate,
             end_date: step.endDate,
             notes: step.notes,
-            // Don't include media for now - need proper file upload handling
-            media: [],
+            // Include media as a flat array
+            media: step.media || [],
           };
         });
 
