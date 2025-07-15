@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import GlobalTextArea from "@/components/global/GlobalTextArea";
 import GlobalFileUpload from "@/components/global/GlobalFileUpload";
 import LocationSelector from "./LocationSelector";
@@ -70,6 +70,12 @@ export default function JourneyStep({
     step.name || `Stop ${index + 1}`
   );
   const [stepSuggestions, setStepSuggestions] = useState<MapboxFeature[]>([]);
+
+  // Debug logging
+  useEffect(() => {
+    console.log("Step media:", step.media);
+    console.log("Extracted file objects:", step.media?.map((item: any) => item.fileObject).filter(Boolean) || []);
+  }, [step.media]);
 
   // Debug categories
   React.useEffect(() => {
@@ -145,7 +151,19 @@ export default function JourneyStep({
   };
 
   const handleMediaChange = (files: File[]) => {
-    // onUpdate({ media: files });
+    console.log("handleMediaChange called with files:", files);
+    console.log("Files details:", files.map(f => ({ name: f.name, size: f.size, type: f.type })));
+
+    const mappedMedia = files.map(file => ({
+      url: URL.createObjectURL(file), // For preview purposes only (temporary URL)
+      type: file.type,
+      file_name: file.name,
+      fileObject: file, // Keep actual file for upload in FormData later
+    }));
+
+    console.log("Mapped media:", mappedMedia);
+    onUpdate({ media: mappedMedia as any });
+    onFieldTouch?.("media");
   };
 
   const handleHeaderEditSave = () => {
@@ -332,8 +350,8 @@ export default function JourneyStep({
                     {loadingCategories
                       ? "Loading categories..."
                       : stopCategories.length === 0
-                      ? "No categories available"
-                      : "Select a category"}
+                        ? "No categories available"
+                        : "Select a category"}
                   </option>
                   {stopCategories.map((category) => (
                     <option key={category.id} value={category.id.toString()}>
@@ -364,7 +382,7 @@ export default function JourneyStep({
             <div className="mt-2">
               <GlobalFileUpload
                 label="Photos & Videos for this step"
-                value={step.media}
+                value={step.media?.map((item: any) => item.fileObject).filter(Boolean) || []}
                 onChange={handleMediaChange}
                 maxFiles={5}
                 accept="image/*,video/*"

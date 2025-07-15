@@ -76,7 +76,20 @@ const GlobalFileUpload: React.FC<GlobalFileUploadProps> = ({
 
   // Memoize object URLs for each file
   const fileUrls = useMemo(() => {
-    return (value || []).map((file, index) => ({
+    console.log("GlobalFileUpload - value prop:", value);
+    console.log("GlobalFileUpload - value type:", typeof value);
+    console.log("GlobalFileUpload - isArray:", Array.isArray(value));
+
+    if (!value || !Array.isArray(value)) {
+      console.log("GlobalFileUpload - returning empty array (no value or not array)");
+      return [];
+    }
+
+    const validFiles = value.filter(file => file instanceof File);
+    console.log("GlobalFileUpload - valid files:", validFiles.length);
+    console.log("GlobalFileUpload - file details:", validFiles.map(f => ({ name: f.name, size: f.size, type: f.type })));
+
+    return validFiles.map((file, index) => ({
       file,
       url: URL.createObjectURL(file),
       key: `${file.name}-${file.size}-${file.lastModified}-${index}`,
@@ -86,7 +99,11 @@ const GlobalFileUpload: React.FC<GlobalFileUploadProps> = ({
   // Cleanup object URLs on unmount or when files change
   useEffect(() => {
     return () => {
-      fileUrls.forEach(({ url }) => URL.revokeObjectURL(url));
+      fileUrls.forEach(({ url }) => {
+        if (url) {
+          URL.revokeObjectURL(url);
+        }
+      });
     };
   }, [fileUrls]);
 
@@ -147,8 +164,11 @@ const GlobalFileUpload: React.FC<GlobalFileUploadProps> = ({
 
     if (newFiles.length === 0) return;
 
+    // Ensure value is an array and filter out invalid files
+    const currentFiles = Array.isArray(value) ? value.filter(file => file instanceof File) : [];
+
     // Create a Set of existing file names to avoid duplicates
-    const existingFileNames = new Set(value.map((file) => file.name));
+    const existingFileNames = new Set(currentFiles.map((file) => file.name));
 
     // Filter out files that already exist
     const uniqueNewFiles = newFiles.filter(
@@ -161,7 +181,7 @@ const GlobalFileUpload: React.FC<GlobalFileUploadProps> = ({
     }
 
     // Combine existing files with new unique files
-    const allFiles = [...value, ...uniqueNewFiles];
+    const allFiles = [...currentFiles, ...uniqueNewFiles];
 
     // Validate the combined files
     const validation = validateFiles(allFiles);
@@ -191,8 +211,11 @@ const GlobalFileUpload: React.FC<GlobalFileUploadProps> = ({
   const handleRemoveFile = (idx: number) => {
     if (!onChange) return;
 
+    // Ensure value is an array and filter out invalid files
+    const currentFiles = Array.isArray(value) ? value.filter(file => file instanceof File) : [];
+
     // Create a new array without the file at the specified index
-    const newFiles = value.filter((_, i) => i !== idx);
+    const newFiles = currentFiles.filter((_, i) => i !== idx);
 
     // Update the files
     onChange(newFiles);
@@ -216,6 +239,7 @@ const GlobalFileUpload: React.FC<GlobalFileUploadProps> = ({
           {fileUrls.map(({ file, url, key }, idx) => {
             const isImage = file.type.startsWith("image/");
             const isVideo = file.type.startsWith("video/");
+            console.log("GlobalFileUpload - rendering file:", { name: file.name, type: file.type, isImage, isVideo });
             return (
               <div
                 key={key}
@@ -252,9 +276,8 @@ const GlobalFileUpload: React.FC<GlobalFileUploadProps> = ({
         </div>
       )}
       <div
-        className={`rounded-lg border border-dashed p-4 flex flex-col items-center justify-center cursor-pointer focus-within:ring-2 focus-within:ring-blue-400 transition-all ${
-          error ? "border-red-400" : "border-[#A6A4A4]"
-        }`}
+        className={`rounded-lg border border-dashed p-4 flex flex-col items-center justify-center cursor-pointer focus-within:ring-2 focus-within:ring-blue-400 transition-all ${error ? "border-red-400" : "border-[#A6A4A4]"
+          }`}
         onClick={() => inputRef.current?.click()}
         tabIndex={0}
         role="button"
@@ -273,9 +296,8 @@ const GlobalFileUpload: React.FC<GlobalFileUploadProps> = ({
           onChange={handleFiles}
         />
         {/* <div className="flex flex-wrap gap-2 mt-2">
-          {value &&
-            value.length > 0 &&
-            value.map((file, idx) => (
+          {Array.isArray(value) && value.length > 0 &&
+            value.filter(file => file instanceof File).map((file, idx) => (
               <span
                 key={idx}
                 className="text-xs text-gray-600 bg-gray-100 rounded px-2 py-1"

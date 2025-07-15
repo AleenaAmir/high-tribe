@@ -20,14 +20,12 @@ const api = ky.create({
             request.headers.set("Authorization", `Bearer ${token}`);
           }
         }
-        
+
         // Set Content-Type to application/json only if not sending FormData
         if (!(request.body instanceof FormData)) {
           request.headers.set("Content-Type", "application/json");
         }
-        if (request.body instanceof FormData) {
-          request.headers.set("Content-Type", "multipart/form-data");
-        }
+        // Don't set Content-Type for FormData - let the browser set it with boundary
       },
     ],
   },
@@ -41,7 +39,7 @@ export async function apiRequest<T>(
 ): Promise<T> {
   try {
     const result = await api(input, options).json<T>();
-    
+
     // Check if the response contains an error message even with 200 status
     // Only treat as error if it has 'error' field AND doesn't have 'user' or 'token' fields (success indicators)
     if (result && typeof result === 'object' && 'error' in result && !('user' in result) && !('token' in result)) {
@@ -49,11 +47,11 @@ export async function apiRequest<T>(
       const error = new Error(errorMessage) as Error & { status?: number };
       error.name = "ApiError";
       error.status = 400; // Treat as client error
-      
+
       toast.error(errorMessage);
       throw error;
     }
-    
+
     // Only show success message if no error was found
     if (successMessage) {
       toast.success(successMessage);
@@ -62,12 +60,12 @@ export async function apiRequest<T>(
   } catch (err: any) {
     let message = "An unexpected error occurred. Please try again.";
     let shouldShowToast = true;
-    
+
     if (err?.response) {
       const status = err.response.status;
       try {
         const data = await err.response.json();
-        
+
         // Handle specific error messages from API
         if (data?.message) {
           message = data.message;
@@ -138,17 +136,17 @@ export async function apiRequest<T>(
         message = err.message;
       }
     }
-    
+
     // Create a new error with the proper message
     const error = new Error(message) as Error & { status?: number };
     error.name = "ApiError";
     error.status = err?.response?.status;
-    
+
     // Only show toast if shouldShowToast is true
     if (shouldShowToast) {
       toast.error(message);
     }
-    
+
     throw error;
   }
 }
@@ -157,7 +155,7 @@ export async function apiRequest<T>(
 export function getErrorMessage(error: any, context?: string): string {
   if (error?.message) {
     const message = error.message.toLowerCase();
-    
+
     // Common error patterns
     if (message.includes("username")) {
       return "Username is already taken. Please choose a different username.";
@@ -187,7 +185,7 @@ export function getErrorMessage(error: any, context?: string): string {
       return "Invalid email or password. Please check your credentials and try again.";
     }
   }
-  
+
   return error?.message || "An unexpected error occurred. Please try again.";
 }
 

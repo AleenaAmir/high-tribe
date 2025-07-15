@@ -9,7 +9,12 @@ export interface Step {
   name: string; // Step name/title (separate from location name)
   location: LocationData;
   notes: string;
-  media: [];
+  media: Array<{
+    url: string;
+    type: string;
+    file_name: string;
+    fileObject: File;
+  }>;
   mediumOfTravel: string;
   startDate: string;
   endDate: string;

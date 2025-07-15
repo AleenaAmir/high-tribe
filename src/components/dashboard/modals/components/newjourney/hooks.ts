@@ -1,17 +1,18 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { apiRequest } from "@/lib/api";
-import { 
-  NewJourneyForm, 
-  Step, 
-  LocationData, 
-  LatLng, 
-  MapboxFeature, 
-  StopCategory, 
-  User, 
+import { toast } from "react-hot-toast";
+import {
+  NewJourneyForm,
+  Step,
+  LocationData,
+  LatLng,
+  MapboxFeature,
+  StopCategory,
+  User,
   VisibilityType,
   ValidationErrors,
-  StepErrors 
+  StepErrors
 } from './types';
 import { DEFAULT_FORM_VALUES, MAPBOX_GEOCODE_URL } from './constants';
 
@@ -122,7 +123,7 @@ export function useJourneyValidation() {
 
   const validateDates = useCallback((startDate: string, endDate: string) => {
     const errors: { startDate?: string; endDate?: string } = {};
-    
+
     if (!startDate) {
       errors.startDate = "Start date is required";
     }
@@ -266,8 +267,8 @@ export function useJourneyForm() {
   const mapRef = useRef<any>(null);
 
   // Helper functions
-  const canAddStep = startLocation.coords && startLocation.name.trim() && 
-                    endLocation.coords && endLocation.name.trim();
+  const canAddStep = startLocation.coords && startLocation.name.trim() &&
+    endLocation.coords && endLocation.name.trim();
 
   const flyToOnMap = useCallback((lng: number, lat: number) => {
     if (mapRef.current && mapRef.current.flyTo) {
@@ -278,7 +279,7 @@ export function useJourneyForm() {
   // Step suggestions filtered between start and end
   const fetchStepSuggestions = useCallback(async (query: string): Promise<MapboxFeature[]> => {
     if (!startLocation.coords || !endLocation.coords) return [];
-    
+
     // Calculate bounding box with some padding for better coverage
     const [x1, y1] = startLocation.coords!;
     const [x2, y2] = endLocation.coords!;
@@ -287,9 +288,9 @@ export function useJourneyForm() {
     const maxX = Math.max(x1, x2) + padding;
     const minY = Math.min(y1, y2) - padding;
     const maxY = Math.max(y1, y2) + padding;
-    
+
     let url: string;
-    
+
     if (!query || query.trim() === "") {
       // When no query, fetch popular places in the area using bbox
       url = `${MAPBOX_GEOCODE_URL}places.json?bbox=${minX},${minY},${maxX},${maxY}&types=poi,address&limit=10&access_token=${process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN}`;
@@ -301,16 +302,16 @@ export function useJourneyForm() {
         query
       )}.json?proximity=${centerLng},${centerLat}&bbox=${minX},${minY},${maxX},${maxY}&limit=10&access_token=${process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN}`;
     }
-    
+
     try {
       const res = await fetch(url);
       const data = await res.json();
-      
+
       return (data.features || []).filter((f: any) => {
         const [lng, lat] = f.center;
         // Additional filtering to ensure results are actually between start and end
-        return lng >= Math.min(x1, x2) && lng <= Math.max(x1, x2) && 
-               lat >= Math.min(y1, y2) && lat <= Math.max(y1, y2);
+        return lng >= Math.min(x1, x2) && lng <= Math.max(x1, x2) &&
+          lat >= Math.min(y1, y2) && lat <= Math.max(y1, y2);
       });
     } catch (error) {
       console.error('Error fetching step suggestions:', error);
@@ -322,20 +323,20 @@ export function useJourneyForm() {
   useEffect(() => {
     setLoadingCategories(true);
     setLoadingUsers(true);
-    
+
     const fetchData = async () => {
       try {
         console.log('Fetching categories and users...');
-        
+
         // Fetch categories and users from API
         const categoriesPromise = apiRequest<any>("posts/stops/categories", { method: "GET" });
         const usersPromise = apiRequest<any>("users", { method: "GET" });
-        
+
         const [categoriesData, usersData] = await Promise.all([categoriesPromise, usersPromise]);
-        
+
         console.log('Categories data received:', categoriesData);
         console.log('Users data received:', usersData);
-        
+
         // Handle categories data structure
         let categories = [];
         if (Array.isArray(categoriesData)) {
@@ -345,16 +346,16 @@ export function useJourneyForm() {
         } else if (categoriesData && typeof categoriesData === 'object' && categoriesData.data && Array.isArray(categoriesData.data)) {
           categories = categoriesData.data;
         }
-        
+
         // Map categories to expected structure
         const mappedCategories = categories.map((cat: any) => ({
           id: cat.id,
           name: cat.name,
           label: cat.name,
         }));
-        
+
         console.log('Processed categories:', mappedCategories);
-        
+
         // Handle users data structure
         let users = [];
         if (Array.isArray(usersData)) {
@@ -364,7 +365,7 @@ export function useJourneyForm() {
         } else if (usersData && typeof usersData === 'object' && usersData.data && Array.isArray(usersData.data)) {
           users = usersData.data;
         }
-        
+
         // Map users to expected structure
         const mappedUsers = users.map((user: any) => ({
           id: user.id,
@@ -372,15 +373,15 @@ export function useJourneyForm() {
           email: user.email,
           avatar: user.avatar,
         }));
-        
+
         console.log('Processed users:', mappedUsers);
-        
+
         setStopCategories(mappedCategories);
         setUsers(mappedUsers);
-        
+
       } catch (error) {
         console.error('Error fetching data:', error);
-        
+
         // Set some default categories for testing
         const defaultCategories = [
           { id: 1, name: "Hotel", label: "Hotel" },
@@ -391,7 +392,7 @@ export function useJourneyForm() {
           { id: 6, name: "Transportation", label: "Transportation" },
           { id: 7, name: "Other", label: "Other" }
         ];
-        
+
         console.log('Using default categories:', defaultCategories);
         setStopCategories(defaultCategories);
         setUsers([]);
@@ -400,14 +401,14 @@ export function useJourneyForm() {
         setLoadingUsers(false);
       }
     };
-    
+
     fetchData();
   }, []);
 
   // User search
   const searchUsers = useCallback((query: string) => {
     if (!query.trim()) return [];
-    
+
     return users.filter(user =>
       user.name?.toLowerCase().includes(query.toLowerCase()) ||
       user.email?.toLowerCase().includes(query.toLowerCase())
@@ -417,7 +418,7 @@ export function useJourneyForm() {
   // Form submission
   const submitJourney = useCallback(async (data: NewJourneyForm) => {
     setIsSubmitting(true);
-    
+
     try {
       // Validation
       const titleError = validation.validateTitle(data.title);
@@ -436,9 +437,9 @@ export function useJourneyForm() {
       });
 
       // Check for errors
-      const hasErrors = titleError || descriptionError || startLocationError || 
-                       endLocationError || dateErrors.startDate || dateErrors.endDate ||
-                       Object.keys(stepValidationErrors).length > 0;
+      const hasErrors = titleError || descriptionError || startLocationError ||
+        endLocationError || dateErrors.startDate || dateErrors.endDate ||
+        Object.keys(stepValidationErrors).length > 0;
 
       if (hasErrors) {
         validation.setErrors({
@@ -476,11 +477,10 @@ export function useJourneyForm() {
             info: "other",
           };
           const transportMode = modeMapping[step.mediumOfTravel] || step.mediumOfTravel || "car";
-          console.log("Images going to ssend in API", step.media)
-          // debugger;
+
           return {
             title: step.name || step.location.name || "Untitled Stop",
-            stop_category_id: step.category ? parseInt(step.category) : 1, // Default to first category
+            stop_category_id: step.category ? parseInt(step.category) : 1,
             location: {
               name: step.location.name,
               lat: step.location.coords ? step.location.coords[1].toString() : null,
@@ -491,60 +491,147 @@ export function useJourneyForm() {
             start_date: step.startDate,
             end_date: step.endDate,
             notes: step.notes,
-            // Include media as a flat array
-            media: step.media || [],
+            media: step.media && Array.isArray(step.media)
+              ? step.media.map((media: any) => ({
+                url: media.url,
+                type: media.type,
+                file_name: media.file_name,
+              }))
+              : [],
           };
         });
 
+      // Create FormData with the correct structure
+      const formData = new FormData();
+
+      // Add basic journey data
+      formData.append('title', data.title.trim());
+      formData.append('description', data.description?.trim() || "");
+      formData.append('start_location_name', startLocation.name || "");
+      formData.append('start_lat', startLocation.coords ? startLocation.coords[1].toString() : "");
+      formData.append('start_lng', startLocation.coords ? startLocation.coords[0].toString() : "");
+      formData.append('end_location_name', endLocation.name || "");
+      formData.append('end_lat', endLocation.coords ? endLocation.coords[1].toString() : "");
+      formData.append('end_lng', endLocation.coords ? endLocation.coords[0].toString() : "");
+      formData.append('start_date', data.startDate || "");
+      formData.append('end_date', data.endDate || "");
+      formData.append('privacy', visibility || "public");
+      formData.append('planning_mode', "manual");
+      formData.append('date_mode', "specific");
+      formData.append('type', "mapping_journey");
+      formData.append('status', "draft");
+
+      // Add optional fields that might be required
+      formData.append('month', new Date(data.startDate).toLocaleString('default', { month: 'short' }));
+      formData.append('days_count', Math.ceil((new Date(data.endDate).getTime() - new Date(data.startDate).getTime()) / (1000 * 60 * 60 * 24)).toString());
+
+      // Add tagged users (only if there are any)
       const taggedUserIds = data.friends.map((user) => user.id);
+      if (taggedUserIds.length > 0) {
+        taggedUserIds.forEach((userId, index) => {
+          formData.append(`tagged_users[${index}]`, userId.toString());
+        });
+      }
 
-      const completeData = {
-        title: data.title.trim(),
-        description: data.description?.trim() || "",
-        start_location_name: startLocation.name,
-        start_lat: startLocation.coords ? startLocation.coords[1].toString() : null,
-        start_lng: startLocation.coords ? startLocation.coords[0].toString() : null,
-        end_location_name: endLocation.name,
-        end_lat: endLocation.coords ? endLocation.coords[1].toString() : null,
-        end_lng: endLocation.coords ? endLocation.coords[0].toString() : null,
-        start_date: data.startDate,
-        end_date: data.endDate,
-        privacy: visibility,
-        planning_mode: "manual",
-        date_mode: "specific", // Use specific since we have start_date and end_date
-        type: "mapping_journey",
-        status: "draft",
-        tagged_user_ids: taggedUserIds,
-        stops: stops,
-      };
+      // Add stops data (only if there are valid stops)
+      const validStops = steps.filter(step => step.location.coords && step.location.name);
+      if (validStops.length > 0) {
+        validStops.forEach((step, stepIndex) => {
+          const modeMapping: { [key: string]: string } = {
+            plane: "airplane",
+            train: "train",
+            car: "car",
+            bus: "bus",
+            walk: "foot",
+            bike: "bike",
+            info: "other",
+          };
+          const transportMode = modeMapping[step.mediumOfTravel] || step.mediumOfTravel || "car";
 
-      console.log("Creating journey with data:", completeData);
-      console.log("Number of valid stops:", stops.length);
-      console.log("Valid stops data:", stops);
+          formData.append(`stops[${stepIndex}][title]`, step.name || step.location.name || "Untitled Stop");
+          formData.append(`stops[${stepIndex}][stop_category_id]`, step.category ? step.category : "1");
+          formData.append(`stops[${stepIndex}][location][name]`, step.location.name || "");
+          formData.append(`stops[${stepIndex}][location][lat]`, step.location.coords ? step.location.coords[1].toString() : "");
+          formData.append(`stops[${stepIndex}][location][lng]`, step.location.coords ? step.location.coords[0].toString() : "");
+          formData.append(`stops[${stepIndex}][transport_mode]`, transportMode);
+          formData.append(`stops[${stepIndex}][start_date]`, step.startDate || "");
+          formData.append(`stops[${stepIndex}][end_date]`, step.endDate || "");
+          formData.append(`stops[${stepIndex}][notes]`, step.notes || "");
+
+          // Add media files for this step
+          if (step.media && Array.isArray(step.media)) {
+            step.media.forEach((media: any, mediaIndex: number) => {
+              if (media.fileObject && media.fileObject instanceof File) {
+                // If it's a File object, append it directly
+                formData.append(`stops[${stepIndex}][media][${mediaIndex}]`, media.fileObject);
+              }
+            });
+          }
+        });
+      }
 
       // Validate stops data before submission
-      if (stops.length === 0) {
+      if (validStops.length === 0) {
         console.warn("No valid stops to submit - creating journey without stops");
       }
 
-      // Submit to API
-      const response = await apiRequest<{ post: any }>("posts", {
-        method: "POST",
-        json: completeData,
-      }, "Journey created successfully!");
+      console.log("Creating journey with FormData");
+      console.log("Number of valid stops:", validStops.length);
+      console.log("Valid stops data:", validStops);
 
-      console.log("Journey created successfully:", response);
-      
+      // Debug FormData contents
+      console.log("FormData contents:");
+      for (let [key, value] of formData.entries()) {
+        console.log(`${key}:`, value);
+      }
+
+      // Submit to API using FormData with direct fetch (like the working example)
+      const token = localStorage.getItem("token") || "<PASTE_VALID_TOKEN_HERE>";
+
+      const response = await fetch('https://high-tribe-backend.hiconsolutions.com/api/posts', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json',
+        },
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error("Server error:", errorData);
+        throw new Error(errorData.message || `HTTP ${response.status}`);
+      }
+
+      const responseData = await response.json();
+      console.log("Journey created successfully:", responseData);
+
+      // Show success message
+      toast.success("Journey created successfully!");
+
+      return responseData;
+
       // Handle successful response
-      if (response && response.post) {
-        console.log("Created journey details:", response.post);
+      if (responseData && responseData.post) {
+        console.log("Created journey details:", responseData.post);
         return true;
       } else {
         console.log("Journey created but no post data returned");
         return true;
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error creating journey:", error);
+
+      // Log detailed error information
+      if (error.response) {
+        try {
+          const errorData = await error.response.json();
+          console.error("Server error details:", errorData);
+        } catch (parseError) {
+          console.error("Could not parse error response:", parseError);
+        }
+      }
+
       return false;
     } finally {
       setIsSubmitting(false);
