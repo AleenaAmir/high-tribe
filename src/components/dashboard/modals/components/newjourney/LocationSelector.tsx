@@ -211,18 +211,18 @@ export default function LocationSelector({
 
   return (
     <div className="flex flex-col gap-1">
-      <label className="text-[12px] font-medium text-black z-10 translate-y-3 translate-x-4 bg-white w-fit px-1">
+      <label className="text-[12px] font-medium text-black z-10 translate-y-3.5 translate-x-4 bg-white w-fit px-1">
         {label}
       </label>
       <div className="relative">
         <div
-          className={`flex items-center gap-2 rounded-lg border max-h-[36px] h-full pl-5 pr-2 py-3 ${
+          className={`flex items-center gap-2 rounded-lg border h-[40px] pl-5 pr-2 py-3 ${
             error ? "border-red-500" : "border-[#848484]"
           } ${disabled ? "bg-gray-100 cursor-not-allowed" : "bg-white"}`}
         >
           <input
             ref={inputRef}
-            className={`placeholder:text-[#AFACAC] max-h-[36px] h-full text-[12px] w-full outline-none ${
+            className={`placeholder:text-[#AFACAC] h-[40px] text-[12px] w-full outline-none ${
               disabled ? "cursor-not-allowed" : ""
             }`}
             value={value}

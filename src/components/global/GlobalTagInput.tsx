@@ -48,7 +48,7 @@ const GlobalTagInput: React.FC<GlobalTagInputProps> = ({
   return (
     <div className={`flex flex-col gap-1 ${className}`}>
       {label && (
-        <label className="text-[10px] font-medium text-[#5E6368] translate-y-3 translate-x-4 bg-white w-fit px-1">
+        <label className="text-[10px] font-medium text-[#5E6368] translate-y-3.5 translate-x-4 bg-white w-fit px-1">
           {label}
         </label>
       )}

@@ -797,7 +797,7 @@ export default function ExistingJourneyComponent({
                 label="Tag Friends"
                 value={taggedFriends}
                 onChange={setTaggedFriends}
-                placeholder="Search and tag friends..."
+                placeholder=" "
                 suggestions={filteredUsers}
                 onSearch={handleFriendSearch}
                 loading={journeyForm.loadingUsers}
@@ -805,13 +805,13 @@ export default function ExistingJourneyComponent({
               />
             </div>
 
+            <VisibilitySelector value={visibility} onChange={setVisibility} />
+
             {/* Privacy controlled by existing VisibilitySelector in form actions */}
           </div>
 
           {/* Form Actions */}
-          <div className="flex items-center justify-between p-4 border-t border-[#D9D9D9] bg-white">
-            <VisibilitySelector value={visibility} onChange={setVisibility} />
-
+          <div className="flex items-center justify-end p-4 border-t border-[#D9D9D9] bg-white">
             <div className="flex items-center gap-2">
               <button
                 type="button"

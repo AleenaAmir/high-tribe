@@ -190,7 +190,7 @@ const GlobalDateInput: React.FC<GlobalDateInputProps> = ({
   return (
     <div className="flex flex-col gap-1 w-full">
       {label && (
-        <label className="text-[12px] font-medium text-black z-10 translate-y-3 translate-x-4 bg-white w-fit px-1">
+        <label className="text-[12px] font-medium text-black z-10 translate-y-3.5 translate-x-4 bg-white w-fit px-1">
           {label}
         </label>
       )}
@@ -198,7 +198,7 @@ const GlobalDateInput: React.FC<GlobalDateInputProps> = ({
         <input
           ref={inputRef}
           type="text"
-          className="w-full border max-h-[36px] h-full rounded-lg pl-4 pr-10 py-2.5 text-[12px] focus:outline-none focus:ring-2 focus:ring-blue-200 border-[#848484] cursor-pointer"
+          className="w-full border h-[40px] rounded-lg pl-4 pr-10 py-2.5 text-[12px] focus:outline-none focus:ring-2 focus:ring-blue-200 border-[#848484] cursor-pointer"
           value={displayValue}
           readOnly
           onClick={handleIconClick}

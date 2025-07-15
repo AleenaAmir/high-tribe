@@ -14,6 +14,25 @@ import WalkIcon from "@/components/dashboard/svgs/WalkIcon";
 import BikeIcon from "@/components/dashboard/svgs/BikeIcon";
 import { useLocationAutocomplete } from "./hooks";
 
+export const ArrowDownIcon = () => {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="8"
+      height="5"
+      fill="none"
+      viewBox="0 0 8 5"
+    >
+      <path
+        stroke="#5C5B5B"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="m1 1 3 3 3-3"
+      ></path>
+    </svg>
+  );
+};
+
 interface JourneyStepProps {
   step: Step;
   index: number;
@@ -294,7 +313,7 @@ export default function JourneyStep({
             {/* Stop Category */}
             <div className="flex flex-col gap-2">
               <div className="flex items-center justify-between">
-                <label className="text-[12px] font-medium text-black z-10 translate-y-3 translate-x-4 bg-white w-fit px-1">
+                <label className="text-[12px] font-medium text-black z-10 translate-y-3.5 translate-x-4 bg-white w-fit px-1">
                   Stop Category
                 </label>
                 {stopCategories.length === 0 && !loadingCategories && (
@@ -303,24 +322,29 @@ export default function JourneyStep({
                   </span>
                 )}
               </div>
-              <select
-                className="border px-3 py-2 rounded-lg text-[12px] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                value={step.category || ""}
-                onChange={(e) => handleCategoryChange(e.target.value)}
-              >
-                <option value="" disabled>
-                  {loadingCategories
-                    ? "Loading categories..."
-                    : stopCategories.length === 0
-                    ? "No categories available"
-                    : "Select a category"}
-                </option>
-                {stopCategories.map((category) => (
-                  <option key={category.id} value={category.id.toString()}>
-                    {category.name || category.label}
+              <div className="relative">
+                <select
+                  className="border w-full px-3 py-2 h-[40px] rounded-lg text-[12px] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent border-[#848484] outline-none appearance-none"
+                  value={step.category || ""}
+                  onChange={(e) => handleCategoryChange(e.target.value)}
+                >
+                  <option value="" disabled>
+                    {loadingCategories
+                      ? "Loading categories..."
+                      : stopCategories.length === 0
+                      ? "No categories available"
+                      : "Select a category"}
                   </option>
-                ))}
-              </select>
+                  {stopCategories.map((category) => (
+                    <option key={category.id} value={category.id.toString()}>
+                      {category.name || category.label}
+                    </option>
+                  ))}
+                </select>
+                <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                  <ArrowDownIcon />
+                </div>
+              </div>
               {errors.category && (
                 <p className="text-red-500 text-[10px]">{errors.category}</p>
               )}

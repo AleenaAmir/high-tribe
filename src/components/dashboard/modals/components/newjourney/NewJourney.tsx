@@ -13,6 +13,7 @@ import {
   reverseGeocode,
 } from "./hooks";
 import { MapboxFeature } from "./types";
+import VisibilitySelector from "./VisibilitySelector";
 
 interface NewJourneyProps {
   onClose?: () => void;
@@ -465,12 +466,15 @@ export default function NewJourney({ onClose }: NewJourneyProps) {
               loading={journeyForm.loadingUsers}
               error={journeyForm.form.formState.errors.friends?.message}
             />
+            <VisibilitySelector
+              value={journeyForm.visibility}
+              onChange={journeyForm.setVisibility}
+            />
           </div>
 
           {/* Form Actions */}
           <JourneyFormActions
-            visibility={journeyForm.visibility}
-            onVisibilityChange={journeyForm.setVisibility}
+          
             onSubmit={handleSubmit}
             isSubmitting={journeyForm.isSubmitting}
             disabled={hasValidationErrors()}

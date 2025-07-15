@@ -3,8 +3,6 @@ import VisibilitySelector from "./VisibilitySelector";
 import { VisibilityType } from "./types";
 
 interface JourneyFormActionsProps {
-  visibility: VisibilityType;
-  onVisibilityChange: (visibility: VisibilityType) => void;
   onSubmit: () => void;
   isSubmitting?: boolean;
   submitButtonText?: string;
@@ -14,8 +12,6 @@ interface JourneyFormActionsProps {
 }
 
 export default function JourneyFormActions({
-  visibility,
-  onVisibilityChange,
   onSubmit,
   isSubmitting = false,
   submitButtonText = "Share Post",
@@ -34,16 +30,16 @@ export default function JourneyFormActions({
   const buttonText = submitText || submitButtonText;
 
   return (
-    <div className={`flex items-center ${hideVisibilitySelector ? 'justify-end' : 'justify-between'} p-4 border-t border-[#D9D9D9] bg-white`}>
-      {!hideVisibilitySelector && (
-        <VisibilitySelector value={visibility} onChange={onVisibilityChange} />
-      )}
-
+    <div
+      className={`flex items-center justify-end w-full p-4 border-t border-[#D9D9D9] bg-white`}
+    >
       <button
         type="submit"
         onClick={handleSubmit}
         disabled={disabled || isSubmitting}
-        className={`${hideVisibilitySelector ? '' : 'ml-4'} px-6 py-2 text-[12px] rounded-lg border font-semibold transition-all ${
+        className={`${
+          hideVisibilitySelector ? "" : "ml-4"
+        } px-8 py-3 text-[12px] rounded-lg border font-semibold transition-all ${
           disabled || isSubmitting
             ? "border-gray-300 text-gray-400 bg-gray-100 cursor-not-allowed"
             : "border-blue-600 text-black bg-white hover:bg-blue-50 cursor-pointer"

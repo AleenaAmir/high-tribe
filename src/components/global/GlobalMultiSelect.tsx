@@ -114,20 +114,20 @@ const GlobalMultiSelect: React.FC<GlobalMultiSelectProps> = ({
   return (
     <div className={`flex flex-col gap-1 ${className}`}>
       {label && (
-        <label className="text-[12px] font-medium text-black z-10 translate-y-3 translate-x-4 bg-white w-fit px-1">
+        <label className="text-[12px] font-medium text-black z-10 translate-y-3.5 translate-x-4 bg-white w-fit px-1">
           {label}
         </label>
       )}
       <div className="relative">
         <div
-          className={`flex flex-wrap items-center gap-2 rounded-lg max-h-[36px] h-full border px-3 py-2 min-h-[44px] focus-within:ring-2 focus-within:ring-blue-400 transition-all ${
+          className={`flex flex-wrap items-center gap-2 rounded-lg h-[40px] border px-3   focus-within:ring-2 focus-within:ring-blue-400 transition-all ${
             error ? "border-red-400" : "border-[#848484]"
           }`}
         >
           {selectedUsers.map((user) => (
             <span
               key={user.id}
-              className="bg-blue-100 text-blue-700 rounded-full px-3 py-1 text-xs flex items-center gap-1"
+              className="bg-blue-100 text-blue-700 rounded-full px-3 py-0.5 h-fit text-[8px] flex items-center gap-1"
             >
               {user.avatar && (
                 <img
@@ -151,7 +151,7 @@ const GlobalMultiSelect: React.FC<GlobalMultiSelectProps> = ({
             <input
               ref={inputRef}
               type="text"
-              className="flex-1 min-w-[100px] max-h-[36px] h-full border-none outline-none bg-transparent text-sm"
+              className="flex-1 min-w-[100px] h-[40px] border-none outline-none bg-transparent text-sm"
               value={input}
               onChange={handleInputChange}
               onKeyDown={handleKeyDown}
