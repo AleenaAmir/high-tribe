@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import { PostCard, Post } from "./PostCard";
 import { apiRequest } from "@/lib/api";
 
@@ -66,6 +66,18 @@ interface ApiPost {
   tagged_users: ApiUser[];
   created_at: string;
   updated_at: string;
+}
+
+// Pagination response type
+interface PaginatedResponse {
+  data?: ApiPost[];
+  posts?: ApiPost[];
+  pagination?: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  };
 }
 
 // Fallback dummy data for when API fails
@@ -290,41 +302,225 @@ const transformApiPostToPost = (apiPost: ApiPost): Post => {
 const UserFeed = () => {
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [totalPages, setTotalPages] = useState(1);
+  const observerRef = useRef<IntersectionObserver | null>(null);
+  const loadingRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    const fetchPosts = async () => {
+  // Function to fetch posts with pagination
+  const fetchPosts = useCallback(
+    async (pageNum: number, isInitial: boolean = false) => {
       try {
-        setLoading(true);
+        if (isInitial) {
+          setLoading(true);
+        } else {
+          setLoadingMore(true);
+        }
         setError(null);
 
-        const response = await apiRequest<{ data: ApiPost[] }>("posts", {
-          method: "get",
+        // Build query parameters for pagination
+        const queryParams = new URLSearchParams({
+          per_page: "10", // Number of posts per page
+          page: pageNum.toString(),
         });
 
-        if (Array.isArray(response?.data) && response.data.length > 0) {
+        console.log(
+          `Fetching posts page ${pageNum} with params:`,
+          queryParams.toString()
+        );
+
+        let response;
+        try {
+          // Try with pagination parameters first
+          response = await apiRequest<PaginatedResponse>(
+            `posts?${queryParams}`,
+            {
+              method: "get",
+            }
+          );
+        } catch (error) {
+          // If pagination fails, try without parameters (fallback)
+          console.log("Pagination failed, trying without parameters");
+          response = await apiRequest<PaginatedResponse>("posts", {
+            method: "get",
+          });
+        }
+
+        console.log("API Response:", response);
+
+        // Handle different response structures
+        let postsData: ApiPost[] = [];
+        let paginationInfo = null;
+
+        if (response?.data && Array.isArray(response.data)) {
+          postsData = response.data;
+          paginationInfo = response.pagination;
+        } else if (Array.isArray(response)) {
+          // If response is directly an array
+          postsData = response;
+        } else if (response?.posts && Array.isArray(response.posts)) {
+          // If response has posts property
+          postsData = response.posts;
+        }
+
+        console.log(`Found ${postsData.length} posts on page ${pageNum}`);
+
+        if (postsData.length > 0) {
           // Transform API posts to match Post interface
-          const transformedPosts = response.data.map(transformApiPostToPost);
-          setPosts(transformedPosts);
+          const transformedPosts = postsData.map(transformApiPostToPost);
+
+          if (isInitial) {
+            setPosts(transformedPosts);
+            console.log(`Set initial posts: ${transformedPosts.length}`);
+          } else {
+            setPosts((prev) => {
+              const newPosts = [...prev, ...transformedPosts];
+              console.log(
+                `Added ${transformedPosts.length} posts, total: ${newPosts.length}`
+              );
+              return newPosts;
+            });
+          }
+
+          // Update pagination info
+          if (paginationInfo) {
+            console.log("Pagination info:", paginationInfo);
+            setTotalPages(paginationInfo.totalPages);
+            setHasMore(pageNum < paginationInfo.totalPages);
+          } else {
+            // If no pagination info, assume there's more if we got a full page
+            const hasMorePosts = postsData.length === 10; // Assuming 10 is the page size
+            console.log(
+              `No pagination info, assuming hasMore: ${hasMorePosts}`
+            );
+            setHasMore(hasMorePosts);
+          }
         } else {
-          // If API returns empty data, use fallback
-          console.log("API returned empty data, using fallback posts");
-          setPosts(fallbackPosts);
+          if (isInitial) {
+            // If API returns empty data, use fallback
+            console.log("API returned empty data, using fallback posts");
+            setPosts(fallbackPosts);
+            setHasMore(false);
+          } else {
+            // No more posts to load
+            console.log("No more posts to load");
+            setHasMore(false);
+          }
         }
       } catch (error) {
-        // If API fails, use fallback data
-        console.log("Failed to fetch posts, using fallback data:", error);
-        setError("Failed to load posts");
-        setPosts(fallbackPosts);
+        // If API fails, use fallback data only on initial load
+        console.log("Failed to fetch posts:", error);
+        if (isInitial) {
+          setError("Failed to load posts");
+          setPosts(fallbackPosts);
+          setHasMore(false);
+        } else {
+          setError("Failed to load more posts");
+        }
       } finally {
         setLoading(false);
+        setLoadingMore(false);
+      }
+    },
+    []
+  );
+
+  // Load more posts when user scrolls near bottom
+  const loadMorePosts = useCallback(() => {
+    if (!loadingMore && hasMore) {
+      const nextPage = page + 1;
+      setPage(nextPage);
+      fetchPosts(nextPage, false);
+    }
+  }, [loadingMore, hasMore, page, fetchPosts]);
+
+  // Intersection Observer for infinite scroll
+  useEffect(() => {
+    // Clean up previous observer
+    if (observerRef.current) {
+      observerRef.current.disconnect();
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const [entry] = entries;
+        console.log("Intersection observer entry:", {
+          isIntersecting: entry.isIntersecting,
+          hasMore,
+          loadingMore,
+          currentPage: page,
+        });
+
+        if (entry.isIntersecting && hasMore && !loadingMore) {
+          console.log("Intersection observer triggered - loading more posts");
+          loadMorePosts();
+        }
+      },
+      {
+        root: null,
+        rootMargin: "300px", // Increased margin for earlier triggering
+        threshold: 0.1,
+      }
+    );
+
+    // Wait a bit for the DOM to be ready
+    setTimeout(() => {
+      if (loadingRef.current) {
+        console.log("Setting up intersection observer");
+        observer.observe(loadingRef.current);
+      }
+    }, 100);
+
+    observerRef.current = observer;
+
+    return () => {
+      if (observerRef.current) {
+        observerRef.current.disconnect();
+      }
+    };
+  }, [hasMore, loadingMore, loadMorePosts, page]);
+
+  // Scroll event listener as backup for infinite scroll
+  useEffect(() => {
+    const handleScroll = () => {
+      if (loadingMore || !hasMore) return;
+
+      const scrollTop =
+        window.pageYOffset || document.documentElement.scrollTop;
+      const windowHeight = window.innerHeight;
+      const documentHeight = document.documentElement.scrollHeight;
+
+      // Trigger when user is 500px from bottom
+      if (documentHeight - scrollTop - windowHeight < 500) {
+        console.log("Scroll event triggered - loading more posts");
+        loadMorePosts();
       }
     };
 
-    fetchPosts();
-  }, []);
+    window.addEventListener("scroll", handleScroll);
 
-  if (loading) {
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, [hasMore, loadingMore, loadMorePosts]);
+
+  // Manual load more function
+  const handleLoadMore = () => {
+    if (!loadingMore && hasMore) {
+      console.log("Manual load more triggered");
+      loadMorePosts();
+    }
+  };
+
+  // Initial load
+  useEffect(() => {
+    fetchPosts(1, true);
+  }, [fetchPosts]);
+
+  if (loading && posts.length === 0) {
     return (
       <div className="flex justify-center items-center py-8">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
@@ -337,7 +533,10 @@ const UserFeed = () => {
       <div className="text-center py-8">
         <p className="text-gray-500 mb-4">{error}</p>
         <button
-          onClick={() => window.location.reload()}
+          onClick={() => {
+            setPage(1);
+            fetchPosts(1, true);
+          }}
           className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
         >
           Retry
@@ -348,9 +547,53 @@ const UserFeed = () => {
 
   return (
     <div>
+      {/* Debug info */}
+      <div className="text-xs text-gray-500 mb-2 p-2 bg-gray-100 rounded">
+        Posts loaded: {posts.length} | Page: {page} | Has more:{" "}
+        {hasMore.toString()} | Loading: {loadingMore.toString()}
+      </div>
+
       {posts?.map((post) => (
         <PostCard key={post.id} post={post} />
       ))}
+
+      {/* Loading indicator for infinite scroll */}
+      {loadingMore && (
+        <div className="flex justify-center items-center py-4">
+          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+          <span className="ml-2 text-gray-600">Loading more posts...</span>
+        </div>
+      )}
+
+      {/* Manual load more button */}
+      {hasMore && !loadingMore && (
+        <div className="flex justify-center py-4">
+          <button
+            onClick={handleLoadMore}
+            className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            Load More Posts
+          </button>
+        </div>
+      )}
+
+      {/* Intersection observer target - made more visible */}
+      <div
+        ref={loadingRef}
+        className="h-8 bg-gray-50 border-t border-gray-200 flex items-center justify-center"
+      >
+        <span className="text-xs text-gray-400">Scroll to load more</span>
+      </div>
+
+      {/* End of feed message */}
+      {!hasMore && posts.length > 0 && (
+        <div className="text-center py-8">
+          <p className="text-gray-500">You've reached the end of the feed</p>
+          <p className="text-sm text-gray-400 mt-2">
+            Total posts loaded: {posts.length}
+          </p>
+        </div>
+      )}
     </div>
   );
 };

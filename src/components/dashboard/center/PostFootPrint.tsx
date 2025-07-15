@@ -6,9 +6,11 @@ import { MoreOptionsIcon } from "./PostCard";
 const PostFootPrint = ({
   setJournyMap,
   setFootprintModal,
+  setAdvisoryModal,
 }: {
   setJournyMap: (value: boolean) => void;
   setFootprintModal: (value: boolean) => void;
+  setAdvisoryModal: (value: boolean) => void;
 }) => {
   const options = [
     {
@@ -37,7 +39,9 @@ const PostFootPrint = ({
           className="md:w-[20px] md:h-[20px] w-[14px] h-[14px]"
         />
       ),
-      onclick: () => {},
+      onclick: () => {
+        setAdvisoryModal(true);
+      },
     },
     {
       name: "Travel Tip",

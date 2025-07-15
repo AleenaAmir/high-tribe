@@ -28,10 +28,15 @@ const MainFootprint = dynamic(
   () => import("@/components/dashboard/modals/footprint/MainFootprint"),
   { ssr: false }
 );
+const MainAdvisory = dynamic(
+  () => import("@/components/dashboard/modals/advisory/MainAdvisory"),
+  { ssr: false }
+);
 
 const DashboardContent = () => {
   const [journyMap, setJournyMap] = useState<boolean>(false);
   const [footprintModal, setFootprintModal] = useState<boolean>(false);
+  const [advisoryModal, setAdvisoryModal] = useState<boolean>(false);
 
   return (
     <div className="p-6 grid grid-cols-1 lg:grid-cols-4 gap-6">
@@ -41,6 +46,7 @@ const DashboardContent = () => {
         <PostFootPrint
           setJournyMap={setJournyMap}
           setFootprintModal={setFootprintModal}
+          setAdvisoryModal={setAdvisoryModal}
         />
         <MapDashboard />
         <ReadyToHost />
@@ -62,6 +68,10 @@ const DashboardContent = () => {
       <MainFootprint
         footprintModal={footprintModal}
         setFootprintModal={setFootprintModal}
+      />
+      <MainAdvisory
+        advisoryModal={advisoryModal}
+        setAdvisoryModal={setAdvisoryModal}
       />
     </div>
   );

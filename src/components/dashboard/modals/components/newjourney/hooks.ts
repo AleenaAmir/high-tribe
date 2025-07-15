@@ -276,48 +276,30 @@ export function useJourneyForm() {
     }
   }, []);
 
-  // Step suggestions filtered between start and end
+  // Step suggestions - now allows any location selection
   const fetchStepSuggestions = useCallback(async (query: string): Promise<MapboxFeature[]> => {
-    if (!startLocation.coords || !endLocation.coords) return [];
-
-    // Calculate bounding box with some padding for better coverage
-    const [x1, y1] = startLocation.coords!;
-    const [x2, y2] = endLocation.coords!;
-    const padding = 0.5; // degrees padding
-    const minX = Math.min(x1, x2) - padding;
-    const maxX = Math.max(x1, x2) + padding;
-    const minY = Math.min(y1, y2) - padding;
-    const maxY = Math.max(y1, y2) + padding;
-
     let url: string;
 
     if (!query || query.trim() === "") {
-      // When no query, fetch popular places in the area using bbox
-      url = `${MAPBOX_GEOCODE_URL}places.json?bbox=${minX},${minY},${maxX},${maxY}&types=poi,address&limit=10&access_token=${process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN}`;
+      // When no query, fetch popular places globally
+      url = `${MAPBOX_GEOCODE_URL}places.json?types=poi,address&limit=20&access_token=${process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN}`;
     } else {
-      // When there's a query, search with proximity to route center
-      const centerLng = (x1 + x2) / 2;
-      const centerLat = (y1 + y2) / 2;
+      // When there's a query, perform global search
       url = `${MAPBOX_GEOCODE_URL}${encodeURIComponent(
         query
-      )}.json?proximity=${centerLng},${centerLat}&bbox=${minX},${minY},${maxX},${maxY}&limit=10&access_token=${process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN}`;
+      )}.json?limit=20&access_token=${process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN}`;
     }
 
     try {
       const res = await fetch(url);
       const data = await res.json();
 
-      return (data.features || []).filter((f: any) => {
-        const [lng, lat] = f.center;
-        // Additional filtering to ensure results are actually between start and end
-        return lng >= Math.min(x1, x2) && lng <= Math.max(x1, x2) &&
-          lat >= Math.min(y1, y2) && lat <= Math.max(y1, y2);
-      });
+      return (data.features || []);
     } catch (error) {
       console.error('Error fetching step suggestions:', error);
       return [];
     }
-  }, [startLocation.coords, endLocation.coords]);
+  }, []);
 
   // Data fetching
   useEffect(() => {

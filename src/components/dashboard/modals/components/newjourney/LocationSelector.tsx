@@ -256,27 +256,13 @@ export default function LocationSelector({
                       <span className="font-medium">
                         {suggestion.place_name}
                       </span>
-                      {isStepLocation && (
-                        <span className="text-[10px] text-gray-500">
-                          📍 Between your start and end locations
-                        </span>
-                      )}
                     </div>
                   </li>
                 ))}
               </ul>
             ) : (
               <div className="px-3 py-4 text-[12px] text-gray-500 text-center">
-                {isStepLocation ? (
-                  <div>
-                    <p>No locations found between your start and end points</p>
-                    <p className="text-[10px] mt-1">
-                      Try adjusting your search or route
-                    </p>
-                  </div>
-                ) : (
-                  <p>No locations found</p>
-                )}
+                <p>No locations found</p>
               </div>
             )}
           </div>
