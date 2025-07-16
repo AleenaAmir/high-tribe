@@ -7,7 +7,7 @@ import LocationSelector from "../newjourney/LocationSelector";
 import { useLocationAutocomplete } from "../newjourney/hooks";
 import { MapboxFeature } from "../newjourney/types";
 import VisibilitySelector from "../newjourney/VisibilitySelector";
-import AdvisoryMap from "./AdvisoryMap";
+import LocationMap from "@/components/global/LocationMap";
 import { apiRequest } from "@/lib/api";
 
 interface NewAdvisoryProps {
@@ -20,7 +20,9 @@ export default function NewAdvisory({ onClose }: NewAdvisoryProps) {
   // Form states
   const [title, setTitle] = useState("");
   const [story, setStory] = useState("");
-  const [location, setLocation] = useState("");
+  // Separate input state for location text
+  const [locationInput, setLocationInput] = useState("");
+  const [location, setLocation] = useState(""); // confirmed location name
   const [selectedLocation, setSelectedLocation] = useState<{
     coords: [number, number] | null;
     name: string;
@@ -39,11 +41,41 @@ export default function NewAdvisory({ onClose }: NewAdvisoryProps) {
   // Mock user suggestions for friend tagging
   const [userSuggestions, setUserSuggestions] = useState<any[]>([]);
 
-  // Handle location selection
-  const handleLocationChange = (value: string) => {
-    setLocation(value);
-  };
+  // Debounced geocoding function
+  const debouncedGeocode = useCallback(
+    (() => {
+      let timeoutId: NodeJS.Timeout;
+      return (value: string) => {
+        clearTimeout(timeoutId);
+        timeoutId = setTimeout(async () => {
+          if (value.trim()) {
+            try {
+              const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(
+                value
+              )}.json?access_token=${
+                process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN
+              }`;
+              const response = await fetch(url);
+              const data = await response.json();
 
+              if (data.features && data.features.length > 0) {
+                const [lng, lat] = data.features[0].center;
+                setSelectedLocation({
+                  coords: [lng, lat],
+                  name: data.features[0].place_name,
+                });
+              }
+            } catch (error) {
+              console.error("Error geocoding location:", error);
+            }
+          }
+        }, 500); // 500ms delay
+      };
+    })(),
+    []
+  );
+
+  // Handle location selection from dropdown
   const handleLocationSelect = (feature: MapboxFeature) => {
     const coords: [number, number] = feature.center;
     setSelectedLocation({
@@ -51,6 +83,50 @@ export default function NewAdvisory({ onClose }: NewAdvisoryProps) {
       name: feature.place_name,
     });
     setLocation(feature.place_name);
+    setLocationInput(feature.place_name);
+  };
+
+  // Handle map location selection (when user clicks on map)
+  const handleMapLocationSelect = (
+    coords: [number, number],
+    locationName: string
+  ) => {
+    setSelectedLocation({
+      coords,
+      name: locationName,
+    });
+    setLocation(locationName);
+    setLocationInput(locationName);
+  };
+
+  // Handle location input change (typing)
+  const handleLocationInputChange = (value: string) => {
+    setLocationInput(value);
+    // Do not update marker here
+  };
+
+  // Handle Enter key in input (confirm location)
+  const handleLocationInputEnter = async () => {
+    if (locationInput.trim()) {
+      try {
+        const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(
+          locationInput
+        )}.json?access_token=${process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN}`;
+        const response = await fetch(url);
+        const data = await response.json();
+        if (data.features && data.features.length > 0) {
+          const [lng, lat] = data.features[0].center;
+          setSelectedLocation({
+            coords: [lng, lat],
+            name: data.features[0].place_name,
+          });
+          setLocation(data.features[0].place_name);
+          setLocationInput(data.features[0].place_name);
+        }
+      } catch (error) {
+        console.error("Error geocoding location:", error);
+      }
+    }
   };
 
   // Handle friend search
@@ -99,29 +175,37 @@ export default function NewAdvisory({ onClose }: NewAdvisoryProps) {
     setIsSubmitting(true);
 
     try {
+      // Create FormData with the same structure as journeys
       const formData = new FormData();
-      formData.append("title", title);
-      formData.append("description", story);
+
+      // Add basic advisory data
+      formData.append("title", title.trim());
+      formData.append("description", story.trim());
       formData.append("location_name", location);
       if (selectedLocation.coords) {
         formData.append("latitude", selectedLocation.coords[1].toString());
         formData.append("longitude", selectedLocation.coords[0].toString());
       }
-      formData.append("expiry_date", expiryDate);
       formData.append("privacy", visibility);
-      formData.append(
-        "tagged_user_ids",
-        JSON.stringify(taggedFriends.map((friend) => friend.id))
-      );
+      formData.append("type", "advisory");
+      formData.append("status", "published");
+      formData.append("expiry_date", expiryDate);
+
+      // Add tagged users
+      if (taggedFriends.length > 0) {
+        taggedFriends.forEach((friend, index) => {
+          formData.append(`tagged_users[${index}]`, friend.id.toString());
+        });
+      }
 
       // Append media files
       media.forEach((file, index) => {
         formData.append(`media[${index}]`, file);
       });
 
-      // API call to create advisory
+      // API call using the same endpoint as journeys
       await apiRequest(
-        "advisories/create",
+        "posts",
         {
           method: "POST",
           body: formData,
@@ -176,12 +260,13 @@ export default function NewAdvisory({ onClose }: NewAdvisoryProps) {
             {/* Location Input */}
             <LocationSelector
               label="Location"
-              value={location}
-              onChange={handleLocationChange}
+              value={locationInput}
+              onChange={handleLocationInputChange}
               onSelect={handleLocationSelect}
               onSearch={locationAutocomplete.fetchSuggestions}
               suggestions={locationAutocomplete.suggestions}
               placeholder=" "
+              onLocationInputEnter={handleLocationInputEnter}
             />
 
             {/* Title Input */}
@@ -279,11 +364,10 @@ export default function NewAdvisory({ onClose }: NewAdvisoryProps) {
 
       {/* Map Section */}
       <div className="h-full w-full relative">
-        <AdvisoryMap
+        <LocationMap
           location={selectedLocation}
-          onLocationSelect={(coords) => {
-            setSelectedLocation({ coords, name: location });
-          }}
+          onLocationSelect={handleMapLocationSelect}
+          markerColor="#22c55e"
         />
       </div>
     </div>

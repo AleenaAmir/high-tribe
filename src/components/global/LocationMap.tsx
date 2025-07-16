@@ -5,32 +5,55 @@ import "mapbox-gl/dist/mapbox-gl.css";
 const MAPBOX_ACCESS_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
 mapboxgl.accessToken = MAPBOX_ACCESS_TOKEN;
 
-interface FootprintMapProps {
+interface LocationMapProps {
   location: {
     coords: [number, number] | null;
     name: string;
   };
-  onLocationSelect?: (coords: [number, number]) => void;
+  onLocationSelect?: (coords: [number, number], name: string) => void;
+  markerColor?: string; // e.g. "#22c55e"
+  markerIconUrl?: string; // optional avatar/icon url
 }
 
+// Get user info from localStorage
 function getUserInfo() {
-  if (typeof window === "undefined") return { name: "U", avatar: null };
+  //   if (typeof window === "undefined") return { name: "U", avatar: null };
   try {
-    const userStr = localStorage.getItem("user");
-    if (userStr) {
-      const user = JSON.parse(userStr);
+    const userName = localStorage.getItem("name");
+    console.log("User name from localStorage:", userName);
+    if (userName) {
       return {
-        name: user.name || "U",
-        avatar: user.avatar || null,
+        name: userName,
+        avatar: null,
       };
     }
-  } catch (e) {}
+  } catch (e) {
+    console.log(e);
+  }
   return { name: "U", avatar: null };
 }
 
-const FootprintMap: React.FC<FootprintMapProps> = ({
+// Reverse geocoding function
+const reverseGeocode = async (coords: [number, number]): Promise<string> => {
+  try {
+    const [lng, lat] = coords;
+    const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${MAPBOX_ACCESS_TOKEN}`;
+    const response = await fetch(url);
+    const data = await response.json();
+    if (data.features && data.features.length > 0) {
+      return data.features[0].place_name;
+    }
+  } catch (error) {
+    console.error("Error reverse geocoding:", error);
+  }
+  return "";
+};
+
+const LocationMap: React.FC<LocationMapProps> = ({
   location,
   onLocationSelect,
+  markerColor = "#22c55e",
+  markerIconUrl,
 }) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
@@ -40,6 +63,11 @@ const FootprintMap: React.FC<FootprintMapProps> = ({
     name: string;
     avatar: string | null;
   }>({ name: "U", avatar: null });
+
+  // Get user info from localStorage
+  useEffect(() => {
+    setUserInfo(getUserInfo());
+  }, []);
 
   // Initialize map
   useEffect(() => {
@@ -55,17 +83,14 @@ const FootprintMap: React.FC<FootprintMapProps> = ({
     map.current.on("style.load", () => {
       setStyleLoaded(true);
     });
-    // Add click handler
-    map.current.on("click", (e) => {
+    // Add click handler with reverse geocoding
+    map.current.on("click", async (e) => {
       if (onLocationSelect) {
-        onLocationSelect([e.lngLat.lng, e.lngLat.lat]);
+        const coords: [number, number] = [e.lngLat.lng, e.lngLat.lat];
+        const locationName = await reverseGeocode(coords);
+        onLocationSelect(coords, locationName);
       }
     });
-  }, []);
-
-  // Get user info from localStorage
-  useEffect(() => {
-    setUserInfo(getUserInfo());
   }, []);
 
   // Update marker when location changes
@@ -77,7 +102,7 @@ const FootprintMap: React.FC<FootprintMapProps> = ({
     }
     if (location.coords) {
       let el: HTMLDivElement;
-      if (userInfo.avatar) {
+      if (markerIconUrl) {
         el = document.createElement("div");
         el.style.width = "36px";
         el.style.height = "36px";
@@ -85,13 +110,13 @@ const FootprintMap: React.FC<FootprintMapProps> = ({
         el.style.overflow = "hidden";
         el.style.border = "2px solid #fff";
         el.style.boxShadow = "0 0 4px rgba(0,0,0,0.3)";
-        el.innerHTML = `<img src='${userInfo.avatar}' style='width:100%;height:100%;object-fit:cover;border-radius:50%;' alt='User' />`;
+        el.innerHTML = `<img src='${markerIconUrl}' style='width:100%;height:100%;object-fit:cover;border-radius:50%;' alt='Marker' />`;
       } else {
         el = document.createElement("div");
         el.style.width = "36px";
         el.style.height = "36px";
         el.style.borderRadius = "50%";
-        el.style.background = "#ef4444";
+        el.style.background = markerColor;
         el.style.display = "flex";
         el.style.alignItems = "center";
         el.style.justifyContent = "center";
@@ -107,11 +132,11 @@ const FootprintMap: React.FC<FootprintMapProps> = ({
         .addTo(map.current!);
       map.current.flyTo({
         center: location.coords,
-        zoom: 12,
+        zoom: 5,
         duration: 2000,
       });
     }
-  }, [location.coords, styleLoaded, userInfo]);
+  }, [location.coords, styleLoaded, markerIconUrl, markerColor, userInfo]);
 
   return (
     <div className="h-full w-full relative">
@@ -131,4 +156,4 @@ const FootprintMap: React.FC<FootprintMapProps> = ({
   );
 };
 
-export default FootprintMap;
+export default LocationMap;

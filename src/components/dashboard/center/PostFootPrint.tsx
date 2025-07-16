@@ -7,10 +7,12 @@ const PostFootPrint = ({
   setJournyMap,
   setFootprintModal,
   setAdvisoryModal,
+  setTipModal,
 }: {
   setJournyMap: (value: boolean) => void;
   setFootprintModal: (value: boolean) => void;
   setAdvisoryModal: (value: boolean) => void;
+  setTipModal: (value: boolean) => void;
 }) => {
   const options = [
     {
@@ -54,7 +56,9 @@ const PostFootPrint = ({
           className="md:w-[20px] md:h-[20px] w-[14px] h-[14px]"
         />
       ),
-      onclick: () => {},
+      onclick: () => {
+        setTipModal(true);
+      },
     },
   ];
   return (

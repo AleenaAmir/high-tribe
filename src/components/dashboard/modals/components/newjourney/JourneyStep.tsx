@@ -74,7 +74,10 @@ export default function JourneyStep({
   // Debug logging
   useEffect(() => {
     console.log("Step media:", step.media);
-    console.log("Extracted file objects:", step.media?.map((item: any) => item.fileObject).filter(Boolean) || []);
+    console.log(
+      "Extracted file objects:",
+      step.media?.map((item: any) => item.fileObject).filter(Boolean) || []
+    );
   }, [step.media]);
 
   // Debug categories
@@ -152,9 +155,12 @@ export default function JourneyStep({
 
   const handleMediaChange = (files: File[]) => {
     console.log("handleMediaChange called with files:", files);
-    console.log("Files details:", files.map(f => ({ name: f.name, size: f.size, type: f.type })));
+    console.log(
+      "Files details:",
+      files.map((f) => ({ name: f.name, size: f.size, type: f.type }))
+    );
 
-    const mappedMedia = files.map(file => ({
+    const mappedMedia = files.map((file) => ({
       url: URL.createObjectURL(file), // For preview purposes only (temporary URL)
       type: file.type,
       file_name: file.name,
@@ -350,8 +356,8 @@ export default function JourneyStep({
                     {loadingCategories
                       ? "Loading categories..."
                       : stopCategories.length === 0
-                        ? "No categories available"
-                        : "Select a category"}
+                      ? "No categories available"
+                      : "Select a category"}
                   </option>
                   {stopCategories.map((category) => (
                     <option key={category.id} value={category.id.toString()}>
@@ -382,7 +388,11 @@ export default function JourneyStep({
             <div className="mt-2">
               <GlobalFileUpload
                 label="Photos & Videos for this step"
-                value={step.media?.map((item: any) => item.fileObject).filter(Boolean) || []}
+                value={
+                  step.media
+                    ?.map((item: any) => item.fileObject)
+                    .filter(Boolean) || []
+                }
                 onChange={handleMediaChange}
                 maxFiles={5}
                 accept="image/*,video/*"

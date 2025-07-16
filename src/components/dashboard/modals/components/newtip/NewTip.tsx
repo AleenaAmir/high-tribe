@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState, useCallback } from "react";
 import GlobalTextInput from "@/components/global/GlobalTextInput";
 import GlobalTextArea from "@/components/global/GlobalTextArea";
 import GlobalMultiSelect from "@/components/global/GlobalMultiSelect";
@@ -10,35 +10,16 @@ import VisibilitySelector from "../newjourney/VisibilitySelector";
 import LocationMap from "@/components/global/LocationMap";
 import { apiRequest } from "@/lib/api";
 
-interface NewFootprintProps {
+interface NewTipProps {
   onClose?: () => void;
 }
 
-interface MoodTag {
-  id: string;
-  name: string;
-  icon: string;
-  selected: boolean;
-}
-
-// const moodTags: MoodTag[] = [
-//   { id: "1", name: "Cultural Exploration", icon: "🏛️", selected: false },
-//   { id: "2", name: "Historical Sites", icon: "🏰", selected: false },
-//   { id: "3", name: "Local Cuisine", icon: "🍜", selected: false },
-//   { id: "4", name: "Art & Crafts", icon: "🎨", selected: false },
-//   { id: "5", name: "Shopping Spree", icon: "🛍️", selected: false },
-//   { id: "6", name: "Nature Walks", icon: "🌿", selected: false },
-//   { id: "7", name: "City Tours", icon: "🏙️", selected: false },
-//   { id: "8", name: "Festive Celebrations", icon: "🎉", selected: false },
-//   { id: "9", name: "Photography Spots", icon: "📸", selected: false },
-// ];
-
-export default function NewFootprint({ onClose }: NewFootprintProps) {
+export default function NewTip({ onClose }: NewTipProps) {
   const locationAutocomplete = useLocationAutocomplete();
 
   // Form states
   const [title, setTitle] = useState("");
-  const [story, setStory] = useState("");
+  const [tip, setTip] = useState("");
   // Separate input state for location text
   const [locationInput, setLocationInput] = useState("");
   const [location, setLocation] = useState(""); // confirmed location name
@@ -54,7 +35,6 @@ export default function NewFootprint({ onClose }: NewFootprintProps) {
   const [visibility, setVisibility] = useState<"public" | "tribe" | "private">(
     "public"
   );
-  const [selectedMoodTags, setSelectedMoodTags] = useState<MoodTag[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Mock user suggestions for friend tagging
@@ -148,18 +128,6 @@ export default function NewFootprint({ onClose }: NewFootprintProps) {
     }
   };
 
-  // Handle mood tag selection
-  const handleMoodTagToggle = (tag: MoodTag) => {
-    setSelectedMoodTags((prev) => {
-      const isSelected = prev.find((t) => t.id === tag.id);
-      if (isSelected) {
-        return prev.filter((t) => t.id !== tag.id);
-      } else {
-        return [...prev, { ...tag, selected: true }];
-      }
-    });
-  };
-
   // Handle friend search
   const handleFriendSearch = async (query: string) => {
     setFriendSearchQuery(query);
@@ -193,7 +161,7 @@ export default function NewFootprint({ onClose }: NewFootprintProps) {
 
   // Form submission
   const handleSubmit = async () => {
-    if (!title.trim() || !story.trim() || !location.trim()) {
+    if (!title.trim() || !tip.trim() || !location.trim()) {
       alert("Please fill in all required fields");
       return;
     }
@@ -204,22 +172,17 @@ export default function NewFootprint({ onClose }: NewFootprintProps) {
       // Create FormData with the same structure as journeys
       const formData = new FormData();
 
-      // Add basic footprint data
+      // Add basic tip data
       formData.append("title", title.trim());
-      formData.append("description", story.trim());
+      formData.append("description", tip.trim());
       formData.append("location_name", location);
       if (selectedLocation.coords) {
         formData.append("latitude", selectedLocation.coords[1].toString());
         formData.append("longitude", selectedLocation.coords[0].toString());
       }
       formData.append("privacy", visibility);
-      formData.append("type", "footprint");
+      formData.append("type", "tip");
       formData.append("status", "published");
-
-      // Add mood tags
-      // if (selectedMoodTags.length > 0) {
-      //   formData.append('mood_tags', JSON.stringify(selectedMoodTags.map(tag => tag.name)));
-      // }
 
       // Add tagged users
       if (taggedFriends.length > 0) {
@@ -240,24 +203,23 @@ export default function NewFootprint({ onClose }: NewFootprintProps) {
           method: "POST",
           body: formData,
         },
-        "Footprint created successfully!"
+        "Travel Tip created successfully!"
       );
 
       // Reset form
       setTitle("");
-      setStory("");
+      setTip("");
       setLocation("");
       setSelectedLocation({ coords: null, name: "" });
       setMedia([]);
       setTaggedFriends([]);
-      setSelectedMoodTags([]);
       setVisibility("public");
 
       // Close modal
       onClose?.();
     } catch (error) {
-      console.error("Error creating footprint:", error);
-      alert("Failed to create footprint. Please try again.");
+      console.error("Error creating travel tip:", error);
+      alert("Failed to create travel tip. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -270,10 +232,10 @@ export default function NewFootprint({ onClose }: NewFootprintProps) {
         {/* Header */}
         <div className="w-full p-4 border-b border-[#D9D9D9] rounded-tl-[20px] bg-white">
           <h4 className="text-[18px] md:text-[22px] text-[#111111] font-bold text-center">
-            Footprint
+            Travel Tip
           </h4>
           <p className="text-[10px] text-[#706F6F] text-center">
-            Share you travel experience with world.
+            Share your travel experience with world
           </p>
         </div>
 
@@ -307,12 +269,12 @@ export default function NewFootprint({ onClose }: NewFootprintProps) {
               placeholder=" "
             />
 
-            {/* Story Input */}
+            {/* Tip Input */}
             <GlobalTextArea
-              label="Share your story"
+              label="Share your Tip"
               rows={4}
-              value={story}
-              onChange={(e) => setStory(e.target.value)}
+              value={tip}
+              onChange={(e) => setTip(e.target.value)}
               placeholder=" "
             />
 
@@ -323,7 +285,7 @@ export default function NewFootprint({ onClose }: NewFootprintProps) {
               onChange={setMedia}
               maxFiles={10}
               headLine="Drag & drop or click to upload"
-              subLine="Max 5 files: JPG, PNG, MP3, Mov"
+              subLine="Max 5 files - JPG, PNG, MP4, MOV"
               allowedTypes={[
                 "image/jpeg",
                 "image/jpg",
@@ -338,35 +300,11 @@ export default function NewFootprint({ onClose }: NewFootprintProps) {
               label="Tag Friends"
               value={taggedFriends}
               onChange={setTaggedFriends}
-              placeholder="username"
+              placeholder="Username"
               suggestions={userSuggestions}
               onSearch={handleFriendSearch}
               maxSelections={10}
             />
-
-            {/* Mood Tags */}
-            {/* <div className="mb-4">
-              <label className="text-[12px] font-medium text-black mb-2 block">
-                Mood Tags
-              </label>
-              <div className="grid grid-cols-3 gap-2">
-                {moodTags.map((tag) => (
-                  <button
-                    key={tag.id}
-                    type="button"
-                    onClick={() => handleMoodTagToggle(tag)}
-                    className={`flex items-center gap-2 p-2 rounded-lg border text-[10px] transition-all ${
-                      selectedMoodTags.find((t) => t.id === tag.id)
-                        ? "border-blue-500 bg-blue-50 text-blue-700"
-                        : "border-gray-300 hover:border-gray-400"
-                    }`}
-                  >
-                    <span className="text-[14px]">{tag.icon}</span>
-                    <span className="truncate">{tag.name}</span>
-                  </button>
-                ))}
-              </div>
-            </div> */}
 
             {/* Visibility Selector */}
             <VisibilitySelector value={visibility} onChange={setVisibility} />
@@ -378,16 +316,10 @@ export default function NewFootprint({ onClose }: NewFootprintProps) {
               type="button"
               onClick={handleSubmit}
               disabled={
-                isSubmitting ||
-                !title.trim() ||
-                !story.trim() ||
-                !location.trim()
+                isSubmitting || !title.trim() || !tip.trim() || !location.trim()
               }
               className={`px-6 py-2 text-[12px] text-white rounded-lg border font-semibold transition-all ${
-                isSubmitting ||
-                !title.trim() ||
-                !story.trim() ||
-                !location.trim()
+                isSubmitting || !title.trim() || !tip.trim() || !location.trim()
                   ? "border-gray-300 text-gray-400 bg-gray-100 cursor-not-allowed"
                   : "border-blue-600 bg-gradient-to-r from-[#257CFF] to-[#1063E0] cursor-pointer hover:from-[#1a6be0] hover:to-[#0d5ac7]"
               }`}
@@ -410,7 +342,7 @@ export default function NewFootprint({ onClose }: NewFootprintProps) {
         <LocationMap
           location={selectedLocation}
           onLocationSelect={handleMapLocationSelect}
-          markerColor="#ef4444"
+          markerColor="#2563eb"
         />
       </div>
     </div>

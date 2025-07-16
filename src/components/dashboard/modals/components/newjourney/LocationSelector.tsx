@@ -16,6 +16,7 @@ interface LocationSelectorProps
   allowManualEntry?: boolean;
   geocodeOnEnter?: boolean;
   isStepLocation?: boolean; // Flag to identify if this is a step location (vs start/end location)
+  onLocationInputEnter?: () => void | Promise<void>; // NEW
 }
 
 export default function LocationSelector({
@@ -36,6 +37,7 @@ export default function LocationSelector({
   allowManualEntry = true,
   geocodeOnEnter = true,
   isStepLocation = false,
+  onLocationInputEnter,
 }: LocationSelectorProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [internalShowDropdown, setInternalShowDropdown] = useState(false);
@@ -185,6 +187,10 @@ export default function LocationSelector({
         if (coords && onLocationSelect) {
           onLocationSelect(coords, value);
         }
+      }
+      // Call parent handler if provided
+      if (typeof onLocationInputEnter === "function") {
+        await onLocationInputEnter();
       }
     }
   };

@@ -1,6 +1,6 @@
 "use client";
 
-import MapDashboard from "@/components/dashboard/center/MapDashboard";
+// import MapDashboard from "@/components/dashboard/center/MapDashboard";
 import PostFootPrint from "@/components/dashboard/center/PostFootPrint";
 import ReadyToHost from "@/components/dashboard/center/ReadyToHost";
 import StoriesBar from "@/components/dashboard/center/StoriesBar";
@@ -32,11 +32,16 @@ const MainAdvisory = dynamic(
   () => import("@/components/dashboard/modals/advisory/MainAdvisory"),
   { ssr: false }
 );
+const MainTip = dynamic(
+  () => import("@/components/dashboard/modals/tip/MainTip"),
+  { ssr: false }
+);
 
 const DashboardContent = () => {
   const [journyMap, setJournyMap] = useState<boolean>(false);
   const [footprintModal, setFootprintModal] = useState<boolean>(false);
   const [advisoryModal, setAdvisoryModal] = useState<boolean>(false);
+  const [tipModal, setTipModal] = useState<boolean>(false);
 
   return (
     <div className="p-6 grid grid-cols-1 lg:grid-cols-4 gap-6">
@@ -47,8 +52,9 @@ const DashboardContent = () => {
           setJournyMap={setJournyMap}
           setFootprintModal={setFootprintModal}
           setAdvisoryModal={setAdvisoryModal}
+          setTipModal={setTipModal}
         />
-        <MapDashboard />
+        {/* <MapDashboard /> */}
         <ReadyToHost />
         <UserFeed />
       </div>
@@ -73,6 +79,7 @@ const DashboardContent = () => {
         advisoryModal={advisoryModal}
         setAdvisoryModal={setAdvisoryModal}
       />
+      <MainTip tipModal={tipModal} setTipModal={setTipModal} />
     </div>
   );
 };

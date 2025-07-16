@@ -253,7 +253,7 @@ export default function ExistingJourneyComponent({
     }
   };
 
-  // Focus map on selected journey when journey data is loaded
+  // Focus map on selected journey when journey data is loaded - with debouncing
   useEffect(() => {
     if (
       selectedJourney &&
@@ -262,12 +262,19 @@ export default function ExistingJourneyComponent({
       Array.isArray(selectedJourney.startLocation.coords) &&
       selectedJourney.startLocation.coords.length >= 2
     ) {
-      journeyForm.flyToOnMap(
-        selectedJourney.startLocation.coords[0],
-        selectedJourney.startLocation.coords[1]
-      );
+      // Store coordinates to avoid null access in timeout
+      const coords = selectedJourney.startLocation.coords;
+
+      // Debounce the flyTo call to prevent excessive animations
+      const timeoutId = setTimeout(() => {
+        if (coords && coords.length >= 2) {
+          journeyForm.flyToOnMap(coords[0], coords[1]);
+        }
+      }, 100);
+
+      return () => clearTimeout(timeoutId);
     }
-  }, [selectedJourney, journeyForm]);
+  }, [selectedJourney?.id]); // Only trigger when journey ID changes, not on every journey property change
 
   // Step suggestions - now allows any location selection
   const fetchStepSuggestions = useCallback(
@@ -658,7 +665,7 @@ export default function ExistingJourneyComponent({
     await handleJourneySubmission("published");
   };
 
-  // Get all coordinates for map display
+  // Get all coordinates for map display - memoized to prevent unnecessary re-renders
   const allStepCoordinates = useMemo(() => {
     const coords: LatLng[] = [];
 
@@ -675,7 +682,7 @@ export default function ExistingJourneyComponent({
     });
 
     return coords;
-  }, [allSteps]);
+  }, [allSteps]); // This will only re-calculate when allSteps actually changes
 
   return (
     <div className="grid lg:grid-cols-2 grid-cols-1">

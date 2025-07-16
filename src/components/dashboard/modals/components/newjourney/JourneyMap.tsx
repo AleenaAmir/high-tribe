@@ -142,7 +142,7 @@ function createDotMarker(color: string) {
   el.style.height = "16px";
   el.style.background = color;
   el.style.borderRadius = "50%";
- 
+
   el.style.boxShadow = "0 0 4px rgba(0,0,0,0.2)";
   return el;
 }
@@ -203,7 +203,6 @@ const JourneyMap = forwardRef<any, JourneyMapProps>(
         }
       },
     }));
-
     // Debounced route fetching
     useEffect(() => {
       debouncedFetchRoute.current = debounce(async (allPoints) => {
