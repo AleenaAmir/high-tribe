@@ -300,10 +300,14 @@ export default function ExistingJourneyComponent({
   );
 
   // Form submission handlers
-  const handleUpdateAndPublish = async () => {
+  const handleJourneySubmission = async (status: "pending" | "published") => {
     if (!selectedJourney) return;
 
-    setIsSubmitting(true);
+    const isSubmitting = status === "pending";
+    const isEndAndPublish = status === "published";
+
+    if (isSubmitting) setIsSubmitting(true);
+    if (isEndAndPublish) setIsEndAndPublish(true);
 
     try {
       // Check if any new steps have media files
@@ -311,7 +315,7 @@ export default function ExistingJourneyComponent({
         (step) => step.media && step.media.length > 0
       );
 
-      console.log("Checking for media files in new steps:");
+      console.log(`Checking for media files in new steps (${status}):`);
       newSteps.forEach((step, idx) => {
         console.log(
           `New Step ${idx + 1} - Media files:`,
@@ -367,14 +371,14 @@ export default function ExistingJourneyComponent({
         formData.append("planning_mode", "manual");
         formData.append("date_mode", "specific");
         formData.append("type", "mapping_journey");
-        formData.append("status", "pending");
+        formData.append("status", status);
 
         // Add tagged user IDs
         taggedFriends.forEach((friend, index) => {
           formData.append(`tagged_user_ids[${index}]`, friend.id.toString());
         });
 
-        console.log("Starting file upload process...");
+        console.log(`Starting file upload process (${status})...`);
         console.log(
           "Total new steps with media:",
           newSteps.filter((step) => step.media && step.media.length > 0).length
@@ -450,7 +454,11 @@ export default function ExistingJourneyComponent({
             };
           });
 
-        console.log("Updating journey with FormData - Files included");
+        console.log(
+          `${
+            status === "pending" ? "Updating" : "Publishing"
+          } journey with FormData - Files included`
+        );
         console.log("Number of new stops:", newStopsData.length);
         console.log("FormData entries:");
         for (let [key, value] of formData.entries()) {
@@ -464,14 +472,16 @@ export default function ExistingJourneyComponent({
           }
         }
 
-        // API call to update journey with FormData
+        // API call to update/publish journey with FormData
         await apiRequest(
           `posts/${selectedJourney.id}`,
           {
             method: "PUT",
             body: formData,
           },
-          "Journey updated successfully!"
+          `Journey ${
+            status === "pending" ? "updated" : "published"
+          } successfully!`
         );
       } else {
         // No media files - use JSON request
@@ -578,12 +588,16 @@ export default function ExistingJourneyComponent({
           date_mode: "specific",
           type: "mapping_journey",
           tagged_user_ids: taggedFriends.map((friend) => friend.id),
-          status: "pending", // Update & Publish sets status to pending
-          stops: allStopsData,
+          status: status,
+          ...(status === "published"
+            ? { new_stops: allStopsData }
+            : { stops: allStopsData }),
         };
 
         console.log(
-          "Updating journey with pending status - Full request data:",
+          `${
+            status === "pending" ? "Updating" : "Publishing"
+          } journey with ${status} status - Full request data:`,
           updateData
         );
         console.log("Number of existing stops:", existingStopsData.length);
@@ -592,14 +606,16 @@ export default function ExistingJourneyComponent({
         console.log("Request URL:", `posts/${selectedJourney.id}`);
         console.log("Tagged friends:", taggedFriends);
 
-        // API call to update journey
+        // API call to update/publish journey
         await apiRequest(
           `posts/${selectedJourney.id}`,
           {
             method: "PUT",
             json: updateData,
           },
-          "Journey updated successfully!"
+          `Journey ${
+            status === "pending" ? "updated" : "published"
+          } successfully!`
         );
       }
 
@@ -614,338 +630,32 @@ export default function ExistingJourneyComponent({
         await fetchJourneyData(selectedJourneyId);
       }
 
-      // Close the modal after successful update
+      // Close the modal after successful update/publication
       onClose?.();
     } catch (error) {
-      console.error("Error updating journey with pending status:", error);
-      alert("Failed to update journey. Please try again.");
+      console.error(
+        `Error ${
+          status === "pending" ? "updating" : "publishing"
+        } journey with ${status} status:`,
+        error
+      );
+      alert(
+        `Failed to ${
+          status === "pending" ? "update" : "publish"
+        } journey. Please try again.`
+      );
     } finally {
-      setIsSubmitting(false);
+      if (isSubmitting) setIsSubmitting(false);
+      if (isEndAndPublish) setIsEndAndPublish(false);
     }
   };
 
+  const handleUpdateAndPublish = async () => {
+    await handleJourneySubmission("pending");
+  };
+
   const handleEndAndPublish = async () => {
-    if (!selectedJourney) return;
-
-    setIsEndAndPublish(true);
-
-    try {
-      // Check if any new steps have media files
-      const hasMediaFiles = newSteps.some(
-        (step) => step.media && step.media.length > 0
-      );
-
-      console.log("Checking for media files in new steps (End & Publish):");
-      newSteps.forEach((step, idx) => {
-        console.log(
-          `New Step ${idx + 1} - Media files:`,
-          step.media?.length || 0
-        );
-        if (step.media && step.media.length > 0) {
-          step.media.forEach((file, fileIdx) => {
-            console.log(`  File ${fileIdx + 1}:`, file.file_name, file.type);
-          });
-        }
-      });
-      console.log("Has media files:", hasMediaFiles);
-
-      if (hasMediaFiles) {
-        // Use FormData to send both JSON data and files together
-        const formData = new FormData();
-
-        // Add journey update data as form fields
-        formData.append("title", selectedJourney.title);
-        formData.append("description", selectedJourney.description);
-        formData.append(
-          "start_location_name",
-          selectedJourney.startLocation.name
-        );
-        formData.append(
-          "start_lat",
-          selectedJourney.startLocation.coords
-            ? selectedJourney.startLocation.coords[1].toString()
-            : ""
-        );
-        formData.append(
-          "start_lng",
-          selectedJourney.startLocation.coords
-            ? selectedJourney.startLocation.coords[0].toString()
-            : ""
-        );
-        formData.append("end_location_name", selectedJourney.endLocation.name);
-        formData.append(
-          "end_lat",
-          selectedJourney.endLocation.coords
-            ? selectedJourney.endLocation.coords[1].toString()
-            : ""
-        );
-        formData.append(
-          "end_lng",
-          selectedJourney.endLocation.coords
-            ? selectedJourney.endLocation.coords[0].toString()
-            : ""
-        );
-        formData.append("start_date", selectedJourney.startDate);
-        formData.append("end_date", selectedJourney.endDate);
-        formData.append("privacy", visibility);
-        formData.append("planning_mode", "manual");
-        formData.append("date_mode", "specific");
-        formData.append("type", "mapping_journey");
-        formData.append("status", "published");
-
-        // Add tagged user IDs
-        taggedFriends.forEach((friend, index) => {
-          formData.append(`tagged_user_ids[${index}]`, friend.id.toString());
-        });
-
-        console.log("Starting file upload process (End & Publish)...");
-        console.log(
-          "Total new steps with media:",
-          newSteps.filter((step) => step.media && step.media.length > 0).length
-        );
-
-        // Process new steps and add files
-        const newStopsData = newSteps
-          .filter((step) => step.location.coords && step.location.name)
-          .map((step, stepIndex) => {
-            // Add stop data as form fields
-            formData.append(`new_stops[${stepIndex}][title]`, step.name);
-            formData.append(
-              `new_stops[${stepIndex}][location][name]`,
-              step.location.name
-            );
-            formData.append(
-              `new_stops[${stepIndex}][location][lat]`,
-              step.location.coords ? step.location.coords[1].toString() : ""
-            );
-            formData.append(
-              `new_stops[${stepIndex}][location][lng]`,
-              step.location.coords ? step.location.coords[0].toString() : ""
-            );
-            formData.append(
-              `new_stops[${stepIndex}][transport_mode]`,
-              step.mediumOfTravel || "car"
-            );
-            formData.append(
-              `new_stops[${stepIndex}][start_date]`,
-              step.startDate
-            );
-            formData.append(`new_stops[${stepIndex}][end_date]`, step.endDate);
-            formData.append(`new_stops[${stepIndex}][notes]`, step.notes);
-            formData.append(`new_stops[${stepIndex}][stop_category_id]`, "1");
-
-            // Add media files for this step
-            if (step.media && step.media.length > 0) {
-              console.log(
-                `Step ${stepIndex + 1} has ${step.media.length} files to upload`
-              );
-              step.media.forEach((mediaItem, fileIndex) => {
-                if (mediaItem.fileObject instanceof File) {
-                  console.log(
-                    `Adding file ${fileIndex + 1}/${step.media.length}: ${
-                      mediaItem.file_name
-                    } (${mediaItem.fileObject.size} bytes)`
-                  );
-                  formData.append(
-                    `new_stops[${stepIndex}][media][${fileIndex}]`,
-                    mediaItem.fileObject
-                  );
-                }
-              });
-            }
-
-            return {
-              title: step.name,
-              location: {
-                name: step.location.name,
-                lat: step.location.coords
-                  ? step.location.coords[1].toString()
-                  : null,
-                lng: step.location.coords
-                  ? step.location.coords[0].toString()
-                  : null,
-              },
-              transport_mode: step.mediumOfTravel || "car",
-              start_date: step.startDate,
-              end_date: step.endDate,
-              notes: step.notes,
-              stop_category_id: 1,
-              media: step.media || [], // Include file references
-            };
-          });
-
-        console.log("Publishing journey with FormData - Files included");
-        console.log("Number of new stops:", newStopsData.length);
-        console.log("FormData entries:");
-        for (let [key, value] of formData.entries()) {
-          if (value instanceof File) {
-            console.log(
-              `${key}:`,
-              `File(${value.name}, ${value.size} bytes, ${value.type})`
-            );
-          } else {
-            console.log(`${key}:`, value);
-          }
-        }
-
-        // API call to publish journey with FormData
-        await apiRequest(
-          `posts/${selectedJourney.id}`,
-          {
-            method: "PUT",
-            body: formData,
-          },
-          "Journey published successfully!"
-        );
-      } else {
-        // No media files - use JSON request
-        // Map existing steps to API format
-        const existingStopsData = (selectedJourney?.steps || [])
-          .filter((step) => step.location.coords && step.location.name) // Only include steps with valid location
-          .map((step) => {
-            // Transport mode mapping to match API expectations
-            const modeMapping: { [key: string]: string } = {
-              plane: "airplane",
-              train: "train",
-              car: "car",
-              bus: "bus",
-              walk: "foot",
-              bike: "bike",
-              info: "other",
-            };
-            const transportMode =
-              modeMapping[step.mediumOfTravel] || step.mediumOfTravel || "car";
-
-            return {
-              title: step.name,
-              location: {
-                name: step.location.name,
-                lat: step.location.coords
-                  ? step.location.coords[1].toString()
-                  : null,
-                lng: step.location.coords
-                  ? step.location.coords[0].toString()
-                  : null,
-              },
-              transport_mode: transportMode,
-              start_date: step.startDate,
-              end_date: step.endDate,
-              notes: step.notes,
-              stop_category_id: 1, // Default category, you might want to map this properly
-              // Don't include media for now - need proper file upload handling
-              media: step.media || [],
-            };
-          });
-
-        // Map new steps to API format
-        const newStopsData = newSteps
-          .filter((step) => step.location.coords && step.location.name) // Only include steps with valid location
-          .map((step) => {
-            // Transport mode mapping to match API expectations
-            const modeMapping: { [key: string]: string } = {
-              plane: "airplane",
-              train: "train",
-              car: "car",
-              bus: "bus",
-              walk: "foot",
-              bike: "bike",
-              info: "other",
-            };
-            const transportMode =
-              modeMapping[step.mediumOfTravel] || step.mediumOfTravel || "car";
-
-            return {
-              title: step.name,
-              location: {
-                name: step.location.name,
-                lat: step.location.coords
-                  ? step.location.coords[1].toString()
-                  : null,
-                lng: step.location.coords
-                  ? step.location.coords[0].toString()
-                  : null,
-              },
-              transport_mode: transportMode,
-              start_date: step.startDate,
-              end_date: step.endDate,
-              notes: step.notes,
-              stop_category_id: 1, // Default category, you might want to map this properly
-              // Don't include media for now - need proper file upload handling
-              media: [],
-            };
-          });
-
-        // Combine existing and new stops
-        const allStopsData = [...existingStopsData, ...newStopsData];
-
-        const updateData = {
-          title: selectedJourney.title,
-          description: selectedJourney.description,
-          start_location_name: selectedJourney.startLocation.name,
-          start_lat: selectedJourney.startLocation.coords
-            ? selectedJourney.startLocation.coords[1].toString()
-            : null,
-          start_lng: selectedJourney.startLocation.coords
-            ? selectedJourney.startLocation.coords[0].toString()
-            : null,
-          end_location_name: selectedJourney.endLocation.name,
-          end_lat: selectedJourney.endLocation.coords
-            ? selectedJourney.endLocation.coords[1].toString()
-            : null,
-          end_lng: selectedJourney.endLocation.coords
-            ? selectedJourney.endLocation.coords[0].toString()
-            : null,
-          start_date: selectedJourney.startDate,
-          end_date: selectedJourney.endDate,
-          privacy: visibility,
-          planning_mode: "manual",
-          date_mode: "specific",
-          type: "mapping_journey",
-          tagged_user_ids: taggedFriends.map((friend) => friend.id),
-          status: "published", // End & Publish sets status to published
-          new_stops: allStopsData,
-        };
-
-        console.log(
-          "Publishing journey with published status - Full request data:",
-          updateData
-        );
-        console.log("Number of existing stops:", existingStopsData.length);
-        console.log("Number of new stops:", newStopsData.length);
-        console.log("Total stops:", allStopsData.length);
-        console.log("Request URL:", `posts/${selectedJourney.id}`);
-        console.log("Tagged friends:", taggedFriends);
-
-        // API call to end and publish journey
-        await apiRequest(
-          `posts/${selectedJourney.id}`,
-          {
-            method: "PUT",
-            json: updateData,
-          },
-          "Journey published successfully!"
-        );
-      }
-
-      // Reset new steps after successful submission
-      setNewSteps([]);
-
-      // Refresh journeys list to get updated data
-      await fetchJourneysList();
-
-      // Refresh current journey data
-      if (selectedJourneyId) {
-        await fetchJourneyData(selectedJourneyId);
-      }
-
-      // Close the modal after successful publication
-      onClose?.();
-    } catch (error) {
-      console.error("Error publishing journey with published status:", error);
-      alert("Failed to publish journey. Please try again.");
-    } finally {
-      setIsEndAndPublish(false);
-    }
+    await handleJourneySubmission("published");
   };
 
   // Get all coordinates for map display
