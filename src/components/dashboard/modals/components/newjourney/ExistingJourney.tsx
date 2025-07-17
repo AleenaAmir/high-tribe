@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useMemo, useEffect } from "react";
 import JourneyMap, { LatLng } from "./JourneyMap";
 import GlobalSelect from "@/components/global/GlobalSelect";
-import GlobalTextArea from "@/components/global/GlobalTextArea";
+
 import GlobalMultiSelect from "@/components/global/GlobalMultiSelect";
 import StepsList from "./StepsList";
 import VisibilitySelector from "./VisibilitySelector";
@@ -110,9 +110,9 @@ export default function ExistingJourneyComponent({
           coords:
             post.start_lat && post.start_lng
               ? ([
-                  parseFloat(post.start_lng),
-                  parseFloat(post.start_lat),
-                ] as LatLng)
+                parseFloat(post.start_lng),
+                parseFloat(post.start_lat),
+              ] as LatLng)
               : null,
           name: post.start_location_name || "",
         },
@@ -127,39 +127,39 @@ export default function ExistingJourneyComponent({
         endDate: post.end_date || "",
         steps: Array.isArray(post.stops)
           ? post.stops.map((stop: any) => ({
-              name: stop.title || "",
-              location: {
-                coords:
-                  stop.lat && stop.lng
-                    ? ([parseFloat(stop.lng), parseFloat(stop.lat)] as LatLng)
-                    : null,
-                name: stop.location_name || "",
-              },
-              notes: stop.notes || "",
-              media: Array.isArray(stop.media)
-                ? stop.media.map((m: any) => ({
-                    url: m.url,
-                    type: m.type,
-                  }))
-                : [],
-              mediumOfTravel: stop.transport_mode || "",
-              startDate: stop.start_date || "",
-              endDate: stop.end_date || "",
-              category: stop.category?.name || "",
-            }))
+            name: stop.title || "",
+            location: {
+              coords:
+                stop.lat && stop.lng
+                  ? ([parseFloat(stop.lng), parseFloat(stop.lat)] as LatLng)
+                  : null,
+              name: stop.location_name || "",
+            },
+            notes: stop.notes || "",
+            media: Array.isArray(stop.media)
+              ? stop.media.map((m: any) => ({
+                url: m.url,
+                type: m.type,
+              }))
+              : [],
+            mediumOfTravel: stop.transport_mode || "",
+            startDate: stop.start_date || "",
+            endDate: stop.end_date || "",
+            category: stop.category?.name || "",
+          }))
           : [],
         friends: Array.isArray(post.tagged_users)
           ? post.tagged_users.map((user: any) => ({
-              id: user.id,
-              name: user.name,
-              email: user.email,
-            }))
+            id: user.id,
+            name: user.name,
+            email: user.email,
+          }))
           : [],
         visibility: (post.privacy === "public"
           ? "public"
           : post.privacy === "private"
-          ? "private"
-          : "tribe") as VisibilityType,
+            ? "private"
+            : "tribe") as VisibilityType,
         createdAt: post.created_at || "",
         updatedAt: post.updated_at || "",
         userId: post.user?.id?.toString() || "",
@@ -169,18 +169,14 @@ export default function ExistingJourneyComponent({
           "draft",
         userData: post.user
           ? {
-              id: post.user.id,
-              name: post.user.name,
-              email: post.user.email,
-              avatar: post.user.avatar,
-            }
+            id: post.user.id,
+            name: post.user.name,
+            email: post.user.email,
+            avatar: post.user.avatar,
+          }
           : undefined,
       };
 
-      console.log("Normalized journey:", normalizedJourney);
-      console.log("Start location:", normalizedJourney.startLocation);
-      console.log("End location:", normalizedJourney.endLocation);
-      console.log("Steps:", normalizedJourney.steps);
 
       setSelectedJourney(normalizedJourney);
 
@@ -253,7 +249,7 @@ export default function ExistingJourneyComponent({
     }
   };
 
-  // Focus map on selected journey when journey data is loaded - with debouncing
+  // Focus map on selected journey when journey data is loaded
   useEffect(() => {
     if (
       selectedJourney &&
@@ -262,19 +258,12 @@ export default function ExistingJourneyComponent({
       Array.isArray(selectedJourney.startLocation.coords) &&
       selectedJourney.startLocation.coords.length >= 2
     ) {
-      // Store coordinates to avoid null access in timeout
-      const coords = selectedJourney.startLocation.coords;
-
-      // Debounce the flyTo call to prevent excessive animations
-      const timeoutId = setTimeout(() => {
-        if (coords && coords.length >= 2) {
-          journeyForm.flyToOnMap(coords[0], coords[1]);
-        }
-      }, 100);
-
-      return () => clearTimeout(timeoutId);
+      journeyForm.flyToOnMap(
+        selectedJourney.startLocation.coords[0],
+        selectedJourney.startLocation.coords[1]
+      );
     }
-  }, [selectedJourney?.id]); // Only trigger when journey ID changes, not on every journey property change
+  }, [selectedJourney, journeyForm]);
 
   // Step suggestions - now allows any location selection
   const fetchStepSuggestions = useCallback(
@@ -288,9 +277,8 @@ export default function ExistingJourneyComponent({
         // When there's a query, perform global search
         url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(
           query
-        )}.json?limit=20&access_token=${
-          process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN
-        }`;
+        )}.json?limit=20&access_token=${process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN
+          }`;
       }
 
       try {
@@ -307,22 +295,22 @@ export default function ExistingJourneyComponent({
   );
 
   // Form submission handlers
-  const handleJourneySubmission = async (status: "pending" | "published") => {
+  const handleJourneySubmission = async (status: "draft" | "published") => {
+    debugger
     if (!selectedJourney) return;
 
-    const isSubmitting = status === "pending";
+    const isSubmitting = status === "draft";
     const isEndAndPublish = status === "published";
 
     if (isSubmitting) setIsSubmitting(true);
     if (isEndAndPublish) setIsEndAndPublish(true);
-
+    debugger
     try {
       // Check if any new steps have media files
       const hasMediaFiles = newSteps.some(
         (step) => step.media && step.media.length > 0
       );
 
-      console.log(`Checking for media files in new steps (${status}):`);
       newSteps.forEach((step, idx) => {
         console.log(
           `New Step ${idx + 1} - Media files:`,
@@ -334,140 +322,78 @@ export default function ExistingJourneyComponent({
           });
         }
       });
-      console.log("Has media files:", hasMediaFiles);
+
 
       if (hasMediaFiles) {
         // Use FormData to send both JSON data and files together
         const formData = new FormData();
+        // formData.append("post_id", selectedJourney.id);
 
         // Add journey update data as form fields
-        formData.append("title", selectedJourney.title);
-        formData.append("description", selectedJourney.description);
-        formData.append(
-          "start_location_name",
-          selectedJourney.startLocation.name
-        );
-        formData.append(
-          "start_lat",
-          selectedJourney.startLocation.coords
-            ? selectedJourney.startLocation.coords[1].toString()
-            : ""
-        );
-        formData.append(
-          "start_lng",
-          selectedJourney.startLocation.coords
-            ? selectedJourney.startLocation.coords[0].toString()
-            : ""
-        );
-        formData.append("end_location_name", selectedJourney.endLocation.name);
-        formData.append(
-          "end_lat",
-          selectedJourney.endLocation.coords
-            ? selectedJourney.endLocation.coords[1].toString()
-            : ""
-        );
-        formData.append(
-          "end_lng",
-          selectedJourney.endLocation.coords
-            ? selectedJourney.endLocation.coords[0].toString()
-            : ""
-        );
-        formData.append("start_date", selectedJourney.startDate);
-        formData.append("end_date", selectedJourney.endDate);
+        // formData.append("title", selectedJourney.title);
+        // formData.append("description", selectedJourney.description);
+        // formData.append(
+        //   "start_location_name",
+        //   selectedJourney.startLocation.name
+        // );
+        // formData.append(
+        //   "start_lat",
+        //   selectedJourney.startLocation.coords
+        //     ? selectedJourney.startLocation.coords[1].toString()
+        //     : ""
+        // );
+        // formData.append(
+        //   "start_lng",
+        //   selectedJourney.startLocation.coords
+        //     ? selectedJourney.startLocation.coords[0].toString()
+        //     : ""
+        // );
+        // formData.append("end_location_name", selectedJourney.endLocation.name);
+        // formData.append(
+        //   "end_lat",
+        //   selectedJourney.endLocation.coords
+        //     ? selectedJourney.endLocation.coords[1].toString()
+        //     : ""
+        // );
+        // formData.append(
+        //   "end_lng",
+        //   selectedJourney.endLocation.coords
+        //     ? selectedJourney.endLocation.coords[0].toString()
+        //     : ""
+        // );
+        // formData.append("start_date", selectedJourney.startDate);
+        // formData.append("end_date", selectedJourney.endDate);
         formData.append("privacy", visibility);
-        formData.append("planning_mode", "manual");
-        formData.append("date_mode", "specific");
+        // formData.append("planning_mode", "manual");
+        // formData.append("date_mode", "specific");
         formData.append("type", "mapping_journey");
         formData.append("status", status);
+        formData.append("_method", "PUT");
 
         // Add tagged user IDs
         taggedFriends.forEach((friend, index) => {
-          formData.append(`tagged_user_ids[${index}]`, friend.id.toString());
+          formData.append(`tagged_users[${index}]`, friend.id.toString());
         });
 
-        console.log(`Starting file upload process (${status})...`);
-        console.log(
-          "Total new steps with media:",
-          newSteps.filter((step) => step.media && step.media.length > 0).length
-        );
+        // Add stops and media - only new steps
+        newSteps.forEach((step, stepIdx) => {
+          formData.append(`stops[${stepIdx}][title]`, step.name);
+          formData.append(`stops[${stepIdx}][stop_category_id]`, "8");
+          formData.append(`stops[${stepIdx}][location][name]`, step.location.name);
+          formData.append(`stops[${stepIdx}][location][lat]`, step.location.coords?.[1]?.toString() || "");
+          formData.append(`stops[${stepIdx}][location][lng]`, step.location.coords?.[0]?.toString() || "");
+          formData.append(`stops[${stepIdx}][transport_mode]`, step.mediumOfTravel);
+          formData.append(`stops[${stepIdx}][start_date]`, step.startDate);
+          formData.append(`stops[${stepIdx}][end_date]`, step.endDate);
+          formData.append(`stops[${stepIdx}][notes]`, step.notes || "");
+          if (step.media && Array.isArray(step.media)) {
+            step.media.forEach((file, fileIdx) => {
+              formData.append(`stops[${stepIdx}][media][${fileIdx}]`, file.fileObject, file.file_name);
+            });
+          }
+        });
 
-        // Process new steps and add files
-        const newStopsData = newSteps
-          .filter((step) => step.location.coords && step.location.name)
-          .map((step, stepIndex) => {
-            // Add stop data as form fields
-            formData.append(`new_stops[${stepIndex}][title]`, step.name);
-            formData.append(
-              `new_stops[${stepIndex}][location][name]`,
-              step.location.name
-            );
-            formData.append(
-              `new_stops[${stepIndex}][location][lat]`,
-              step.location.coords ? step.location.coords[1].toString() : ""
-            );
-            formData.append(
-              `new_stops[${stepIndex}][location][lng]`,
-              step.location.coords ? step.location.coords[0].toString() : ""
-            );
-            formData.append(
-              `new_stops[${stepIndex}][transport_mode]`,
-              step.mediumOfTravel || "car"
-            );
-            formData.append(
-              `new_stops[${stepIndex}][start_date]`,
-              step.startDate
-            );
-            formData.append(`new_stops[${stepIndex}][end_date]`, step.endDate);
-            formData.append(`new_stops[${stepIndex}][notes]`, step.notes);
-            formData.append(`new_stops[${stepIndex}][stop_category_id]`, "1");
-
-            // Add media files for this step
-            if (step.media && step.media.length > 0) {
-              console.log(
-                `Step ${stepIndex + 1} has ${step.media.length} files to upload`
-              );
-              step.media.forEach((mediaItem, fileIndex) => {
-                if (mediaItem.fileObject instanceof File) {
-                  console.log(
-                    `Adding file ${fileIndex + 1}/${step.media.length}: ${
-                      mediaItem.file_name
-                    } (${mediaItem.fileObject.size} bytes)`
-                  );
-                  formData.append(
-                    `new_stops[${stepIndex}][media][${fileIndex}]`,
-                    mediaItem.fileObject
-                  );
-                }
-              });
-            }
-
-            return {
-              title: step.name,
-              location: {
-                name: step.location.name,
-                lat: step.location.coords
-                  ? step.location.coords[1].toString()
-                  : null,
-                lng: step.location.coords
-                  ? step.location.coords[0].toString()
-                  : null,
-              },
-              transport_mode: step.mediumOfTravel || "car",
-              start_date: step.startDate,
-              end_date: step.endDate,
-              notes: step.notes,
-              stop_category_id: 1,
-              media: step.media || [], // Include file references
-            };
-          });
-
-        console.log(
-          `${
-            status === "pending" ? "Updating" : "Publishing"
-          } journey with FormData - Files included`
-        );
-        console.log("Number of new stops:", newStopsData.length);
-        console.log("FormData entries:");
+        console.log("=== FormData being sent ===");
         for (let [key, value] of formData.entries()) {
           if (value instanceof File) {
             console.log(
@@ -478,58 +404,71 @@ export default function ExistingJourneyComponent({
             console.log(`${key}:`, value);
           }
         }
+        console.log("=== End FormData ===");
 
         // API call to update/publish journey with FormData
-        await apiRequest(
-          `posts/${selectedJourney.id}`,
+        const token = localStorage.getItem("token") || "<PASTE_VALID_TOKEN_HERE>";
+        const response = await fetch(
+          `https://high-tribe-backend.hiconsolutions.com/api/posts/${selectedJourney.id}`,
           {
-            method: "PUT",
+            method: "POST", // Use POST with _method=PUT for Laravel
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Accept': 'application/json',
+              // DO NOT set Content-Type!
+            },
             body: formData,
-          },
-          `Journey ${
-            status === "pending" ? "updated" : "published"
-          } successfully!`
+          }
         );
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          console.error("Server error response:", errorData);
+          throw new Error(`HTTP ${response.status}: ${JSON.stringify(errorData)}`);
+        }
+
+        const result = await response.json();
+        console.log("Success response:", result);
       } else {
         // No media files - use JSON request
         // Map existing steps to API format
-        const existingStopsData = (selectedJourney?.steps || [])
-          .filter((step) => step.location.coords && step.location.name) // Only include steps with valid location
-          .map((step) => {
-            // Transport mode mapping to match API expectations
-            const modeMapping: { [key: string]: string } = {
-              plane: "airplane",
-              train: "train",
-              car: "car",
-              bus: "bus",
-              walk: "foot",
-              bike: "bike",
-              info: "other",
-            };
-            const transportMode =
-              modeMapping[step.mediumOfTravel] || step.mediumOfTravel || "car";
+        // const existingStopsData = (selectedJourney?.steps || [])
+        //   .filter((step) => step.location.coords && step.location.name) // Only include steps with valid location
+        //   .map((step) => {
+        //     // Transport mode mapping to match API expectations
+        //     const modeMapping: { [key: string]: string } = {
+        //       plane: "airplane",
+        //       train: "train",
+        //       car: "car",
+        //       bus: "bus",
+        //       walk: "foot",
+        //       bike: "bike",
+        //       info: "other",
+        //     };
+        //     const transportMode =
+        //       modeMapping[step.mediumOfTravel] || step.mediumOfTravel || "car";
 
-            return {
-              title: step.name,
-              location: {
-                name: step.location.name,
-                lat: step.location.coords
-                  ? step.location.coords[1].toString()
-                  : null,
-                lng: step.location.coords
-                  ? step.location.coords[0].toString()
-                  : null,
-              },
-              transport_mode: transportMode,
-              start_date: step.startDate,
-              end_date: step.endDate,
-              notes: step.notes,
-              stop_category_id: 1, // Default category, you might want to map this properly
-              // Don't include media for now - need proper file upload handling
-              media: step.media || [],
-            };
-          });
-
+        //     return {
+        //       title: step.name,
+        //       location: {
+        //         name: step.location.name,
+        //         lat: step.location.coords
+        //           ? step.location.coords[1].toString()
+        //           : null,
+        //         lng: step.location.coords
+        //           ? step.location.coords[0].toString()
+        //           : null,
+        //       },
+        //       transport_mode: transportMode,
+        //       start_date: step.startDate,
+        //       end_date: step.endDate,
+        //       notes: step.notes,
+        //       stop_category_id: 1, // Default category, you might want to map this properly
+        //       // Don't include media for now - need proper file upload handling
+        //       media: step.media || [],
+        //     };
+        //   });
+        debugger
         // Map new steps to API format
         const newStopsData = newSteps
           .filter((step) => step.location.coords && step.location.name) // Only include steps with valid location
@@ -562,68 +501,71 @@ export default function ExistingJourneyComponent({
               start_date: step.startDate,
               end_date: step.endDate,
               notes: step.notes,
-              stop_category_id: 1, // Default category, you might want to map this properly
+              stop_category_id: 8, // Default category, you might want to map this properly
               // Don't include media for now - need proper file upload handling
-              media: [],
+              media: step.media || [],
             };
           });
 
         // Combine existing and new stops
-        const allStopsData = [...existingStopsData, ...newStopsData];
+
 
         const updateData = {
-          title: selectedJourney.title,
-          description: selectedJourney.description,
-          start_location_name: selectedJourney.startLocation.name,
-          start_lat: selectedJourney.startLocation.coords
-            ? selectedJourney.startLocation.coords[1].toString()
-            : null,
-          start_lng: selectedJourney.startLocation.coords
-            ? selectedJourney.startLocation.coords[0].toString()
-            : null,
-          end_location_name: selectedJourney.endLocation.name,
-          end_lat: selectedJourney.endLocation.coords
-            ? selectedJourney.endLocation.coords[1].toString()
-            : null,
-          end_lng: selectedJourney.endLocation.coords
-            ? selectedJourney.endLocation.coords[0].toString()
-            : null,
-          start_date: selectedJourney.startDate,
-          end_date: selectedJourney.endDate,
+          id: selectedJourney.id,
+          // title: selectedJourney.title,
+          // description: selectedJourney.description,
+          // start_location_name: selectedJourney.startLocation.name,
+          // start_lat: selectedJourney.startLocation.coords
+          //   ? selectedJourney.startLocation.coords[1].toString()
+          //   : null,
+          // start_lng: selectedJourney.startLocation.coords
+          //   ? selectedJourney.startLocation.coords[0].toString()
+          //   : null,
+          // end_location_name: selectedJourney.endLocation.name,
+          // end_lat: selectedJourney.endLocation.coords
+          //   ? selectedJourney.endLocation.coords[1].toString()
+          //   : null,
+          // end_lng: selectedJourney.endLocation.coords
+          //   ? selectedJourney.endLocation.coords[0].toString()
+          //   : null,
+          // start_date: selectedJourney.startDate,
+          // end_date: selectedJourney.endDate,
           privacy: visibility,
           planning_mode: "manual",
           date_mode: "specific",
           type: "mapping_journey",
           tagged_user_ids: taggedFriends.map((friend) => friend.id),
           status: status,
-          ...(status === "published"
-            ? { new_stops: allStopsData }
-            : { stops: allStopsData }),
+          stops: newStopsData
         };
 
-        console.log(
-          `${
-            status === "pending" ? "Updating" : "Publishing"
-          } journey with ${status} status - Full request data:`,
-          updateData
-        );
-        console.log("Number of existing stops:", existingStopsData.length);
-        console.log("Number of new stops:", newStopsData.length);
-        console.log("Total stops:", allStopsData.length);
-        console.log("Request URL:", `posts/${selectedJourney.id}`);
-        console.log("Tagged friends:", taggedFriends);
+        console.log("=== JSON Data being sent ===");
+        console.log(JSON.stringify(updateData, null, 2));
+        console.log("=== End JSON Data ===");
 
+        const token = localStorage.getItem("token") || "<PASTE_VALID_TOKEN_HERE>";
         // API call to update/publish journey
-        await apiRequest(
-          `posts/${selectedJourney.id}`,
+        const response = await fetch(
+          `https://high-tribe-backend.hiconsolutions.com/api/posts/${selectedJourney.id}`,
           {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Accept': 'application/json',
+              'Content-Type': 'application/json',
+            },
             method: "PUT",
-            json: updateData,
-          },
-          `Journey ${
-            status === "pending" ? "updated" : "published"
-          } successfully!`
+            body: JSON.stringify(updateData),
+          }
         );
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          console.error("Server error response:", errorData);
+          throw new Error(`HTTP ${response.status}: ${JSON.stringify(errorData)}`);
+        }
+
+        const result = await response.json();
+        console.log("Success response:", result);
       }
 
       // Reset new steps after successful submission
@@ -641,14 +583,12 @@ export default function ExistingJourneyComponent({
       onClose?.();
     } catch (error) {
       console.error(
-        `Error ${
-          status === "pending" ? "updating" : "publishing"
+        `Error ${status === "draft" ? "updating" : "publishing"
         } journey with ${status} status:`,
         error
       );
       alert(
-        `Failed to ${
-          status === "pending" ? "update" : "publish"
+        `Failed to ${status === "draft" ? "update" : "publish"
         } journey. Please try again.`
       );
     } finally {
@@ -658,14 +598,14 @@ export default function ExistingJourneyComponent({
   };
 
   const handleUpdateAndPublish = async () => {
-    await handleJourneySubmission("pending");
+    await handleJourneySubmission("draft");
   };
 
   const handleEndAndPublish = async () => {
     await handleJourneySubmission("published");
   };
 
-  // Get all coordinates for map display - memoized to prevent unnecessary re-renders
+  // Get all coordinates for map display
   const allStepCoordinates = useMemo(() => {
     const coords: LatLng[] = [];
 
@@ -682,7 +622,7 @@ export default function ExistingJourneyComponent({
     });
 
     return coords;
-  }, [allSteps]); // This will only re-calculate when allSteps actually changes
+  }, [allSteps]);
 
   return (
     <div className="grid lg:grid-cols-2 grid-cols-1">
@@ -719,8 +659,8 @@ export default function ExistingJourneyComponent({
                   {loadingJourneysList
                     ? "Loading journeys..."
                     : journeysList.length === 0
-                    ? "No journeys found"
-                    : "Select your journey"}
+                      ? "No journeys found"
+                      : "Select your journey"}
                 </option>
                 {journeyOptions.map((option) => (
                   <option key={option.value} value={option.value}>
@@ -729,30 +669,7 @@ export default function ExistingJourneyComponent({
                 ))}
               </GlobalSelect>
 
-              {/* Refresh button */}
-              {/* <button
-                type="button"
-                onClick={fetchJourneysList}
-                disabled={loadingJourneysList}
-                className="absolute right-2 top-8 p-1 text-gray-500 hover:text-gray-700 disabled:opacity-50"
-                title="Refresh journeys list"
-              >
-                <svg
-                  className={`w-4 h-4 ${
-                    loadingJourneysList ? "animate-spin" : ""
-                  }`}
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                  />
-                </svg>
-              </button> */}
+
             </div>
 
             {/* Loading indicator for selected journey */}
@@ -770,11 +687,10 @@ export default function ExistingJourneyComponent({
             {/* Journey Details */}
             {/* Integrated Steps Section - Always Visible */}
             <div
-              className={`mb-4 ${
-                !selectedJourney || loadingSelectedJourney
-                  ? "opacity-50 pointer-events-none"
-                  : ""
-              }`}
+              className={`mb-4 ${!selectedJourney || loadingSelectedJourney
+                ? "opacity-50 pointer-events-none"
+                : ""
+                }`}
             >
               <div className="border-t border-gray-200 pt-4">
                 <StepsList
@@ -796,12 +712,12 @@ export default function ExistingJourneyComponent({
                   journeyData={
                     selectedJourney
                       ? {
-                          title: selectedJourney.title,
-                          startLocation: selectedJourney.startLocation,
-                          endLocation: selectedJourney.endLocation,
-                          startDate: selectedJourney.startDate,
-                          endDate: selectedJourney.endDate,
-                        }
+                        title: selectedJourney.title,
+                        startLocation: selectedJourney.startLocation,
+                        endLocation: selectedJourney.endLocation,
+                        startDate: selectedJourney.startDate,
+                        endDate: selectedJourney.endDate,
+                      }
                       : undefined
                   }
                 />
@@ -810,11 +726,10 @@ export default function ExistingJourneyComponent({
 
             {/* Tagged Friends Section */}
             <div
-              className={`mb-4 ${
-                !selectedJourney || loadingSelectedJourney
-                  ? "opacity-50 pointer-events-none"
-                  : ""
-              }`}
+              className={`mb-4 ${!selectedJourney || loadingSelectedJourney
+                ? "opacity-50 pointer-events-none"
+                : ""
+                }`}
             >
               <GlobalMultiSelect
                 label="Tag Friends"
@@ -842,11 +757,10 @@ export default function ExistingJourneyComponent({
                 disabled={
                   !selectedJourney || isSubmitting || loadingSelectedJourney
                 }
-                className={`ml-4 px-6 py-2 text-[12px] text-white rounded-lg border font-semibold transition-all ${
-                  !selectedJourney || isSubmitting || loadingSelectedJourney
-                    ? "border-gray-300 text-gray-400 bg-gray-100 cursor-not-allowed"
-                    : "border-blue-600 text-black bg-white bg-gradient-to-r from-[#257CFF] to-[#1063E0] cursor-pointer"
-                }`}
+                className={`ml-4 px-6 py-2 text-[12px] text-white rounded-lg border font-semibold transition-all ${!selectedJourney || isSubmitting || loadingSelectedJourney
+                  ? "border-gray-300 text-gray-400 bg-gray-100 cursor-not-allowed"
+                  : "border-blue-600 text-black bg-white bg-gradient-to-r from-[#257CFF] to-[#1063E0] cursor-pointer"
+                  }`}
               >
                 {isEndAndPublish ? (
                   <div className="flex items-center gap-2">
@@ -863,11 +777,10 @@ export default function ExistingJourneyComponent({
                 disabled={
                   !selectedJourney || isSubmitting || loadingSelectedJourney
                 }
-                className={`ml-4 px-6 py-2 text-[12px] rounded-lg border font-semibold transition-all ${
-                  !selectedJourney || isSubmitting || loadingSelectedJourney
-                    ? "border-gray-300 text-gray-400 bg-gray-100 cursor-not-allowed"
-                    : "border-blue-600 text-black bg-white hover:bg-blue-50 cursor-pointer"
-                }`}
+                className={`ml-4 px-6 py-2 text-[12px] rounded-lg border font-semibold transition-all ${!selectedJourney || isSubmitting || loadingSelectedJourney
+                  ? "border-gray-300 text-gray-400 bg-gray-100 cursor-not-allowed"
+                  : "border-blue-600 text-black bg-white hover:bg-blue-50 cursor-pointer"
+                  }`}
               >
                 {isSubmitting ? (
                   <div className="flex items-center gap-2">
@@ -890,24 +803,24 @@ export default function ExistingJourneyComponent({
           ref={journeyForm.mapRef}
           startLocation={
             selectedJourney?.startLocation?.coords &&
-            Array.isArray(selectedJourney.startLocation.coords) &&
-            selectedJourney.startLocation.coords.length >= 2
+              Array.isArray(selectedJourney.startLocation.coords) &&
+              selectedJourney.startLocation.coords.length >= 2
               ? selectedJourney.startLocation.coords
               : null
           }
           endLocation={
             selectedJourney?.endLocation?.coords &&
-            Array.isArray(selectedJourney.endLocation.coords) &&
-            selectedJourney.endLocation.coords.length >= 2
+              Array.isArray(selectedJourney.endLocation.coords) &&
+              selectedJourney.endLocation.coords.length >= 2
               ? selectedJourney.endLocation.coords
               : null
           }
           steps={selectedJourney ? allStepCoordinates : []}
-          onStartChange={() => {}} // Disable editing existing locations
-          onEndChange={() => {}} // Disable editing existing locations
-          onStepsChange={() => {}} // Disable bulk step changes
+          onStartChange={() => { }} // Disable editing existing locations
+          onEndChange={() => { }} // Disable editing existing locations
+          onStepsChange={() => { }} // Disable bulk step changes
           activeMapSelect="start" // Map stays non-interactive
-          setActiveMapSelect={() => {}} // Disable map selection mode changes
+          setActiveMapSelect={() => { }} // Disable map selection mode changes
         />
       </div>
     </div>
