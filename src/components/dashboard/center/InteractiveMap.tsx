@@ -7,6 +7,7 @@ import React, {
   forwardRef,
 } from "react";
 import mapboxgl from "mapbox-gl";
+import { MapSkeleton } from "../../global/LoadingSkeleton";
 import "mapbox-gl/dist/mapbox-gl.css";
 
 const MAPBOX_ACCESS_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
@@ -134,10 +135,10 @@ const getPlaceDetails = (placeName: string, category: string) => {
         category === "restaurant"
           ? "🍽️ Local Restaurant"
           : category === "museum"
-          ? "🏛️ Museum"
-          : category === "park"
-          ? "🌳 Park"
-          : "📍 Point of Interest",
+            ? "🏛️ Museum"
+            : category === "park"
+              ? "🌳 Park"
+              : "📍 Point of Interest",
       rating: "4.2/5",
       price: "$$",
       hours: "9 AM - 6 PM",
@@ -382,17 +383,14 @@ const InteractiveMap = forwardRef<InteractiveMapRef, MapProps>(
           }).setHTML(`
           <div class="popup-content" style="min-width: 104px; width: fit-content;">
             <div class="popup-image" style="width: 100%; border-radius: 12px; overflow: hidden; margin-bottom: 12px; position: relative; ">
-              <img src="${footprint.imageUrl}" alt="${
-            footprint.title
-          }" style="width: 100%;  object-fit: contain;">
+              <img src="${footprint.imageUrl}" alt="${footprint.title
+            }" style="width: 100%;  object-fit: contain;">
               
             </div>
            <div style="width: 100%; padding: 10px;">
-            <h3 style="font-size: 16px; font-weight: 600; margin: 0 0 8px 0; color: #333; line-height: 1.3;">${
-              footprint.title
+            <h3 style="font-size: 16px; font-weight: 600; margin: 0 0 8px 0; color: #333; line-height: 1.3;">${footprint.title
             }</h3>
-            <p style="font-size: 14px; color: #666; margin: 0 0 12px 0; line-height: 1.4;">${
-              footprint.description
+            <p style="font-size: 14px; color: #666; margin: 0 0 12px 0; line-height: 1.4;">${footprint.description
             }</p>
             <div style="display: flex; align-items: center; justify-content: space-between; font-size: 12px; color: #999;">
               <span style="display: flex; align-items: center; gap: 4px;">
@@ -401,11 +399,10 @@ const InteractiveMap = forwardRef<InteractiveMapRef, MapProps>(
                 </svg>
                 ${footprint.timestamp}
               </span>
-              ${
-                footprint.userAvatar
-                  ? `<img src="${footprint.userAvatar}" style="width: 24px; height: 24px; border-radius: 50%; border: 2px solid #f0f0f0;">`
-                  : ""
-              }
+              ${footprint.userAvatar
+              ? `<img src="${footprint.userAvatar}" style="width: 24px; height: 24px; border-radius: 50%; border: 2px solid #f0f0f0;">`
+              : ""
+            }
             </div>
            </div>
           </div>
@@ -463,17 +460,16 @@ const InteractiveMap = forwardRef<InteractiveMapRef, MapProps>(
           poiMarker.style.height = "44px";
           poiMarker.style.borderRadius = "50%";
           poiMarker.style.background = "#fff";
-          poiMarker.style.border = `3px solid ${
-            poi.category === "restaurant"
-              ? "#F35735"
-              : poi.category === "attraction"
+          poiMarker.style.border = `3px solid ${poi.category === "restaurant"
+            ? "#F35735"
+            : poi.category === "attraction"
               ? "#257CFF"
               : poi.category === "park"
-              ? "#4CAF50"
-              : poi.category === "entertainment"
-              ? "#A020F0"
-              : "#333"
-          }`;
+                ? "#4CAF50"
+                : poi.category === "entertainment"
+                  ? "#A020F0"
+                  : "#333"
+            }`;
           poiMarker.style.boxShadow = "0 2px 8px rgba(0,0,0,0.18)";
           poiMarker.style.display = "flex";
           poiMarker.style.alignItems = "center";
@@ -490,44 +486,35 @@ const InteractiveMap = forwardRef<InteractiveMapRef, MapProps>(
           }).setHTML(`
             <div style="display: flex; height: 150px; min-width: 320px; max-width: 340px; background: #fff; border-radius: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.13); overflow: hidden;">
               <div style="flex: 0 0 150px; height: 150px; overflow: hidden; position: relative;">
-                <img src="${placeDetails.image}" alt="${
-            poi.name
-          }" style="width: 100%; height: 100%; object-fit: cover; border-radius: 16px 0 0 16px;" />
-                <div style="position: absolute; top: 8px; left: 8px; background: rgba(0,0,0,0.7); color: #fff; padding: 2px 8px; border-radius: 8px; font-size: 12px; font-weight: 600;">${
-                  placeDetails.rating
-                }</div>
+                <img src="${placeDetails.image}" alt="${poi.name
+            }" style="width: 100%; height: 100%; object-fit: cover; border-radius: 16px 0 0 16px;" />
+                <div style="position: absolute; top: 8px; left: 8px; background: rgba(0,0,0,0.7); color: #fff; padding: 2px 8px; border-radius: 8px; font-size: 12px; font-weight: 600;">${placeDetails.rating
+            }</div>
               </div>
               <div style="flex: 1; padding: 14px 16px 14px 12px; display: flex; flex-direction: column; justify-content: space-between; min-width: 0; overflow: hidden;">
                 <div style="display: flex; align-items: flex-start; justify-content: space-between;">
                   <div style="display: flex; align-items: center; gap: 8px; min-width: 0;">
-                    <span style="font-size: 20px; flex-shrink: 0;">${
-                      placeDetails.type.split(" ")[0]
-                    }</span>
-                    <span style="font-size: 15px; font-weight: 700; color: #222; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 120px; display: inline-block;">${
-                      poi.name
-                    }</span>
+                    <span style="font-size: 20px; flex-shrink: 0;">${placeDetails.type.split(" ")[0]
+            }</span>
+                    <span style="font-size: 15px; font-weight: 700; color: #222; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 120px; display: inline-block;">${poi.name
+            }</span>
                   </div>
                   <div style="display: flex; gap: 6px; align-items: center; flex-shrink: 0;">
                     <span style="font-size: 15px; color: #257CFF;">★</span>
-                    <span style="font-size: 13px; color: #666;">${
-                      placeDetails.rating
-                    }</span>
+                    <span style="font-size: 13px; color: #666;">${placeDetails.rating
+            }</span>
                   </div>
                 </div>
                 <div style="font-size: 12px; color: #888; margin: 2px 0 4px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">New York, NY</div>
-                <div style="font-size: 12px; color: #444; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${
-                  placeDetails.description
-                }</div>
+                <div style="font-size: 12px; color: #444; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${placeDetails.description
+            }</div>
                 <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-                  <span style="background: #f0f8ff; color: #257CFF; padding: 2px 8px; border-radius: 8px; font-size: 11px; font-weight: 500; white-space: nowrap;">💰 ${
-                    placeDetails.price
-                  }</span>
-                  <span style="background: #fff3cd; color: #856404; padding: 2px 8px; border-radius: 8px; font-size: 11px; font-weight: 500; white-space: nowrap;">🕒 ${
-                    placeDetails.hours
-                  }</span>
-                  <span style="background: #f8f9fa; color: #666; padding: 2px 8px; border-radius: 8px; font-size: 11px; font-weight: 500; white-space: nowrap;">${
-                    placeDetails.popular
-                  }</span>
+                  <span style="background: #f0f8ff; color: #257CFF; padding: 2px 8px; border-radius: 8px; font-size: 11px; font-weight: 500; white-space: nowrap;">💰 ${placeDetails.price
+            }</span>
+                  <span style="background: #fff3cd; color: #856404; padding: 2px 8px; border-radius: 8px; font-size: 11px; font-weight: 500; white-space: nowrap;">🕒 ${placeDetails.hours
+            }</span>
+                  <span style="background: #f8f9fa; color: #666; padding: 2px 8px; border-radius: 8px; font-size: 11px; font-weight: 500; white-space: nowrap;">${placeDetails.popular
+            }</span>
                 </div>
               </div>
             </div>
@@ -576,17 +563,16 @@ const InteractiveMap = forwardRef<InteractiveMapRef, MapProps>(
             poiMarker.style.height = "44px";
             poiMarker.style.borderRadius = "50%";
             poiMarker.style.background = "#fff";
-            poiMarker.style.border = `3px solid ${
-              poi.properties?.category === "restaurant"
-                ? "#F35735"
-                : poi.properties?.category === "attraction"
+            poiMarker.style.border = `3px solid ${poi.properties?.category === "restaurant"
+              ? "#F35735"
+              : poi.properties?.category === "attraction"
                 ? "#257CFF"
                 : poi.properties?.category === "park"
-                ? "#4CAF50"
-                : poi.properties?.category === "entertainment"
-                ? "#A020F0"
-                : "#333"
-            }`;
+                  ? "#4CAF50"
+                  : poi.properties?.category === "entertainment"
+                    ? "#A020F0"
+                    : "#333"
+              }`;
             poiMarker.style.boxShadow = "0 2px 8px rgba(0,0,0,0.18)";
             poiMarker.style.display = "flex";
             poiMarker.style.alignItems = "center";
@@ -607,44 +593,35 @@ const InteractiveMap = forwardRef<InteractiveMapRef, MapProps>(
             }).setHTML(`
               <div style="display: flex; height: 150px; min-width: 320px; max-width: 340px; background: #fff; border-radius: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.13); overflow: hidden;">
                 <div style="flex: 0 0 150px; height: 150px; overflow: hidden; position: relative;">
-                  <img src="${placeDetails.image}" alt="${
-              poi.text
-            }" style="width: 100%; height: 100%; object-fit: cover; border-radius: 16px 0 0 16px;" />
-                  <div style="position: absolute; top: 8px; left: 8px; background: rgba(0,0,0,0.7); color: #fff; padding: 2px 8px; border-radius: 8px; font-size: 12px; font-weight: 600;">${
-                    placeDetails.rating
-                  }</div>
+                  <img src="${placeDetails.image}" alt="${poi.text
+              }" style="width: 100%; height: 100%; object-fit: cover; border-radius: 16px 0 0 16px;" />
+                  <div style="position: absolute; top: 8px; left: 8px; background: rgba(0,0,0,0.7); color: #fff; padding: 2px 8px; border-radius: 8px; font-size: 12px; font-weight: 600;">${placeDetails.rating
+              }</div>
                 </div>
                 <div style="flex: 1; padding: 14px 16px 14px 12px; display: flex; flex-direction: column; justify-content: space-between; min-width: 0; overflow: hidden;">
                   <div style="display: flex; align-items: flex-start; justify-content: space-between;">
                     <div style="display: flex; align-items: center; gap: 8px; min-width: 0;">
-                      <span style="font-size: 20px; flex-shrink: 0;">${
-                        placeDetails.type.split(" ")[0]
-                      }</span>
-                      <span style="font-size: 15px; font-weight: 700; color: #222; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 120px; display: inline-block;">${
-                        poi.text
-                      }</span>
+                      <span style="font-size: 20px; flex-shrink: 0;">${placeDetails.type.split(" ")[0]
+              }</span>
+                      <span style="font-size: 15px; font-weight: 700; color: #222; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 120px; display: inline-block;">${poi.text
+              }</span>
                     </div>
                     <div style="display: flex; gap: 6px; align-items: center; flex-shrink: 0;">
                       <span style="font-size: 15px; color: #257CFF;">★</span>
-                      <span style="font-size: 13px; color: #666;">${
-                        placeDetails.rating
-                      }</span>
+                      <span style="font-size: 13px; color: #666;">${placeDetails.rating
+              }</span>
                     </div>
                   </div>
                   <div style="font-size: 12px; color: #888; margin: 2px 0 4px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">New York, NY</div>
-                  <div style="font-size: 12px; color: #444; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${
-                    placeDetails.description
-                  }</div>
+                  <div style="font-size: 12px; color: #444; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${placeDetails.description
+              }</div>
                   <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-                    <span style="background: #f0f8ff; color: #257CFF; padding: 2px 8px; border-radius: 8px; font-size: 11px; font-weight: 500; white-space: nowrap;">💰 ${
-                      placeDetails.price
-                    }</span>
-                    <span style="background: #fff3cd; color: #856404; padding: 2px 8px; border-radius: 8px; font-size: 11px; font-weight: 500; white-space: nowrap;">🕒 ${
-                      placeDetails.hours
-                    }</span>
-                    <span style="background: #f8f9fa; color: #666; padding: 2px 8px; border-radius: 8px; font-size: 11px; font-weight: 500; white-space: nowrap;">${
-                      placeDetails.popular
-                    }</span>
+                    <span style="background: #f0f8ff; color: #257CFF; padding: 2px 8px; border-radius: 8px; font-size: 11px; font-weight: 500; white-space: nowrap;">💰 ${placeDetails.price
+              }</span>
+                    <span style="background: #fff3cd; color: #856404; padding: 2px 8px; border-radius: 8px; font-size: 11px; font-weight: 500; white-space: nowrap;">🕒 ${placeDetails.hours
+              }</span>
+                    <span style="background: #f8f9fa; color: #666; padding: 2px 8px; border-radius: 8px; font-size: 11px; font-weight: 500; white-space: nowrap;">${placeDetails.popular
+              }</span>
                   </div>
                 </div>
               </div>
@@ -672,13 +649,8 @@ const InteractiveMap = forwardRef<InteractiveMapRef, MapProps>(
     return (
       <div className={`relative ${className}`}>
         {isLoading && (
-          <div className="absolute inset-0 bg-gray-100 flex items-center justify-center z-10 rounded-b-lg">
-            <div className="flex items-center space-x-3">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-              <span className="text-gray-600 font-medium">
-                Loading interactive map...
-              </span>
-            </div>
+          <div className="absolute inset-0 z-10 rounded-b-lg">
+            <MapSkeleton height="h-[400px]" />
           </div>
         )}
         <div

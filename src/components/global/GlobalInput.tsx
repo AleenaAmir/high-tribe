@@ -1,5 +1,5 @@
 import type React from "react";
-import { useState } from "react";
+import { useState, useId } from "react";
 import { Eye, EyeOff } from "lucide-react";
 
 interface GlobalInputProps {
@@ -40,8 +40,8 @@ const GlobalInput: React.FC<GlobalInputProps> = ({
   "aria-describedby": ariaDescribedBy,
   ...props
 }) => {
-  const inputId =
-    id || name || `input-${Math.random().toString(36).substr(2, 9)}`;
+  const generatedId = useId();
+  const inputId = id || name || generatedId;
   const errorId = `${inputId}-error`;
   const helperTextId = `${inputId}-helper`;
   const hasError = Boolean(error);
@@ -85,11 +85,10 @@ const GlobalInput: React.FC<GlobalInputProps> = ({
           autoComplete={autoComplete}
           aria-label={ariaLabel}
           aria-describedby={describedBy}
-          className={`w-full rounded-md border text-black px-5 py-2 pr-10 placeholder:text-[#9C9C9C] text-sm transition-colors duration-200 focus:border-transparent focus:outline-none focus:ring-2 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-500 ${
-            hasError
-              ? "border-red-300 bg-red-50 focus:border-red-500 focus:ring-red-500"
-              : "border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-          }
+          className={`w-full rounded-md border text-black px-5 py-2 pr-10 placeholder:text-[#9C9C9C] text-sm transition-colors duration-200 focus:border-transparent focus:outline-none focus:ring-2 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-500 ${hasError
+            ? "border-red-300 bg-red-50 focus:border-red-500 focus:ring-red-500"
+            : "border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+            }
           `
             .trim()
             .replace(/\s+/g, " ")}

@@ -59,7 +59,12 @@ const GlobalDateInput: React.FC<GlobalDateInputProps> = ({
   const inputRef = useRef<HTMLInputElement>(null);
   const calendarRef = useRef<HTMLDivElement>(null);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
-  const [currentDate, setCurrentDate] = useState(new Date());
+  const [currentDate, setCurrentDate] = useState<Date | null>(null);
+
+  // Set current date only on client side to avoid hydration mismatch
+  useEffect(() => {
+    setCurrentDate(new Date());
+  }, []);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
 
   // Initialize current date and selected date from value
@@ -132,6 +137,8 @@ const GlobalDateInput: React.FC<GlobalDateInputProps> = ({
   };
 
   const getCalendarDays = () => {
+    if (!currentDate) return [];
+
     const daysInMonth = getDaysInMonth(currentDate);
     const firstDay = getFirstDayOfMonth(currentDate);
     const days = [];
@@ -166,11 +173,12 @@ const GlobalDateInput: React.FC<GlobalDateInputProps> = ({
   };
 
   const isCurrentMonth = (date: Date) => {
-    return date.getMonth() === currentDate.getMonth();
+    return currentDate && date.getMonth() === currentDate.getMonth();
   };
 
   const navigateMonth = (direction: "prev" | "next") => {
     setCurrentDate((prev) => {
+      if (!prev) return new Date();
       const newDate = new Date(prev);
       if (direction === "prev") {
         newDate.setMonth(newDate.getMonth() - 1);
@@ -215,7 +223,7 @@ const GlobalDateInput: React.FC<GlobalDateInputProps> = ({
         </button>
 
         {/* Calendar Popup */}
-        {isCalendarOpen && (
+        {isCalendarOpen && currentDate && (
           <div
             ref={calendarRef}
             className="absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-50 min-w-[280px]"
@@ -229,7 +237,7 @@ const GlobalDateInput: React.FC<GlobalDateInputProps> = ({
                 <ChevronLeftIcon />
               </button>
               <h3 className="text-sm font-semibold text-gray-900">
-                {formatDate(currentDate)}
+                {currentDate ? formatDate(currentDate) : ""}
               </h3>
               <button
                 onClick={() => navigateMonth("next")}
@@ -264,28 +272,24 @@ const GlobalDateInput: React.FC<GlobalDateInputProps> = ({
                     disabled={!day || !isCurrentMonth(day)}
                     className={`
                       w-8 h-8 text-xs rounded-full flex items-center justify-center transition-colors
-                      ${
-                        !day || !isCurrentMonth(day)
-                          ? "text-gray-300 cursor-default"
-                          : "hover:bg-blue-50 cursor-pointer"
+                      ${!day || !isCurrentMonth(day)
+                        ? "text-gray-300 cursor-default"
+                        : "hover:bg-blue-50 cursor-pointer"
                       }
-                      ${
-                        day && isToday(day)
-                          ? "bg-blue-100 text-blue-600 font-semibold"
-                          : ""
+                      ${day && isToday(day)
+                        ? "bg-blue-100 text-blue-600 font-semibold"
+                        : ""
                       }
-                      ${
-                        day && isSelected(day)
-                          ? "bg-blue-600 text-white font-semibold hover:bg-blue-700"
-                          : ""
+                      ${day && isSelected(day)
+                        ? "bg-blue-600 text-white font-semibold hover:bg-blue-700"
+                        : ""
                       }
-                      ${
-                        day &&
+                      ${day &&
                         isCurrentMonth(day) &&
                         !isToday(day) &&
                         !isSelected(day)
-                          ? "text-gray-700"
-                          : ""
+                        ? "text-gray-700"
+                        : ""
                       }
                     `}
                   >

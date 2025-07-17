@@ -246,9 +246,9 @@ const LoginModalScreen = ({
             </button>
           </form>
           <div className="flex items-center w-full my-4">
-            <div className="flex-1 h-px bg-gray-200" />
+            <div className="flex-1 h-px bg-gray-50" />
             <span className="mx-2 text-sm text-gray-400">OR</span>
-            <div className="flex-1 h-px bg-gray-200" />
+            <div className="flex-1 h-px bg-gray-50" />
           </div>
           <div className="w-full mb-2">
             {/* Hidden Google Login Component */}

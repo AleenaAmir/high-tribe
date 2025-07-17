@@ -1,6 +1,7 @@
 "use client";
 import React, { useEffect, useState, useRef } from "react";
 import Image from "next/image";
+import { ImageSkeleton } from "./LoadingSkeleton";
 
 interface MediaModalProps {
   isOpen: boolean;
@@ -204,7 +205,9 @@ const MediaModal: React.FC<MediaModalProps> = ({
       {/* Main media container */}
       <div className="relative w-full h-full flex items-center justify-center p-4">
         {isLoading ? (
-          <div className="text-white text-lg">Loading...</div>
+          <div className="flex items-center justify-center w-full h-full">
+            <ImageSkeleton width="w-96" height="h-64" />
+          </div>
         ) : (
           <div className="relative w-full h-full flex items-center justify-center">
             {currentMedia.type === "image" ? (

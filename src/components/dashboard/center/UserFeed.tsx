@@ -2,6 +2,7 @@
 import React, { useEffect, useState, useCallback, useRef } from "react";
 import { PostCard, Post } from "./PostCard";
 import { apiRequest } from "@/lib/api";
+import { PostCardSkeleton, JourneyPostSkeleton } from "../../global/LoadingSkeleton";
 
 // API Response Types
 interface ApiUser {
@@ -205,9 +206,9 @@ const calculateDistance = (
   const a =
     Math.sin(dLat / 2) * Math.sin(dLat / 2) +
     Math.cos((parseFloat(lat1) * Math.PI) / 180) *
-      Math.cos((parseFloat(lat2) * Math.PI) / 180) *
-      Math.sin(dLng / 2) *
-      Math.sin(dLng / 2);
+    Math.cos((parseFloat(lat2) * Math.PI) / 180) *
+    Math.sin(dLng / 2) *
+    Math.sin(dLng / 2);
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   const distance = R * c;
 
@@ -263,9 +264,8 @@ const transformApiPostToPost = (apiPost: ApiPost): Post => {
 
   // Create participants from tagged users (with placeholder avatars)
   const participants = apiPost.tagged_users.map((user, index) => ({
-    avatarUrl: `https://randomuser.me/api/portraits/${
-      index % 2 === 0 ? "men" : "women"
-    }/${50 + index}.jpg`,
+    avatarUrl: `https://randomuser.me/api/portraits/${index % 2 === 0 ? "men" : "women"
+      }/${50 + index}.jpg`,
   }));
 
   return {
@@ -273,9 +273,8 @@ const transformApiPostToPost = (apiPost: ApiPost): Post => {
     journeyHead,
     user: {
       name: apiPost.user.name,
-      avatarUrl: `https://randomuser.me/api/portraits/${
-        apiPost.user.id % 2 === 0 ? "men" : "women"
-      }/${30 + (apiPost.user.id % 20)}.jpg`,
+      avatarUrl: `https://randomuser.me/api/portraits/${apiPost.user.id % 2 === 0 ? "men" : "women"
+        }/${30 + (apiPost.user.id % 20)}.jpg`,
     },
     timestamp: formatTimestamp(apiPost.created_at),
     location: `${apiPost.start_location_name} to ${apiPost.end_location_name}`,
@@ -291,10 +290,10 @@ const transformApiPostToPost = (apiPost: ApiPost): Post => {
       media: allMedia,
     },
     // media: allMedia.length > 0 ? allMedia : undefined,
-    love: Math.floor(Math.random() * 500) + 50, // Random for now
-    likes: Math.floor(Math.random() * 300) + 50, // Random for now
-    comments: Math.floor(Math.random() * 20) + 1, // Random for now
-    shares: Math.floor(Math.random() * 10) + 1, // Random for now
+    love: Math.floor((apiPost.id * 7) % 500) + 50, // Deterministic based on post ID
+    likes: Math.floor((apiPost.id * 13) % 300) + 50, // Deterministic based on post ID
+    comments: Math.floor((apiPost.id * 3) % 20) + 1, // Deterministic based on post ID
+    shares: Math.floor((apiPost.id * 5) % 10) + 1, // Deterministic based on post ID
     participants,
   };
 };
@@ -373,13 +372,21 @@ const UserFeed = () => {
           const transformedPosts = postsData.map(transformApiPostToPost);
 
           if (isInitial) {
-            setPosts(transformedPosts);
-            console.log(`Set initial posts: ${transformedPosts.length}`);
+            // Remove duplicates from initial posts as well
+            const uniquePosts = transformedPosts.filter((post, index, self) =>
+              index === self.findIndex(p => p.id === post.id)
+            );
+            setPosts(uniquePosts);
+            console.log(`Set initial posts: ${uniquePosts.length} (filtered from ${transformedPosts.length})`);
           } else {
             setPosts((prev) => {
-              const newPosts = [...prev, ...transformedPosts];
+              // Filter out duplicates based on post ID
+              const existingIds = new Set(prev.map(post => post.id));
+              const uniqueNewPosts = transformedPosts.filter(post => !existingIds.has(post.id));
+
+              const newPosts = [...prev, ...uniqueNewPosts];
               console.log(
-                `Added ${transformedPosts.length} posts, total: ${newPosts.length}`
+                `Added ${uniqueNewPosts.length} unique posts, total: ${newPosts.length}`
               );
               return newPosts;
             });
@@ -522,8 +529,12 @@ const UserFeed = () => {
 
   if (loading && posts.length === 0) {
     return (
-      <div className="flex justify-center items-center py-8">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      <div className="space-y-4">
+        <JourneyPostSkeleton />
+        <PostCardSkeleton />
+        <JourneyPostSkeleton />
+        <PostCardSkeleton />
+        <JourneyPostSkeleton />
       </div>
     );
   }
@@ -553,15 +564,16 @@ const UserFeed = () => {
         {hasMore.toString()} | Loading: {loadingMore.toString()}
       </div>
 
-      {posts?.map((post) => (
-        <PostCard key={post.id} post={post} />
+      {posts?.map((post, index) => (
+        <PostCard key={`${post.id}-${index}`} post={post} />
       ))}
 
       {/* Loading indicator for infinite scroll */}
       {loadingMore && (
-        <div className="flex justify-center items-center py-4">
-          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
-          <span className="ml-2 text-gray-600">Loading more posts...</span>
+        <div className="space-y-4">
+          <JourneyPostSkeleton />
+          <PostCardSkeleton />
+          <JourneyPostSkeleton />
         </div>
       )}
 

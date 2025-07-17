@@ -7,6 +7,7 @@ import React, {
   useCallback,
 } from "react";
 import mapboxgl from "mapbox-gl";
+import { MapSkeleton } from "../../../../global/LoadingSkeleton";
 import "mapbox-gl/dist/mapbox-gl.css";
 
 const MAPBOX_ACCESS_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
@@ -446,32 +447,10 @@ const JourneyMap = forwardRef<any, JourneyMapProps>(
               left: 0,
               width: "100%",
               height: "100%",
-              background: "rgba(255,255,255,0.6)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
               zIndex: 10,
             }}
           >
-            <div
-              style={{
-                background: "#fff",
-                padding: 16,
-                borderRadius: 8,
-                boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-                fontWeight: 600,
-                color: "#333",
-                fontSize: 16,
-                display: "flex",
-                alignItems: "center",
-                gap: 8,
-              }}
-            >
-              <span className="animate-spin" style={{ fontSize: 24 }}>
-                ⏳
-              </span>
-              Loading map & route...
-            </div>
+            <MapSkeleton height="h-full" />
           </div>
         )}
       </div>

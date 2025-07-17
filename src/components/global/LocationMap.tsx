@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import mapboxgl from "mapbox-gl";
+import { MapSkeleton } from "./LoadingSkeleton";
 import "mapbox-gl/dist/mapbox-gl.css";
 
 const MAPBOX_ACCESS_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
@@ -145,11 +146,8 @@ const LocationMap: React.FC<LocationMapProps> = ({
         className="h-full w-full rounded-r-[20px] overflow-hidden"
       />
       {!styleLoaded && (
-        <div className="absolute inset-0 bg-gray-100 rounded-r-[20px] flex items-center justify-center">
-          <div className="text-center text-gray-500">
-            <div className="w-8 h-8 border-2 border-blue-300 border-t-blue-600 rounded-full animate-spin mb-2"></div>
-            <p className="text-sm">Loading map...</p>
-          </div>
+        <div className="absolute inset-0 rounded-r-[20px]">
+          <MapSkeleton height="h-full" />
         </div>
       )}
     </div>

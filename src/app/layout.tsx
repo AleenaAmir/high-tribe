@@ -51,6 +51,7 @@ export default function RootLayout({
     <html lang="en">
       <body
         className={` ${gilroy.variable} ${roboto.variable} ${poppins.variable} font-gilroy antialiased`}
+        suppressHydrationWarning={true}
       >
         <Toaster position="top-center" />
         {children}
