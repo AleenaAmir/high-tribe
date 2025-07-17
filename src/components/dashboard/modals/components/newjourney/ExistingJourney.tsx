@@ -110,9 +110,9 @@ export default function ExistingJourneyComponent({
           coords:
             post.start_lat && post.start_lng
               ? ([
-                parseFloat(post.start_lng),
-                parseFloat(post.start_lat),
-              ] as LatLng)
+                  parseFloat(post.start_lng),
+                  parseFloat(post.start_lat),
+                ] as LatLng)
               : null,
           name: post.start_location_name || "",
         },
@@ -127,39 +127,39 @@ export default function ExistingJourneyComponent({
         endDate: post.end_date || "",
         steps: Array.isArray(post.stops)
           ? post.stops.map((stop: any) => ({
-            name: stop.title || "",
-            location: {
-              coords:
-                stop.lat && stop.lng
-                  ? ([parseFloat(stop.lng), parseFloat(stop.lat)] as LatLng)
-                  : null,
-              name: stop.location_name || "",
-            },
-            notes: stop.notes || "",
-            media: Array.isArray(stop.media)
-              ? stop.media.map((m: any) => ({
-                url: m.url,
-                type: m.type,
-              }))
-              : [],
-            mediumOfTravel: stop.transport_mode || "",
-            startDate: stop.start_date || "",
-            endDate: stop.end_date || "",
-            category: stop.category?.name || "",
-          }))
+              name: stop.title || "",
+              location: {
+                coords:
+                  stop.lat && stop.lng
+                    ? ([parseFloat(stop.lng), parseFloat(stop.lat)] as LatLng)
+                    : null,
+                name: stop.location_name || "",
+              },
+              notes: stop.notes || "",
+              media: Array.isArray(stop.media)
+                ? stop.media.map((m: any) => ({
+                    url: m.url,
+                    type: m.type,
+                  }))
+                : [],
+              mediumOfTravel: stop.transport_mode || "",
+              startDate: stop.start_date || "",
+              endDate: stop.end_date || "",
+              category: stop.category?.name || "",
+            }))
           : [],
         friends: Array.isArray(post.tagged_users)
           ? post.tagged_users.map((user: any) => ({
-            id: user.id,
-            name: user.name,
-            email: user.email,
-          }))
+              id: user.id,
+              name: user.name,
+              email: user.email,
+            }))
           : [],
         visibility: (post.privacy === "public"
           ? "public"
           : post.privacy === "private"
-            ? "private"
-            : "tribe") as VisibilityType,
+          ? "private"
+          : "tribe") as VisibilityType,
         createdAt: post.created_at || "",
         updatedAt: post.updated_at || "",
         userId: post.user?.id?.toString() || "",
@@ -169,14 +169,13 @@ export default function ExistingJourneyComponent({
           "draft",
         userData: post.user
           ? {
-            id: post.user.id,
-            name: post.user.name,
-            email: post.user.email,
-            avatar: post.user.avatar,
-          }
+              id: post.user.id,
+              name: post.user.name,
+              email: post.user.email,
+              avatar: post.user.avatar,
+            }
           : undefined,
       };
-
 
       setSelectedJourney(normalizedJourney);
 
@@ -263,7 +262,7 @@ export default function ExistingJourneyComponent({
         selectedJourney.startLocation.coords[1]
       );
     }
-  }, [selectedJourney, journeyForm]);
+  }, [selectedJourney]);
 
   // Step suggestions - now allows any location selection
   const fetchStepSuggestions = useCallback(
@@ -277,8 +276,9 @@ export default function ExistingJourneyComponent({
         // When there's a query, perform global search
         url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(
           query
-        )}.json?limit=20&access_token=${process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN
-          }`;
+        )}.json?limit=20&access_token=${
+          process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN
+        }`;
       }
 
       try {
@@ -296,7 +296,6 @@ export default function ExistingJourneyComponent({
 
   // Form submission handlers
   const handleJourneySubmission = async (status: "draft" | "published") => {
-    debugger
     if (!selectedJourney) return;
 
     const isSubmitting = status === "draft";
@@ -304,7 +303,7 @@ export default function ExistingJourneyComponent({
 
     if (isSubmitting) setIsSubmitting(true);
     if (isEndAndPublish) setIsEndAndPublish(true);
-    debugger
+
     try {
       // Check if any new steps have media files
       const hasMediaFiles = newSteps.some(
@@ -323,49 +322,11 @@ export default function ExistingJourneyComponent({
         }
       });
 
-
       if (hasMediaFiles) {
-        // Use FormData to send both JSON data and files together
         const formData = new FormData();
-        // formData.append("post_id", selectedJourney.id);
 
-        // Add journey update data as form fields
-        // formData.append("title", selectedJourney.title);
-        // formData.append("description", selectedJourney.description);
-        // formData.append(
-        //   "start_location_name",
-        //   selectedJourney.startLocation.name
-        // );
-        // formData.append(
-        //   "start_lat",
-        //   selectedJourney.startLocation.coords
-        //     ? selectedJourney.startLocation.coords[1].toString()
-        //     : ""
-        // );
-        // formData.append(
-        //   "start_lng",
-        //   selectedJourney.startLocation.coords
-        //     ? selectedJourney.startLocation.coords[0].toString()
-        //     : ""
-        // );
-        // formData.append("end_location_name", selectedJourney.endLocation.name);
-        // formData.append(
-        //   "end_lat",
-        //   selectedJourney.endLocation.coords
-        //     ? selectedJourney.endLocation.coords[1].toString()
-        //     : ""
-        // );
-        // formData.append(
-        //   "end_lng",
-        //   selectedJourney.endLocation.coords
-        //     ? selectedJourney.endLocation.coords[0].toString()
-        //     : ""
-        // );
-        // formData.append("start_date", selectedJourney.startDate);
-        // formData.append("end_date", selectedJourney.endDate);
         formData.append("privacy", visibility);
-        // formData.append("planning_mode", "manual");
-        // formData.append("date_mode", "specific");
+
         formData.append("type", "mapping_journey");
         formData.append("status", status);
         formData.append("_method", "PUT");
@@ -377,18 +338,49 @@ export default function ExistingJourneyComponent({
 
         // Add stops and media - only new steps
         newSteps.forEach((step, stepIdx) => {
+          console.log(`Step ${stepIdx + 1} category:`, step.category);
           formData.append(`stops[${stepIdx}][title]`, step.name);
-          formData.append(`stops[${stepIdx}][stop_category_id]`, "8");
-          formData.append(`stops[${stepIdx}][location][name]`, step.location.name);
-          formData.append(`stops[${stepIdx}][location][lat]`, step.location.coords?.[1]?.toString() || "");
-          formData.append(`stops[${stepIdx}][location][lng]`, step.location.coords?.[0]?.toString() || "");
-          formData.append(`stops[${stepIdx}][transport_mode]`, step.mediumOfTravel);
+          // Use the actual selected category instead of hardcoded value
+          formData.append(
+            `stops[${stepIdx}][stop_category_id]`,
+            step.category ? step.category : "1"
+          );
+          formData.append(
+            `stops[${stepIdx}][location][name]`,
+            step.location.name
+          );
+          formData.append(
+            `stops[${stepIdx}][location][lat]`,
+            step.location.coords?.[1]?.toString() || ""
+          );
+          formData.append(
+            `stops[${stepIdx}][location][lng]`,
+            step.location.coords?.[0]?.toString() || ""
+          );
+          // Transport mode mapping to match API expectations
+          const modeMapping: { [key: string]: string } = {
+            plane: "airplane",
+            train: "train",
+            car: "car",
+            bus: "bus",
+            walk: "foot",
+            bike: "bike",
+            info: "other",
+          };
+          const transportMode =
+            modeMapping[step.mediumOfTravel] || step.mediumOfTravel || "car";
+
+          formData.append(`stops[${stepIdx}][transport_mode]`, transportMode);
           formData.append(`stops[${stepIdx}][start_date]`, step.startDate);
           formData.append(`stops[${stepIdx}][end_date]`, step.endDate);
           formData.append(`stops[${stepIdx}][notes]`, step.notes || "");
           if (step.media && Array.isArray(step.media)) {
             step.media.forEach((file, fileIdx) => {
-              formData.append(`stops[${stepIdx}][media][${fileIdx}]`, file.fileObject, file.file_name);
+              formData.append(
+                `stops[${stepIdx}][media][${fileIdx}]`,
+                file.fileObject,
+                file.file_name
+              );
             });
           }
         });
@@ -407,14 +399,15 @@ export default function ExistingJourneyComponent({
         console.log("=== End FormData ===");
 
         // API call to update/publish journey with FormData
-        const token = localStorage.getItem("token") || "<PASTE_VALID_TOKEN_HERE>";
+        const token =
+          localStorage.getItem("token") || "<PASTE_VALID_TOKEN_HERE>";
         const response = await fetch(
           `https://high-tribe-backend.hiconsolutions.com/api/posts/${selectedJourney.id}`,
           {
             method: "POST", // Use POST with _method=PUT for Laravel
             headers: {
-              'Authorization': `Bearer ${token}`,
-              'Accept': 'application/json',
+              Authorization: `Bearer ${token}`,
+              Accept: "application/json",
               // DO NOT set Content-Type!
             },
             body: formData,
@@ -424,55 +417,21 @@ export default function ExistingJourneyComponent({
         if (!response.ok) {
           const errorData = await response.json();
           console.error("Server error response:", errorData);
-          throw new Error(`HTTP ${response.status}: ${JSON.stringify(errorData)}`);
+          throw new Error(
+            `HTTP ${response.status}: ${JSON.stringify(errorData)}`
+          );
         }
 
         const result = await response.json();
         console.log("Success response:", result);
       } else {
-        // No media files - use JSON request
-        // Map existing steps to API format
-        // const existingStopsData = (selectedJourney?.steps || [])
-        //   .filter((step) => step.location.coords && step.location.name) // Only include steps with valid location
-        //   .map((step) => {
-        //     // Transport mode mapping to match API expectations
-        //     const modeMapping: { [key: string]: string } = {
-        //       plane: "airplane",
-        //       train: "train",
-        //       car: "car",
-        //       bus: "bus",
-        //       walk: "foot",
-        //       bike: "bike",
-        //       info: "other",
-        //     };
-        //     const transportMode =
-        //       modeMapping[step.mediumOfTravel] || step.mediumOfTravel || "car";
-
-        //     return {
-        //       title: step.name,
-        //       location: {
-        //         name: step.location.name,
-        //         lat: step.location.coords
-        //           ? step.location.coords[1].toString()
-        //           : null,
-        //         lng: step.location.coords
-        //           ? step.location.coords[0].toString()
-        //           : null,
-        //       },
-        //       transport_mode: transportMode,
-        //       start_date: step.startDate,
-        //       end_date: step.endDate,
-        //       notes: step.notes,
-        //       stop_category_id: 1, // Default category, you might want to map this properly
-        //       // Don't include media for now - need proper file upload handling
-        //       media: step.media || [],
-        //     };
-        //   });
-        debugger
-        // Map new steps to API format
         const newStopsData = newSteps
           .filter((step) => step.location.coords && step.location.name) // Only include steps with valid location
           .map((step) => {
+            console.log(
+              `Processing step "${step.name}" with category:`,
+              step.category
+            );
             // Transport mode mapping to match API expectations
             const modeMapping: { [key: string]: string } = {
               plane: "airplane",
@@ -501,14 +460,13 @@ export default function ExistingJourneyComponent({
               start_date: step.startDate,
               end_date: step.endDate,
               notes: step.notes,
-              stop_category_id: 8, // Default category, you might want to map this properly
+              stop_category_id: step.category ? parseInt(step.category) : 1, // Use actual selected category
               // Don't include media for now - need proper file upload handling
               media: step.media || [],
             };
           });
 
         // Combine existing and new stops
-
 
         const updateData = {
           id: selectedJourney.id,
@@ -536,22 +494,23 @@ export default function ExistingJourneyComponent({
           type: "mapping_journey",
           tagged_user_ids: taggedFriends.map((friend) => friend.id),
           status: status,
-          stops: newStopsData
+          stops: newStopsData,
         };
 
         console.log("=== JSON Data being sent ===");
         console.log(JSON.stringify(updateData, null, 2));
         console.log("=== End JSON Data ===");
 
-        const token = localStorage.getItem("token") || "<PASTE_VALID_TOKEN_HERE>";
+        const token =
+          localStorage.getItem("token") || "<PASTE_VALID_TOKEN_HERE>";
         // API call to update/publish journey
         const response = await fetch(
           `https://high-tribe-backend.hiconsolutions.com/api/posts/${selectedJourney.id}`,
           {
             headers: {
-              'Authorization': `Bearer ${token}`,
-              'Accept': 'application/json',
-              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}`,
+              Accept: "application/json",
+              "Content-Type": "application/json",
             },
             method: "PUT",
             body: JSON.stringify(updateData),
@@ -561,7 +520,9 @@ export default function ExistingJourneyComponent({
         if (!response.ok) {
           const errorData = await response.json();
           console.error("Server error response:", errorData);
-          throw new Error(`HTTP ${response.status}: ${JSON.stringify(errorData)}`);
+          throw new Error(
+            `HTTP ${response.status}: ${JSON.stringify(errorData)}`
+          );
         }
 
         const result = await response.json();
@@ -583,12 +544,14 @@ export default function ExistingJourneyComponent({
       onClose?.();
     } catch (error) {
       console.error(
-        `Error ${status === "draft" ? "updating" : "publishing"
+        `Error ${
+          status === "draft" ? "updating" : "publishing"
         } journey with ${status} status:`,
         error
       );
       alert(
-        `Failed to ${status === "draft" ? "update" : "publish"
+        `Failed to ${
+          status === "draft" ? "update" : "publish"
         } journey. Please try again.`
       );
     } finally {
@@ -659,8 +622,8 @@ export default function ExistingJourneyComponent({
                   {loadingJourneysList
                     ? "Loading journeys..."
                     : journeysList.length === 0
-                      ? "No journeys found"
-                      : "Select your journey"}
+                    ? "No journeys found"
+                    : "Select your journey"}
                 </option>
                 {journeyOptions.map((option) => (
                   <option key={option.value} value={option.value}>
@@ -668,8 +631,6 @@ export default function ExistingJourneyComponent({
                   </option>
                 ))}
               </GlobalSelect>
-
-
             </div>
 
             {/* Loading indicator for selected journey */}
@@ -687,10 +648,11 @@ export default function ExistingJourneyComponent({
             {/* Journey Details */}
             {/* Integrated Steps Section - Always Visible */}
             <div
-              className={`mb-4 ${!selectedJourney || loadingSelectedJourney
-                ? "opacity-50 pointer-events-none"
-                : ""
-                }`}
+              className={`mb-4 ${
+                !selectedJourney || loadingSelectedJourney
+                  ? "opacity-50 pointer-events-none"
+                  : ""
+              }`}
             >
               <div className="border-t border-gray-200 pt-4">
                 <StepsList
@@ -712,24 +674,32 @@ export default function ExistingJourneyComponent({
                   journeyData={
                     selectedJourney
                       ? {
-                        title: selectedJourney.title,
-                        startLocation: selectedJourney.startLocation,
-                        endLocation: selectedJourney.endLocation,
-                        startDate: selectedJourney.startDate,
-                        endDate: selectedJourney.endDate,
-                      }
+                          title: selectedJourney.title,
+                          startLocation: selectedJourney.startLocation,
+                          endLocation: selectedJourney.endLocation,
+                          startDate: selectedJourney.startDate,
+                          endDate: selectedJourney.endDate,
+                        }
                       : undefined
                   }
                 />
+                {/* Debug categories */}
+                {process.env.NODE_ENV === "development" && (
+                  <div className="text-xs text-gray-500 mt-2">
+                    Categories loaded: {journeyForm.stopCategories.length}
+                    (Loading: {journeyForm.loadingCategories ? "Yes" : "No"})
+                  </div>
+                )}
               </div>
             </div>
 
             {/* Tagged Friends Section */}
             <div
-              className={`mb-4 ${!selectedJourney || loadingSelectedJourney
-                ? "opacity-50 pointer-events-none"
-                : ""
-                }`}
+              className={`mb-4 ${
+                !selectedJourney || loadingSelectedJourney
+                  ? "opacity-50 pointer-events-none"
+                  : ""
+              }`}
             >
               <GlobalMultiSelect
                 label="Tag Friends"
@@ -757,10 +727,11 @@ export default function ExistingJourneyComponent({
                 disabled={
                   !selectedJourney || isSubmitting || loadingSelectedJourney
                 }
-                className={`ml-4 px-6 py-2 text-[12px] text-white rounded-lg border font-semibold transition-all ${!selectedJourney || isSubmitting || loadingSelectedJourney
-                  ? "border-gray-300 text-gray-400 bg-gray-100 cursor-not-allowed"
-                  : "border-blue-600 text-black bg-white bg-gradient-to-r from-[#257CFF] to-[#1063E0] cursor-pointer"
-                  }`}
+                className={`ml-4 px-6 py-2 text-[12px] text-white rounded-lg border font-semibold transition-all ${
+                  !selectedJourney || isSubmitting || loadingSelectedJourney
+                    ? "border-gray-300 text-gray-400 bg-gray-100 cursor-not-allowed"
+                    : "border-blue-600 text-black bg-white bg-gradient-to-r from-[#257CFF] to-[#1063E0] cursor-pointer"
+                }`}
               >
                 {isEndAndPublish ? (
                   <div className="flex items-center gap-2">
@@ -777,10 +748,11 @@ export default function ExistingJourneyComponent({
                 disabled={
                   !selectedJourney || isSubmitting || loadingSelectedJourney
                 }
-                className={`ml-4 px-6 py-2 text-[12px] rounded-lg border font-semibold transition-all ${!selectedJourney || isSubmitting || loadingSelectedJourney
-                  ? "border-gray-300 text-gray-400 bg-gray-100 cursor-not-allowed"
-                  : "border-blue-600 text-black bg-white hover:bg-blue-50 cursor-pointer"
-                  }`}
+                className={`ml-4 px-6 py-2 text-[12px] rounded-lg border font-semibold transition-all ${
+                  !selectedJourney || isSubmitting || loadingSelectedJourney
+                    ? "border-gray-300 text-gray-400 bg-gray-100 cursor-not-allowed"
+                    : "border-blue-600 text-black bg-white hover:bg-blue-50 cursor-pointer"
+                }`}
               >
                 {isSubmitting ? (
                   <div className="flex items-center gap-2">
@@ -803,24 +775,24 @@ export default function ExistingJourneyComponent({
           ref={journeyForm.mapRef}
           startLocation={
             selectedJourney?.startLocation?.coords &&
-              Array.isArray(selectedJourney.startLocation.coords) &&
-              selectedJourney.startLocation.coords.length >= 2
+            Array.isArray(selectedJourney.startLocation.coords) &&
+            selectedJourney.startLocation.coords.length >= 2
               ? selectedJourney.startLocation.coords
               : null
           }
           endLocation={
             selectedJourney?.endLocation?.coords &&
-              Array.isArray(selectedJourney.endLocation.coords) &&
-              selectedJourney.endLocation.coords.length >= 2
+            Array.isArray(selectedJourney.endLocation.coords) &&
+            selectedJourney.endLocation.coords.length >= 2
               ? selectedJourney.endLocation.coords
               : null
           }
           steps={selectedJourney ? allStepCoordinates : []}
-          onStartChange={() => { }} // Disable editing existing locations
-          onEndChange={() => { }} // Disable editing existing locations
-          onStepsChange={() => { }} // Disable bulk step changes
+          onStartChange={() => {}} // Disable editing existing locations
+          onEndChange={() => {}} // Disable editing existing locations
+          onStepsChange={() => {}} // Disable bulk step changes
           activeMapSelect="start" // Map stays non-interactive
-          setActiveMapSelect={() => { }} // Disable map selection mode changes
+          setActiveMapSelect={() => {}} // Disable map selection mode changes
         />
       </div>
     </div>
