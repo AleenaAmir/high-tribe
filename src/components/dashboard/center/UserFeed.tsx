@@ -2,7 +2,10 @@
 import React, { useEffect, useState, useCallback, useRef } from "react";
 import { PostCard, Post } from "./PostCard";
 import { apiRequest } from "@/lib/api";
-import { PostCardSkeleton, JourneyPostSkeleton } from "../../global/LoadingSkeleton";
+import {
+  PostCardSkeleton,
+  JourneyPostSkeleton,
+} from "../../global/LoadingSkeleton";
 
 // API Response Types
 interface ApiUser {
@@ -206,9 +209,9 @@ const calculateDistance = (
   const a =
     Math.sin(dLat / 2) * Math.sin(dLat / 2) +
     Math.cos((parseFloat(lat1) * Math.PI) / 180) *
-    Math.cos((parseFloat(lat2) * Math.PI) / 180) *
-    Math.sin(dLng / 2) *
-    Math.sin(dLng / 2);
+      Math.cos((parseFloat(lat2) * Math.PI) / 180) *
+      Math.sin(dLng / 2) *
+      Math.sin(dLng / 2);
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   const distance = R * c;
 
@@ -262,10 +265,15 @@ const transformApiPostToPost = (apiPost: ApiPost): Post => {
     }))
   );
 
+  // Limit media to 5 items and track additional items
+  const displayMedia = allMedia.slice(0, 5);
+  const additionalMediaCount = Math.max(0, allMedia.length - 5);
+
   // Create participants from tagged users (with placeholder avatars)
   const participants = apiPost.tagged_users.map((user, index) => ({
-    avatarUrl: `https://randomuser.me/api/portraits/${index % 2 === 0 ? "men" : "women"
-      }/${50 + index}.jpg`,
+    avatarUrl: `https://randomuser.me/api/portraits/${
+      index % 2 === 0 ? "men" : "women"
+    }/${50 + index}.jpg`,
   }));
 
   return {
@@ -273,8 +281,9 @@ const transformApiPostToPost = (apiPost: ApiPost): Post => {
     journeyHead,
     user: {
       name: apiPost.user.name,
-      avatarUrl: `https://randomuser.me/api/portraits/${apiPost.user.id % 2 === 0 ? "men" : "women"
-        }/${30 + (apiPost.user.id % 20)}.jpg`,
+      avatarUrl: `https://randomuser.me/api/portraits/${
+        apiPost.user.id % 2 === 0 ? "men" : "women"
+      }/${30 + (apiPost.user.id % 20)}.jpg`,
     },
     timestamp: formatTimestamp(apiPost.created_at),
     location: `${apiPost.start_location_name} to ${apiPost.end_location_name}`,
@@ -287,7 +296,9 @@ const transformApiPostToPost = (apiPost: ApiPost): Post => {
         mapView:
           "https://res.cloudinary.com/dtfzklzek/image/upload/v1751659619/Post-Img_8_hjbtrh.png", // Placeholder map
       },
-      media: allMedia,
+      media: displayMedia,
+      allMedia: allMedia, // Store all media for modal
+      additionalMediaCount: additionalMediaCount,
     },
     // media: allMedia.length > 0 ? allMedia : undefined,
     love: Math.floor((apiPost.id * 7) % 500) + 50, // Deterministic based on post ID
@@ -373,16 +384,21 @@ const UserFeed = () => {
 
           if (isInitial) {
             // Remove duplicates from initial posts as well
-            const uniquePosts = transformedPosts.filter((post, index, self) =>
-              index === self.findIndex(p => p.id === post.id)
+            const uniquePosts = transformedPosts.filter(
+              (post, index, self) =>
+                index === self.findIndex((p) => p.id === post.id)
             );
             setPosts(uniquePosts);
-            console.log(`Set initial posts: ${uniquePosts.length} (filtered from ${transformedPosts.length})`);
+            console.log(
+              `Set initial posts: ${uniquePosts.length} (filtered from ${transformedPosts.length})`
+            );
           } else {
             setPosts((prev) => {
               // Filter out duplicates based on post ID
-              const existingIds = new Set(prev.map(post => post.id));
-              const uniqueNewPosts = transformedPosts.filter(post => !existingIds.has(post.id));
+              const existingIds = new Set(prev.map((post) => post.id));
+              const uniqueNewPosts = transformedPosts.filter(
+                (post) => !existingIds.has(post.id)
+              );
 
               const newPosts = [...prev, ...uniqueNewPosts];
               console.log(
@@ -558,8 +574,6 @@ const UserFeed = () => {
 
   return (
     <div>
-
-
       {posts?.map((post, index) => (
         <PostCard key={`${post.id}-${index}`} post={post} />
       ))}

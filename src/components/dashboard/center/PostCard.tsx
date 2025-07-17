@@ -24,6 +24,8 @@ export type Post = {
       mapView: string;
     };
     media: { type: "image" | "video"; url: string }[];
+    allMedia?: { type: "image" | "video"; url: string }[];
+    additionalMediaCount?: number;
   };
   timestamp: string;
   location?: string;
@@ -577,36 +579,58 @@ export const PostCard = ({ post }: { post: Post }) => {
                 />
                 {post?.journeyContent?.media && (
                   <div className="grid grid-cols-5 gap-2 mt-2">
-                    {post?.journeyContent?.media.map((mediaItem, i) => (
-                      <div
-                        key={i}
-                        className="relative cursor-pointer hover:opacity-90 transition-opacity aspect-square"
-                        onClick={() =>
-                          handleMediaClick(post.journeyContent!.media, i)
-                        }
-                      >
-                        {mediaItem.type === "image" ? (
-                          <Image
-                            src={mediaItem.url}
-                            alt="journeyMedia"
-                            fill
-                            className="object-cover rounded-lg"
-                          />
-                        ) : (
-                          <div className="relative w-full h-full">
-                            <video
-                              src={mediaItem.url}
-                              className="w-full h-full object-cover rounded-lg"
-                              preload="metadata"
-                              muted
-                            />
-                            <div className="absolute inset-0 flex items-center justify-center">
-                              <PlayIcon className="w-8 h-8" />
-                            </div>
+                    {post?.journeyContent?.media
+                      .slice(0, 5)
+                      .map((mediaItem, i) => {
+                        const isLastDisplayedItem = i === 4;
+                        const hasAdditionalMedia =
+                          post.journeyContent!.additionalMediaCount &&
+                          post.journeyContent!.additionalMediaCount > 0;
+                        const mediaToShow =
+                          post.journeyContent!.allMedia ||
+                          post.journeyContent!.media;
+
+                        return (
+                          <div
+                            key={i}
+                            className="relative cursor-pointer hover:opacity-90 transition-opacity aspect-square"
+                            onClick={() => handleMediaClick(mediaToShow, i)}
+                          >
+                            {mediaItem.type === "image" ? (
+                              <Image
+                                src={mediaItem.url}
+                                alt="journeyMedia"
+                                fill
+                                className="object-cover rounded-lg"
+                              />
+                            ) : (
+                              <div className="relative w-full h-full">
+                                <video
+                                  src={mediaItem.url}
+                                  className="w-full h-full object-cover rounded-lg"
+                                  preload="metadata"
+                                  muted
+                                />
+                                <div className="absolute inset-0 flex items-center justify-center">
+                                  <PlayIcon className="w-8 h-8" />
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Show "more" indicator on the 5th item if there are additional media */}
+                            {isLastDisplayedItem && hasAdditionalMedia && (
+                              <div className="absolute inset-0 bg-black/60 flex items-center justify-center rounded-lg">
+                                <div className="text-white font-bold text-sm text-center">
+                                  <div className="text-lg">
+                                    +{post.journeyContent!.additionalMediaCount}
+                                  </div>
+                                  <div className="text-xs">more</div>
+                                </div>
+                              </div>
+                            )}
                           </div>
-                        )}
-                      </div>
-                    ))}
+                        );
+                      })}
                   </div>
                 )}
               </div>
