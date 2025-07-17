@@ -558,11 +558,7 @@ const UserFeed = () => {
 
   return (
     <div>
-      {/* Debug info */}
-      <div className="text-xs text-gray-500 mb-2 p-2 bg-gray-100 rounded">
-        Posts loaded: {posts.length} | Page: {page} | Has more:{" "}
-        {hasMore.toString()} | Loading: {loadingMore.toString()}
-      </div>
+
 
       {posts?.map((post, index) => (
         <PostCard key={`${post.id}-${index}`} post={post} />
