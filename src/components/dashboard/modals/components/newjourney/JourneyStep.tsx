@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import GlobalTextArea from "@/components/global/GlobalTextArea";
 import GlobalFileUpload from "@/components/global/GlobalFileUpload";
+import GlobalSelect from "@/components/global/GlobalSelect";
 import LocationSelector from "./LocationSelector";
 import DateRangeSelector from "./DateRangeSelector";
 import TravelModeSelector from "./TravelModeSelector";
@@ -42,7 +43,6 @@ interface JourneyStepProps {
   onToggleEdit: () => void;
   onDelete: () => void;
   onUpdate: (updatedStep: Partial<Step>) => void;
-  onFieldTouch?: (fieldName: string) => void;
   fetchStepSuggestions?: (query: string) => Promise<MapboxFeature[]>;
   stopCategories: StopCategory[];
   loadingCategories: boolean;
@@ -59,7 +59,6 @@ export default function JourneyStep({
   onToggleEdit,
   onDelete,
   onUpdate,
-  onFieldTouch,
   fetchStepSuggestions,
   stopCategories,
   loadingCategories,
@@ -106,7 +105,6 @@ export default function JourneyStep({
           name,
         },
       });
-      onFieldTouch?.("location");
     }
   };
 
@@ -118,7 +116,6 @@ export default function JourneyStep({
           name: value,
         },
       });
-      onFieldTouch?.("location");
     }
   };
 
@@ -130,27 +127,22 @@ export default function JourneyStep({
 
   const handleModeSelect = (mode: string) => {
     onUpdate({ mediumOfTravel: mode });
-    onFieldTouch?.("travelMode");
   };
 
   const handleStartDateChange = (date: string) => {
     onUpdate({ startDate: date });
-    onFieldTouch?.("startDate");
   };
 
   const handleEndDateChange = (date: string) => {
     onUpdate({ endDate: date });
-    onFieldTouch?.("endDate");
   };
 
   const handleNotesChange = (notes: string) => {
     onUpdate({ notes });
-    onFieldTouch?.("notes");
   };
 
   const handleCategoryChange = (category: string) => {
     onUpdate({ category });
-    onFieldTouch?.("category");
   };
 
   const handleMediaChange = (files: File[]) => {
@@ -169,7 +161,6 @@ export default function JourneyStep({
 
     console.log("Mapped media:", mappedMedia);
     onUpdate({ media: mappedMedia as any });
-    onFieldTouch?.("media");
   };
 
   const handleHeaderEditSave = () => {
@@ -279,7 +270,7 @@ export default function JourneyStep({
         <div className="p-4">
           <div className="flex items-center justify-between mb-2">
             <span className="text-[10px] text-[#5E6368] font-semibold">
-              {step.name || `Stop ${index + 1}`}
+              {step.name || `Step ${index + 1}`}
             </span>
             <div className="flex items-center gap-2">
               <button
@@ -337,41 +328,31 @@ export default function JourneyStep({
             {/* Stop Category */}
             <div className="flex flex-col gap-2">
               <div className="flex items-center justify-between">
-                <label className="text-[12px] font-medium text-black z-10 translate-y-3.5 translate-x-4 bg-white w-fit px-1">
-                  Stop Category
-                </label>
-                {stopCategories.length === 0 && !loadingCategories && (
-                  <span className="text-[10px] text-blue-600">
-                    Using defaults (API may be unavailable)
-                  </span>
-                )}
+                <span className="text-[10px] text-blue-600">
+                  {stopCategories.length === 0 &&
+                    !loadingCategories &&
+                    "Using defaults (API may be unavailable)"}
+                </span>
               </div>
-              <div className="relative">
-                <select
-                  className="border w-full px-3 py-2 h-[40px] rounded-lg text-[12px] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent border-[#848484] outline-none appearance-none"
-                  value={step.category || ""}
-                  onChange={(e) => handleCategoryChange(e.target.value)}
-                >
-                  <option value="" disabled>
-                    {loadingCategories
-                      ? "Loading categories..."
-                      : stopCategories.length === 0
-                      ? "No categories available"
-                      : "Select a category"}
+              <GlobalSelect
+                label="Stop Category"
+                value={step.category || ""}
+                onChange={(e) => handleCategoryChange(e.target.value)}
+                error={errors.category}
+              >
+                <option value="" disabled>
+                  {loadingCategories
+                    ? "Loading categories..."
+                    : stopCategories.length === 0
+                    ? "No categories available"
+                    : "Select a category"}
+                </option>
+                {stopCategories.map((category) => (
+                  <option key={category.id} value={category.id.toString()}>
+                    {category.name || category.label}
                   </option>
-                  {stopCategories.map((category) => (
-                    <option key={category.id} value={category.id.toString()}>
-                      {category.name || category.label}
-                    </option>
-                  ))}
-                </select>
-                <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                  <ArrowDownIcon />
-                </div>
-              </div>
-              {errors.category && (
-                <p className="text-red-500 text-[10px]">{errors.category}</p>
-              )}
+                ))}
+              </GlobalSelect>
             </div>
 
             {/* Notes */}

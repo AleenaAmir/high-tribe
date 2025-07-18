@@ -81,13 +81,18 @@ const GlobalFileUpload: React.FC<GlobalFileUploadProps> = ({
     console.log("GlobalFileUpload - isArray:", Array.isArray(value));
 
     if (!value || !Array.isArray(value)) {
-      console.log("GlobalFileUpload - returning empty array (no value or not array)");
+      console.log(
+        "GlobalFileUpload - returning empty array (no value or not array)"
+      );
       return [];
     }
 
-    const validFiles = value.filter(file => file instanceof File);
+    const validFiles = value.filter((file) => file instanceof File);
     console.log("GlobalFileUpload - valid files:", validFiles.length);
-    console.log("GlobalFileUpload - file details:", validFiles.map(f => ({ name: f.name, size: f.size, type: f.type })));
+    console.log(
+      "GlobalFileUpload - file details:",
+      validFiles.map((f) => ({ name: f.name, size: f.size, type: f.type }))
+    );
 
     return validFiles.map((file, index) => ({
       file,
@@ -165,7 +170,9 @@ const GlobalFileUpload: React.FC<GlobalFileUploadProps> = ({
     if (newFiles.length === 0) return;
 
     // Ensure value is an array and filter out invalid files
-    const currentFiles = Array.isArray(value) ? value.filter(file => file instanceof File) : [];
+    const currentFiles = Array.isArray(value)
+      ? value.filter((file) => file instanceof File)
+      : [];
 
     // Create a Set of existing file names to avoid duplicates
     const existingFileNames = new Set(currentFiles.map((file) => file.name));
@@ -212,7 +219,9 @@ const GlobalFileUpload: React.FC<GlobalFileUploadProps> = ({
     if (!onChange) return;
 
     // Ensure value is an array and filter out invalid files
-    const currentFiles = Array.isArray(value) ? value.filter(file => file instanceof File) : [];
+    const currentFiles = Array.isArray(value)
+      ? value.filter((file) => file instanceof File)
+      : [];
 
     // Create a new array without the file at the specified index
     const newFiles = currentFiles.filter((_, i) => i !== idx);
@@ -235,11 +244,24 @@ const GlobalFileUpload: React.FC<GlobalFileUploadProps> = ({
       )}
       {/* File preview row */}
       {fileUrls.length > 0 && (
-        <div className="flex gap-2 mb-2">
+        <div
+          className="flex gap-2 mb-2 w-full overflow-x-auto 
+        [&::-webkit-scrollbar]:h-1
+       [&::-webkit-scrollbar-track]:bg-[#1063E0]
+       [&::-webkit-scrollbar-thumb]:bg-[#D9D9D9] 
+       dark:[&::-webkit-scrollbar-track]:bg-[#D9D9D9]
+       dark:[&::-webkit-scrollbar-thumb]:bg-[#1063E0]
+        "
+        >
           {fileUrls.map(({ file, url, key }, idx) => {
             const isImage = file.type.startsWith("image/");
             const isVideo = file.type.startsWith("video/");
-            console.log("GlobalFileUpload - rendering file:", { name: file.name, type: file.type, isImage, isVideo });
+            console.log("GlobalFileUpload - rendering file:", {
+              name: file.name,
+              type: file.type,
+              isImage,
+              isVideo,
+            });
             return (
               <div
                 key={key}
@@ -276,8 +298,9 @@ const GlobalFileUpload: React.FC<GlobalFileUploadProps> = ({
         </div>
       )}
       <div
-        className={`rounded-lg border border-dashed p-4 flex flex-col items-center justify-center cursor-pointer focus-within:ring-2 focus-within:ring-blue-400 transition-all ${error ? "border-red-400" : "border-[#A6A4A4]"
-          }`}
+        className={`rounded-lg border border-dashed p-4 flex flex-col items-center justify-center cursor-pointer focus-within:ring-2 focus-within:ring-blue-400 transition-all ${
+          error ? "border-red-400" : "border-[#A6A4A4]"
+        }`}
         onClick={() => inputRef.current?.click()}
         tabIndex={0}
         role="button"

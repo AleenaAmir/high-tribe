@@ -9,6 +9,7 @@ import { MapboxFeature } from "../newjourney/types";
 import VisibilitySelector from "../newjourney/VisibilitySelector";
 import LocationMap from "@/components/global/LocationMap";
 import { apiRequest } from "@/lib/api";
+import { toast } from "react-hot-toast";
 
 interface NewFootprintProps {
   onClose?: () => void;
@@ -57,8 +58,58 @@ export default function NewFootprint({ onClose }: NewFootprintProps) {
   const [selectedMoodTags, setSelectedMoodTags] = useState<MoodTag[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Validation states
+  const [hasAttemptedSubmit, setHasAttemptedSubmit] = useState(false);
+  const [errors, setErrors] = useState<{
+    title?: string;
+    story?: string;
+    location?: string;
+  }>({});
+
   // Mock user suggestions for friend tagging
   const [userSuggestions, setUserSuggestions] = useState<any[]>([]);
+
+  // Validation function
+  const validateForm = useCallback(() => {
+    const newErrors: {
+      title?: string;
+      story?: string;
+      location?: string;
+    } = {};
+
+    if (hasAttemptedSubmit) {
+      // Title validation
+      if (!title || title.trim() === "") {
+        newErrors.title = "Title is required";
+      } else if (title.length > 100) {
+        newErrors.title = "Title must not exceed 100 characters";
+      }
+
+      // Story validation
+      if (!story || story.trim() === "") {
+        newErrors.story = "Story is required";
+      } else if (story.length > 1000) {
+        newErrors.story = "Story must not exceed 1000 characters";
+      }
+
+      // Location validation
+      if (!location || location.trim() === "" || !selectedLocation.coords) {
+        newErrors.location = "Location is required";
+      }
+    }
+
+    setErrors(newErrors);
+  }, [hasAttemptedSubmit, title, story, location, selectedLocation.coords]);
+
+  // Run validation when dependencies change
+  useEffect(() => {
+    validateForm();
+  }, [validateForm]);
+
+  // Check if form has validation errors
+  const hasValidationErrors = useCallback(() => {
+    return Object.keys(errors).length > 0;
+  }, [errors]);
 
   // Debounced geocoding function
   const debouncedGeocode = useCallback(
@@ -71,8 +122,9 @@ export default function NewFootprint({ onClose }: NewFootprintProps) {
             try {
               const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(
                 value
-              )}.json?access_token=${process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN
-                }`;
+              )}.json?access_token=${
+                process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN
+              }`;
               const response = await fetch(url);
               const data = await response.json();
 
@@ -102,6 +154,8 @@ export default function NewFootprint({ onClose }: NewFootprintProps) {
     });
     setLocation(feature.place_name);
     setLocationInput(feature.place_name);
+    // Clear location error when location is selected
+    setErrors((prev) => ({ ...prev, location: undefined }));
   };
 
   // Handle map location selection (when user clicks on map)
@@ -115,6 +169,8 @@ export default function NewFootprint({ onClose }: NewFootprintProps) {
     });
     setLocation(locationName);
     setLocationInput(locationName);
+    // Clear location error when location is selected
+    setErrors((prev) => ({ ...prev, location: undefined }));
   };
 
   // Handle location input change (typing)
@@ -140,11 +196,27 @@ export default function NewFootprint({ onClose }: NewFootprintProps) {
           });
           setLocation(data.features[0].place_name);
           setLocationInput(data.features[0].place_name);
+          // Clear location error when location is confirmed
+          setErrors((prev) => ({ ...prev, location: undefined }));
         }
       } catch (error) {
         console.error("Error geocoding location:", error);
       }
     }
+  };
+
+  // Handle title change
+  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setTitle(e.target.value);
+    // Clear title error when user types
+    setErrors((prev) => ({ ...prev, title: undefined }));
+  };
+
+  // Handle story change
+  const handleStoryChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setStory(e.target.value);
+    // Clear story error when user types
+    setErrors((prev) => ({ ...prev, story: undefined }));
   };
 
   // Handle mood tag selection
@@ -192,14 +264,12 @@ export default function NewFootprint({ onClose }: NewFootprintProps) {
 
   // Form submission
   const handleSubmit = async () => {
-    if (!title.trim() || !story.trim() || !location.trim()) {
-      alert("Please fill in all required fields");
-      return;
-    }
+    // Set submit attempt to show validation errors
+    setHasAttemptedSubmit(true);
 
-    // Check if we have coordinates
-    if (!selectedLocation.coords) {
-      alert("Please select a location on the map or enter a valid location");
+    // Check for validation errors
+    if (hasValidationErrors()) {
+      console.log("Validation errors found, preventing submission");
       return;
     }
 
@@ -221,21 +291,21 @@ export default function NewFootprint({ onClose }: NewFootprintProps) {
       formData.append("title", title.trim());
       formData.append("story", story.trim());
       formData.append("location_name", location);
-      formData.append("lat", selectedLocation.coords[1].toString());
-      formData.append("lng", selectedLocation.coords[0].toString());
+      formData.append("lat", selectedLocation.coords![1].toString());
+      formData.append("lng", selectedLocation.coords![0].toString());
       formData.append("privacy", visibility);
 
       // Also try with alternative field names in case API expects different names
-      formData.append("latitude", selectedLocation.coords[1].toString());
-      formData.append("longitude", selectedLocation.coords[0].toString());
+      formData.append("latitude", selectedLocation.coords![1].toString());
+      formData.append("longitude", selectedLocation.coords![0].toString());
 
       // Debug: Log each field being added
       console.log("Adding fields to FormData:");
       console.log("title:", title.trim());
       console.log("story:", story.trim());
       console.log("location_name:", location);
-      console.log("lat:", selectedLocation.coords[1].toString());
-      console.log("lng:", selectedLocation.coords[0].toString());
+      console.log("lat:", selectedLocation.coords![1].toString());
+      console.log("lng:", selectedLocation.coords![0].toString());
       console.log("privacy:", visibility);
 
       // Add mood tags (if enabled)
@@ -264,14 +334,17 @@ export default function NewFootprint({ onClose }: NewFootprintProps) {
       }
 
       // API call to footprints endpoint
-      const response = await fetch("https://high-tribe-backend.hiconsolutions.com/api/footprints", {
-        method: "POST",
-        headers: {
-          "Accept": "application/json",
-          "Authorization": `Bearer ${localStorage.getItem("token") || ""}`,
-        },
-        body: formData,
-      });
+      const response = await fetch(
+        "https://high-tribe-backend.hiconsolutions.com/api/footprints",
+        {
+          method: "POST",
+          headers: {
+            Accept: "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token") || ""}`,
+          },
+          body: formData,
+        }
+      );
 
       const data = await response.json();
 
@@ -280,17 +353,22 @@ export default function NewFootprint({ onClose }: NewFootprintProps) {
       }
 
       console.log("API Response:", data);
-      alert("Footprint created successfully!");
+
+      // Show success toast
+      toast.success("Footprint created successfully!");
 
       // Reset form
       setTitle("");
       setStory("");
       setLocation("");
+      setLocationInput("");
       setSelectedLocation({ coords: null, name: "" });
       setMedia([]);
       setTaggedFriends([]);
       setSelectedMoodTags([]);
       setVisibility("public");
+      setErrors({});
+      setHasAttemptedSubmit(false);
 
       // Close modal
       onClose?.();
@@ -303,97 +381,110 @@ export default function NewFootprint({ onClose }: NewFootprintProps) {
         console.error("Response data:", error.response.data);
       }
 
-      // Show more specific error message
-      const errorMessage = error.message || "Failed to create footprint. Please try again.";
-      alert(errorMessage);
+      // Show error toast
+      const errorMessage =
+        error.message || "Failed to create footprint. Please try again.";
+      toast.error(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="grid lg:grid-cols-2 grid-cols-1">
-      {/* Form Section */}
-      <div>
-        {/* Header */}
-        <div className="w-full p-4 border-b border-[#D9D9D9] rounded-tl-[20px] bg-white">
-          <h4 className="text-[18px] md:text-[22px] text-[#111111] font-bold text-center">
-            Footprint
-          </h4>
-          <p className="text-[10px] text-[#706F6F] text-center">
-            Share you travel experience with world.
-          </p>
-        </div>
+    <div
+      className="max-h-[90vh]  h-full  overflow-y-auto
+[&::-webkit-scrollbar]:w-1
+       [&::-webkit-scrollbar-track]:bg-[#1063E0]
+       [&::-webkit-scrollbar-thumb]:bg-[#D9D9D9] 
+       dark:[&::-webkit-scrollbar-track]:bg-[#D9D9D9]
+       dark:[&::-webkit-scrollbar-thumb]:bg-[#1063E0]
+"
+    >
+      <div className="grid lg:grid-cols-2 grid-cols-1">
+        {/* Form Section */}
+        <div>
+          {/* Header */}
+          <div className="w-full p-3 border-b border-[#D9D9D9] rounded-tl-[20px] bg-white">
+            <h4 className="text-[18px] md:text-[22px] text-[#111111] font-bold text-center">
+              Footprint
+            </h4>
+            <p className="text-[10px] text-[#706F6F] text-center">
+              Share you travel experience with world.
+            </p>
+          </div>
 
-        {/* Form Content */}
-        <form className="p-1">
-          <div
-            className="flex flex-col gap-2 max-h-[500px] lg:min-h-[500px] h-full overflow-y-auto px-6 py-2 
+          {/* Form Content */}
+          <form className="p-1">
+            <div
+              className="flex flex-col gap-2 max-h-[500px] lg:min-h-[500px] h-full overflow-y-auto px-6 py-2 
            [&::-webkit-scrollbar]:w-1
            [&::-webkit-scrollbar-track]:bg-[#1063E0]
            [&::-webkit-scrollbar-thumb]:bg-[#D9D9D9] 
            dark:[&::-webkit-scrollbar-track]:bg-[#D9D9D9]
            dark:[&::-webkit-scrollbar-thumb]:bg-[#1063E0]"
-          >
-            {/* Location Input */}
-            <LocationSelector
-              label="Location"
-              value={locationInput}
-              onChange={handleLocationInputChange}
-              onSelect={handleLocationSelect}
-              onSearch={locationAutocomplete.fetchSuggestions}
-              suggestions={locationAutocomplete.suggestions}
-              placeholder=" "
-              onLocationInputEnter={handleLocationInputEnter}
-            />
+            >
+              {/* Location Input */}
+              <LocationSelector
+                label="Location"
+                value={locationInput}
+                onChange={handleLocationInputChange}
+                onSelect={handleLocationSelect}
+                onSearch={locationAutocomplete.fetchSuggestions}
+                suggestions={locationAutocomplete.suggestions}
+                error={errors.location}
+                placeholder=" "
+                onLocationInputEnter={handleLocationInputEnter}
+              />
 
-            {/* Title Input */}
-            <GlobalTextInput
-              label="Title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder=" "
-            />
+              {/* Title Input */}
+              <GlobalTextInput
+                label="Title"
+                value={title}
+                onChange={handleTitleChange}
+                error={errors.title}
+                placeholder=" "
+              />
 
-            {/* Story Input */}
-            <GlobalTextArea
-              label="Share your story"
-              rows={4}
-              value={story}
-              onChange={(e) => setStory(e.target.value)}
-              placeholder=" "
-            />
+              {/* Story Input */}
+              <GlobalTextArea
+                label="Share your story"
+                rows={4}
+                value={story}
+                onChange={handleStoryChange}
+                error={errors.story}
+                placeholder=" "
+              />
 
-            {/* Media Upload */}
-            <GlobalFileUpload
-              label="Photos & Videos (Max 10)"
-              value={media}
-              onChange={setMedia}
-              maxFiles={10}
-              headLine="Drag & drop or click to upload"
-              subLine="Max 5 files: JPG, PNG, MP3, Mov"
-              allowedTypes={[
-                "image/jpeg",
-                "image/jpg",
-                "image/png",
-                "video/mp4",
-                "video/quicktime",
-              ]}
-            />
+              {/* Media Upload */}
+              <GlobalFileUpload
+                label="Photos & Videos (Max 10)"
+                value={media}
+                onChange={setMedia}
+                maxFiles={10}
+                headLine="Drag & drop or click to upload"
+                subLine="Max 5 files: JPG, PNG, MP3, Mov"
+                allowedTypes={[
+                  "image/jpeg",
+                  "image/jpg",
+                  "image/png",
+                  "video/mp4",
+                  "video/quicktime",
+                ]}
+              />
 
-            {/* Tag Friends */}
-            <GlobalMultiSelect
-              label="Tag Friends"
-              value={taggedFriends}
-              onChange={setTaggedFriends}
-              placeholder="username"
-              suggestions={userSuggestions}
-              onSearch={handleFriendSearch}
-              maxSelections={10}
-            />
+              {/* Tag Friends */}
+              <GlobalMultiSelect
+                label="Tag Friends"
+                value={taggedFriends}
+                onChange={setTaggedFriends}
+                placeholder="username"
+                suggestions={userSuggestions}
+                onSearch={handleFriendSearch}
+                maxSelections={10}
+              />
 
-            {/* Mood Tags */}
-            {/* <div className="mb-4">
+              {/* Mood Tags */}
+              {/* <div className="mb-4">
               <label className="text-[12px] font-medium text-black mb-2 block">
                 Mood Tags
               </label>
@@ -416,49 +507,43 @@ export default function NewFootprint({ onClose }: NewFootprintProps) {
               </div>
             </div> */}
 
-            {/* Visibility Selector */}
-            <VisibilitySelector value={visibility} onChange={setVisibility} />
-          </div>
+              {/* Visibility Selector */}
+              <VisibilitySelector value={visibility} onChange={setVisibility} />
+            </div>
 
-          {/* Form Actions */}
-          <div className="flex items-center justify-end p-4 border-t border-[#D9D9D9] bg-white">
-            <button
-              type="button"
-              onClick={handleSubmit}
-              disabled={
-                isSubmitting ||
-                !title.trim() ||
-                !story.trim() ||
-                !location.trim()
-              }
-              className={`px-6 py-2 text-[12px] text-white rounded-lg border font-semibold transition-all ${isSubmitting ||
-                !title.trim() ||
-                !story.trim() ||
-                !location.trim()
-                ? "border-gray-300 text-gray-400 bg-gray-100 cursor-not-allowed"
-                : "border-blue-600 bg-gradient-to-r from-[#257CFF] to-[#1063E0] cursor-pointer hover:from-[#1a6be0] hover:to-[#0d5ac7]"
+            {/* Form Actions */}
+            <div className="flex items-center justify-end p-3 border-t border-[#D9D9D9] bg-white">
+              <button
+                type="button"
+                onClick={handleSubmit}
+                disabled={isSubmitting}
+                className={`px-6 py-2 text-[12px] text-white rounded-lg border font-semibold transition-all ${
+                  isSubmitting
+                    ? "border-gray-300 text-gray-400 bg-gray-100 cursor-not-allowed"
+                    : "border-blue-600 bg-gradient-to-r from-[#257CFF] to-[#1063E0] cursor-pointer hover:from-[#1a6be0] hover:to-[#0d5ac7]"
                 }`}
-            >
-              {isSubmitting ? (
-                <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 border-2 border-gray-300 border-t-blue-600 rounded-full animate-spin"></div>
-                  Sharing...
-                </div>
-              ) : (
-                "Share Post"
-              )}
-            </button>
-          </div>
-        </form>
-      </div>
+              >
+                {isSubmitting ? (
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 border-2 border-gray-300 border-t-blue-600 rounded-full animate-spin"></div>
+                    Sharing...
+                  </div>
+                ) : (
+                  "Share Post"
+                )}
+              </button>
+            </div>
+          </form>
+        </div>
 
-      {/* Map Section */}
-      <div className="h-full w-full relative">
-        <LocationMap
-          location={selectedLocation}
-          onLocationSelect={handleMapLocationSelect}
-          markerColor="#ef4444"
-        />
+        {/* Map Section */}
+        <div className="h-full w-full relative">
+          <LocationMap
+            location={selectedLocation}
+            onLocationSelect={handleMapLocationSelect}
+            markerColor="#ef4444"
+          />
+        </div>
       </div>
     </div>
   );

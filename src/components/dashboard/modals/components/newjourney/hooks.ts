@@ -169,8 +169,10 @@ export function useJourneyValidation() {
       stepError.notes = "Notes must not exceed 500 characters";
     }
 
-    // Category validation
-    if (step.category && !stopCategories.find(cat => cat.id.toString() === step.category)) {
+    // Category validation - make it required
+    if (!step.category || step.category.trim() === "") {
+      stepError.category = "Stop category is required";
+    } else if (!stopCategories.find(cat => cat.id.toString() === step.category)) {
       stepError.category = "Invalid stop category";
     }
 

@@ -30,13 +30,7 @@ export default function NewJourney({ onClose }: NewJourneyProps) {
   );
   const [userSuggestions, setUserSuggestions] = useState<any[]>([]);
 
-  // State to track which fields have been touched/interacted with
-  const [touchedFields, setTouchedFields] = useState<{
-    [key: string]: boolean;
-  }>({});
-  const [touchedSteps, setTouchedSteps] = useState<{
-    [key: string]: { [key: string]: boolean };
-  }>({});
+  // State to track if form has been submitted (to show all errors)
   const [hasAttemptedSubmit, setHasAttemptedSubmit] = useState(false);
 
   // Location change handlers for map interaction
@@ -64,7 +58,7 @@ export default function NewJourney({ onClose }: NewJourneyProps) {
       ...journeyForm.startLocation,
       name: value,
     });
-    markFieldAsTouched("startLocation");
+    journeyForm.clearFieldError("startLocation");
   };
 
   const handleStartLocationSelect = (feature: MapboxFeature) => {
@@ -74,7 +68,7 @@ export default function NewJourney({ onClose }: NewJourneyProps) {
       name: feature.place_name,
     });
     journeyForm.flyToOnMap(coords[0], coords[1]);
-    markFieldAsTouched("startLocation");
+    journeyForm.clearFieldError("startLocation");
   };
 
   const handleEndLocationChange = (value: string) => {
@@ -82,7 +76,7 @@ export default function NewJourney({ onClose }: NewJourneyProps) {
       ...journeyForm.endLocation,
       name: value,
     });
-    markFieldAsTouched("endLocation");
+    journeyForm.clearFieldError("endLocation");
   };
 
   const handleEndLocationSelect = (feature: MapboxFeature) => {
@@ -92,14 +86,14 @@ export default function NewJourney({ onClose }: NewJourneyProps) {
       name: feature.place_name,
     });
     journeyForm.flyToOnMap(coords[0], coords[1]);
-    markFieldAsTouched("endLocation");
+    journeyForm.clearFieldError("endLocation");
   };
 
   // Form field handlers
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const title = e.target.value;
     journeyForm.form.setValue("title", title);
-    markFieldAsTouched("title");
+    journeyForm.clearFieldError("title");
   };
 
   const handleDescriptionChange = (
@@ -107,17 +101,18 @@ export default function NewJourney({ onClose }: NewJourneyProps) {
   ) => {
     const description = e.target.value;
     journeyForm.form.setValue("description", description);
-    markFieldAsTouched("description");
+    journeyForm.clearFieldError("description");
   };
 
   const handleStartDateChange = (date: string) => {
     journeyForm.form.setValue("startDate", date);
-    markFieldAsTouched("startDate");
+    journeyForm.clearFieldError("startDate");
+    journeyForm.clearFieldError("endDate"); // Clear end date error when start date changes
   };
 
   const handleEndDateChange = (date: string) => {
     journeyForm.form.setValue("endDate", date);
-    markFieldAsTouched("endDate");
+    journeyForm.clearFieldError("endDate");
   };
 
   // User search handler
@@ -126,100 +121,62 @@ export default function NewJourney({ onClose }: NewJourneyProps) {
     setUserSuggestions(results);
   };
 
-  // Helper functions to mark fields as touched
-  const markFieldAsTouched = (fieldName: string) => {
-    setTouchedFields((prev) => ({ ...prev, [fieldName]: true }));
-  };
-
-  const markStepFieldAsTouched = (stepIndex: number, fieldName: string) => {
-    setTouchedSteps((prev) => ({
-      ...prev,
-      [stepIndex]: { ...prev[stepIndex], [fieldName]: true },
-    }));
-  };
-
-  // Validation function that only shows errors for touched fields or after submit attempt
-  const validateAndUpdateErrors = useCallback(() => {
+  // Validation function that shows errors only after submit attempt
+  const validateForm = useCallback(() => {
     const formData = journeyForm.form.getValues();
     const newErrors: any = {};
     const newStepErrors: any = {};
 
-    // Only validate and show errors for touched fields or if user attempted submit
-    if (touchedFields.title || hasAttemptedSubmit) {
+    // Only validate and show errors if user attempted submit
+    if (hasAttemptedSubmit) {
+      // Validate title
       const titleError = journeyForm.validateTitle(formData.title);
       if (titleError) newErrors.title = titleError;
-    }
 
-    if (touchedFields.description || hasAttemptedSubmit) {
+      // Validate description
       const descriptionError = journeyForm.validateDescription(
         formData.description
       );
       if (descriptionError) newErrors.description = descriptionError;
-    }
 
-    if (touchedFields.startLocation || hasAttemptedSubmit) {
+      // Validate start location
       const startLocationError = journeyForm.validateLocation(
         journeyForm.startLocation,
         "Start location"
       );
       if (startLocationError) newErrors.startLocation = startLocationError;
-    }
 
-    if (touchedFields.endLocation || hasAttemptedSubmit) {
+      // Validate end location
       const endLocationError = journeyForm.validateLocation(
         journeyForm.endLocation,
         "End location"
       );
       if (endLocationError) newErrors.endLocation = endLocationError;
-    }
 
-    if (touchedFields.startDate || hasAttemptedSubmit) {
+      // Validate dates
       const dateErrors = journeyForm.validateDates(
         formData.startDate,
         formData.endDate
       );
       if (dateErrors.startDate) newErrors.startDate = dateErrors.startDate;
       if (dateErrors.endDate) newErrors.endDate = dateErrors.endDate;
-    }
 
-    if (touchedFields.endDate || hasAttemptedSubmit) {
-      const dateErrors = journeyForm.validateDates(
-        formData.startDate,
-        formData.endDate
-      );
-      if (dateErrors.startDate) newErrors.startDate = dateErrors.startDate;
-      if (dateErrors.endDate) newErrors.endDate = dateErrors.endDate;
-    }
-
-    // Validate steps
-    journeyForm.steps.forEach((step, index) => {
-      const stepTouched = touchedSteps[index];
-      if (stepTouched || hasAttemptedSubmit) {
+      // Validate steps
+      journeyForm.steps.forEach((step, index) => {
         const stepError = journeyForm.validateStep(
           step,
           index,
           journeyForm.stopCategories
         );
-        const filteredStepError: any = {};
-
-        // Only include errors for touched step fields or if submit was attempted
-        Object.keys(stepError).forEach((key) => {
-          if (stepTouched?.[key] || hasAttemptedSubmit) {
-            filteredStepError[key] = stepError[key];
-          }
-        });
-
-        if (Object.keys(filteredStepError).length > 0) {
-          newStepErrors[index] = filteredStepError;
+        if (Object.keys(stepError).length > 0) {
+          newStepErrors[index] = stepError;
         }
-      }
-    });
+      });
+    }
 
     journeyForm.setErrors(newErrors);
     journeyForm.setStepErrors(newStepErrors);
   }, [
-    touchedFields,
-    touchedSteps,
     hasAttemptedSubmit,
     journeyForm.form.watch("title"),
     journeyForm.form.watch("description"),
@@ -233,10 +190,10 @@ export default function NewJourney({ onClose }: NewJourneyProps) {
 
   // Run validation when dependencies change
   useEffect(() => {
-    validateAndUpdateErrors();
-  }, [validateAndUpdateErrors]);
+    validateForm();
+  }, [validateForm]);
 
-  // Check if form has actual validation errors (regardless of touched state)
+  // Check if form has validation errors
   const hasValidationErrors = useCallback(() => {
     const formData = journeyForm.form.getValues();
 
@@ -295,7 +252,7 @@ export default function NewJourney({ onClose }: NewJourneyProps) {
 
     // This will trigger validation to show all errors
     setTimeout(() => {
-      validateAndUpdateErrors();
+      validateForm();
     }, 0);
 
     // Check if there are validation errors
@@ -335,9 +292,7 @@ export default function NewJourney({ onClose }: NewJourneyProps) {
         },
       ]);
 
-      // Reset touched state
-      setTouchedFields({});
-      setTouchedSteps({});
+      // Reset submit attempt state
       setHasAttemptedSubmit(false);
 
       // Close the modal
@@ -348,8 +303,7 @@ export default function NewJourney({ onClose }: NewJourneyProps) {
   return (
     <div
       className="max-h-[90vh]  h-full  overflow-y-auto rounded-[20px] bg-white shadow-lg
-    [&::-webkit-scrollbar]:w-1
-   
+          [&::-webkit-scrollbar]:w-1
            [&::-webkit-scrollbar-track]:bg-[#1063E0]
            [&::-webkit-scrollbar-thumb]:bg-[#D9D9D9] 
            dark:[&::-webkit-scrollbar-track]:bg-[#D9D9D9]
@@ -360,7 +314,7 @@ export default function NewJourney({ onClose }: NewJourneyProps) {
         {/* Form Section */}
         <div>
           {/* Header */}
-          <div className="w-full p-4 border-b border-[#D9D9D9] rounded-tl-[20px] bg-white">
+          <div className="w-full p-3 border-b border-[#D9D9D9] rounded-tl-[20px] bg-white">
             <h4 className="text-[18px] md:text-[22px] text-[#111111] font-bold text-center">
               New Journey
             </h4>
@@ -455,7 +409,6 @@ export default function NewJourney({ onClose }: NewJourneyProps) {
                 onStepsChange={(newSteps) => {
                   journeyForm.setSteps(newSteps);
                 }}
-                onStepFieldTouch={markStepFieldAsTouched}
                 canAddStep={!!journeyForm.canAddStep}
                 fetchStepSuggestions={journeyForm.fetchStepSuggestions}
                 stopCategories={journeyForm.stopCategories}
@@ -488,7 +441,7 @@ export default function NewJourney({ onClose }: NewJourneyProps) {
             <JourneyFormActions
               onSubmit={handleSubmit}
               isSubmitting={journeyForm.isSubmitting}
-              disabled={hasValidationErrors()}
+              disabled={false} // Never disable the submit button
             />
           </form>
         </div>

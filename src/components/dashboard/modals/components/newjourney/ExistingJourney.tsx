@@ -13,6 +13,8 @@ import {
   VisibilityType,
   MapboxFeature,
   ExistingJourneyListItem,
+  ValidationErrors,
+  StepErrors,
 } from "./types";
 
 interface ExistingJourneyProps {
@@ -44,8 +46,87 @@ export default function ExistingJourneyComponent({
   >([]);
   const [friendSearchQuery, setFriendSearchQuery] = useState("");
 
+  // Validation states
+  const [hasAttemptedSubmit, setHasAttemptedSubmit] = useState(false);
+  const [stepErrors, setStepErrors] = useState<StepErrors>({});
+
   // Initialize journey form with limited functionality
   const journeyForm = useJourneyForm();
+
+  // Validation function for steps
+  const validateSteps = useCallback(() => {
+    const newStepErrors: StepErrors = {};
+
+    if (hasAttemptedSubmit) {
+      newSteps.forEach((step, index) => {
+        const stepError: ValidationErrors = {};
+
+        // Name validation
+        if (!step.name || step.name.trim() === "") {
+          stepError.name = "Step name is required";
+        } else if (step.name.length > 100) {
+          stepError.name = "Step name must not exceed 100 characters";
+        }
+
+        // Location validation
+        if (!step.location.coords || !step.location.name.trim()) {
+          stepError.location = "Location is required";
+        }
+
+        // Travel mode validation
+        if (!step.mediumOfTravel || step.mediumOfTravel.trim() === "") {
+          stepError.travelMode = "Travel medium is required";
+        }
+
+        // Date validation
+        if (!step.startDate) {
+          stepError.startDate = "Start date is required";
+        }
+        if (!step.endDate) {
+          stepError.endDate = "End date is required";
+        }
+        if (step.startDate && step.endDate) {
+          const start = new Date(step.startDate);
+          const end = new Date(step.endDate);
+          if (end < start) {
+            stepError.endDate = "End date cannot be before start date";
+          }
+        }
+
+        // Category validation
+        if (!step.category || step.category.trim() === "") {
+          stepError.category = "Stop category is required";
+        } else if (
+          !journeyForm.stopCategories.find(
+            (cat) => cat.id.toString() === step.category
+          )
+        ) {
+          stepError.category = "Invalid stop category";
+        }
+
+        // Notes validation
+        if (step.notes && step.notes.length > 500) {
+          stepError.notes = "Notes must not exceed 500 characters";
+        }
+
+        if (Object.keys(stepError).length > 0) {
+          newStepErrors[index] = stepError;
+        }
+      });
+    }
+
+    setStepErrors(newStepErrors);
+  }, [hasAttemptedSubmit, newSteps, journeyForm.stopCategories]);
+
+  // Run validation when dependencies change
+  useEffect(() => {
+    validateSteps();
+  }, [validateSteps]);
+
+  // Check if form has validation errors
+  const hasValidationErrors = useCallback(() => {
+    return Object.keys(stepErrors).length > 0;
+  }, [stepErrors]);
 
   // Fetch journeys list on component mount
   useEffect(() => {
@@ -230,12 +311,16 @@ export default function ExistingJourneyComponent({
       setSelectedJourneyId(null);
       setSelectedJourney(null);
       setNewSteps([]);
+      setStepErrors({});
+      setHasAttemptedSubmit(false);
       return;
     }
 
     try {
       setSelectedJourneyId(journeyId);
       setNewSteps([]); // Reset new steps when switching journeys
+      setStepErrors({}); // Reset validation errors
+      setHasAttemptedSubmit(false); // Reset submit attempt
 
       // Fetch the selected journey data
       await fetchJourneyData(journeyId);
@@ -245,6 +330,8 @@ export default function ExistingJourneyComponent({
       setSelectedJourneyId(null);
       setSelectedJourney(null);
       setNewSteps([]);
+      setStepErrors({});
+      setHasAttemptedSubmit(false);
     }
   };
 
@@ -297,6 +384,15 @@ export default function ExistingJourneyComponent({
   // Form submission handlers
   const handleJourneySubmission = async (status: "draft" | "published") => {
     if (!selectedJourney) return;
+
+    // Set submit attempt to show validation errors
+    setHasAttemptedSubmit(true);
+
+    // Check for validation errors
+    if (hasValidationErrors()) {
+      console.log("Validation errors found, preventing submission");
+      return;
+    }
 
     const isSubmitting = status === "draft";
     const isEndAndPublish = status === "published";
@@ -531,6 +627,8 @@ export default function ExistingJourneyComponent({
 
       // Reset new steps after successful submission
       setNewSteps([]);
+      setStepErrors({});
+      setHasAttemptedSubmit(false);
 
       // Refresh journeys list to get updated data
       await fetchJourneysList();
@@ -548,11 +646,6 @@ export default function ExistingJourneyComponent({
           status === "draft" ? "updating" : "publishing"
         } journey with ${status} status:`,
         error
-      );
-      alert(
-        `Failed to ${
-          status === "draft" ? "update" : "publish"
-        } journey. Please try again.`
       );
     } finally {
       if (isSubmitting) setIsSubmitting(false);
@@ -601,7 +694,7 @@ export default function ExistingJourneyComponent({
         {/* Form Section */}
         <div>
           {/* Header */}
-          <div className="w-full p-4 border-b border-[#D9D9D9] rounded-tl-[20px] bg-white">
+          <div className="w-full p-3 border-b border-[#D9D9D9] rounded-tl-[20px] bg-white">
             <h4 className="text-[18px] md:text-[22px] text-[#111111] font-bold text-center">
               My Journey
             </h4>
@@ -671,7 +764,7 @@ export default function ExistingJourneyComponent({
                     fetchStepSuggestions={fetchStepSuggestions}
                     stopCategories={journeyForm.stopCategories}
                     loadingCategories={journeyForm.loadingCategories}
-                    stepErrors={{}}
+                    stepErrors={stepErrors}
                     showAddButton={true}
                     previousSteps={
                       Array.isArray(selectedJourney?.steps)
@@ -721,7 +814,7 @@ export default function ExistingJourneyComponent({
             </div>
 
             {/* Form Actions */}
-            <div className="flex items-center justify-end p-4 border-t border-[#D9D9D9] bg-white">
+            <div className="flex items-center justify-end p-3 border-t border-[#D9D9D9] bg-white">
               <div className="flex items-center gap-2">
                 <button
                   type="button"
@@ -741,7 +834,7 @@ export default function ExistingJourneyComponent({
                       Publishing...
                     </div>
                   ) : (
-                    "End & Publish"
+                    "End Journey"
                   )}
                 </button>
                 <button
@@ -762,7 +855,7 @@ export default function ExistingJourneyComponent({
                       Updating...
                     </div>
                   ) : (
-                    "Update & publish"
+                    "Update Journey"
                   )}
                 </button>
               </div>

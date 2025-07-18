@@ -12,7 +12,6 @@ import { PlusIcon } from "./constants";
 interface StepsListProps {
   steps: Step[];
   onStepsChange: (steps: Step[]) => void;
-  onStepFieldTouch?: (stepIndex: number, fieldName: string) => void;
   canAddStep: boolean;
   fetchStepSuggestions?: (query: string) => Promise<MapboxFeature[]>;
   stopCategories: StopCategory[];
@@ -39,7 +38,6 @@ interface StepsListProps {
 export default function StepsList({
   steps,
   onStepsChange,
-  onStepFieldTouch,
   canAddStep,
   fetchStepSuggestions,
   stopCategories,
@@ -304,7 +302,6 @@ export default function StepsList({
               onToggleEdit={() => handleStepToggleEdit(index)}
               onDelete={() => handleStepDelete(index)}
               onUpdate={(updatedStep) => handleStepUpdate(index, updatedStep)}
-              onFieldTouch={(fieldName) => onStepFieldTouch?.(index, fieldName)}
               fetchStepSuggestions={fetchStepSuggestions}
               stopCategories={stopCategories}
               loadingCategories={loadingCategories}

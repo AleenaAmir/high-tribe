@@ -60,6 +60,9 @@ const GlobalDateInput: React.FC<GlobalDateInputProps> = ({
   const calendarRef = useRef<HTMLDivElement>(null);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [currentDate, setCurrentDate] = useState<Date | null>(null);
+  const [calendarPosition, setCalendarPosition] = useState<"bottom" | "top">(
+    "bottom"
+  );
 
   // Set current date only on client side to avoid hydration mismatch
   useEffect(() => {
@@ -80,7 +83,7 @@ const GlobalDateInput: React.FC<GlobalDateInputProps> = ({
     }
   }, [value]);
 
-  // Close calendar when clicking outside
+  // Close calendar when clicking outside and handle window resize
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as Node;
@@ -94,16 +97,50 @@ const GlobalDateInput: React.FC<GlobalDateInputProps> = ({
       }
     };
 
+    const handleWindowResize = () => {
+      if (isCalendarOpen && inputRef.current) {
+        const rect = inputRef.current.getBoundingClientRect();
+        const viewportHeight = window.innerHeight;
+        const spaceBelow = viewportHeight - rect.bottom;
+        const spaceAbove = rect.top;
+        const calendarHeight = 320;
+
+        if (spaceBelow < calendarHeight && spaceAbove > spaceBelow) {
+          setCalendarPosition("top");
+        } else {
+          setCalendarPosition("bottom");
+        }
+      }
+    };
+
     if (isCalendarOpen) {
       document.addEventListener("mousedown", handleClickOutside);
+      window.addEventListener("resize", handleWindowResize);
     }
 
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
+      window.removeEventListener("resize", handleWindowResize);
     };
   }, [isCalendarOpen]);
 
   const handleIconClick = () => {
+    if (!isCalendarOpen) {
+      // Calculate position when opening calendar
+      if (inputRef.current) {
+        const rect = inputRef.current.getBoundingClientRect();
+        const viewportHeight = window.innerHeight;
+        const spaceBelow = viewportHeight - rect.bottom;
+        const spaceAbove = rect.top;
+        const calendarHeight = 320; // Approximate calendar height
+
+        if (spaceBelow < calendarHeight && spaceAbove > spaceBelow) {
+          setCalendarPosition("top");
+        } else {
+          setCalendarPosition("bottom");
+        }
+      }
+    }
     setIsCalendarOpen(!isCalendarOpen);
   };
 
@@ -226,7 +263,11 @@ const GlobalDateInput: React.FC<GlobalDateInputProps> = ({
         {isCalendarOpen && currentDate && (
           <div
             ref={calendarRef}
-            className="absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-50 min-w-[280px]"
+            className={`absolute left-0 bg-white border border-gray-200 rounded-lg shadow-lg z-50 min-w-[280px] ${
+              calendarPosition === "bottom"
+                ? "top-full mt-1"
+                : "bottom-full mb-1"
+            }`}
           >
             {/* Calendar Header */}
             <div className="flex items-center justify-between p-4 border-b border-gray-100">
@@ -272,24 +313,28 @@ const GlobalDateInput: React.FC<GlobalDateInputProps> = ({
                     disabled={!day || !isCurrentMonth(day)}
                     className={`
                       w-8 h-8 text-xs rounded-full flex items-center justify-center transition-colors
-                      ${!day || !isCurrentMonth(day)
-                        ? "text-gray-300 cursor-default"
-                        : "hover:bg-blue-50 cursor-pointer"
+                      ${
+                        !day || !isCurrentMonth(day)
+                          ? "text-gray-300 cursor-default"
+                          : "hover:bg-blue-50 cursor-pointer"
                       }
-                      ${day && isToday(day)
-                        ? "bg-blue-100 text-blue-600 font-semibold"
-                        : ""
+                      ${
+                        day && isToday(day)
+                          ? "bg-blue-100 text-blue-600 font-semibold"
+                          : ""
                       }
-                      ${day && isSelected(day)
-                        ? "bg-blue-600 text-white font-semibold hover:bg-blue-700"
-                        : ""
+                      ${
+                        day && isSelected(day)
+                          ? "bg-blue-600 text-white font-semibold hover:bg-blue-700"
+                          : ""
                       }
-                      ${day &&
+                      ${
+                        day &&
                         isCurrentMonth(day) &&
                         !isToday(day) &&
                         !isSelected(day)
-                        ? "text-gray-700"
-                        : ""
+                          ? "text-gray-700"
+                          : ""
                       }
                     `}
                   >
