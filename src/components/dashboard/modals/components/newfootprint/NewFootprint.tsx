@@ -71,9 +71,8 @@ export default function NewFootprint({ onClose }: NewFootprintProps) {
             try {
               const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(
                 value
-              )}.json?access_token=${
-                process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN
-              }`;
+              )}.json?access_token=${process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN
+                }`;
               const response = await fetch(url);
               const data = await response.json();
 
@@ -198,50 +197,90 @@ export default function NewFootprint({ onClose }: NewFootprintProps) {
       return;
     }
 
+    // Check if we have coordinates
+    if (!selectedLocation.coords) {
+      alert("Please select a location on the map or enter a valid location");
+      return;
+    }
+
+    // Debug: Log current state values
+    console.log("Current state values:");
+    console.log("title:", title);
+    console.log("story:", story);
+    console.log("location:", location);
+    console.log("selectedLocation:", selectedLocation);
+    console.log("visibility:", visibility);
+
     setIsSubmitting(true);
 
     try {
-      // Create FormData with the same structure as journeys
+      // Create FormData with the footprint API structure
       const formData = new FormData();
 
       // Add basic footprint data
       formData.append("title", title.trim());
-      formData.append("description", story.trim());
+      formData.append("story", story.trim());
       formData.append("location_name", location);
-      if (selectedLocation.coords) {
-        formData.append("latitude", selectedLocation.coords[1].toString());
-        formData.append("longitude", selectedLocation.coords[0].toString());
-      }
+      formData.append("lat", selectedLocation.coords[1].toString());
+      formData.append("lng", selectedLocation.coords[0].toString());
       formData.append("privacy", visibility);
-      formData.append("type", "footprint");
-      formData.append("status", "published");
 
-      // Add mood tags
-      // if (selectedMoodTags.length > 0) {
-      //   formData.append('mood_tags', JSON.stringify(selectedMoodTags.map(tag => tag.name)));
-      // }
+      // Also try with alternative field names in case API expects different names
+      formData.append("latitude", selectedLocation.coords[1].toString());
+      formData.append("longitude", selectedLocation.coords[0].toString());
 
-      // Add tagged users
+      // Debug: Log each field being added
+      console.log("Adding fields to FormData:");
+      console.log("title:", title.trim());
+      console.log("story:", story.trim());
+      console.log("location_name:", location);
+      console.log("lat:", selectedLocation.coords[1].toString());
+      console.log("lng:", selectedLocation.coords[0].toString());
+      console.log("privacy:", visibility);
+
+      // Add mood tags (if enabled)
+      if (selectedMoodTags.length > 0) {
+        selectedMoodTags.forEach((tag) => {
+          formData.append("mood_tags[]", tag.name);
+        });
+      }
+
+      // Add tagged friends
       if (taggedFriends.length > 0) {
-        taggedFriends.forEach((friend, index) => {
-          formData.append(`tagged_users[${index}]`, friend.id.toString());
+        taggedFriends.forEach((friend) => {
+          formData.append("tagged_friends[]", friend.id.toString());
         });
       }
 
       // Append media files
-      media.forEach((file, index) => {
-        formData.append(`media[${index}]`, file);
+      media.forEach((file) => {
+        formData.append("media[]", file);
       });
 
-      // API call using the same endpoint as journeys
-      await apiRequest(
-        "posts",
-        {
-          method: "POST",
-          body: formData,
+      // Debug: Log the FormData contents
+      console.log("FormData contents:");
+      for (let [key, value] of formData.entries()) {
+        console.log(`${key}:`, value);
+      }
+
+      // API call to footprints endpoint
+      const response = await fetch("https://high-tribe-backend.hiconsolutions.com/api/footprints", {
+        method: "POST",
+        headers: {
+          "Accept": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem("token") || ""}`,
         },
-        "Footprint created successfully!"
-      );
+        body: formData,
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to create footprint");
+      }
+
+      console.log("API Response:", data);
+      alert("Footprint created successfully!");
 
       // Reset form
       setTitle("");
@@ -255,9 +294,18 @@ export default function NewFootprint({ onClose }: NewFootprintProps) {
 
       // Close modal
       onClose?.();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error creating footprint:", error);
-      alert("Failed to create footprint. Please try again.");
+
+      // Log detailed error information
+      if (error.response) {
+        console.error("Response status:", error.response.status);
+        console.error("Response data:", error.response.data);
+      }
+
+      // Show more specific error message
+      const errorMessage = error.message || "Failed to create footprint. Please try again.";
+      alert(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
@@ -383,14 +431,13 @@ export default function NewFootprint({ onClose }: NewFootprintProps) {
                 !story.trim() ||
                 !location.trim()
               }
-              className={`px-6 py-2 text-[12px] text-white rounded-lg border font-semibold transition-all ${
-                isSubmitting ||
+              className={`px-6 py-2 text-[12px] text-white rounded-lg border font-semibold transition-all ${isSubmitting ||
                 !title.trim() ||
                 !story.trim() ||
                 !location.trim()
-                  ? "border-gray-300 text-gray-400 bg-gray-100 cursor-not-allowed"
-                  : "border-blue-600 bg-gradient-to-r from-[#257CFF] to-[#1063E0] cursor-pointer hover:from-[#1a6be0] hover:to-[#0d5ac7]"
-              }`}
+                ? "border-gray-300 text-gray-400 bg-gray-100 cursor-not-allowed"
+                : "border-blue-600 bg-gradient-to-r from-[#257CFF] to-[#1063E0] cursor-pointer hover:from-[#1a6be0] hover:to-[#0d5ac7]"
+                }`}
             >
               {isSubmitting ? (
                 <div className="flex items-center gap-2">
