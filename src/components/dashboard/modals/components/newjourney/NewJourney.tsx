@@ -346,159 +346,171 @@ export default function NewJourney({ onClose }: NewJourneyProps) {
   };
 
   return (
-    <div className="grid lg:grid-cols-2 grid-cols-1">
-      {/* Form Section */}
-      <div>
-        {/* Header */}
-        <div className="w-full p-4 border-b border-[#D9D9D9] rounded-tl-[20px] bg-white">
-          <h4 className="text-[18px] md:text-[22px] text-[#111111] font-bold text-center">
-            New Journey
-          </h4>
-          <p className="text-[10px] text-[#706F6F] text-center">
-            Share your travel experience with the world
-          </p>
-        </div>
+    <div
+      className="max-h-[90vh]  h-full  overflow-y-auto rounded-[20px] bg-white shadow-lg
+    [&::-webkit-scrollbar]:w-1
+   
+           [&::-webkit-scrollbar-track]:bg-[#1063E0]
+           [&::-webkit-scrollbar-thumb]:bg-[#D9D9D9] 
+           dark:[&::-webkit-scrollbar-track]:bg-[#D9D9D9]
+           dark:[&::-webkit-scrollbar-thumb]:bg-[#1063E0]
+    "
+    >
+      <div className="grid lg:grid-cols-2 grid-cols-1 ">
+        {/* Form Section */}
+        <div>
+          {/* Header */}
+          <div className="w-full p-4 border-b border-[#D9D9D9] rounded-tl-[20px] bg-white">
+            <h4 className="text-[18px] md:text-[22px] text-[#111111] font-bold text-center">
+              New Journey
+            </h4>
+            <p className="text-[10px] text-[#706F6F] text-center">
+              Share your travel experience with the world
+            </p>
+          </div>
 
-        {/* Form Content */}
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            handleSubmit();
-          }}
-          className="p-1"
-        >
-          <div
-            className="flex flex-col gap-2 max-h-[500px] overflow-y-auto px-6 py-2 
+          {/* Form Content */}
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleSubmit();
+            }}
+            className="p-1"
+          >
+            <div
+              className="flex flex-col gap-2 max-h-[500px] overflow-y-auto px-6 py-2 
            [&::-webkit-scrollbar]:w-1
            [&::-webkit-scrollbar-track]:bg-[#1063E0]
            [&::-webkit-scrollbar-thumb]:bg-[#D9D9D9] 
            dark:[&::-webkit-scrollbar-track]:bg-[#D9D9D9]
            dark:[&::-webkit-scrollbar-thumb]:bg-[#1063E0]"
-          >
-            {/* Title Input */}
-            <GlobalTextInput
-              label="Title"
-              value={journeyForm.form.watch("title")}
-              onChange={handleTitleChange}
-              error={journeyForm.errors.title}
-              placeholder=" "
-            />
-
-            {/* Location Selectors */}
-            <div className="grid grid-cols-2 gap-2">
-              <LocationSelector
-                label="Start Location"
-                value={journeyForm.startLocation.name}
-                onChange={handleStartLocationChange}
-                onSelect={handleStartLocationSelect}
-                onLocationSelect={(coords, name) => {
-                  journeyForm.setStartLocation({ coords, name });
-                  journeyForm.flyToOnMap(coords[0], coords[1]);
-                  journeyForm.clearFieldError("startLocation");
-                }}
-                onSearch={startLocationAutocomplete.fetchSuggestions}
-                suggestions={startLocationAutocomplete.suggestions}
-                error={journeyForm.errors.startLocation}
+            >
+              {/* Title Input */}
+              <GlobalTextInput
+                label="Title"
+                value={journeyForm.form.watch("title")}
+                onChange={handleTitleChange}
+                error={journeyForm.errors.title}
                 placeholder=" "
               />
 
-              <LocationSelector
-                label="End Location"
-                value={journeyForm.endLocation.name}
-                onChange={handleEndLocationChange}
-                onSelect={handleEndLocationSelect}
-                onLocationSelect={(coords, name) => {
-                  journeyForm.setEndLocation({ coords, name });
-                  journeyForm.flyToOnMap(coords[0], coords[1]);
-                  journeyForm.clearFieldError("endLocation");
-                }}
-                onSearch={endLocationAutocomplete.fetchSuggestions}
-                suggestions={endLocationAutocomplete.suggestions}
-                error={journeyForm.errors.endLocation}
+              {/* Location Selectors */}
+              <div className="grid grid-cols-2 gap-2">
+                <LocationSelector
+                  label="Start Location"
+                  value={journeyForm.startLocation.name}
+                  onChange={handleStartLocationChange}
+                  onSelect={handleStartLocationSelect}
+                  onLocationSelect={(coords, name) => {
+                    journeyForm.setStartLocation({ coords, name });
+                    journeyForm.flyToOnMap(coords[0], coords[1]);
+                    journeyForm.clearFieldError("startLocation");
+                  }}
+                  onSearch={startLocationAutocomplete.fetchSuggestions}
+                  suggestions={startLocationAutocomplete.suggestions}
+                  error={journeyForm.errors.startLocation}
+                  placeholder=" "
+                />
+
+                <LocationSelector
+                  label="End Location"
+                  value={journeyForm.endLocation.name}
+                  onChange={handleEndLocationChange}
+                  onSelect={handleEndLocationSelect}
+                  onLocationSelect={(coords, name) => {
+                    journeyForm.setEndLocation({ coords, name });
+                    journeyForm.flyToOnMap(coords[0], coords[1]);
+                    journeyForm.clearFieldError("endLocation");
+                  }}
+                  onSearch={endLocationAutocomplete.fetchSuggestions}
+                  suggestions={endLocationAutocomplete.suggestions}
+                  error={journeyForm.errors.endLocation}
+                  placeholder=" "
+                />
+              </div>
+
+              {/* Date Range Selector */}
+              <DateRangeSelector
+                startDate={journeyForm.form.watch("startDate")}
+                endDate={journeyForm.form.watch("endDate")}
+                onStartDateChange={handleStartDateChange}
+                onEndDateChange={handleEndDateChange}
+                startDateError={journeyForm.errors.startDate}
+                endDateError={journeyForm.errors.endDate}
+              />
+
+              {/* Description */}
+              <GlobalTextArea
+                label="Description"
+                rows={3}
+                value={journeyForm.form.watch("description")}
+                onChange={handleDescriptionChange}
+                error={journeyForm.errors.description}
                 placeholder=" "
+              />
+
+              {/* Journey Steps */}
+              <StepsList
+                steps={journeyForm.steps}
+                onStepsChange={(newSteps) => {
+                  journeyForm.setSteps(newSteps);
+                }}
+                onStepFieldTouch={markStepFieldAsTouched}
+                canAddStep={!!journeyForm.canAddStep}
+                fetchStepSuggestions={journeyForm.fetchStepSuggestions}
+                stopCategories={journeyForm.stopCategories}
+                loadingCategories={journeyForm.loadingCategories}
+                stepErrors={journeyForm.stepErrors}
+                showAddButton={true}
+                previousSteps={[]}
+                showPreviousSteps={false}
+              />
+
+              {/* Tag Friends */}
+              <GlobalMultiSelect
+                label="Tag Friends"
+                value={journeyForm.form.watch("friends")}
+                onChange={(users) =>
+                  journeyForm.form.setValue("friends", users)
+                }
+                suggestions={userSuggestions}
+                onSearch={handleUserSearch}
+                loading={journeyForm.loadingUsers}
+                error={journeyForm.form.formState.errors.friends?.message}
+              />
+              <VisibilitySelector
+                value={journeyForm.visibility}
+                onChange={journeyForm.setVisibility}
               />
             </div>
 
-            {/* Date Range Selector */}
-            <DateRangeSelector
-              startDate={journeyForm.form.watch("startDate")}
-              endDate={journeyForm.form.watch("endDate")}
-              onStartDateChange={handleStartDateChange}
-              onEndDateChange={handleEndDateChange}
-              startDateError={journeyForm.errors.startDate}
-              endDateError={journeyForm.errors.endDate}
+            {/* Form Actions */}
+            <JourneyFormActions
+              onSubmit={handleSubmit}
+              isSubmitting={journeyForm.isSubmitting}
+              disabled={hasValidationErrors()}
             />
+          </form>
+        </div>
 
-            {/* Description */}
-            <GlobalTextArea
-              label="Description"
-              rows={3}
-              value={journeyForm.form.watch("description")}
-              onChange={handleDescriptionChange}
-              error={journeyForm.errors.description}
-              placeholder=" "
-            />
-
-            {/* Journey Steps */}
-            <StepsList
-              steps={journeyForm.steps}
-              onStepsChange={(newSteps) => {
-                journeyForm.setSteps(newSteps);
-              }}
-              onStepFieldTouch={markStepFieldAsTouched}
-              canAddStep={!!journeyForm.canAddStep}
-              fetchStepSuggestions={journeyForm.fetchStepSuggestions}
-              stopCategories={journeyForm.stopCategories}
-              loadingCategories={journeyForm.loadingCategories}
-              stepErrors={journeyForm.stepErrors}
-              showAddButton={true}
-              previousSteps={[]}
-              showPreviousSteps={false}
-            />
-
-            {/* Tag Friends */}
-            <GlobalMultiSelect
-              label="Tag Friends"
-              value={journeyForm.form.watch("friends")}
-              onChange={(users) => journeyForm.form.setValue("friends", users)}
-              suggestions={userSuggestions}
-              onSearch={handleUserSearch}
-              loading={journeyForm.loadingUsers}
-              error={journeyForm.form.formState.errors.friends?.message}
-            />
-            <VisibilitySelector
-              value={journeyForm.visibility}
-              onChange={journeyForm.setVisibility}
-            />
-          </div>
-
-          {/* Form Actions */}
-          <JourneyFormActions
-          
-            onSubmit={handleSubmit}
-            isSubmitting={journeyForm.isSubmitting}
-            disabled={hasValidationErrors()}
+        {/* Map Section */}
+        <div className="h-full w-full">
+          <JourneyMap
+            ref={journeyForm.mapRef}
+            startLocation={journeyForm.startLocation.coords}
+            endLocation={journeyForm.endLocation.coords}
+            steps={
+              journeyForm.steps
+                .map((s) => s.location.coords)
+                .filter(Boolean) as LatLng[]
+            }
+            onStartChange={handleStartChange}
+            onEndChange={handleEndChange}
+            onStepsChange={() => {}}
+            activeMapSelect={activeMapSelect}
+            setActiveMapSelect={setActiveMapSelect}
           />
-        </form>
-      </div>
-
-      {/* Map Section */}
-      <div className="h-full w-full">
-        <JourneyMap
-          ref={journeyForm.mapRef}
-          startLocation={journeyForm.startLocation.coords}
-          endLocation={journeyForm.endLocation.coords}
-          steps={
-            journeyForm.steps
-              .map((s) => s.location.coords)
-              .filter(Boolean) as LatLng[]
-          }
-          onStartChange={handleStartChange}
-          onEndChange={handleEndChange}
-          onStepsChange={() => {}}
-          activeMapSelect={activeMapSelect}
-          setActiveMapSelect={setActiveMapSelect}
-        />
+        </div>
       </div>
     </div>
   );

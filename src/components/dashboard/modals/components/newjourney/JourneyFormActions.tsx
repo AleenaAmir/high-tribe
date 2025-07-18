@@ -31,7 +31,7 @@ export default function JourneyFormActions({
 
   return (
     <div
-      className={`flex items-center justify-end w-full p-4 border-t border-[#D9D9D9] bg-white`}
+      className={`flex items-center justify-end w-full p-4 border-t border-[#D9D9D9] bg-white rounded-bl-[20px]`}
     >
       <button
         type="submit"

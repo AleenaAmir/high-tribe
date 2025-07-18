@@ -4,6 +4,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import GlobalInput from "@/components/global/GlobalInput";
 import GlobalAuthModal from "@/components/global/GlobalAuthModal";
+import Image from "next/image";
 
 interface SignUpModalScreenProps {
   isOpen: boolean;
@@ -87,11 +88,13 @@ const SignUpModalScreen = ({
     >
       <div className="flex flex-col items-center w-full max-w-md mx-auto p-0">
         <div className="flex flex-col items-center w-full">
-          <div className="text-2xl font-extrabold text-[#181818] mb-2 text-center leading-tight">
-            High
-            <br />
-            Tribe
-          </div>
+          <Image
+            src="/logo.svg"
+            alt="High Tribe"
+            width={130}
+            height={47}
+            className="h-11 w-auto"
+          />
           <div className="text-[22px] font-semibold text-[#181818] text-center mb-1">
             Create an Account
           </div>

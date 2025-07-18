@@ -12,6 +12,7 @@ import { toast } from "react-hot-toast";
 import { useState, useRef } from "react";
 
 import { GoogleOAuthProvider, GoogleLogin } from "@react-oauth/google";
+import Image from "next/image";
 
 interface LoginModalScreenProps {
   isOpen: boolean;
@@ -194,11 +195,13 @@ const LoginModalScreen = ({
       >
         <div className="flex flex-col items-center w-full max-w-md mx-auto p-0">
           <div className="flex flex-col items-center w-full">
-            <div className="text-2xl font-extrabold text-[#181818] mb-2 text-center leading-tight">
-              High
-              <br />
-              Tribe
-            </div>
+          <Image
+        src="/logo.svg"
+        alt="High Tribe"
+        width={130}
+        height={47}
+        className="h-11 w-auto"
+      />
             <div className="text-[22px] font-semibold text-[#181818] text-center mb-1">
               Explore the world to experience
               <br />

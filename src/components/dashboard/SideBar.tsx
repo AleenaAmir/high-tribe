@@ -86,10 +86,10 @@ const SideBar = ({ onItemClick }: SideBarProps) => {
     setUserName(localStorage.getItem("name"));
   }, []);
   return (
-    <>
+    <div className="flex flex-col space-y-4">
       <UserCard
         name={userName || "Umer Hussain"}
-        subtitle="Lorem Ipsum is simply dummy text of the printing and typesetting industry.."
+        subtitle="Lorem Ipsum is simply dummy text of the printing and typesetting industry.."
         avatarUrl="https://randomuser.me/api/portraits/men/32.jpg"
         // onClick={onItemClick}
       />
@@ -117,7 +117,7 @@ const SideBar = ({ onItemClick }: SideBarProps) => {
         height={212}
         className="rounded-xl max-w-[100%] object-contain mt-5"
       />
-    </>
+    </div>
   );
 };
 

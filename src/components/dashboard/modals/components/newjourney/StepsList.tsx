@@ -115,39 +115,6 @@ export default function StepsList({
 
   return (
     <div className="flex flex-col gap-4">
-      {/* Header with Add Button */}
-      <div className="flex items-center justify-between">
-        <span className="font-semibold text-[13px]">Journey Stops</span>
-        {showAddButton && (
-          <button
-            type="button"
-            className={`px-3 py-1 text-[12px] flex items-center gap-1 transition-colors ${
-              canAddStep
-                ? "text-black hover:text-blue-600"
-                : "text-gray-400 cursor-not-allowed"
-            }`}
-            onClick={handleAddStep}
-            disabled={!canAddStep}
-            title={
-              canAddStep
-                ? "Add a new stop"
-                : "Please set start and end locations first"
-            }
-          >
-            Add Stop
-            <span
-              className={`p-2 w-fit rounded-full text-[15px] flex items-center justify-center transition-colors ${
-                canAddStep
-                  ? "bg-blue-500 text-white hover:bg-blue-600"
-                  : "bg-gray-300 text-gray-500"
-              }`}
-            >
-              {PlusIcon}
-            </span>
-          </button>
-        )}
-      </div>
-
       {/* Previous Steps Section */}
       {showPreviousSteps && previousSteps.length > 0 && (
         <div className=" border-[#E9E5E5] border rounded-[7px] bg-white">
@@ -228,7 +195,7 @@ export default function StepsList({
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
                           <h6 className="text-[13px] font-semibold text-gray-700 mb-1">
-                            {step.name}
+                            Stop {index + 1}
                           </h6>
                           <p className="text-[11px] text-gray-500">
                             {step.location.name}
@@ -280,6 +247,39 @@ export default function StepsList({
           )}
         </div>
       )}
+
+      {/* Header with Add Button */}
+      <div className="flex items-center justify-between">
+        <span className="font-semibold text-[13px]">Journey Stops</span>
+        {showAddButton && (
+          <button
+            type="button"
+            className={`px-3 py-1 text-[12px] flex items-center gap-1 transition-colors ${
+              canAddStep
+                ? "text-black hover:text-blue-600"
+                : "text-gray-400 cursor-not-allowed"
+            }`}
+            onClick={handleAddStep}
+            disabled={!canAddStep}
+            title={
+              canAddStep
+                ? "Add a new stop"
+                : "Please set start and end locations first"
+            }
+          >
+            Add Stop
+            <span
+              className={`p-2 w-fit rounded-full text-[15px] flex items-center justify-center transition-colors ${
+                canAddStep
+                  ? "bg-blue-500 text-white hover:bg-blue-600"
+                  : "bg-gray-300 text-gray-500"
+              }`}
+            >
+              {PlusIcon}
+            </span>
+          </button>
+        )}
+      </div>
 
       {/* New Steps List */}
       <div className="flex flex-col gap-4">

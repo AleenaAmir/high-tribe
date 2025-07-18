@@ -573,7 +573,7 @@ const UserFeed = () => {
   }
 
   return (
-    <div>
+    <div className="">
       {posts?.map((post, index) => (
         <PostCard key={`${post.id}-${index}`} post={post} />
       ))}

@@ -205,7 +205,7 @@ export default function JourneyStep({
       {/* Collapsed Header View */}
       {!isOpen && (
         <div
-          className="flex items-center justify-between px-4 py-3 cursor-pointer bg-black text-white rounded-lg hover:bg-gray-800 transition-colors"
+          className="flex items-center justify-between px-4 py-3 cursor-pointer bg-black text-white rounded-lg hover:bg-gray-900 transition-colors"
           onClick={onToggleOpen}
         >
           {isEditing ? (
@@ -238,7 +238,7 @@ export default function JourneyStep({
           <div className="flex items-center gap-2">
             <button
               type="button"
-              className="cursor-pointer hover:opacity-75 transition-opacity"
+              className="cursor-pointer  shrink-0 hover:text-blue-500 transition-colors"
               onClick={(e) => {
                 e.stopPropagation();
                 setHeaderEdit(step.name || `Stop ${index + 1}`);
@@ -246,29 +246,29 @@ export default function JourneyStep({
               }}
               title="Edit step name"
             >
-              {EditIcon}
+              <EditIcon className="w-[14px] h-[14px] shrink-0 text-white hover:text-blue-500 transition-colors" />
             </button>
             <button
               type="button"
-              className="cursor-pointer hover:opacity-75 transition-opacity"
+              className="cursor-pointer  shrink-0 hover:text-red-400 transition-colors"
               onClick={(e) => {
                 e.stopPropagation();
                 onDelete();
               }}
               title="Delete step"
             >
-              {DeleteIcon}
+              <DeleteIcon className="w-[20px] h-[20px] shrink-0 text-white hover:text-red-400 transition-colors" />
             </button>
             <button
               type="button"
-              className="cursor-pointer hover:opacity-75 transition-opacity"
+              className="cursor-pointer "
               onClick={(e) => {
                 e.stopPropagation();
                 onToggleOpen();
               }}
               title="Expand"
             >
-              {ExpandIcon}
+              <ExpandIcon className="text-white shrink-0 hover:text-blue-400 transition-colors" />
             </button>
           </div>
         </div>
@@ -284,15 +284,15 @@ export default function JourneyStep({
             <div className="flex items-center gap-2">
               <button
                 type="button"
-                className="text-gray-400 hover:text-black text-lg transition-colors"
+                className="text-gray-400 hover:text-black text-lg transition-colors rotate-180"
                 onClick={onToggleOpen}
                 title="Close"
               >
-                −
+                <ExpandIcon className="text-black hover:text-blue-400 transition-colors shrink-0" />
               </button>
               <button
                 type="button"
-                className="text-gray-400 hover:text-black text-lg rotate-45 transition-colors"
+                className="hover:text-red-400 text-black text-2xl rotate-45 transition-colors"
                 onClick={onDelete}
                 title="Delete step"
               >

@@ -44,32 +44,39 @@ const DashboardContent = () => {
   const [tipModal, setTipModal] = useState<boolean>(false);
 
   return (
-    <div className="p-6 grid grid-cols-1 lg:grid-cols-4 gap-6">
-      {/* Center Content */}
-      <div className="lg:col-span-3 flex flex-col gap-6">
-        <StoriesBar />
-        <PostFootPrint
-          setJournyMap={setJournyMap}
-          setFootprintModal={setFootprintModal}
-          setAdvisoryModal={setAdvisoryModal}
-          setTipModal={setTipModal}
-        />
-        {/* <MapDashboard /> */}
-        <ReadyToHost />
-        <UserFeed />
-      </div>
-
-      {/* Right Sidebar */}
-      <div className="hidden lg:block lg:col-span-1">
-        <div className="flex flex-col gap-6">
-          <GroupsCard />
-          <FindPeopleCard />
-          <YourGroups />
-          <EventsCard />
-          <NearbyPeopleGrid />
-          <ContactsList />
+    <div className="h-full flex">
+      {/* Center Content - Independent Scroll */}
+      <div className="flex-1 lg:flex-[3] overflow-y-auto scrollbar-hide">
+        <div className="p-6">
+          <div className="max-w-[780px] mx-auto flex flex-col gap-6">
+            <StoriesBar />
+            <PostFootPrint
+              setJournyMap={setJournyMap}
+              setFootprintModal={setFootprintModal}
+              setAdvisoryModal={setAdvisoryModal}
+              setTipModal={setTipModal}
+            />
+            {/* <MapDashboard /> */}
+            <ReadyToHost />
+            <UserFeed />
+          </div>
         </div>
       </div>
+
+      {/* Right Sidebar - Independent Scroll */}
+      <div className="hidden lg:block lg:flex-1 overflow-y-auto scrollbar-hide">
+        <div className="p-6">
+          <div className="flex flex-col gap-6">
+            <GroupsCard />
+            <FindPeopleCard />
+            <YourGroups />
+            <EventsCard />
+            <NearbyPeopleGrid />
+            <ContactsList />
+          </div>
+        </div>
+      </div>
+
       <MainJourney journyMap={journyMap} setJournyMap={setJournyMap} />
       <MainFootprint
         footprintModal={footprintModal}

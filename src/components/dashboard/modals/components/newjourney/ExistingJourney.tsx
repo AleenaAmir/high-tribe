@@ -588,212 +588,215 @@ export default function ExistingJourneyComponent({
   }, [allSteps]);
 
   return (
-    <div className="grid lg:grid-cols-2 grid-cols-1">
-      {/* Form Section */}
-      <div>
-        {/* Header */}
-        <div className="w-full p-4 border-b border-[#D9D9D9] rounded-tl-[20px] bg-white">
-          <h4 className="text-[18px] md:text-[22px] text-[#111111] font-bold text-center">
-            My Journey
-          </h4>
-          <p className="text-[10px] text-[#706F6F] text-center">
-            Share your travel experience with the world
-          </p>
-        </div>
+    <div
+      className="max-h-[90vh]  h-full  overflow-y-auto
+  [&::-webkit-scrollbar]:w-1
+         [&::-webkit-scrollbar-track]:bg-[#1063E0]
+         [&::-webkit-scrollbar-thumb]:bg-[#D9D9D9] 
+         dark:[&::-webkit-scrollbar-track]:bg-[#D9D9D9]
+         dark:[&::-webkit-scrollbar-thumb]:bg-[#1063E0]
+  "
+    >
+      <div className="grid lg:grid-cols-2 grid-cols-1">
+        {/* Form Section */}
+        <div>
+          {/* Header */}
+          <div className="w-full p-4 border-b border-[#D9D9D9] rounded-tl-[20px] bg-white">
+            <h4 className="text-[18px] md:text-[22px] text-[#111111] font-bold text-center">
+              My Journey
+            </h4>
+            <p className="text-[10px] text-[#706F6F] text-center">
+              Share your travel experience with the world
+            </p>
+          </div>
 
-        {/* Form Content */}
-        <form className="p-1">
-          <div
-            className="flex flex-col gap-2 max-h-[500px] lg:min-h-[500px] h-full overflow-y-auto px-6 py-2 
+          {/* Form Content */}
+          <form className="p-1">
+            <div
+              className="flex flex-col gap-2 max-h-[500px] lg:min-h-[500px] h-full overflow-y-auto px-6 py-2 
            [&::-webkit-scrollbar]:w-1
            [&::-webkit-scrollbar-track]:bg-[#1063E0]
            [&::-webkit-scrollbar-thumb]:bg-[#D9D9D9] 
            dark:[&::-webkit-scrollbar-track]:bg-[#D9D9D9]
            dark:[&::-webkit-scrollbar-thumb]:bg-[#1063E0]"
-          >
-            {/* Journey Selection Dropdown */}
-            <div className="relative">
-              <GlobalSelect
-                label="Select your journey"
-                value={selectedJourneyId || ""}
-                onChange={(e) => handleJourneySelect(e.target.value)}
-              >
-                <option value="" disabled>
-                  {loadingJourneysList
-                    ? "Loading journeys..."
-                    : journeysList.length === 0
-                    ? "No journeys found"
-                    : "Select your journey"}
-                </option>
-                {journeyOptions.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
+            >
+              {/* Journey Selection Dropdown */}
+              <div className="relative">
+                <GlobalSelect
+                  label="Select your journey"
+                  value={selectedJourneyId || ""}
+                  onChange={(e) => handleJourneySelect(e.target.value)}
+                >
+                  <option value="" disabled>
+                    {loadingJourneysList
+                      ? "Loading journeys..."
+                      : journeysList.length === 0
+                      ? "No journeys found"
+                      : "Select your journey"}
                   </option>
-                ))}
-              </GlobalSelect>
-            </div>
+                  {journeyOptions.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </GlobalSelect>
+              </div>
 
-            {/* Loading indicator for selected journey */}
-            {loadingSelectedJourney && (
-              <div className="mb-4 flex items-center justify-center py-8">
-                <div className="flex items-center gap-2">
-                  <div className="w-5 h-5 border-2 border-blue-300 border-t-blue-600 rounded-full animate-spin"></div>
-                  <span className="text-gray-600">
-                    Loading journey details...
-                  </span>
+              {/* Loading indicator for selected journey */}
+              {loadingSelectedJourney && (
+                <div className="mb-4 flex items-center justify-center py-8">
+                  <div className="flex items-center gap-2">
+                    <div className="w-5 h-5 border-2 border-blue-300 border-t-blue-600 rounded-full animate-spin"></div>
+                    <span className="text-gray-600">
+                      Loading journey details...
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              {/* Journey Details */}
+              {/* Integrated Steps Section - Always Visible */}
+              <div
+                className={`mb-4 ${
+                  !selectedJourney || loadingSelectedJourney
+                    ? "opacity-50 pointer-events-none"
+                    : ""
+                }`}
+              >
+                <div className="border-t border-gray-200 pt-4">
+                  <StepsList
+                    steps={newSteps}
+                    onStepsChange={setNewSteps}
+                    canAddStep={!!selectedJourney && !loadingSelectedJourney}
+                    fetchStepSuggestions={fetchStepSuggestions}
+                    stopCategories={journeyForm.stopCategories}
+                    loadingCategories={journeyForm.loadingCategories}
+                    stepErrors={{}}
+                    showAddButton={true}
+                    previousSteps={
+                      Array.isArray(selectedJourney?.steps)
+                        ? selectedJourney.steps
+                        : []
+                    }
+                    showPreviousSteps={!!selectedJourney}
+                    userData={selectedJourney?.userData}
+                    journeyData={
+                      selectedJourney
+                        ? {
+                            title: selectedJourney.title,
+                            startLocation: selectedJourney.startLocation,
+                            endLocation: selectedJourney.endLocation,
+                            startDate: selectedJourney.startDate,
+                            endDate: selectedJourney.endDate,
+                          }
+                        : undefined
+                    }
+                  />
                 </div>
               </div>
-            )}
 
-            {/* Journey Details */}
-            {/* Integrated Steps Section - Always Visible */}
-            <div
-              className={`mb-4 ${
-                !selectedJourney || loadingSelectedJourney
-                  ? "opacity-50 pointer-events-none"
-                  : ""
-              }`}
-            >
-              <div className="border-t border-gray-200 pt-4">
-                <StepsList
-                  steps={newSteps}
-                  onStepsChange={setNewSteps}
-                  canAddStep={!!selectedJourney && !loadingSelectedJourney}
-                  fetchStepSuggestions={fetchStepSuggestions}
-                  stopCategories={journeyForm.stopCategories}
-                  loadingCategories={journeyForm.loadingCategories}
-                  stepErrors={{}}
-                  showAddButton={true}
-                  previousSteps={
-                    Array.isArray(selectedJourney?.steps)
-                      ? selectedJourney.steps
-                      : []
-                  }
-                  showPreviousSteps={!!selectedJourney}
-                  userData={selectedJourney?.userData}
-                  journeyData={
-                    selectedJourney
-                      ? {
-                          title: selectedJourney.title,
-                          startLocation: selectedJourney.startLocation,
-                          endLocation: selectedJourney.endLocation,
-                          startDate: selectedJourney.startDate,
-                          endDate: selectedJourney.endDate,
-                        }
-                      : undefined
-                  }
+              {/* Tagged Friends Section */}
+              <div
+                className={`mb-4 ${
+                  !selectedJourney || loadingSelectedJourney
+                    ? "opacity-50 pointer-events-none"
+                    : ""
+                }`}
+              >
+                <GlobalMultiSelect
+                  label="Tag Friends"
+                  value={taggedFriends}
+                  onChange={setTaggedFriends}
+                  placeholder=" "
+                  suggestions={filteredUsers}
+                  onSearch={handleFriendSearch}
+                  loading={journeyForm.loadingUsers}
+                  maxSelections={10}
                 />
-                {/* Debug categories */}
-                {process.env.NODE_ENV === "development" && (
-                  <div className="text-xs text-gray-500 mt-2">
-                    Categories loaded: {journeyForm.stopCategories.length}
-                    (Loading: {journeyForm.loadingCategories ? "Yes" : "No"})
-                  </div>
-                )}
+              </div>
+
+              <VisibilitySelector value={visibility} onChange={setVisibility} />
+
+              {/* Privacy controlled by existing VisibilitySelector in form actions */}
+            </div>
+
+            {/* Form Actions */}
+            <div className="flex items-center justify-end p-4 border-t border-[#D9D9D9] bg-white">
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleEndAndPublish}
+                  disabled={
+                    !selectedJourney || isSubmitting || loadingSelectedJourney
+                  }
+                  className={`ml-4 px-6 py-2 text-[12px] text-white rounded-lg border font-semibold transition-all ${
+                    !selectedJourney || isSubmitting || loadingSelectedJourney
+                      ? "border-gray-300 text-gray-400 bg-gray-100 cursor-not-allowed"
+                      : "border-blue-600 text-black bg-white bg-gradient-to-r from-[#257CFF] to-[#1063E0] cursor-pointer"
+                  }`}
+                >
+                  {isEndAndPublish ? (
+                    <div className="flex items-center gap-2">
+                      <div className="w-4 h-4 border-2 border-gray-300 border-t-blue-600 rounded-full animate-spin"></div>
+                      Publishing...
+                    </div>
+                  ) : (
+                    "End & Publish"
+                  )}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleUpdateAndPublish}
+                  disabled={
+                    !selectedJourney || isSubmitting || loadingSelectedJourney
+                  }
+                  className={`ml-4 px-6 py-2 text-[12px] rounded-lg border font-semibold transition-all ${
+                    !selectedJourney || isSubmitting || loadingSelectedJourney
+                      ? "border-gray-300 text-gray-400 bg-gray-100 cursor-not-allowed"
+                      : "border-blue-600 text-black bg-white hover:bg-blue-50 cursor-pointer"
+                  }`}
+                >
+                  {isSubmitting ? (
+                    <div className="flex items-center gap-2">
+                      <div className="w-4 h-4 border-2 border-gray-300 border-t-blue-600 rounded-full animate-spin"></div>
+                      Updating...
+                    </div>
+                  ) : (
+                    "Update & publish"
+                  )}
+                </button>
               </div>
             </div>
+          </form>
+        </div>
 
-            {/* Tagged Friends Section */}
-            <div
-              className={`mb-4 ${
-                !selectedJourney || loadingSelectedJourney
-                  ? "opacity-50 pointer-events-none"
-                  : ""
-              }`}
-            >
-              <GlobalMultiSelect
-                label="Tag Friends"
-                value={taggedFriends}
-                onChange={setTaggedFriends}
-                placeholder=" "
-                suggestions={filteredUsers}
-                onSearch={handleFriendSearch}
-                loading={journeyForm.loadingUsers}
-                maxSelections={10}
-              />
-            </div>
-
-            <VisibilitySelector value={visibility} onChange={setVisibility} />
-
-            {/* Privacy controlled by existing VisibilitySelector in form actions */}
-          </div>
-
-          {/* Form Actions */}
-          <div className="flex items-center justify-end p-4 border-t border-[#D9D9D9] bg-white">
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={handleEndAndPublish}
-                disabled={
-                  !selectedJourney || isSubmitting || loadingSelectedJourney
-                }
-                className={`ml-4 px-6 py-2 text-[12px] text-white rounded-lg border font-semibold transition-all ${
-                  !selectedJourney || isSubmitting || loadingSelectedJourney
-                    ? "border-gray-300 text-gray-400 bg-gray-100 cursor-not-allowed"
-                    : "border-blue-600 text-black bg-white bg-gradient-to-r from-[#257CFF] to-[#1063E0] cursor-pointer"
-                }`}
-              >
-                {isEndAndPublish ? (
-                  <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 border-2 border-gray-300 border-t-blue-600 rounded-full animate-spin"></div>
-                    Publishing...
-                  </div>
-                ) : (
-                  "End & Publish"
-                )}
-              </button>
-              <button
-                type="button"
-                onClick={handleUpdateAndPublish}
-                disabled={
-                  !selectedJourney || isSubmitting || loadingSelectedJourney
-                }
-                className={`ml-4 px-6 py-2 text-[12px] rounded-lg border font-semibold transition-all ${
-                  !selectedJourney || isSubmitting || loadingSelectedJourney
-                    ? "border-gray-300 text-gray-400 bg-gray-100 cursor-not-allowed"
-                    : "border-blue-600 text-black bg-white hover:bg-blue-50 cursor-pointer"
-                }`}
-              >
-                {isSubmitting ? (
-                  <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 border-2 border-gray-300 border-t-blue-600 rounded-full animate-spin"></div>
-                    Updating...
-                  </div>
-                ) : (
-                  "Update & publish"
-                )}
-              </button>
-            </div>
-          </div>
-        </form>
-      </div>
-
-      {/* Map Section - Always Visible */}
-      <div className="h-full w-full relative">
-        {/* Map Component - Always Rendered */}
-        <JourneyMap
-          ref={journeyForm.mapRef}
-          startLocation={
-            selectedJourney?.startLocation?.coords &&
-            Array.isArray(selectedJourney.startLocation.coords) &&
-            selectedJourney.startLocation.coords.length >= 2
-              ? selectedJourney.startLocation.coords
-              : null
-          }
-          endLocation={
-            selectedJourney?.endLocation?.coords &&
-            Array.isArray(selectedJourney.endLocation.coords) &&
-            selectedJourney.endLocation.coords.length >= 2
-              ? selectedJourney.endLocation.coords
-              : null
-          }
-          steps={selectedJourney ? allStepCoordinates : []}
-          onStartChange={() => {}} // Disable editing existing locations
-          onEndChange={() => {}} // Disable editing existing locations
-          onStepsChange={() => {}} // Disable bulk step changes
-          activeMapSelect="start" // Map stays non-interactive
-          setActiveMapSelect={() => {}} // Disable map selection mode changes
-        />
+        {/* Map Section - Always Visible */}
+        <div className="h-full w-full relative">
+          {/* Map Component - Always Rendered */}
+          <JourneyMap
+            ref={journeyForm.mapRef}
+            startLocation={
+              selectedJourney?.startLocation?.coords &&
+              Array.isArray(selectedJourney.startLocation.coords) &&
+              selectedJourney.startLocation.coords.length >= 2
+                ? selectedJourney.startLocation.coords
+                : null
+            }
+            endLocation={
+              selectedJourney?.endLocation?.coords &&
+              Array.isArray(selectedJourney.endLocation.coords) &&
+              selectedJourney.endLocation.coords.length >= 2
+                ? selectedJourney.endLocation.coords
+                : null
+            }
+            steps={selectedJourney ? allStepCoordinates : []}
+            onStartChange={() => {}} // Disable editing existing locations
+            onEndChange={() => {}} // Disable editing existing locations
+            onStepsChange={() => {}} // Disable bulk step changes
+            activeMapSelect="start" // Map stays non-interactive
+            setActiveMapSelect={() => {}} // Disable map selection mode changes
+          />
+        </div>
       </div>
     </div>
   );

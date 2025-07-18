@@ -11,11 +11,14 @@ export default function DashboardLayout({
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   return (
-    <div className="relative min-h-screen flex flex-col">
-      <div className="h-fit sticky top-0 z-50 bg-white">
+    <div className="relative h-screen flex flex-col">
+      {/* Fixed Header */}
+      <div className="h-fit sticky top-0 z-50 bg-white flex-shrink-0">
         <NavBar onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)} />
       </div>
-      <div className="flex-1 flex overflow-hidden">
+
+      {/* Main Container with fixed height */}
+      <div className="flex-1 flex overflow-hidden h-[calc(100vh-80px)]">
         {/* Mobile/Tablet Sidebar Overlay */}
         {isSidebarOpen && (
           <div
@@ -24,7 +27,7 @@ export default function DashboardLayout({
           />
         )}
 
-        {/* Left Sidebar */}
+        {/* Left Sidebar - Independent Scroll */}
         <aside
           className={`
             fixed lg:relative inset-y-0 left-0 lg:z-40 z-50
@@ -32,7 +35,7 @@ export default function DashboardLayout({
             bg-white flex flex-col
             transform transition-transform duration-300 ease-in-out
             lg:transform-none
-            overflow-y-auto
+            h-full
             ${
               isSidebarOpen
                 ? "translate-x-0"
@@ -40,13 +43,13 @@ export default function DashboardLayout({
             }
           `}
         >
-          <div className="flex-1 flex flex-col space-y-4 p-4">
+          <div className="flex-1 flex flex-col p-4 pt-6 overflow-y-auto scrollbar-hide">
             <SideBar onItemClick={() => setIsSidebarOpen(false)} />
           </div>
         </aside>
 
-        {/* Main Content */}
-        <main className="flex-1 overflow-y-auto bg-[#f9f9f9]">{children}</main>
+        {/* Main Content Area - Independent Scroll */}
+        <main className="flex-1 overflow-hidden bg-[#f9f9f9]">{children}</main>
       </div>
     </div>
   );
