@@ -21,6 +21,7 @@ const ProfileDropdown = ({
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
+        isOpen &&
         profileRef.current &&
         !profileRef.current.contains(event.target as Node)
       ) {
@@ -32,7 +33,7 @@ const ProfileDropdown = ({
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [onToggle]);
+  }, [isOpen, onToggle]);
 
   const handleLogout = async () => {
     try {
