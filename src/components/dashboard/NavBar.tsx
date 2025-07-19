@@ -2,7 +2,7 @@
 import Image from "next/image";
 import React, { useState, useEffect, useRef } from "react";
 import NavMenu from "./leftside/NavMenu";
-import { apiRequest, removeTokenCookie } from "@/lib/api";
+import ProfileDropdown from "@/components/global/ProfileDropdown";
 import { useRouter } from "next/navigation";
 import { toast } from "react-hot-toast";
 
@@ -14,24 +14,20 @@ const NavBar = ({ onMenuClick }: NavBarProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
-  const profileRef = useRef<HTMLDivElement>(null);
   const [userName, setUserName] = useState<string | null>(null);
+  const [isHost, setIsHost] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
     setUserName(localStorage.getItem("name"));
+    const storedIsHost = localStorage.getItem("isHost");
+    setIsHost(storedIsHost === "true");
   }, []);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
         setIsMenuOpen(false);
-      }
-      if (
-        profileRef.current &&
-        !profileRef.current.contains(event.target as Node)
-      ) {
-        setIsProfileOpen(false);
       }
     };
 
@@ -41,25 +37,25 @@ const NavBar = ({ onMenuClick }: NavBarProps) => {
     };
   }, []);
 
-  const handleLogout = async () => {
-    try {
-      await apiRequest("logout", { method: "POST" });
-      localStorage.removeItem("token");
-      localStorage.removeItem("name");
-      removeTokenCookie();
-      toast.success("Logged out successfully!");
-      router.push("/");
-    } catch (error) {
-      toast.error("Logout failed. Please try again.");
-      console.error("Logout error:", error);
+  const handleHostToggle = () => {
+    const newIsHost = !isHost;
+    setIsHost(newIsHost);
+    localStorage.setItem("isHost", newIsHost.toString());
+
+    if (newIsHost) {
+      toast.success("Switched to Hosting mode!");
+      router.push("/host");
+    } else {
+      toast.success("Switched to User mode!");
+      router.push("/dashboard");
     }
   };
 
   return (
     <div className="sticky top-0 lg:z-50 z-40 bg-white ">
-      <div className="flex items-center justify-between px-4 py-2 max-w-[1920px] mx-auto">
+      <div className="flex items-center justify-between   max-w-[1920px] mx-auto">
         {/* Left Section - Logo and Mobile Menu */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 py-2 px-4">
           <button
             onClick={onMenuClick}
             className="lg:hidden p-2 hover:bg-gray-100 rounded-lg"
@@ -89,7 +85,7 @@ const NavBar = ({ onMenuClick }: NavBarProps) => {
         </div>
 
         {/* Center Section - Search */}
-        <div className="hidden lg:flex flex-1 justify-center max-w-3xl mx-4">
+        <div className="hidden lg:flex flex-1 justify-center max-w-3xl mx-4 py-2">
           <div className="relative w-[360px]">
             <div className="absolute inset-y-0 gap-1 left-3 flex items-center pointer-events-none">
               <svg
@@ -118,7 +114,7 @@ const NavBar = ({ onMenuClick }: NavBarProps) => {
         {/* Right Section - Navigation Icons & Profile */}
         <div className="flex items-center gap-4">
           {/* Navigation Icons */}
-          <nav className="hidden md:flex items-center gap-6">
+          <nav className="hidden md:flex items-center gap-6 py-2">
             <NavIcon icon="/dashboard/navsvg1.svg" label="Home" isActive />
             <NavIcon
               icon="/dashboard/navsvg3.svg"
@@ -131,7 +127,7 @@ const NavBar = ({ onMenuClick }: NavBarProps) => {
           </nav>
 
           {/* Mobile Menu Button */}
-          <div className="relative" ref={menuRef}>
+          <div className="relative py-2" ref={menuRef}>
             <button
               type="button"
               className="md:hidden relative p-2 hover:bg-gray-100 rounded-lg"
@@ -158,146 +154,27 @@ const NavBar = ({ onMenuClick }: NavBarProps) => {
           </div>
 
           {/* Profile Button */}
-          <div className="relative" ref={profileRef}>
-            <button
-              onClick={() => setIsProfileOpen(!isProfileOpen)}
-              type="button"
-              className="flex items-center gap-2 p-1.5 hover:bg-gray-100 rounded-full"
-            >
-              <img
-                src="https://randomuser.me/api/portraits/men/32.jpg"
-                alt="Profile"
-                className="w-8 h-8 rounded-full object-cover"
-              />
-              <span className="hidden md:block text-sm font-medium">
-                {userName?.split(" ")[0]}
-              </span>
-              <svg
-                className="w-4 h-4 text-gray-600"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M19 9l-7 7-7-7"
-                />
-              </svg>
-            </button>
-
-            {/* Profile Dropdown Menu */}
-            {isProfileOpen && (
-              <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-100 py-1 z-50">
-                <button
-                  onClick={() => {
-                    setIsProfileOpen(false);
-                    // Navigate to profile page
-                  }}
-                  className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
-                >
-                  <svg
-                    className="w-4 h-4"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                    />
-                  </svg>
-                  My Profile
-                </button>
-                <button
-                  onClick={() => {
-                    setIsProfileOpen(false);
-                    // Navigate to settings page
-                  }}
-                  className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
-                >
-                  <svg
-                    className="w-4 h-4"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
-                    />
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                    />
-                  </svg>
-                  Settings
-                </button>
-                <button
-                  onClick={() => {
-                    setIsProfileOpen(false);
-                    // Navigate to help page
-                  }}
-                  className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
-                >
-                  <svg
-                    className="w-4 h-4"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                    />
-                  </svg>
-                  Help & Support
-                </button>
-                <div className="border-t border-gray-100  pt-1S">
-                  <button
-                    className="w-full cursor-pointer px-4 py-2 text-left text-sm text-red-600 hover:bg-gray-50 flex items-center gap-2"
-                    onClick={handleLogout}
-                  >
-                    <svg
-                      className="w-4 h-4"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
-                      />
-                    </svg>
-                    Logout
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
+          <ProfileDropdown
+            userName={userName}
+            isOpen={isProfileOpen}
+            onToggle={() => setIsProfileOpen(!isProfileOpen)}
+          />
 
           {/* Switch to Hosting Toggle */}
-          <div className="hidden md:flex flex-col items-center gap-1">
-            <label className="relative h-6 w-12">
-              <input
-                type="checkbox"
-                className="custom_switch peer absolute z-10 h-full w-full cursor-pointer opacity-0"
-                id="custom_switch_checkbox1"
-              />
-              <span className="block h-full rounded-full bg-[#ebedf2] before:absolute before:bottom-1 before:left-1 before:h-4 before:w-4 before:rounded-full before:bg-white before:transition-all before:duration-300 peer-checked:bg-[#F28321] peer-checked:before:left-7 dark:bg-dark dark:before:bg-white-dark dark:peer-checked:before:bg-white"></span>
-            </label>
-            <p className="text-[8px] text-[#3E3E3E]">Switch to Hosting</p>
+          <div className="bg-[#F9F9F9] py-2 px-4 -mb-1">
+            <div className="hidden md:flex flex-col items-center gap-1">
+              <label className="relative h-6 w-12">
+                <input
+                  type="checkbox"
+                  checked={isHost}
+                  onChange={handleHostToggle}
+                  className="custom_switch peer absolute z-10 h-full w-full cursor-pointer opacity-0"
+                  id="custom_switch_checkbox1"
+                />
+                <span className="block h-full rounded-full bg-[#ebedf2] before:absolute before:bottom-1 before:left-1 before:h-4 before:w-4 before:rounded-full before:bg-white before:transition-all before:duration-300 peer-checked:bg-[#F28321] peer-checked:before:left-7 dark:bg-dark dark:before:bg-white-dark dark:peer-checked:before:bg-white"></span>
+              </label>
+              <p className="text-[8px] text-[#3E3E3E]">Switch to Hosting</p>
+            </div>
           </div>
         </div>
       </div>

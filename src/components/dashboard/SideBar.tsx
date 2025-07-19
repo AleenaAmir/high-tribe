@@ -8,6 +8,8 @@ import Intarctions from "./leftside/Intarctions";
 import Events from "./leftside/Events";
 import Achivments from "./leftside/Achivments";
 import Badges from "./leftside/Badges";
+import { useRouter } from "next/navigation";
+import { toast } from "react-hot-toast";
 
 const mockFriends = [
   {
@@ -81,10 +83,29 @@ interface SideBarProps {
 
 const SideBar = ({ onItemClick }: SideBarProps) => {
   const [userName, setUserName] = useState<string | null>(null);
+  const [isHost, setIsHost] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     setUserName(localStorage.getItem("name"));
+    const storedIsHost = localStorage.getItem("isHost");
+    setIsHost(storedIsHost === "true");
   }, []);
+
+  const handleHostToggle = () => {
+    const newIsHost = !isHost;
+    setIsHost(newIsHost);
+    localStorage.setItem("isHost", newIsHost.toString());
+
+    if (newIsHost) {
+      toast.success("Switched to Hosting mode!");
+      router.push("/host");
+    } else {
+      toast.success("Switched to User mode!");
+      router.push("/dashboard");
+    }
+  };
+
   return (
     <div className="flex flex-col space-y-4">
       <UserCard
@@ -99,6 +120,8 @@ const SideBar = ({ onItemClick }: SideBarProps) => {
         <label className="relative h-6 w-12">
           <input
             type="checkbox"
+            checked={isHost}
+            onChange={handleHostToggle}
             className="custom_switch peer absolute z-10 h-full w-full cursor-pointer opacity-0"
             id="custom_switch_checkbox1"
           />
