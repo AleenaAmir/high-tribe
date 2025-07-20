@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import React from "react";
 
 export default function LandingHero() {
@@ -22,7 +23,7 @@ export default function LandingHero() {
     </svg>
   );
   return (
-    <div className="lg:min-h-[calc(100vh-80px)]">
+    <div className="">
       <div className="max-w-[1440px] mx-auto p-3 md:p-6 lg:p-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-8 justify-center lg:justify-between items-center h-full">
           <div>
@@ -45,16 +46,16 @@ export default function LandingHero() {
               <div className="flex items-center justify-center lg:justify-start gap-4 mt-4 md:mt-8">
                 <button
                   type="button"
-                  className="text-white bg-[#3C83F6] py-2 px-5 rounded-lg text-[10px] md:text-[12px] "
+                  className="text-white bg-[#3C83F6] py-2 px-5 rounded-lg text-[10px] md:text-[12px] cursor-pointer hover:shadow-md "
                 >
                   Become a Local Host
                 </button>
-                <button
-                  type="button"
-                  className="text-[#3E3E3E] bg-white border border-[#3C83F6] py-2 px-5 rounded-lg text-[10px] md:text-[12px] "
+                <Link
+                  href="/host/home"
+                  className="text-[#3E3E3E] bg-white border border-[#3C83F6] py-2 px-5 rounded-lg text-[10px] md:text-[12px] cursor-pointer hover:shadow-md "
                 >
                   Add New Property
-                </button>
+                </Link>
               </div>
             </div>
           </div>

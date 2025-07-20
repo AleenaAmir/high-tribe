@@ -1,22 +1,20 @@
-"use client";
 import NavBar from "@/components/host/NavBar";
-import React, { useState } from "react";
+import React from "react";
 
 export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-
   return (
-    <div className="">
-      {/* Fixed Header */}
-      <div className="h-fit sticky top-0 z-50 bg-white flex-shrink-0">
+    <div className="min-h-screen flex flex-col">
+      {/* Sticky Header */}
+      <div className="sticky top-0 z-50 bg-white flex-shrink-0">
         <NavBar />
       </div>
 
-      <main className="bg-white">{children}</main>
+      {/* Main Content Area */}
+      <div className="flex-1">{children}</div>
     </div>
   );
 }
