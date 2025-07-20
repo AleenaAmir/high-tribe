@@ -1,21 +1,31 @@
 'use client'
 
 import { useForm } from 'react-hook-form'
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import GlobalTextInput from '@/components/global/GlobalTextInput'
 import { apiRequest } from '@/lib/api'
 import Link from 'next/link'
 
+interface UserData {
+    name?: string;
+    email?: string;
+    phone?: string;
+    country?: string;
+    city?: string;
+}
 
 const registeruser = () => {
     const { register, handleSubmit, formState: { errors } } = useForm()
     const [selectedIdType, setSelectedIdType] = useState('passport')
     const [profilePicture, setProfilePicture] = useState<File | null>(null)
     const [idDocuments, setIdDocuments] = useState<File[]>([])
+    const [userData, setUserData] = useState<UserData | null>(null)
 
-    const user = localStorage.getItem('user')
-    const userData = user ? JSON.parse(user) : null
-
+    useEffect(() => {
+        const user = localStorage.getItem('user')
+        const parsedUser = user ? JSON.parse(user) : null
+        setUserData(parsedUser)
+    }, [])
 
     const onSubmit = async (data: any) => {
         debugger

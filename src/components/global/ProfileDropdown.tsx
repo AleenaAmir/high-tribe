@@ -38,9 +38,11 @@ const ProfileDropdown = ({
   const handleLogout = async () => {
     try {
       await apiRequest("logout", { method: "POST" });
-      localStorage.removeItem("token");
-      localStorage.removeItem("name");
-      localStorage.removeItem("isHost");
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem("token");
+        localStorage.removeItem("name");
+        localStorage.removeItem("isHost");
+      }
       removeTokenCookie();
       toast.success("Logged out successfully!");
       router.push("/");

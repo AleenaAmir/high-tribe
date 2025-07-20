@@ -12,15 +12,19 @@ const NavBar = () => {
   const router = useRouter();
 
   useEffect(() => {
-    setUserName(localStorage.getItem("name"));
-    const storedIsHost = localStorage.getItem("isHost");
-    setIsHost(storedIsHost === "true");
+    if (typeof window !== 'undefined') {
+      setUserName(localStorage.getItem("name"));
+      const storedIsHost = localStorage.getItem("isHost");
+      setIsHost(storedIsHost === "true");
+    }
   }, []);
 
   const handleHostToggle = () => {
     const newIsHost = !isHost;
     setIsHost(newIsHost);
-    localStorage.setItem("isHost", newIsHost.toString());
+    if (typeof window !== 'undefined') {
+      localStorage.setItem("isHost", newIsHost.toString());
+    }
 
     if (newIsHost) {
       toast.success("Switched to Hosting mode!");
@@ -89,9 +93,8 @@ const NavIcon = ({
   notificationCount?: number;
 }) => (
   <button
-    className={`relative flex group cursor-pointer flex-col items-center ${
-      isActive ? "text-blue-600" : "text-[#6C6C6C] hover:text-blue-600"
-    }`}
+    className={`relative flex group cursor-pointer flex-col items-center ${isActive ? "text-blue-600" : "text-[#6C6C6C] hover:text-blue-600"
+      }`}
   >
     <div className="p-1.5 relative">
       <Image
@@ -110,9 +113,8 @@ const NavIcon = ({
     <span className="text-[8px] font-medium mt-0.5">{label}</span>
 
     <div
-      className={`absolute bottom-0 left-0 right-0 h-0.5 transition-all duration-300  transform translate-y-2 ${
-        isActive ? "bg-blue-600" : "bg-transparent group-hover:bg-blue-600"
-      }`}
+      className={`absolute bottom-0 left-0 right-0 h-0.5 transition-all duration-300  transform translate-y-2 ${isActive ? "bg-blue-600" : "bg-transparent group-hover:bg-blue-600"
+        }`}
     />
   </button>
 );

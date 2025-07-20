@@ -20,13 +20,15 @@ interface LocationMapProps {
 function getUserInfo() {
   //   if (typeof window === "undefined") return { name: "U", avatar: null };
   try {
-    const userName = localStorage.getItem("name");
-    console.log("User name from localStorage:", userName);
-    if (userName) {
-      return {
-        name: userName,
-        avatar: null,
-      };
+    if (typeof window !== 'undefined') {
+      const userName = localStorage.getItem("name");
+      console.log("User name from localStorage:", userName);
+      if (userName) {
+        return {
+          name: userName,
+          avatar: null,
+        };
+      }
     }
   } catch (e) {
     console.log(e);
