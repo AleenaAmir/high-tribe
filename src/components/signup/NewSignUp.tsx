@@ -64,7 +64,7 @@ const SignupFlowManager = ({
         password_confirmation: signupData.confirmPassword,
       };
 
-      const result = await apiRequest<any>("auth/signup", {
+      const result = await apiRequest<any>("register", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
