@@ -58,9 +58,11 @@ export async function POST(req: Request) {
 
     const response = NextResponse.json({
       message: "Login successful",
+      token: token, // Add token to response body for localStorage
       user: {
         id: user.id,
         email: user.email,
+        name: user.fullName, // Add name field for consistency
         fullName: user.fullName,
         phoneNumber: user.phoneNumber,
       },

@@ -44,12 +44,13 @@ export default function LandingHero() {
                 Lorem Ipsum has been the industry's
               </p>
               <div className="flex items-center justify-center lg:justify-start gap-4 mt-4 md:mt-8">
-                <button
-                  type="button"
+                <Link
+                  href="/host/create"
+
                   className="text-white bg-[#3C83F6] py-2 px-5 rounded-lg text-[10px] md:text-[12px] cursor-pointer hover:shadow-md "
                 >
                   Become a Local Host
-                </button>
+                </Link>
                 <Link
                   href="/host/home"
                   className="text-[#3E3E3E] bg-white border border-[#3C83F6] py-2 px-5 rounded-lg text-[10px] md:text-[12px] cursor-pointer hover:shadow-md "

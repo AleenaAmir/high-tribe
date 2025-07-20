@@ -64,7 +64,7 @@ const SignupFlowManager = ({
         password_confirmation: signupData.confirmPassword,
       };
 
-      const result = await apiRequest<any>("register", {
+      const result = await apiRequest<any>("auth/signup", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -76,6 +76,9 @@ const SignupFlowManager = ({
       if (result && result.user && (result.user.name || result.user.fullName)) {
         const userName = result.user.name || result.user.fullName;
         localStorage.setItem("name", userName);
+
+        // Store complete user data in localStorage
+        localStorage.setItem("user", JSON.stringify(result.user));
 
         // Store token in localStorage and cookie if it exists in the response
         if (result.token) {

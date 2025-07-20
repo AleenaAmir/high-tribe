@@ -74,9 +74,11 @@ export async function POST(req: Request) {
       const response = NextResponse.json(
         {
           message: "User registered successfully",
+          token: token, // Add token to response body for localStorage
           user: {
             id: newUser.id,
             email: newUser.email,
+            name: newUser.fullName, // Add name field for consistency
             fullName: newUser.fullName,
             phoneNumber: newUser.phoneNumber,
           },
