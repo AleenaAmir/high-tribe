@@ -1,15 +1,19 @@
+'use client'
 import React from 'react'
 import Image from 'next/image'
 import waiting from '../../../../public/waiting.png'
 import Link from 'next/link'
 
+
 const page = () => {
+    const user = localStorage.getItem('user')
+    const userData = user ? JSON.parse(user) : null
     return (
         <div className="min-h-screen bg-white p-6">
             {/* Top Left Section */}
             <div className="mb-8">
                 <h1 className="text-2xl font-bold text-gray-800 mb-2">
-                    Hello Umar hussain
+                    Hello {userData?.name}
                 </h1>
                 <p className="text-gray-700 text-sm leading-relaxed max-w-md">
                     In a prime location in the Mission district of San Francisco, this is an airy 1200 square foot space with breathtaking views over the Mission.
