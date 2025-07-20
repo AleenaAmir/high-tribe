@@ -65,6 +65,9 @@ const LoginModalScreen = ({
         const userName = result.user.name || result.user.fullName;
         localStorage.setItem("name", userName);
 
+        // Store complete user data in localStorage
+        localStorage.setItem("user", JSON.stringify(result.user));
+
         // Store token in localStorage and cookie
         if (result.token) {
           localStorage.setItem("token", result.token);
@@ -89,12 +92,13 @@ const LoginModalScreen = ({
     try {
       console.log("Google OAuth success:", credentialResponse);
 
-      const result = await apiRequest<any>("login", {
+      const result = await apiRequest<any>("auth/google", {
         method: "POST",
         json: {
           credential: credentialResponse.credential,
         },
       });
+      localStorage.setItem("user", JSON.stringify(result.user));
 
       // Check if phone number is required for new user
       if (result.requiresPhoneNumber) {
@@ -108,9 +112,13 @@ const LoginModalScreen = ({
       const userName = result.user.name || result.user.fullName;
       localStorage.setItem("name", userName);
 
+      // Store complete user data in localStorage
+      localStorage.setItem("user", JSON.stringify(result.user));
+
       // Store token in localStorage and cookie
       if (result.token) {
         localStorage.setItem("token", result.token);
+
         setTokenCookie(result.token);
       }
 
@@ -130,7 +138,7 @@ const LoginModalScreen = ({
   const handlePhoneVerified = async (phoneNumber: string) => {
     setPhoneLoading(true);
     try {
-      const result = await apiRequest<any>("/api/auth/google", {
+      const result = await apiRequest<any>("auth/google", {
         method: "POST",
         json: {
           credential: googleCredential,
@@ -141,6 +149,9 @@ const LoginModalScreen = ({
       // Store user info in localStorage
       const userName = result.user.name || result.user.fullName;
       localStorage.setItem("name", userName);
+
+      // Store complete user data in localStorage
+      localStorage.setItem("user", JSON.stringify(result.user));
 
       // Store token in localStorage and cookie
       if (result.token) {
@@ -195,13 +206,13 @@ const LoginModalScreen = ({
       >
         <div className="flex flex-col items-center w-full max-w-md mx-auto p-0">
           <div className="flex flex-col items-center w-full">
-          <Image
-        src="/logo.svg"
-        alt="High Tribe"
-        width={130}
-        height={47}
-        className="h-11 w-auto"
-      />
+            <Image
+              src="/logo.svg"
+              alt="High Tribe"
+              width={130}
+              height={47}
+              className="h-11 w-auto"
+            />
             <div className="text-[22px] font-semibold text-[#181818] text-center mb-1">
               Explore the world to experience
               <br />

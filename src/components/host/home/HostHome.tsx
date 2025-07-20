@@ -44,9 +44,11 @@ export default function HostHome() {
   const [userName, setUserName] = useState<string>("Guest");
 
   useEffect(() => {
-    const name = localStorage.getItem("name");
-    if (name) {
-      setUserName(name);
+    if (typeof window !== 'undefined') {
+      const name = localStorage.getItem("name");
+      if (name) {
+        setUserName(name);
+      }
     }
   }, []);
 

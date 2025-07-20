@@ -77,6 +77,9 @@ const SignupFlowManager = ({
         const userName = result.user.name || result.user.fullName;
         localStorage.setItem("name", userName);
 
+        // Store complete user data in localStorage
+        localStorage.setItem("user", JSON.stringify(result.user));
+
         // Store token in localStorage and cookie if it exists in the response
         if (result.token) {
           localStorage.setItem("token", result.token);

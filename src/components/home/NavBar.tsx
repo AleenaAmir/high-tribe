@@ -17,8 +17,10 @@ const NavBar = ({
   const [isLogin, setIsLogin] = useState(false);
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    setIsLogin(!!token);
+    if (typeof window !== 'undefined') {
+      const token = localStorage.getItem("token");
+      setIsLogin(!!token);
+    }
   }, []);
   return (
     <div className="my-2 flex w-full items-center justify-between px-3 md:px-6 lg:px-10">

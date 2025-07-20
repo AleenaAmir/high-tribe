@@ -122,9 +122,8 @@ export default function NewFootprint({ onClose }: NewFootprintProps) {
             try {
               const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(
                 value
-              )}.json?access_token=${
-                process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN
-              }`;
+              )}.json?access_token=${process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN
+                }`;
               const response = await fetch(url);
               const data = await response.json();
 
@@ -340,7 +339,7 @@ export default function NewFootprint({ onClose }: NewFootprintProps) {
           method: "POST",
           headers: {
             Accept: "application/json",
-            Authorization: `Bearer ${localStorage.getItem("token") || ""}`,
+            Authorization: `Bearer ${typeof window !== 'undefined' ? localStorage.getItem("token") || "" : ""}`,
           },
           body: formData,
         }
@@ -517,11 +516,10 @@ export default function NewFootprint({ onClose }: NewFootprintProps) {
                 type="button"
                 onClick={handleSubmit}
                 disabled={isSubmitting}
-                className={`px-6 py-2 text-[12px] text-white rounded-lg border font-semibold transition-all ${
-                  isSubmitting
+                className={`px-6 py-2 text-[12px] text-white rounded-lg border font-semibold transition-all ${isSubmitting
                     ? "border-gray-300 text-gray-400 bg-gray-100 cursor-not-allowed"
                     : "border-blue-600 bg-gradient-to-r from-[#257CFF] to-[#1063E0] cursor-pointer hover:from-[#1a6be0] hover:to-[#0d5ac7]"
-                }`}
+                  }`}
               >
                 {isSubmitting ? (
                   <div className="flex items-center gap-2">

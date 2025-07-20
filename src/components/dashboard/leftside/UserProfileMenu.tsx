@@ -94,7 +94,9 @@ const UserProfileMenu = () => {
   const [userName, setUserName] = useState<string | null>(null);
 
   useEffect(() => {
-    setUserName(localStorage.getItem("name"));
+    if (typeof window !== 'undefined') {
+      setUserName(localStorage.getItem("name"));
+    }
   }, []);
 
   return (
