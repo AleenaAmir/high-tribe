@@ -1,0 +1,34 @@
+import React from "react";
+import { useSearchParams } from "next/navigation";
+import PropertyLanding from "./PropertyLanding";
+import PropertyForm from "./PropertyForm";
+
+export default function PropertyMain() {
+  const searchParams = useSearchParams();
+  const currentTab = searchParams.get("property") || "false";
+  return (
+    <div>
+      <div className="flex justify-between items-center gap-4">
+        <h3 className="text-[18px] font-bold md:text-[24px]">Listings</h3>
+        <button
+          type="button"
+          className="text-white bg-black py-2 px-5 rounded-full  text-[10px] md:text-[12px] cursor-pointer hover:shadow-md "
+          onClick={() => {
+            // Set the "property" search param to "true"
+            const params = new URLSearchParams(window.location.search);
+            params.set("property", "true");
+            window.history.replaceState(
+              {},
+              "",
+              `${window.location.pathname}?${params.toString()}`
+            );
+          }}
+        >
+          + Add a new listing
+        </button>
+      </div>
+
+      {currentTab === "true" ? <PropertyForm /> : <PropertyLanding />}
+    </div>
+  );
+}

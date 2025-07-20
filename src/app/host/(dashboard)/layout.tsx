@@ -7,7 +7,7 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="lg:flex lg:gap-2 min-h-screen">
+    <div className="lg:flex  min-h-screen bg-[#fbfbfb]">
       {/* Desktop Sidebar - sticky on lg+ */}
       <div className="hidden lg:block">
         <div className="sticky top-16 h-[calc(100vh-80px)] overflow-hidden">
@@ -21,7 +21,7 @@ export default function DashboardLayout({
       </div>
 
       {/* Main Content - full width on mobile, with gap on desktop */}
-      <main className="bg-[#fbfbfb] w-full lg:grow">{children}</main>
+      <main className=" w-full lg:grow">{children}</main>
     </div>
   );
 }
