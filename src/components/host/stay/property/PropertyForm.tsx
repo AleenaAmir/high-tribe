@@ -1,15 +1,17 @@
 "use client";
-import React, { useState, useRef, useEffect } from "react";
+import React, {
+  useState,
+  useRef,
+  useEffect,
+  useCallback,
+  useMemo,
+} from "react";
 import PropertyLocationMap, {
   PropertyLocationMapRef,
 } from "./PropertyLocationMap";
-import GlobalInput from "../../../global/GlobalInput";
+import GlobalTextInput from "../../../global/GlobalTextInput";
 import GlobalSelect from "../../../global/GlobalSelect";
 import GlobalTextArea from "../../../global/GlobalTextArea";
-import GlobalFileUpload from "../../../global/GlobalFileUpload";
-import GlobalRadioGroup from "../../../global/GlobalRadioGroup";
-import GlobalCheckboxGroup from "../../../global/GlobalCheckboxGroup";
-import GlobalTagInput from "../../../global/GlobalTagInput";
 import Image from "next/image";
 import { filtersArray } from "@/components/dashboard/center/MapDashboard";
 import DestinationSvg from "@/components/dashboard/svgs/DestinationSvg";
@@ -25,9 +27,14 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
   const [suggestions, setSuggestions] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [entranceSearch, setEntranceSearch] = useState("");
+  const [entranceSuggestions, setEntranceSuggestions] = useState<any[]>([]);
+  const [isEntranceLoading, setIsEntranceLoading] = useState(false);
+  const [showEntranceSuggestions, setShowEntranceSuggestions] = useState(false);
   const mapRef = useRef<PropertyLocationMapRef>(null);
   const [uploadedImages, setUploadedImages] = useState<File[]>([]);
   const [coverImageIndex, setCoverImageIndex] = useState<number | null>(null);
+  const [coverImage, setCoverImage] = useState<File | null>(null);
   const [uploadedVideos, setUploadedVideos] = useState<File[]>([]);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
@@ -40,6 +47,12 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
     name: "",
   });
 
+  // Memoize selected location to prevent unnecessary re-renders
+  const memoizedSelectedLocation = useMemo(
+    () => selectedLocation,
+    [selectedLocation.coords, selectedLocation.name]
+  );
+
   // Section refs for scrolling
   const locationRef = useRef<HTMLDivElement>(null);
   const overviewRef = useRef<HTMLDivElement>(null);
@@ -50,6 +63,7 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
   // Form state
   const [formData, setFormData] = useState({
     tripLocation: "",
+    entranceLocation: "",
     propertyPresence: "",
     access: "",
     acres: "",
@@ -86,7 +100,7 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
       title: "Property Location",
       icon: "📍",
       ref: locationRef,
-      requiredFields: ["tripLocation", "propertyPresence"],
+      requiredFields: ["tripLocation"],
     },
     {
       id: "overview",
@@ -254,12 +268,17 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
   const getSectionStatus = (section: (typeof sections)[0]) => {
     const baseComplete = isSectionCompleted(section);
 
+    if (section.id === "location") {
+      // Location section is complete when tripLocation is set
+      return formData.tripLocation;
+    }
+
     if (section.id === "payouts") {
       return baseComplete && isBankSectionComplete();
     }
 
     if (section.id === "images") {
-      return uploadedImages.length > 0; // At least one image uploaded
+      return uploadedImages.length > 0 || coverImage !== null; // At least one image uploaded or cover image
     }
 
     return baseComplete;
@@ -295,6 +314,25 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
       });
   }, [search]);
 
+  // Autocomplete for entrance search input
+  useEffect(() => {
+    if (entranceSearch.length < 2) {
+      setEntranceSuggestions([]);
+      return;
+    }
+    setIsEntranceLoading(true);
+    fetch(
+      `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(
+        entranceSearch
+      )}.json?access_token=${MAPBOX_ACCESS_TOKEN}&autocomplete=true&limit=5`
+    )
+      .then((res) => res.json())
+      .then((data) => {
+        setEntranceSuggestions(data.features || []);
+        setIsEntranceLoading(false);
+      });
+  }, [entranceSearch]);
+
   // Handle suggestion click
   const handleSuggestionClick = (feature: any) => {
     setSearch(feature.place_name);
@@ -308,21 +346,33 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
         coords: [feature.center[0], feature.center[1]],
         name: feature.place_name,
       });
+      // Map remains visible with marker
     }
   };
 
-  // Handle map location selection
-  const handleMapLocationSelect = (
-    coords: [number, number],
-    placeName: string
-  ) => {
-    setSearch(placeName);
-    setFormData((prev) => ({ ...prev, tripLocation: placeName }));
-    setSelectedLocation({
-      coords,
-      name: placeName,
-    });
+  // Handle entrance suggestion click
+  const handleEntranceSuggestionClick = (feature: any) => {
+    setEntranceSearch(feature.place_name);
+    setFormData((prev) => ({ ...prev, entranceLocation: feature.place_name }));
+    setEntranceSuggestions([]);
+    setShowEntranceSuggestions(false);
+
+    // Both locations can be set while keeping map visible
   };
+
+  // Handle map location selection
+  const handleMapLocationSelect = useCallback(
+    (coords: [number, number], placeName: string) => {
+      setSearch(placeName);
+      setFormData((prev) => ({ ...prev, tripLocation: placeName }));
+      setSelectedLocation({
+        coords,
+        name: placeName,
+      });
+      // Map remains visible with marker
+    },
+    []
+  );
 
   const [isFilters, setIsFilters] = useState<boolean>(false);
 
@@ -384,8 +434,9 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
         }
       });
     }
-    if (uploadedImages.length === 0) {
-      newErrors["uploadedImages"] = "At least one image is required";
+    if (uploadedImages.length === 0 && !coverImage) {
+      newErrors["uploadedImages"] =
+        "At least one image or cover image is required";
     }
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
@@ -393,7 +444,10 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
     }
     setErrors({});
     console.log("Form submitted:", formData);
+    console.log("Property location:", formData.tripLocation);
+    console.log("Entrance location:", formData.entranceLocation);
     console.log("Uploaded images:", uploadedImages);
+    console.log("Cover image:", coverImage);
     console.log("Uploaded videos:", uploadedVideos);
     // Handle form submission logic here
   };
@@ -402,7 +456,7 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
     <div className="min-h-screen bg-gray-50">
       <div className="flex">
         {/* Left Sidebar */}
-        <div className="w-80 bg-white shadow-lg h-screen overflow-y-auto fixed">
+        <div className="w-80 bg-white shadow-lg h-screen overflow-y-auto sticky top-16">
           <div className="p-6">
             <h1 className="text-2xl font-bold text-gray-900 mb-8">
               Property Setup
@@ -419,17 +473,13 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
                     <div
                       className={`w-8 h-8 rounded-full flex items-center justify-center mr-3 text-sm font-medium ${
                         isCompleted
-                          ? "bg-green-500 text-white"
+                          ? "bg-[#1179FA] text-white"
                           : "bg-gray-200 text-gray-500"
                       }`}
                     >
                       {isCompleted ? "✓" : ""}
                     </div>
-                    <span
-                      className={`font-medium text-sm ${
-                        isCompleted ? "text-green-600" : "text-gray-700"
-                      }`}
-                    >
+                    <span className={`font-medium text-sm `}>
                       {section.title}
                     </span>
                   </div>
@@ -440,19 +490,19 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
         </div>
 
         {/* Main Content */}
-        <div className="flex-1 ml-80 p-6">
-          <form onSubmit={handleSubmit} className="max-w-4xl mx-auto space-y-8">
+        <div className="flex-1 p-6">
+          <form
+            onSubmit={handleSubmit}
+            className="max-w-[940px] mx-auto space-y-8"
+          >
             {/* Property Location Section */}
-            <div
-              ref={locationRef}
-              className="bg-white rounded-lg shadow-sm border border-gray-200"
-            >
-              <div className="px-6 py-4 border-b border-gray-200">
+            <div ref={locationRef} className="">
+              <div className=" ">
                 <h2 className="text-lg font-semibold text-gray-900">
                   Property Location
                 </h2>
               </div>
-              <div className="">
+              <div className=" bg-white rounded-lg shadow-sm mt-4">
                 <div className="flex items-center justify-between p-3 bg-[#F8F8F8] md:px-6 relative">
                   <div className="flex items-center gap-2 w-full  relative">
                     <div className="flex items-center px-2 py-1 group gap-2 bg-white border border-[#EEEEEE] rounded-full w-full relative max-w-[160px]">
@@ -467,6 +517,9 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
                           setShowSuggestions(true);
                         }}
                         onFocus={() => setShowSuggestions(true)}
+                        onBlur={() =>
+                          setTimeout(() => setShowSuggestions(false), 150)
+                        }
                         autoComplete="off"
                       />
                       {isLoading && (
@@ -493,8 +546,42 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
                       <input
                         type="text"
                         className="outline-none bg-transparent text-sm w-full"
-                        placeholder="Search for places..."
+                        placeholder="Search entrance location..."
+                        value={entranceSearch}
+                        onChange={(e) => {
+                          setEntranceSearch(e.target.value);
+                          setShowEntranceSuggestions(true);
+                        }}
+                        onFocus={() => setShowEntranceSuggestions(true)}
+                        onBlur={() =>
+                          setTimeout(
+                            () => setShowEntranceSuggestions(false),
+                            150
+                          )
+                        }
+                        autoComplete="off"
                       />
+                      {isEntranceLoading && (
+                        <span className="ml-2 text-xs text-gray-400">
+                          Loading...
+                        </span>
+                      )}
+                      {showEntranceSuggestions &&
+                        entranceSuggestions.length > 0 && (
+                          <div className="absolute left-0 top-10 w-full bg-white border border-gray-200 rounded-lg shadow-lg z-20 max-h-60 overflow-auto">
+                            {entranceSuggestions.map((feature) => (
+                              <div
+                                key={feature.id}
+                                className="px-4 py-2 cursor-pointer hover:bg-blue-50 text-sm"
+                                onClick={() =>
+                                  handleEntranceSuggestionClick(feature)
+                                }
+                              >
+                                {feature.place_name}
+                              </div>
+                            ))}
+                          </div>
+                        )}
                     </div>
                     <div
                       className={`flex items-center justify-center p-2 rounded-full cursor-pointer hover:shadow-lg transition-all delay-300 ${
@@ -531,34 +618,11 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
                       ))}
                     </div>
                   </div>
-                  <button
-                    className="p-2 rounded-lg w-fit text-white border-none cursor-pointer hover:shadow-lg transition-shadow"
-                    type="button"
-                    style={{
-                      background:
-                        "linear-gradient(93.8deg, #F2306A 5.92%, #F35735 95.98%)",
-                    }}
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="13"
-                      height="15"
-                      fill="none"
-                      viewBox="0 0 13 15"
-                    >
-                      <path
-                        fill="#fff"
-                        fillRule="evenodd"
-                        d="M4.727 5.934c1.399 0 2.533-1.107 2.533-2.473S6.126.99 4.727.99c-1.398 0-2.532 1.107-2.532 2.472 0 1.366 1.134 2.473 2.532 2.473m0 .989c-1.958 0-3.545-1.55-3.545-3.462C1.182 1.55 2.769 0 4.727 0s3.546 1.55 3.546 3.461c0 1.912-1.588 3.462-3.546 3.462m3.714 5.995V11.36c-.046-1.506-1.66-2.789-3.714-2.789-2.048 0-3.66 1.277-3.713 2.779v3.155H8.44zm1.014 1.587H0s0-3.152.002-3.189c.073-2.072 2.16-3.734 4.725-3.734 2.571 0 4.663 1.67 4.726 3.749zm-4.023-3.058c.096.154.3.299.479.34l1.349.317-.923 1.03a.77.77 0 0 0-.173.556L6.337 15l-1.316-.514a.88.88 0 0 0-.591.007L3.218 15l.087-1.32a.8.8 0 0 0-.196-.546l-.914-.978 1.365-.352a.87.87 0 0 0 .472-.347l.696-1.139zm1.929-3.799c.507-1.648 2.397-2.802 3.41-.956S13 5.242 13 5.242V9s-2.938 3.402-3.208 1.252c-.27-2.149-2.708-2.466-2.431-2.604"
-                        clipRule="evenodd"
-                      ></path>
-                    </svg>
-                  </button>
                 </div>
                 <div className="overflow-hidden h-fit ">
                   <PropertyLocationMap
                     ref={mapRef}
-                    selectedLocation={selectedLocation}
+                    selectedLocation={memoizedSelectedLocation}
                     onLocationSelect={handleMapLocationSelect}
                   />
                 </div>
@@ -566,25 +630,22 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
             </div>
 
             {/* Property Overview Section */}
-            <div
-              ref={overviewRef}
-              className="bg-white rounded-lg shadow-sm border border-gray-200"
-            >
-              <div className="px-6 py-4 border-b border-gray-200">
+            <div ref={overviewRef} className="  ">
+              <div className=" ">
                 <h2 className="text-lg font-semibold text-gray-900">
                   Property Overview
                 </h2>
               </div>
-              <div className="p-6">
+              <div className="p-6 bg-white rounded-lg shadow-sm mt-4">
                 <div className="grid grid-cols-2 gap-2 mb-2">
-                  <GlobalInput
+                  <GlobalTextInput
                     label="Acres*"
                     type="text"
                     placeholder=""
                     value={formData.acres || ""}
                     onChange={(e) => handleInputChange("acres", e.target.value)}
                   />
-                  <GlobalInput
+                  <GlobalTextInput
                     label="Property Name*"
                     type="text"
                     placeholder=""
@@ -625,7 +686,7 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
                   </GlobalSelect>
                 </div>
                 <div className="grid grid-cols-2 gap-2 mb-2">
-                  <GlobalInput
+                  <GlobalTextInput
                     label="Website"
                     type="url"
                     value={formData.website}
@@ -656,16 +717,13 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
             </div>
 
             {/* Property Images/Videos Section */}
-            <div
-              ref={imagesRef}
-              className="bg-white rounded-lg shadow-sm border border-gray-200"
-            >
-              <div className="px-6 py-4 border-b border-gray-200">
+            <div ref={imagesRef} className="">
+              <div className=" ">
                 <h2 className="text-lg font-semibold text-gray-900">
                   Property Images/Videos
                 </h2>
               </div>
-              <div className="p-6">
+              <div className="p-6 bg-white rounded-lg shadow-sm mt-4">
                 {/* Upload Images Section */}
                 <div className="mb-8">
                   <label className="block text-sm font-medium text-gray-700 mb-4">
@@ -791,33 +849,53 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
                 {/* Choose Cover Image Section */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-4">
-                    Choose a cover images
+                    Choose a cover image
                   </label>
                   <div className="max-w-xs">
-                    <div className="aspect-video border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-gray-400 transition-colors">
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => {
-                          const files = Array.from(e.target.files || []);
-                          if (files.length > 0) {
-                            setCoverImageIndex(uploadedImages.length);
-                            handleFileUpload(files, "image");
-                          }
-                        }}
-                        className="hidden"
-                        id="cover-upload"
-                      />
-                      <label
-                        htmlFor="cover-upload"
-                        className="cursor-pointer flex flex-col items-center"
-                      >
-                        <span className="text-gray-400 text-2xl mb-1">+</span>
-                        <span className="text-gray-500 text-xs">
-                          Upload cover
-                        </span>
-                      </label>
-                    </div>
+                    {coverImage ? (
+                      <div className="relative group">
+                        <div className="aspect-video bg-gray-100 rounded-lg overflow-hidden border border-gray-200">
+                          <img
+                            src={URL.createObjectURL(coverImage)}
+                            alt="Cover image"
+                            className="w-full h-full object-cover"
+                          />
+                          <button
+                            onClick={() => setCoverImage(null)}
+                            className="absolute z-10 -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600"
+                          >
+                            ×
+                          </button>
+                        </div>
+                        <div className="mt-2 text-xs text-gray-500 truncate">
+                          {coverImage.name}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="aspect-video border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-gray-400 transition-colors">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => {
+                            const files = Array.from(e.target.files || []);
+                            if (files.length > 0) {
+                              setCoverImage(files[0]);
+                            }
+                          }}
+                          className="hidden"
+                          id="cover-upload"
+                        />
+                        <label
+                          htmlFor="cover-upload"
+                          className="cursor-pointer flex flex-col items-center"
+                        >
+                          <span className="text-gray-400 text-2xl mb-1">+</span>
+                          <span className="text-gray-500 text-xs">
+                            Upload cover
+                          </span>
+                        </label>
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -830,16 +908,13 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
             </div>
 
             {/* Insurance Section */}
-            <div
-              ref={insuranceRef}
-              className="bg-white rounded-lg shadow-sm border border-gray-200"
-            >
-              <div className="px-6 py-4 border-b border-gray-200">
+            <div ref={insuranceRef} className="">
+              <div className=" ">
                 <h2 className="text-lg font-semibold text-gray-900">
                   Insurance
                 </h2>
               </div>
-              <div className="p-6">
+              <div className="p-6 bg-white rounded-lg shadow-sm mt-4">
                 <div className="text-sm text-gray-700 mb-6">
                   You are not currently covered under the HighTribe Insurance
                   Policy
@@ -847,7 +922,7 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
 
                 {/* Enrollment period - full width */}
                 <div className="mb-4">
-                  <GlobalInput
+                  <GlobalTextInput
                     label="Enrollment period"
                     type="text"
                     value={formData.enrollmentPeriod || ""}
@@ -892,16 +967,13 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
             </div>
 
             {/* Payouts and Taxes Section */}
-            <div
-              ref={payoutsRef}
-              className="bg-white rounded-lg shadow-sm border border-gray-200"
-            >
-              <div className="px-6 py-4 border-b border-gray-200">
+            <div ref={payoutsRef} className="">
+              <div className=" ">
                 <h2 className="text-lg font-semibold text-gray-900">
                   Payouts and Taxes<span className="text-red-500">*</span>
                 </h2>
               </div>
-              <div className="p-6">
+              <div className="p-6 bg-white rounded-lg shadow-sm mt-4">
                 {/* Payout Methods Section */}
                 <div className="mb-8">
                   <div className="text-sm text-gray-700 mb-4">
@@ -1018,7 +1090,7 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
 
                       {/* Tax Name and Rate */}
                       <div className="grid grid-cols-2 gap-4">
-                        <GlobalInput
+                        <GlobalTextInput
                           label="Tax Name"
                           type="text"
                           value={formData.taxName || ""}
@@ -1026,7 +1098,7 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
                             handleInputChange("taxName", e.target.value)
                           }
                         />
-                        <GlobalInput
+                        <GlobalTextInput
                           label="Tax Rate"
                           type="text"
                           value={formData.taxRate || ""}

@@ -44,7 +44,7 @@ const reverseGeocode = async (coords: [number, number]): Promise<string> => {
   return "Unknown Location";
 };
 
-const PropertyLocationMap = forwardRef<
+const PropertyLocationMap = React.memo(forwardRef<
   PropertyLocationMapRef,
   PropertyLocationMapProps
 >(({ onLocationSelect, selectedLocation, className = "" }, ref) => {
@@ -76,7 +76,7 @@ const PropertyLocationMap = forwardRef<
     }
   }, []);
 
-  // Initialize map
+  // Initialize map only once
   useEffect(() => {
     if (!mapContainer.current || !userLocation || map.current) return;
 
@@ -95,13 +95,15 @@ const PropertyLocationMap = forwardRef<
     map.current.addControl(new mapboxgl.NavigationControl(), "top-right");
 
     // Add click handler with reverse geocoding
-    map.current.on("click", async (e) => {
+    const handleMapClick = async (e: mapboxgl.MapMouseEvent) => {
       if (onLocationSelect) {
         const coords: [number, number] = [e.lngLat.lng, e.lngLat.lat];
         const locationName = await reverseGeocode(coords);
         onLocationSelect(coords, locationName);
       }
-    });
+    };
+
+    map.current.on("click", handleMapClick);
 
     map.current.on("load", () => {
       setIsLoading(false);
@@ -109,11 +111,12 @@ const PropertyLocationMap = forwardRef<
 
     return () => {
       if (map.current) {
+        map.current.off("click", handleMapClick);
         map.current.remove();
         map.current = null;
       }
     };
-  }, [userLocation, onLocationSelect]);
+  }, [userLocation]); // Removed onLocationSelect from dependencies to prevent re-initialization
 
   // Update marker when selectedLocation changes
   useEffect(() => {
@@ -302,7 +305,7 @@ const PropertyLocationMap = forwardRef<
       `}</style>
     </div>
   );
-});
+}));
 
 PropertyLocationMap.displayName = "PropertyLocationMap";
 
