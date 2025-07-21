@@ -1,5 +1,6 @@
 import NavBar from "@/components/host/NavBar";
 import React from "react";
+import { Toaster } from 'react-hot-toast';
 
 export default function DashboardLayout({
   children,
@@ -15,6 +16,7 @@ export default function DashboardLayout({
 
       {/* Main Content Area */}
       <div className="flex-1">{children}</div>
+      <Toaster position="top-right" reverseOrder={false} />
     </div>
   );
 }

@@ -5,6 +5,7 @@ import React, { useState, useEffect } from 'react'
 import GlobalTextInput from '@/components/global/GlobalTextInput'
 import { apiRequest } from '@/lib/api'
 import Link from 'next/link'
+import toast from 'react-hot-toast'
 
 interface UserData {
     name?: string;
@@ -15,45 +16,75 @@ interface UserData {
 }
 
 const registeruser = () => {
-    const { register, handleSubmit, formState: { errors } } = useForm()
+
     const [selectedIdType, setSelectedIdType] = useState('passport')
     const [profilePicture, setProfilePicture] = useState<File | null>(null)
     const [idDocuments, setIdDocuments] = useState<File[]>([])
     const [userData, setUserData] = useState<UserData | null>(null)
 
+
+    const { register, handleSubmit, formState: { errors }, reset } = useForm({
+        defaultValues: {
+            fullLegalName: userData?.name || "",
+            email: userData?.email || "",
+            phoneNumber: userData?.phone || "",
+            country: userData?.country || "",
+            city: userData?.city || "",
+        }
+    });
     useEffect(() => {
-        const user = localStorage.getItem('user')
-        const parsedUser = user ? JSON.parse(user) : null
-        setUserData(parsedUser)
-    }, [])
+        const user = localStorage.getItem('user');
+        const parsedUser = user ? JSON.parse(user) : null;
+        setUserData(parsedUser);
+        if (parsedUser) {
+            reset({
+                fullLegalName: parsedUser.name || "",
+                email: parsedUser.email || "",
+                phoneNumber: parsedUser.phone || "",
+                country: parsedUser.country || "",
+                city: parsedUser.city || "",
+            });
+        }
+    }, []);
+
 
     const onSubmit = async (data: any) => {
-        debugger
-        const formData = new FormData()
-        formData.append('fullLegalName', data.fullLegalName)
-        formData.append('email', data.email)
-        formData.append('phoneNumber', data.phoneNumber)
-        formData.append('country', data.country)
-        formData.append('city', data.city)
+        const formData = new FormData();
+        formData.append('full_name', data.fullLegalName);
+        formData.append('email', data.email);
+        formData.append('phone_number', data.phoneNumber);
+        formData.append('country', data.country);
+        formData.append('city', data.city);
+        formData.append('id_type', selectedIdType);
+
         if (profilePicture) {
-            formData.append('profilePicture', profilePicture)
+            formData.append('profile_picture', profilePicture);
         }
         if (idDocuments.length > 0) {
             idDocuments.forEach(file => {
-                formData.append('idDocuments', file)
-            })
+                formData.append('government_id_file', file); // Use correct key
+            });
         }
 
-        // console.log(formData)
-        // const result = await apiRequest<any>("host/register", {
-        //     method: "POST",
-        //     body: formData
-        // })
-        // console.log(result)
-        // if (result.success) {
-        window.location.href = "/host/approval";
-        // }
-    }
+        const token = localStorage.getItem("token") || "<PASTE_VALID_TOKEN_HERE>";
+
+        const response = await fetch('https://high-tribe-backend.hiconsolutions.com/api/host-profiles', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Accept': 'application/json',
+            },
+            body: formData,
+        });
+        const responseData = await response.json();
+        if (responseData.status == true) {
+            toast.success(responseData.message);
+            // window.location.href = "/host/approval";
+        }
+        else {
+            toast.error(responseData.message);
+        }
+    };
 
     const handleProfilePictureUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
@@ -78,7 +109,7 @@ const registeruser = () => {
                     <div className='flex flex-col gap-4'>
                         <GlobalTextInput
                             label="Full Legal Name *"
-                            value={userData?.name || ""}
+
 
                             placeholder=" "
                             error={errors.fullLegalName?.message as string}
@@ -86,28 +117,28 @@ const registeruser = () => {
                         />
                         <GlobalTextInput
                             label="Email *"
-                            value={userData?.email || ""}
+
                             placeholder=" "
                             error={errors.email?.message as string}
                             {...register("email")}
                         />
                         <GlobalTextInput
                             label="Phone Number"
-                            value={userData?.phone || ""}
+
                             placeholder=" "
                             error={errors.phoneNumber?.message as string}
                             {...register("phoneNumber")}
                         />
                         <GlobalTextInput
                             label="Country"
-                            value={userData?.country || ""}
+
                             placeholder=" "
                             error={errors.country?.message as string}
                             {...register("country")}
                         />
                         <GlobalTextInput
                             label="City"
-                            value={userData?.city || ""}
+
                             placeholder=" "
                             error={errors.city?.message as string}
                             {...register("city")}
