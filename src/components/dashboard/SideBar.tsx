@@ -87,7 +87,7 @@ const SideBar = ({ onItemClick }: SideBarProps) => {
   const router = useRouter();
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       setUserName(localStorage.getItem("name"));
       const storedIsHost = localStorage.getItem("isHost");
       setIsHost(storedIsHost === "true");
@@ -97,13 +97,13 @@ const SideBar = ({ onItemClick }: SideBarProps) => {
   const handleHostToggle = () => {
     const newIsHost = !isHost;
     setIsHost(newIsHost);
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       localStorage.setItem("isHost", newIsHost.toString());
     }
 
     if (newIsHost) {
       toast.success("Switched to Hosting mode!");
-      router.push("/host");
+      router.push("/host/create");
     } else {
       toast.success("Switched to User mode!");
       router.push("/dashboard");
@@ -116,7 +116,7 @@ const SideBar = ({ onItemClick }: SideBarProps) => {
         name={userName || "Umer Hussain"}
         subtitle="Lorem Ipsum is simply dummy text of the printing and typesetting industry.."
         avatarUrl="https://randomuser.me/api/portraits/men/32.jpg"
-      // onClick={onItemClick}
+        // onClick={onItemClick}
       />
       {/* <NavMenu active="Feed" onItemClick={onItemClick} /> */}
       <div className="md:hidden flex justify-between items-center gap-1">

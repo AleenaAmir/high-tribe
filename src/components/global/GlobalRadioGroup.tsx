@@ -31,7 +31,7 @@ const GlobalRadioGroup: React.FC<GlobalRadioGroupProps> = ({
           {label}
         </label>
       )}
-      <div className="flex flex-wrap gap-4 mt-1">
+      <div className="flex flex-wrap flex-col gap-2 mt-1">
         {options.map((option) => (
           <label
             key={option.value}

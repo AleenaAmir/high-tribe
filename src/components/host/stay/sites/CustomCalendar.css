@@ -1,0 +1,207 @@
+/* Perfect Calendar Styles */
+.react-calendar {
+  background: #ffffff;
+  border-radius: 16px;
+ 
+  border: none;
+  padding: 0;
+  font-family: 'Inter', 'Gilroy', Arial, sans-serif;
+  width: 540px;
+  overflow: hidden;
+}
+
+/* Navigation Header */
+.react-calendar__navigation {
+  background: #fafafa;
+  border-radius: 16px 16px 0 0;
+  margin-bottom: 0;
+  padding: 20px 16px 16px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.react-calendar__navigation button {
+  background: none;
+  border: none;
+  color: #374151;
+  font-size: 18px;
+  font-weight: 500;
+  padding: 8px 12px;
+  min-width: 40px;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: background-color 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.react-calendar__navigation button:hover {
+  background-color: #f3f4f6;
+}
+
+.react-calendar__navigation__label {
+  flex: 1;
+  text-align: center;
+  font-size: 18px;
+  font-weight: 600;
+  color: #111827;
+  letter-spacing: 0.025em;
+  padding: 0 16px;
+}
+
+/* Day Headers */
+.react-calendar__month-view__weekdays {
+  text-align: center;
+  font-size: 11px;
+  font-weight: 600;
+  color: #6b7280;
+  background: transparent;
+  border: none;
+  padding: 16px 0 12px 0;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.react-calendar__month-view__weekdays__weekday {
+  padding: 8px 0;
+  color: #6b7280;
+  font-weight: 600;
+  background: none;
+  border: none;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  position: relative;
+}
+
+.react-calendar__month-view__weekdays__weekday::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 20px;
+  height: 1px;
+  background: repeating-linear-gradient(
+    to right,
+    #d1d5db 0,
+    #d1d5db 2px,
+    transparent 2px,
+    transparent 4px
+  );
+}
+
+/* Date Grid */
+.react-calendar__month-view__days {
+  padding: 0 16px 20px 16px;
+  display: grid !important;
+  grid-template-columns: repeat(7, 1fr) !important;
+  gap: 8px !important;
+  width: 100% !important;
+}
+
+/* Individual Date Tiles */
+.react-calendar__tile {
+  background: none;
+  border: none;
+  outline: none;
+  font-size: 15px;
+  color: #111827;
+  width: 48px !important;
+  min-height: 68px !important;
+  margin: 0 !important;
+  border-radius: 50% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  transition: all 0.2s;
+  font-weight: 500;
+  cursor: pointer;
+  position: relative;
+}
+
+/* Today's Date */
+.react-calendar__tile--now {
+  background: none;
+  color: #111827;
+  font-weight: 600;
+}
+
+/* Selected Date - Perfect Circle */
+.react-calendar__tile--active,
+.react-calendar__tile--hasActive,
+.react-calendar__tile--rangeStart,
+.react-calendar__tile--rangeEnd,
+.react-calendar__tile--rangeBothEnds,
+.react-calendar__tile--range {
+  background: #111827 !important;
+  color: #ffffff !important;
+  border-radius: 50% !important;
+  font-weight: 600 !important;
+  width: 48px !important;
+  min-height: 68px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border: none !important;
+  outline: none !important;
+}
+
+/* Disabled/Inactive Dates */
+.react-calendar__tile:disabled {
+  color: #d1d5db !important;
+  background: none;
+  cursor: not-allowed;
+}
+
+.react-calendar__month-view__days__day--neighboringMonth {
+  color: #9ca3af !important;
+}
+
+/* Focus and Hover States */
+.react-calendar__tile:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+.react-calendar__tile:hover:not(:disabled) {
+  background: #f3f4f6;
+  color: #111827;
+}
+
+/* Remove Default Borders */
+.react-calendar__month-view__weekdays {
+  border-bottom: none;
+}
+
+/* Ensure Proper Grid Layout */
+.react-calendar__month-view__days__day {
+  width: 100% !important;
+  height: 48px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 50% !important;
+}
+
+/* Override Default React Calendar Styles */
+.react-calendar__tile abbr {
+  text-decoration: none !important;
+  border: none !important;
+  background: none !important;
+}
+
+/* Calendar Container */
+.react-calendar__month-view {
+  display: block;
+}
+
+/* Ensure All Dates Are Visible */
+.react-calendar__month-view__days > * {
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+} 

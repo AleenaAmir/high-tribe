@@ -100,7 +100,7 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
       title: "Property Location",
       icon: "📍",
       ref: locationRef,
-      requiredFields: ["tripLocation"],
+      requiredFields: ["entranceLocation"], // Entrance location is required, not general property location
     },
     {
       id: "overview",
@@ -269,8 +269,8 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
     const baseComplete = isSectionCompleted(section);
 
     if (section.id === "location") {
-      // Location section is complete when tripLocation is set
-      return formData.tripLocation;
+      // Location section is complete when exact entrance location is set
+      return formData.entranceLocation;
     }
 
     if (section.id === "payouts") {
@@ -295,7 +295,7 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
     });
   };
 
-  // Autocomplete for search input
+  // Autocomplete for search input (general area search)
   useEffect(() => {
     if (search.length < 2) {
       setSuggestions([]);
@@ -305,7 +305,7 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
     fetch(
       `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(
         search
-      )}.json?access_token=${MAPBOX_ACCESS_TOKEN}&autocomplete=true&limit=5`
+      )}.json?access_token=${MAPBOX_ACCESS_TOKEN}&autocomplete=true&limit=5&types=place,region,locality,district`
     )
       .then((res) => res.json())
       .then((data) => {
@@ -321,17 +321,43 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
       return;
     }
     setIsEntranceLoading(true);
-    fetch(
-      `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(
-        entranceSearch
-      )}.json?access_token=${MAPBOX_ACCESS_TOKEN}&autocomplete=true&limit=5`
-    )
+
+    // Build search query with property location context if available
+    let searchQuery = entranceSearch;
+    let apiUrl = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(
+      searchQuery
+    )}.json?access_token=${MAPBOX_ACCESS_TOKEN}&autocomplete=true&limit=5`;
+
+    // Configure API for detailed address/street results
+    apiUrl += `&types=address,poi,place,locality,neighborhood`;
+
+    // If property location is set, bias the search towards that area
+    if (formData.tripLocation) {
+      // Add the property location as context to the search
+      searchQuery = `${entranceSearch}, ${formData.tripLocation}`;
+      apiUrl = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(
+        searchQuery
+      )}.json?access_token=${MAPBOX_ACCESS_TOKEN}&autocomplete=true&limit=10&types=address,poi,place,locality,neighborhood`;
+
+      // If we have coordinates from the selected location, use proximity bias
+      if (selectedLocation.coords) {
+        const [lng, lat] = selectedLocation.coords;
+        apiUrl += `&proximity=${lng},${lat}`;
+      }
+    }
+
+    fetch(apiUrl)
       .then((res) => res.json())
       .then((data) => {
         setEntranceSuggestions(data.features || []);
         setIsEntranceLoading(false);
+      })
+      .catch((error) => {
+        console.error("Error fetching entrance suggestions:", error);
+        setEntranceSuggestions([]);
+        setIsEntranceLoading(false);
       });
-  }, [entranceSearch]);
+  }, [entranceSearch, formData.tripLocation, selectedLocation.coords]);
 
   // Handle suggestion click
   const handleSuggestionClick = (feature: any) => {
@@ -340,13 +366,18 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
     setSuggestions([]);
     setShowSuggestions(false);
 
-    // Update selected location for map
+    // Store the general area coordinates for entrance search context
     if (feature.center) {
       setSelectedLocation({
         coords: [feature.center[0], feature.center[1]],
         name: feature.place_name,
       });
-      // Map remains visible with marker
+    }
+
+    // Only fly to the location, don't add marker yet
+    if (mapRef.current && feature.center) {
+      const [lng, lat] = feature.center;
+      mapRef.current.centerMap(lng, lat, feature.place_name);
     }
   };
 
@@ -357,19 +388,23 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
     setEntranceSuggestions([]);
     setShowEntranceSuggestions(false);
 
-    // Both locations can be set while keeping map visible
+    // Add marker at the exact entrance location
+    if (mapRef.current && feature.center) {
+      const [lng, lat] = feature.center;
+      mapRef.current.addMarker(lng, lat, feature.place_name);
+      setSelectedLocation({ coords: [lng, lat], name: feature.place_name });
+    }
   };
 
-  // Handle map location selection
+  // Handle map location selection - this is for entrance location
   const handleMapLocationSelect = useCallback(
     (coords: [number, number], placeName: string) => {
-      setSearch(placeName);
-      setFormData((prev) => ({ ...prev, tripLocation: placeName }));
+      setEntranceSearch(placeName);
+      setFormData((prev) => ({ ...prev, entranceLocation: placeName }));
       setSelectedLocation({
         coords,
         name: placeName,
       });
-      // Map remains visible with marker
     },
     []
   );
@@ -467,7 +502,7 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
                 return (
                   <div
                     key={section.id}
-                    className="flex items-center p-3 rounded-lg cursor-pointer transition-all hover:bg-gray-50"
+                    className="flex items-center px-3 py-2 rounded-lg cursor-pointer transition-all hover:bg-gray-50"
                     onClick={() => scrollToSection(section.ref)}
                   >
                     <div
@@ -510,7 +545,7 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
                       <input
                         type="text"
                         className="outline-none bg-transparent text-sm w-full"
-                        placeholder="Search for places..."
+                        placeholder="Search property area..."
                         value={search}
                         onChange={(e) => {
                           setSearch(e.target.value);
@@ -546,7 +581,7 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
                       <input
                         type="text"
                         className="outline-none bg-transparent text-sm w-full"
-                        placeholder="Search entrance location..."
+                        placeholder="Exact property entrance..."
                         value={entranceSearch}
                         onChange={(e) => {
                           setEntranceSearch(e.target.value);

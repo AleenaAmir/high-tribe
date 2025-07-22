@@ -3,6 +3,7 @@ import Link from "next/link";
 import React from "react";
 import { useSearchParams } from "next/navigation";
 import PropertyMain from "./property/PropertyMain";
+import SitesMain from "./sites/SitesMain";
 
 const stayTabs = [
   "stats",
@@ -18,6 +19,7 @@ export default function MainStayLayout() {
   const searchParams = useSearchParams();
   const currentTab = searchParams.get("tab") || "stats";
   const propertyTab = searchParams.get("property") || "false";
+  const sitesTab = searchParams.get("sites") || "false";
 
   const createTabUrl = (tab: string) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -29,13 +31,14 @@ export default function MainStayLayout() {
     <div>
       <div className="flex justify-between items-center gap-4 p-3 md:px-4 md:py-3 lg:px-6 lg:py-4 bg-white">
         <div className="flex items-center gap-4">
-          {propertyTab === "true" && (
+          {(propertyTab === "true" || sitesTab === "true") && (
             <button
               type="button"
               className="flex items-center gap-2 cursor-pointer"
               onClick={() => {
                 const params = new URLSearchParams(window.location.search);
                 params.delete("property");
+                params.delete("sites");
                 window.history.replaceState(
                   {},
                   "",
@@ -61,7 +64,7 @@ export default function MainStayLayout() {
           )}
           <h3 className="text-[18px] font-bold md:text-[24px]">Stay</h3>
         </div>
-        {propertyTab !== "true" && (
+        {propertyTab !== "true" && sitesTab !== "true" && (
           <button
             type="button"
             className="text-white bg-[#3C83F6] py-2 px-5 rounded-lg text-[10px] md:text-[12px] cursor-pointer hover:shadow-md "
@@ -71,7 +74,7 @@ export default function MainStayLayout() {
         )}
       </div>
 
-      {propertyTab !== "true" && (
+      {propertyTab !== "true" && sitesTab !== "true" && (
         <div className="mt-1 flex items-center gap-2 md:gap-4 px-3 pt-2 md:px-4 md:pt-3 lg:px-6 lg:pt-4 bg-white">
           {stayTabs.map((tab) => (
             <Link
@@ -93,7 +96,7 @@ export default function MainStayLayout() {
         {currentTab === "stats" && <div>Stats</div>}
         {currentTab === "booking" && <div>Booking</div>}
         {currentTab === "property" && <PropertyMain />}
-        {currentTab === "sites" && <div>Sites</div>}
+        {currentTab === "sites" && <SitesMain />}
         {currentTab === "calendar" && <div>Calendar</div>}
         {currentTab === "inbox" && <div>Inbox</div>}
         {currentTab === "notifications" && <div>Notifications</div>}

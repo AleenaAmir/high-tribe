@@ -73,41 +73,43 @@ export const HostCard = ({
   );
 
   return (
-    <div className="w-[315px] h-[294px] bg-white border-2 border-white hover:border-[#107CFC4A] rounded-[15px] p-2">
-      <div className="w-[297px] h-[210px] relative">
-        <Image
-          src={img}
-          alt={head}
-          width={297}
-          height={210}
-          className="w-full h-full object-cover rounded-[15px]"
-        />
-        {status ? done : pending}
-      </div>
-      <div className="flex items-center justify-between mt-2">
-        <div className="w-full">
-          <p className="text-[22px] font-bold text-[#202020]">{head}</p>
-          <p className="text-[12px]">{text}</p>
+    <Link href={link ? link : "#"}>
+      <div className="w-[315px] h-[294px] bg-white border-2 border-white hover:border-[#107CFC4A] rounded-[15px] p-2">
+        <div className="w-[297px] h-[210px] relative">
+          <Image
+            src={img}
+            alt={head}
+            width={297}
+            height={210}
+            className="w-full h-full object-cover rounded-[15px]"
+          />
+          {status ? done : pending}
         </div>
-        <Link
-          href={link ? link : "#"}
-          className="p-1 rounded-full bg-[#107CFC] border-4 border-[#F2F6FC] hover:translate-x-[2px] transition-all duration-300 hover:animate-pulse"
-        >
-          <svg
-            className={`w-4 h-4 transition-transform duration-300`}
-            fill="none"
-            stroke="white"
-            viewBox="0 0 24 24"
+        <div className="flex items-center justify-between mt-2">
+          <div className="w-full">
+            <p className="text-[22px] font-bold text-[#202020]">{head}</p>
+            <p className="text-[12px]">{text}</p>
+          </div>
+          <Link
+            href={link ? link : "#"}
+            className="p-1 rounded-full bg-[#107CFC] border-4 border-[#F2F6FC] hover:translate-x-[2px] transition-all duration-300 hover:animate-pulse"
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M9 5l7 7-7 7"
-            />
-          </svg>
-        </Link>
+            <svg
+              className={`w-4 h-4 transition-transform duration-300`}
+              fill="none"
+              stroke="white"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 5l7 7-7 7"
+              />
+            </svg>
+          </Link>
+        </div>
       </div>
-    </div>
+    </Link>
   );
 };

@@ -9,7 +9,8 @@ import EventsCard from "@/components/dashboard/rightside/EventsCard";
 import FindPeopleCard from "@/components/dashboard/rightside/FindPeopleCard";
 import GroupsCard from "@/components/dashboard/rightside/GroupsCard";
 import YourGroups from "@/components/dashboard/rightside/YourGroups";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 
 const UserFeed = dynamic(
@@ -42,6 +43,33 @@ const DashboardContent = () => {
   const [footprintModal, setFootprintModal] = useState<boolean>(false);
   const [advisoryModal, setAdvisoryModal] = useState<boolean>(false);
   const [tipModal, setTipModal] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const router = useRouter();
+
+  // Check if user is a host and redirect to /host
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const isHost = localStorage.getItem("isHost");
+      if (isHost === "true") {
+        router.push("/host/create");
+        return; // Keep loading state while redirecting
+      }
+      // If not a host, stop loading
+      setIsLoading(false);
+    }
+  }, [router]);
+
+  // Show loading state while checking host status or redirecting
+  if (isLoading) {
+    return (
+      <div className="h-full flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="h-full flex">
