@@ -9,6 +9,8 @@ export type Extra = {
 };
 
 export interface FormData {
+  accommodation_type: string;
+  house_sharing: string[];
   siteLocation: string;
   entranceLocation: string;
   siteManagement: string;
@@ -56,7 +58,7 @@ export interface FormData {
   rvType: string;
   campsiteType: string;
   sitePrivacy: string;
-  houseOccupants: string[];
+
   siteAmenities: string[];
   siteFacilities: string[];
   safetyItems: string[];

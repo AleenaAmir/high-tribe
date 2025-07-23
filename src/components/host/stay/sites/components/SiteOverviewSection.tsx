@@ -19,27 +19,41 @@ const SiteOverviewSection: React.FC<SiteOverviewSectionProps> = ({
   };
 
   const handleSave = async () => {
-    const overviewData = {
-      siteType: state.formData.siteType,
-      campsiteType: state.formData.campsiteType,
-      houseOccupants: state.formData.houseOccupants,
-      sitePrivacy: state.formData.sitePrivacy,
-      siteName: state.formData.siteName,
-      shortDescription: state.formData.shortDescription,
-      rvType: state.formData.rvType,
-      siteRules: state.formData.siteRules,
-    };
+    const formData = new FormData();
+    formData.append('location_name', "lahore");
+    formData.append('latitude', '3.66');
+    formData.append('longitude', '55.47');
+    formData.append('accommodation_type', state.formData.accommodation_type);
+    formData.append('house_sharing', state.formData.house_sharing.join(','));
+    formData.append('campsite_type', state.formData.campsiteType);
+    formData.append('site_name', state.formData.siteName);
+    formData.append('site_description', state.formData.shortDescription);
+    formData.append('site_rules', state.formData.siteRules);
+    formData.append('privacy_type', state.formData.sitePrivacy);
 
-    await saveSection("overview", overviewData);
+    const response = await fetch('https://high-tribe-backend.hiconsolutions.com/api/properties/2/sites/location-overview', {
+      method: 'POST',
+      body: formData,
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        'Accept': 'application/json'
+      }
+    });
+    const data = await response.json();
+    console.log(data);
+
+    //  await saveSection("overview", overviewData);
   };
 
   return (
     <div ref={sectionRef}>
       <div>
-        <h2 className="text-lg font-semibold text-gray-900">Site Overview</h2>
+        <h2 className=" text-[#1C231F] text-[14px] font-bold mb-2">
+          Site Overview
+        </h2>
       </div>
-      <div className="p-6 bg-white rounded-lg shadow-sm mt-4">
-        <p className="font-bold">
+      <div className="p-6 bg-white rounded-lg shadow-md mt-4">
+        <p className="font-bold text-[14px] text-[#1C231F]">
           What kind of accommodation does this site offer?*
         </p>
         <div className="grid grid-cols-2 gap-6 mt-4">
@@ -47,210 +61,133 @@ const SiteOverviewSection: React.FC<SiteOverviewSectionProps> = ({
           <div className="space-y-6">
             {/* Accommodation Type */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Accommodation*
-              </label>
               <GlobalSelect
-                value={state.formData.siteType}
-                onChange={(e) => handleInputChange("siteType", e.target.value)}
+                label={
+                  <>
+                    Accommodation <span className="text-red-500">*</span>
+                  </>
+                }
+                value={state.formData.accommodation_type || ""}
+                onChange={(e) => handleInputChange("accommodation_type", e.target.value)}
               >
-                <option value="">Select accommodation type</option>
-                <option value="standalone-cabin">
-                  Stand-alone Cabin/Studio
-                </option>
-                <option value="apartment">Apartment</option>
-                <option value="entire-house">Entire House</option>
-                <option value="glamp">Glamp</option>
-                <option value="coliving-hostel">Co-living/Hostel</option>
+                <option value=""></option>
+                {[
+                  { value: "standalone-cabin", label: "Stand-alone Cabin/Studio" },
+                  { value: "apartment", label: "Apartment" },
+                  { value: "entire-house", label: "Entire House" },
+                  { value: "glamp", label: "Glamp" },
+                  { value: "coliving-hostel", label: "Co-living/Hostel" },
+                ].map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
               </GlobalSelect>
+
             </div>
 
             {/* Campsite Type */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-3">
+              <p className="font-bold text-[14px] text-[#1C231F] mb-4 mt-4">
                 What type of campsite is it?
-              </label>
+              </p>
               <div className="space-y-2">
-                <label className="flex items-center gap-3 cursor-pointer">
-                  <input
-                    type="radio"
-                    name="campsiteType"
-                    value="undefined"
-                    checked={state.formData.campsiteType === "undefined"}
-                    onChange={(e) =>
-                      handleInputChange("campsiteType", e.target.value)
-                    }
-                    className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
-                  />
-                  <span className="text-sm text-gray-700">
-                    Undefined Campsite (Guests can choose their own spot)
-                  </span>
-                </label>
-                <label className="flex items-center gap-3 cursor-pointer">
-                  <input
-                    type="radio"
-                    name="campsiteType"
-                    value="defined"
-                    checked={state.formData.campsiteType === "defined"}
-                    onChange={(e) =>
-                      handleInputChange("campsiteType", e.target.value)
-                    }
-                    className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
-                  />
-                  <span className="text-sm text-gray-700">
-                    Defined Campsite (Guests will be given a specific spot)
-                  </span>
-                </label>
+                {[
+                  {
+                    value: "undefined",
+                    label: "Undefined Campsite (Guests can choose their own spot)",
+                  },
+                  {
+                    value: "defined",
+                    label: "Defined Campsite (Guests will be given a specific spot)",
+                  },
+                ].map((option) => (
+                  <label
+                    key={option.value}
+                    className="flex items-center gap-3 cursor-pointer"
+                  >
+                    <input
+                      type="radio"
+                      name="campsiteType"
+                      value={option.value}
+                      checked={state.formData.campsiteType === option.value}
+                      onChange={(e) => handleInputChange("campsiteType", e.target.value)}
+                      className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                    />
+                    <span className="text-[13px] text-[#1C231F] font-medium">
+                      {option.label}
+                    </span>
+                  </label>
+                ))}
               </div>
+
             </div>
 
             {/* Who lives in the house */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-3">
-                Who will be staying at the house?*
-              </label>
-              <div className="space-y-2">
-                <label className="flex items-center gap-3 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={state.formData.houseOccupants.includes("me")}
-                    onChange={(e) => {
-                      if (e.target.checked) {
-                        const updatedOccupants = [
-                          ...state.formData.houseOccupants,
-                          "me",
-                        ];
-                        handleInputChange("houseOccupants", updatedOccupants);
-                      } else {
-                        const updatedOccupants =
-                          state.formData.houseOccupants.filter(
-                            (o) => o !== "me"
-                          );
-                        handleInputChange("houseOccupants", updatedOccupants);
-                      }
-                    }}
-                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                  />
-                  <span className="text-sm text-gray-700">Me</span>
-                </label>
-                <label className="flex items-center gap-3 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={state.formData.houseOccupants.includes("family")}
-                    onChange={(e) => {
-                      if (e.target.checked) {
-                        const updatedOccupants = [
-                          ...state.formData.houseOccupants,
-                          "family",
-                        ];
-                        handleInputChange("houseOccupants", updatedOccupants);
-                      } else {
-                        const updatedOccupants =
-                          state.formData.houseOccupants.filter(
-                            (o) => o !== "family"
-                          );
-                        handleInputChange("houseOccupants", updatedOccupants);
-                      }
-                    }}
-                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                  />
-                  <span className="text-sm text-gray-700">My family</span>
-                </label>
-                <label className="flex items-center gap-3 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={state.formData.houseOccupants.includes("guests")}
-                    onChange={(e) => {
-                      if (e.target.checked) {
-                        const updatedOccupants = [
-                          ...state.formData.houseOccupants,
-                          "guests",
-                        ];
-                        handleInputChange("houseOccupants", updatedOccupants);
-                      } else {
-                        const updatedOccupants =
-                          state.formData.houseOccupants.filter(
-                            (o) => o !== "guests"
-                          );
-                        handleInputChange("houseOccupants", updatedOccupants);
-                      }
-                    }}
-                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                  />
-                  <span className="text-sm text-gray-700">Other Guests</span>
-                </label>
-                <label className="flex items-center gap-3 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={state.formData.houseOccupants.includes(
-                      "roommates"
-                    )}
-                    onChange={(e) => {
-                      if (e.target.checked) {
-                        const updatedOccupants = [
-                          ...state.formData.houseOccupants,
-                          "roommates",
-                        ];
-                        handleInputChange("houseOccupants", updatedOccupants);
-                      } else {
-                        const updatedOccupants =
-                          state.formData.houseOccupants.filter(
-                            (o) => o !== "roommates"
-                          );
-                        handleInputChange("houseOccupants", updatedOccupants);
-                      }
-                    }}
-                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                  />
-                  <span className="text-sm text-gray-700">Roommates</span>
-                </label>
+              <p className="font-bold text-[14px] text-[#1C231F] mb-4 mt-4">
+                Does anyone else live in the house?<span className="text-red-500">*</span>
+              </p>
+              <div className="flex flex-wrap gap-6">
+                {[
+                  { label: "Me", value: "me" },
+                  { label: "My family", value: "family" },
+                  { label: "Other Guests", value: "guests" },
+                  { label: "Roommates", value: "roommates" },
+                ].map((option) => (
+                  <label key={option.value} className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={state.formData.house_sharing?.includes(option.value) || false}
+                      onChange={(e) => {
+                        const updated = e.target.checked
+                          ? [...(state.formData.house_sharing || []), option.value]
+                          : (state.formData.house_sharing || []).filter((v) => v !== option.value);
+                        handleInputChange("house_sharing", updated);
+                      }}
+                      className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                    />
+                    <span className="text-[13px] text-[#1C231F] font-medium">{option.label}</span>
+                  </label>
+                ))}
               </div>
             </div>
+
 
             {/* Site Privacy */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-3">
-                Site Privacy
-              </label>
-              <div className="space-y-2">
-                <label className="flex items-center gap-3 cursor-pointer">
-                  <input
-                    type="radio"
-                    name="sitePrivacy"
-                    value="private"
-                    checked={state.formData.sitePrivacy === "private"}
-                    onChange={(e) =>
-                      handleInputChange("sitePrivacy", e.target.value)
-                    }
-                    className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
-                  />
-                  <span className="text-sm text-gray-700">Private</span>
-                </label>
-                <label className="flex items-center gap-3 cursor-pointer">
-                  <input
-                    type="radio"
-                    name="sitePrivacy"
-                    value="shared"
-                    checked={state.formData.sitePrivacy === "shared"}
-                    onChange={(e) =>
-                      handleInputChange("sitePrivacy", e.target.value)
-                    }
-                    className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
-                  />
-                  <span className="text-sm text-gray-700">Shared</span>
-                </label>
+              <p className="font-bold text-[14px] text-[#1C231F] mb-4 mt-4">
+                Site Privacy<span className="text-red-500">*</span>
+              </p>
+              <div className="flex flex-wrap gap-6">
+                {[
+                  { label: "Shared", value: "shared" },
+                  { label: "Private", value: "private" },
+                ].map((option) => (
+                  <label key={option.value} className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="sitePrivacy"
+                      value={option.value}
+                      checked={state.formData.sitePrivacy === option.value}
+                      onChange={() => handleInputChange("sitePrivacy", option.value)}
+                      className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                    />
+                    <span className="text-[13px] text-[#1C231F] font-medium">{option.label}</span>
+                  </label>
+                ))}
               </div>
             </div>
+
+
           </div>
 
           {/* Right Column */}
-          <div className="space-y-6">
+          <div className="">
             {/* Site Name */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Site Name*
-              </label>
               <GlobalTextInput
+                label={<span>Site Name <span className="text-red-500">*</span></span>}
                 type="text"
                 placeholder="Enter site name"
                 value={state.formData.siteName}
@@ -260,10 +197,8 @@ const SiteOverviewSection: React.FC<SiteOverviewSectionProps> = ({
 
             {/* Site Description */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Site Description*
-              </label>
               <GlobalTextArea
+                label={<span>Site Description <span className="text-red-500">*</span></span>}
                 placeholder="Describe your site..."
                 value={state.formData.shortDescription}
                 onChange={(e) =>
@@ -275,34 +210,38 @@ const SiteOverviewSection: React.FC<SiteOverviewSectionProps> = ({
 
             {/* Select RV */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Select RV
-              </label>
+
               <GlobalSelect
+                label="Select RV"
                 value={state.formData.rvType || ""}
                 onChange={(e) => handleInputChange("rvType", e.target.value)}
               >
                 <option value="">Select RV type</option>
-                <option value="class-a">Class A Motorhome</option>
-                <option value="class-b">Class B Motorhome</option>
-                <option value="class-c">Class C Motorhome</option>
-                <option value="travel-trailer">Travel Trailer</option>
-                <option value="fifth-wheel">Fifth Wheel</option>
-                <option value="pop-up">Pop-up Camper</option>
-                <option value="truck-camper">Truck Camper</option>
+                {[
+                  { value: "class-a", label: "Class A Motorhome" },
+                  { value: "class-b", label: "Class B Motorhome" },
+                  { value: "class-c", label: "Class C Motorhome" },
+                  { value: "travel-trailer", label: "Travel Trailer" },
+                  { value: "fifth-wheel", label: "Fifth Wheel" },
+                  { value: "pop-up", label: "Pop-up Camper" },
+                  { value: "truck-camper", label: "Truck Camper" },
+                ].map((rv) => (
+                  <option key={rv.value} value={rv.value}>
+                    {rv.label}
+                  </option>
+                ))}
               </GlobalSelect>
+
             </div>
 
             {/* Site Rules */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Site Rules
-              </label>
-              <GlobalTextArea
-                placeholder="Enter site rules and guidelines..."
+
+              <GlobalTextInput
+                label="Site Rules"
                 value={state.formData.siteRules}
                 onChange={(e) => handleInputChange("siteRules", e.target.value)}
-                rows={4}
+
               />
             </div>
           </div>
