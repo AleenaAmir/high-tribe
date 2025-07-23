@@ -59,7 +59,7 @@ const initialState: SiteFormState = {
     rvType: "",
     campsiteType: "",
     sitePrivacy: "",
-    houseOccupants: [],
+    // houseOccupants: [],
     siteAmenities: [],
     siteFacilities: [],
     safetyItems: [],
@@ -67,6 +67,8 @@ const initialState: SiteFormState = {
     otherFacilities: "",
     otherSafety: "",
     parkingVehicles: "",
+    accommodation_type: "",
+    house_sharing: [],
   },
   selectedLocation: {
     coords: null,

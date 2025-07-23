@@ -17,10 +17,10 @@ import { filtersArray } from "@/components/dashboard/center/MapDashboard";
 import DestinationSvg from "@/components/dashboard/svgs/DestinationSvg";
 import Location from "@/components/dashboard/svgs/Location";
 import Filters from "@/components/dashboard/svgs/Filters";
-
+import { toast } from "react-hot-toast";
 const MAPBOX_ACCESS_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
 
-interface PropertyFormProps {}
+interface PropertyFormProps { }
 
 const PropertyForm: React.FC<PropertyFormProps> = () => {
   const [search, setSearch] = useState("");
@@ -63,8 +63,9 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
   // Form state
   const [formData, setFormData] = useState({
     tripLocation: "",
-    entranceLocation: "",
+    entranceLocation: "123 Main St, Anytown, USA",
     propertyPresence: "",
+    location_address: "123 Main St, Anytown, USA",
     access: "",
     acres: "",
     propertyName: "",
@@ -73,24 +74,24 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
     languagesSpoken: "",
     propertyRules: "",
     shortDescription: "",
-    insurance: "",
+    insurance: "Insurance is required",
     contactMethods: [] as string[],
     payoutMethod: "Credit/Debit Cards",
     bankName: "",
     accountNumber: "",
     routingNumber: "",
     accountHolderName: "",
-    taxInfo: "",
-    taxCountry: "",
+    taxInfo: "Tax is 10% of the nightly rate",
+    taxCountry: "United States",
     amenities: [] as string[],
     enrollmentPeriod: "",
     coveredExample: "",
     notCoveredExample: "",
     isLocalTax: "yes",
     taxCollectionMethod: "Included in nightly rate",
-    taxName: "",
-    taxRate: "",
-    taxNotes: "",
+    taxName: "Tax",
+    taxRate: "10",
+    taxNotes: "Tax is 10% of the nightly rate",
     termsAccepted: false,
   });
 
@@ -157,87 +158,6 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
     { value: "spanish", label: "Spanish" },
     { value: "german", label: "German" },
     { value: "chinese", label: "Chinese" },
-  ];
-
-  const propertyPresenceOptions = [
-    { value: "owner-occupied", label: "Owner Occupied" },
-    { value: "managed", label: "Professionally Managed" },
-    { value: "self-service", label: "Self Service" },
-    { value: "hybrid", label: "Hybrid Management" },
-  ];
-
-  const taxCountries = [
-    { value: "us", label: "United States" },
-    { value: "pk", label: "Pakistan" },
-    { value: "uk", label: "United Kingdom" },
-    { value: "ca", label: "Canada" },
-    { value: "au", label: "Australia" },
-    { value: "de", label: "Germany" },
-    { value: "fr", label: "France" },
-  ];
-
-  const insuranceOptions = [
-    {
-      id: "basic",
-      title: "Basic Protection",
-      description:
-        "Coverage up to $1,000,000 for property damage and liability",
-      price: "$15/month",
-      features: [
-        "Property damage protection",
-        "Liability coverage",
-        "24/7 support",
-      ],
-    },
-    {
-      id: "premium",
-      title: "Premium Protection",
-      description: "Enhanced coverage with additional benefits",
-      price: "$25/month",
-      features: [
-        "Property damage protection",
-        "Liability coverage",
-        "Income protection",
-        "Legal assistance",
-        "24/7 priority support",
-      ],
-    },
-    {
-      id: "comprehensive",
-      title: "Comprehensive Protection",
-      description: "Complete coverage for maximum peace of mind",
-      price: "$35/month",
-      features: [
-        "Property damage protection",
-        "Liability coverage",
-        "Income protection",
-        "Legal assistance",
-        "Emergency accommodation",
-        "24/7 concierge support",
-      ],
-    },
-  ];
-
-  const contactMethods = [
-    { id: "phone", label: "Phone calls", icon: "📞" },
-    { id: "text", label: "Text messages", icon: "💬" },
-    { id: "email", label: "Email", icon: "📧" },
-    { id: "whatsapp", label: "WhatsApp", icon: "📱" },
-    { id: "messenger", label: "Messenger", icon: "💭" },
-  ];
-
-  // 1. Add amenities options
-  const amenitiesOptions = [
-    { value: "wifi", label: "Wi-Fi" },
-    { value: "parking", label: "Parking" },
-    { value: "pool", label: "Pool" },
-    { value: "kitchen", label: "Kitchen" },
-    { value: "ac", label: "Air Conditioning" },
-    { value: "tv", label: "TV" },
-    { value: "laundry", label: "Laundry" },
-    { value: "breakfast", label: "Breakfast" },
-    { value: "pets", label: "Pets Allowed" },
-    { value: "gym", label: "Gym" },
   ];
 
   // Check if section is completed based on required fields
@@ -413,6 +333,7 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
+    console.log(formData, "---------------------");
   };
 
   const handleFileUpload = (
@@ -434,25 +355,14 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
     setUploadedVideos((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const handleContactMethodChange = (methodId: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      contactMethods: prev.contactMethods.includes(methodId)
-        ? prev.contactMethods.filter((id) => id !== methodId)
-        : [...prev.contactMethods, methodId],
-    }));
-  };
 
-  const handleAmenitiesChange = (value: string[]) => {
-    setFormData((prev) => ({ ...prev, amenities: value }));
-  };
-  const handleCoverImageSelect = (index: number) => {
-    setCoverImageIndex(index);
-  };
 
-  const handleSubmit = (e?: React.FormEvent) => {
+  const handleSubmit = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
+
     const newErrors: { [key: string]: string } = {};
+
+    // Validate required fields
     sections.forEach((section) => {
       section.requiredFields.forEach((field) => {
         const value = formData[field as keyof typeof formData];
@@ -461,34 +371,101 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
         }
       });
     });
+
     if (formData.payoutMethod === "bank") {
-      [
-        "bankName",
-        "accountNumber",
-        "routingNumber",
-        "accountHolderName",
-      ].forEach((field) => {
+      ["bankName", "accountNumber", "routingNumber", "accountHolderName"].forEach((field) => {
         if (!formData[field as keyof typeof formData]) {
           newErrors[field] = "This field is required";
         }
       });
     }
+
     if (uploadedImages.length === 0 && !coverImage) {
-      newErrors["uploadedImages"] =
-        "At least one image or cover image is required";
+      newErrors["uploadedImages"] = "At least one image or cover image is required";
     }
+
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       return;
     }
+
     setErrors({});
-    console.log("Form submitted:", formData);
-    console.log("Property location:", formData.tripLocation);
-    console.log("Entrance location:", formData.entranceLocation);
-    console.log("Uploaded images:", uploadedImages);
-    console.log("Cover image:", coverImage);
-    console.log("Uploaded videos:", uploadedVideos);
-    // Handle form submission logic here
+    const token =
+      typeof window !== 'undefined' ? localStorage.getItem("token") || "<PASTE_VALID_TOKEN_HERE>" : "<PASTE_VALID_TOKEN_HERE>";
+
+    // Construct FormData for file and text fields
+    const form = new FormData();
+
+    // Append basic text fields
+    form.append("location_address", formData.tripLocation || "123 Main St, Anytown, USA");
+    form.append("entrance_address", formData.entranceLocation || "123 Main St, Anytown, USA");
+    form.append("acres", formData.acres);
+    form.append("property_name", formData.propertyName);
+    form.append("property_type", formData.propertyType);
+    form.append("short_description", formData.shortDescription);
+    form.append("website_url", formData.website);
+    form.append("languages", formData.languagesSpoken);
+    form.append("property_rules", formData.propertyRules);
+    form.append("has_insurance", formData.insurance ? "1" : "0");
+    form.append("enrollment_period", formData.enrollmentPeriod || "");
+    form.append("typically_covered", formData.coveredExample || "");
+    form.append("not_covered", formData.notCoveredExample || "");
+    form.append("payout_method", formData.payoutMethod);
+    form.append("is_tax_applicable", formData.isLocalTax === "yes" ? "1" : "0");
+    form.append("tax_collection_method", formData.taxCollectionMethod);
+    form.append("tax_name", formData.taxName);
+    form.append("tax_rate", formData.taxRate);
+    form.append("tax_notes", formData.taxNotes);
+    form.append("agreed_to_terms", formData.termsAccepted ? "1" : "0");
+
+    // Append optional bank fields
+    if (formData.payoutMethod === "bank") {
+      form.append("bank_name", formData.bankName);
+      form.append("account_number", formData.accountNumber);
+      form.append("routing_number", formData.routingNumber);
+      form.append("account_holder_name", formData.accountHolderName);
+    }
+
+    // Append uploaded images
+    uploadedImages.forEach((file) => {
+      form.append("media[]", file);
+    });
+
+    // Append cover image
+    if (coverImage) {
+      form.append("cover_image", coverImage);
+    }
+
+    // Append uploaded videos (if supported by backend)
+    uploadedVideos.forEach((file) => {
+      form.append("videos[]", file);
+    });
+    console.log(token, "---------------------");
+    // Send form data to backend
+    try {
+      const response = await fetch("https://high-tribe-backend.hiconsolutions.com/api/properties", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          // "Accept": "application/json",
+          // "Content-Type": "multipart/form-data",
+        },
+        body: form,
+      });
+
+
+
+      if (!response.ok) {
+        toast.error(`Server Error: ${response.status}`);
+      }
+
+      toast.success("Property created successfully!");
+      // for debugging
+    } catch (error) {
+      console.error("Network error:", error);
+      toast.error("Something went wrong while submitting.");
+    }
+
   };
 
   return (
@@ -510,11 +487,10 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
                     onClick={() => scrollToSection(section.ref)}
                   >
                     <div
-                      className={`w-8 h-8 rounded-full flex items-center justify-center mr-3 text-sm font-medium ${
-                        isCompleted
-                          ? "bg-[#1179FA] text-white"
-                          : "bg-gray-200 text-gray-500"
-                      }`}
+                      className={`w-8 h-8 rounded-full flex items-center justify-center mr-3 text-sm font-medium ${isCompleted
+                        ? "bg-[#1179FA] text-white"
+                        : "bg-gray-200 text-gray-500"
+                        }`}
                     >
                       {isCompleted ? "✓" : ""}
                     </div>
@@ -623,23 +599,20 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
                         )}
                     </div>
                     <div
-                      className={`flex items-center justify-center p-2 rounded-full cursor-pointer hover:shadow-lg transition-all delay-300 ${
-                        isFilters
-                          ? "bg-gradient-to-r from-[#D6D5D4] to-white"
-                          : "bg-gradient-to-r from-[#257CFF] to-[#0F62DE]"
-                      }`}
+                      className={`flex items-center justify-center p-2 rounded-full cursor-pointer hover:shadow-lg transition-all delay-300 ${isFilters
+                        ? "bg-gradient-to-r from-[#D6D5D4] to-white"
+                        : "bg-gradient-to-r from-[#257CFF] to-[#0F62DE]"
+                        }`}
                       onClick={() => setIsFilters(!isFilters)}
                     >
                       <Filters
-                        className={`${
-                          isFilters ? "text-[#6C6868]" : "text-white"
-                        } flex-shrink-0`}
+                        className={`${isFilters ? "text-[#6C6868]" : "text-white"
+                          } flex-shrink-0`}
                       />
                     </div>
                     <div
-                      className={`${
-                        isFilters ? "max-w-full" : "max-w-0"
-                      } flex items-center gap-2 transition-all w-fit delay-300 overflow-hidden`}
+                      className={`${isFilters ? "max-w-full" : "max-w-0"
+                        } flex items-center gap-2 transition-all w-fit delay-300 overflow-hidden`}
                     >
                       {filtersArray.map((filter, i) => (
                         <div
