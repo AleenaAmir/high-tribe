@@ -5,7 +5,7 @@ interface GlobalSelectProps
   extends React.SelectHTMLAttributes<HTMLSelectElement> {
   label?: string | React.ReactNode;
   error?: string;
-  children: React.ReactNode;
+  children: string | React.ReactNode;
 }
 
 const GlobalSelect: React.FC<GlobalSelectProps> = ({
