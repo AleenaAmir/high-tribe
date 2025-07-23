@@ -35,6 +35,12 @@ const SiteImagesSection: React.FC<SiteImagesSectionProps> = ({
     updateUploadedImages(newImages);
   };
 
+  // Remove video
+  const removeVideo = (index: number) => {
+    const newVideos = state.uploadedVideos.filter((_, i) => i !== index);
+    updateUploadedVideos(newVideos);
+  };
+
   const handleSave = async () => {
     const imagesData = {
       uploadedImages: state.uploadedImages,
@@ -55,7 +61,7 @@ const SiteImagesSection: React.FC<SiteImagesSectionProps> = ({
       <div className="p-6 bg-white rounded-lg shadow-sm mt-4">
         {/* Upload Images Section */}
         <div className="mb-8">
-          <label className="block text-sm font-medium text-gray-700 mb-4">
+          <label className="block text-[16px] font-medium text-[#1C231F] mb-4">
             Upload images
           </label>
           <div className="grid grid-cols-5 gap-4 mb-3">
@@ -79,80 +85,63 @@ const SiteImagesSection: React.FC<SiteImagesSectionProps> = ({
               </div>
             ))}
 
-            {/* Upload button for remaining slots */}
-            {state.uploadedImages.length < 4 && (
-              <div className="aspect-square border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-gray-400 transition-colors">
-                <input
-                  type="file"
-                  accept="image/*"
-                  multiple
-                  onChange={(e) => {
-                    const files = Array.from(e.target.files || []);
-                    handleFileUpload(files, "image");
-                  }}
-                  className="hidden"
-                  id="image-upload"
-                />
-                <label
-                  htmlFor="image-upload"
-                  className="cursor-pointer flex flex-col items-center"
-                >
-                  <span className="text-gray-400 text-2xl mb-1">+</span>
-                  <span className="text-gray-500 text-xs">Upload image</span>
-                </label>
-              </div>
-            )}
-          </div>
-          <div className="text-center">
-            <input
-              type="file"
-              accept="image/*"
-              multiple
-              onChange={(e) => {
-                const files = Array.from(e.target.files || []);
-                handleFileUpload(files, "image");
-              }}
-              className="hidden"
-              id="additional-image-upload"
-            />
-            <label
-              htmlFor="additional-image-upload"
-              className="text-gray-600 text-sm cursor-pointer hover:text-gray-800"
-            >
-              Upload image
-            </label>
+            <div className="aspect-square border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-gray-400 transition-colors">
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={(e) => {
+                  const files = Array.from(e.target.files || []);
+                  handleFileUpload(files, "image");
+                }}
+                className="hidden"
+                id="image-upload"
+              />
+              <label
+                htmlFor="image-upload"
+                className="cursor-pointer flex flex-col items-center"
+              >
+                <span className="text-gray-400 text-2xl mb-1">+</span>
+                <span className="text-gray-500 text-xs">Upload image</span>
+              </label>
+            </div>
           </div>
         </div>
 
         {/* Upload Video Section */}
         <div className="mb-8">
-          <label className="block text-sm font-medium text-gray-700 mb-4">
+          <label className="block text-[16px] font-medium text-[#1C231F] mb-4">
             Upload optimal short video
           </label>
-          <div className="grid grid-cols-2 gap-4 max-w-md">
-            {/* Video preview or placeholder */}
-            {state.uploadedVideos.length > 0 ? (
-              <div className="relative">
+          <div className="grid grid-cols-5 gap-4">
+            {/* Display uploaded videos */}
+            {state.uploadedVideos.map((file, index) => (
+              <div key={index} className="relative group">
                 <div className="aspect-video bg-gray-100 rounded-lg overflow-hidden border border-gray-200">
                   <video
-                    src={URL.createObjectURL(state.uploadedVideos[0])}
+                    src={URL.createObjectURL(file)}
                     className="w-full h-full object-cover"
                     controls
                   />
+                  <button
+                    onClick={() => removeVideo(index)}
+                    className="absolute z-10 -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600"
+                  >
+                    ×
+                  </button>
                 </div>
                 <div className="mt-2 text-xs text-gray-500 truncate">
-                  {state.uploadedVideos[0].name}
+                  {file.name}
                 </div>
               </div>
-            ) : (
-              ""
-            )}
+            ))}
 
             {/* Video upload button */}
             <div className="aspect-video border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-gray-400 transition-colors">
               <input
                 type="file"
                 accept="video/*"
+                multiple
                 onChange={(e) => {
                   const files = Array.from(e.target.files || []);
                   handleFileUpload(files, "video");
@@ -173,7 +162,7 @@ const SiteImagesSection: React.FC<SiteImagesSectionProps> = ({
 
         {/* Choose Cover Image Section */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-4">
+          <label className="block text-[16px] font-medium text-[#1C231F] mb-4">
             Choose a cover images
           </label>
           <div className="max-w-xs">
@@ -202,9 +191,9 @@ const SiteImagesSection: React.FC<SiteImagesSectionProps> = ({
                   type="file"
                   accept="image/*"
                   onChange={(e) => {
-                    const files = Array.from(e.target.files || []);
-                    if (files.length > 0) {
-                      updateCoverImage(files[0]);
+                    const file = e.target.files && e.target.files[0];
+                    if (file) {
+                      updateCoverImage(file);
                     }
                   }}
                   className="hidden"

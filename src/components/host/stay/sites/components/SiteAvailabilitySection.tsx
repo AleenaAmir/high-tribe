@@ -207,8 +207,8 @@ const SiteAvailabilitySection: React.FC<SiteAvailabilitySectionProps> = ({
             </div>
           </div>
           {/* Right: Radio Buttons */}
-          <div className="flex flex-col justify-end h-full">
-            <div className="flex flex-col gap-6">
+          <div className="flex flex-col justify-center h-full">
+            <div className="flex flex-col gap-3">
               <label className="flex items-center gap-3 text-base font-normal text-black">
                 <input
                   type="radio"

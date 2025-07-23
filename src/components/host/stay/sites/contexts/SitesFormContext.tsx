@@ -88,6 +88,7 @@ const initialState: SiteFormState = {
     maxWidth: "",
     drivewaySurface: "",
     turningRadius: "",
+    amperes: "",
   },
   pricingType: "",
   allowRefunds: "no",

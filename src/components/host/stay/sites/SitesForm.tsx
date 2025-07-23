@@ -12,9 +12,11 @@ import SiteAvailabilitySection from "./components/SiteAvailabilitySection";
 import SiteArrivalSection from "./components/SiteArrivalSection";
 import { Section } from "./types/sites";
 
-interface SitesFormProps {}
+interface SitesFormProps {
+  onBack?: () => void;
+}
 
-const SitesFormContent: React.FC = () => {
+const SitesFormContent: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
   const { publishSite } = useSitesForm();
 
   // Section refs for scrolling
@@ -99,6 +101,21 @@ const SitesFormContent: React.FC = () => {
     await publishSite();
   };
 
+  const handleExit = () => {
+    if (onBack) {
+      onBack();
+    } else {
+      // Fallback to original behavior
+      const params = new URLSearchParams(window.location.search);
+      params.delete("sites");
+      window.history.replaceState(
+        {},
+        "",
+        `${window.location.pathname}?${params.toString()}`
+      );
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="flex">
@@ -140,15 +157,7 @@ const SitesFormContent: React.FC = () => {
               <button
                 type="button"
                 className="px-8 py-3 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg font-medium transition-colors text-sm shadow-sm"
-                onClick={() => {
-                  const params = new URLSearchParams(window.location.search);
-                  params.delete("sites");
-                  window.history.replaceState(
-                    {},
-                    "",
-                    `${window.location.pathname}?${params.toString()}`
-                  );
-                }}
+                onClick={handleExit}
               >
                 Exit
               </button>
@@ -166,10 +175,10 @@ const SitesFormContent: React.FC = () => {
   );
 };
 
-const SitesForm: React.FC<SitesFormProps> = () => {
+const SitesForm: React.FC<SitesFormProps> = ({ onBack }) => {
   return (
     <SitesFormProvider>
-      <SitesFormContent />
+      <SitesFormContent onBack={onBack} />
     </SitesFormProvider>
   );
 };

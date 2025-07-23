@@ -44,9 +44,9 @@ const SiteAmenitiesSection: React.FC<SiteAmenitiesSectionProps> = ({
             <label className="text-sm font-normal text-gray-700 block mb-3">
               Let guests know which amenities are in this site.
             </label>
-            <div className="grid grid-cols-6 gap-2">
+            <div className="flex items-center flex-wrap gap-2">
               {[
-                { id: "wifi", label: "Wi-Fi", checked: true },
+                { id: "wifi", label: "Wi-Fi", checked: false },
                 { id: "tv", label: "TV", checked: false },
                 { id: "kitchen", label: "Kitchen", checked: false },
                 { id: "washer", label: "Washer", checked: false },
@@ -82,7 +82,7 @@ const SiteAmenitiesSection: React.FC<SiteAmenitiesSectionProps> = ({
                 },
                 { id: "hangers", label: "Hangers", checked: false },
                 { id: "iron", label: "Iron", checked: false },
-                { id: "bathroom", label: "Bathroom", checked: true },
+                { id: "bathroom", label: "Bathroom", checked: false },
                 {
                   id: "shared-non-ensuite",
                   label: "Shared Non-ensuite",
@@ -106,13 +106,12 @@ const SiteAmenitiesSection: React.FC<SiteAmenitiesSectionProps> = ({
                 {
                   id: "other-amenities",
                   label: "Other",
-                  checked: true,
+                  checked: false,
                 },
               ].map((amenity) => (
                 <label
                   key={amenity.id}
-                  className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-50 transition-colors text-gray-800 text-[13px] font-normal min-h-[40px]"
-                  style={{ fontWeight: 400 }}
+                  className="flex items-center justify-center gap-2 px-3 py-2 border border-black rounded-[5px] cursor-pointer hover:bg-gray-50 transition-colors text-gray-800 text-[13px] font-normal whitespace-nowrap"
                 >
                   <input
                     type="checkbox"
@@ -138,22 +137,16 @@ const SiteAmenitiesSection: React.FC<SiteAmenitiesSectionProps> = ({
                     className="w-4 h-4 border border-gray-400 rounded-sm focus:ring-0 focus:ring-offset-0 mr-1 accent-blue-600"
                     style={{ minWidth: 16, minHeight: 16 }}
                   />
-                  <span
-                    className="flex-1 text-[13px] font-normal text-gray-800"
-                    style={{ fontWeight: 400 }}
-                  >
-                    {amenity.label}
-                  </span>
+                  <span className="text-[14px]">{amenity.label}</span>
                   {amenity.id === "other-amenities" && (
                     <input
                       type="text"
-                      placeholder=""
-                      className="flex-1 text-[13px] font-normal text-gray-800 bg-transparent border-none outline-none p-0 m-0 min-w-0"
+                      placeholder="Please specify..."
+                      className="text-[13px] border  border-[#848484] rounded-[5px] font-normal text-gray-800 bg-transparent  outline-none p-1 ml-2 min-w-[300px]"
                       value={state.formData.otherAmenities || ""}
                       onChange={(e) =>
                         handleInputChange("otherAmenities", e.target.value)
                       }
-                      style={{ fontWeight: 400 }}
                     />
                   )}
                 </label>
@@ -166,12 +159,12 @@ const SiteAmenitiesSection: React.FC<SiteAmenitiesSectionProps> = ({
               Do you have any other facilities to which the guests will have
               access? Select all that apply
             </label>
-            <div className="grid grid-cols-6 gap-2">
+            <div className="flex items-center flex-wrap gap-2">
               {[
                 {
                   id: "shared-pool",
                   label: "Shared Pool",
-                  checked: true,
+                  checked: false,
                 },
                 {
                   id: "private-pool",
@@ -259,7 +252,7 @@ const SiteAmenitiesSection: React.FC<SiteAmenitiesSectionProps> = ({
                 {
                   id: "free-parking",
                   label: "Free Parking",
-                  checked: true,
+                  checked: false,
                 },
                 {
                   id: "paid-parking",
@@ -274,8 +267,7 @@ const SiteAmenitiesSection: React.FC<SiteAmenitiesSectionProps> = ({
               ].map((facility) => (
                 <label
                   key={facility.id}
-                  className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-50 transition-colors text-gray-800 text-[13px] font-normal min-h-[40px]"
-                  style={{ fontWeight: 400 }}
+                  className="flex items-center justify-center gap-2 px-3 py-2 border border-black rounded-[5px] cursor-pointer hover:bg-gray-50 transition-colors text-gray-800 text-[13px] font-normal whitespace-nowrap"
                 >
                   <input
                     type="checkbox"
@@ -301,34 +293,16 @@ const SiteAmenitiesSection: React.FC<SiteAmenitiesSectionProps> = ({
                     className="w-4 h-4 border border-gray-400 rounded-sm focus:ring-0 focus:ring-offset-0 mr-1 accent-blue-600"
                     style={{ minWidth: 16, minHeight: 16 }}
                   />
-                  <span
-                    className="flex-1 text-[13px] font-normal text-gray-800"
-                    style={{ fontWeight: 400 }}
-                  >
-                    {facility.label}
-                  </span>
+                  <span className="text-[14px]">{facility.label}</span>
                   {facility.id === "free-parking" && (
                     <input
                       type="text"
                       placeholder="Number of allowed vehicles"
-                      className="flex-1 text-[13px] font-normal text-gray-400 bg-transparent border-none outline-none p-0 m-0 min-w-0 placeholder-gray-400"
+                      className="flex-1 text-[13px] border border-[#848484] rounded-[5px] font-normal text-gray-400 bg-transparent  outline-none p-1 ml-2 min-w-0 placeholder-gray-400"
                       value={state.formData.parkingVehicles || ""}
                       onChange={(e) =>
                         handleInputChange("parkingVehicles", e.target.value)
                       }
-                      style={{ fontWeight: 400 }}
-                    />
-                  )}
-                  {facility.id === "other-facilities" && (
-                    <input
-                      type="text"
-                      placeholder=""
-                      className="flex-1 text-[13px] font-normal text-gray-800 bg-transparent border-none outline-none p-0 m-0 min-w-0"
-                      value={state.formData.otherFacilities || ""}
-                      onChange={(e) =>
-                        handleInputChange("otherFacilities", e.target.value)
-                      }
-                      style={{ fontWeight: 400 }}
                     />
                   )}
                 </label>
@@ -340,7 +314,7 @@ const SiteAmenitiesSection: React.FC<SiteAmenitiesSectionProps> = ({
             <label className="text-sm font-medium text-gray-900 block mb-2">
               Do you have any of these safety items?
             </label>
-            <div className="grid grid-cols-5 gap-2">
+            <div className="flex items-center flex-wrap gap-2">
               {[
                 {
                   id: "smoke-alarm",
@@ -366,8 +340,7 @@ const SiteAmenitiesSection: React.FC<SiteAmenitiesSectionProps> = ({
               ].map((safety) => (
                 <label
                   key={safety.id}
-                  className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-50 transition-colors text-gray-800 text-[13px] font-normal min-h-[40px]"
-                  style={{ fontWeight: 400 }}
+                  className="flex items-center justify-center gap-2 px-3 py-2 border border-black rounded-[5px] cursor-pointer hover:bg-gray-50 transition-colors text-gray-800 text-[13px] font-normal whitespace-nowrap"
                 >
                   <input
                     type="checkbox"
@@ -393,24 +366,7 @@ const SiteAmenitiesSection: React.FC<SiteAmenitiesSectionProps> = ({
                     className="w-4 h-4 border border-gray-400 rounded-sm focus:ring-0 focus:ring-offset-0 mr-1 accent-blue-600"
                     style={{ minWidth: 16, minHeight: 16 }}
                   />
-                  <span
-                    className="flex-1 text-[13px] font-normal text-gray-800"
-                    style={{ fontWeight: 400 }}
-                  >
-                    {safety.label}
-                  </span>
-                  {safety.id === "other-safety" && (
-                    <input
-                      type="text"
-                      placeholder=""
-                      className="flex-1 text-[13px] font-normal text-gray-800 bg-transparent border-none outline-none p-0 m-0 min-w-0"
-                      value={state.formData.otherSafety || ""}
-                      onChange={(e) =>
-                        handleInputChange("otherSafety", e.target.value)
-                      }
-                      style={{ fontWeight: 400 }}
-                    />
-                  )}
+                  <span className="text-[14px]">{safety.label}</span>
                 </label>
               ))}
             </div>
@@ -420,7 +376,7 @@ const SiteAmenitiesSection: React.FC<SiteAmenitiesSectionProps> = ({
             <label className="text-sm font-medium text-gray-900 block mb-2">
               Do you allow pet?
             </label>
-            <div className="grid grid-cols-4 gap-2">
+            <div className="flex items-center flex-wrap gap-2">
               {[
                 { id: "pets-yes", label: "Yes", checked: false },
                 { id: "pets-no", label: "No", checked: false },
@@ -437,8 +393,7 @@ const SiteAmenitiesSection: React.FC<SiteAmenitiesSectionProps> = ({
               ].map((pet) => (
                 <label
                   key={pet.id}
-                  className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-50 transition-colors text-gray-800 text-[13px] font-normal min-h-[40px]"
-                  style={{ fontWeight: 400 }}
+                  className="flex items-center justify-center gap-2 px-3 py-2 border border-black rounded-[5px] cursor-pointer hover:bg-gray-50 transition-colors text-gray-800 text-[13px] font-normal whitespace-nowrap"
                 >
                   <input
                     type="checkbox"
@@ -451,12 +406,7 @@ const SiteAmenitiesSection: React.FC<SiteAmenitiesSectionProps> = ({
                     className="w-4 h-4 border border-gray-400 rounded-sm focus:ring-0 focus:ring-offset-0 mr-1 accent-blue-600"
                     style={{ minWidth: 16, minHeight: 16 }}
                   />
-                  <span
-                    className="flex-1 text-[13px] font-normal text-gray-800"
-                    style={{ fontWeight: 400 }}
-                  >
-                    {pet.label}
-                  </span>
+                  <span className="text-[14px]">{pet.label}</span>
                 </label>
               ))}
             </div>

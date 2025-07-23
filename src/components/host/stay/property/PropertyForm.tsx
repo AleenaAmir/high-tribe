@@ -20,7 +20,7 @@ import Filters from "@/components/dashboard/svgs/Filters";
 import { toast } from "react-hot-toast";
 const MAPBOX_ACCESS_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
 
-interface PropertyFormProps { }
+interface PropertyFormProps {}
 
 const PropertyForm: React.FC<PropertyFormProps> = () => {
   const [search, setSearch] = useState("");
@@ -355,8 +355,6 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
     setUploadedVideos((prev) => prev.filter((_, i) => i !== index));
   };
 
-
-
   const handleSubmit = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
 
@@ -373,7 +371,12 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
     });
 
     if (formData.payoutMethod === "bank") {
-      ["bankName", "accountNumber", "routingNumber", "accountHolderName"].forEach((field) => {
+      [
+        "bankName",
+        "accountNumber",
+        "routingNumber",
+        "accountHolderName",
+      ].forEach((field) => {
         if (!formData[field as keyof typeof formData]) {
           newErrors[field] = "This field is required";
         }
@@ -381,7 +384,8 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
     }
 
     if (uploadedImages.length === 0 && !coverImage) {
-      newErrors["uploadedImages"] = "At least one image or cover image is required";
+      newErrors["uploadedImages"] =
+        "At least one image or cover image is required";
     }
 
     if (Object.keys(newErrors).length > 0) {
@@ -391,14 +395,22 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
 
     setErrors({});
     const token =
-      typeof window !== 'undefined' ? localStorage.getItem("token") || "<PASTE_VALID_TOKEN_HERE>" : "<PASTE_VALID_TOKEN_HERE>";
+      typeof window !== "undefined"
+        ? localStorage.getItem("token") || "<PASTE_VALID_TOKEN_HERE>"
+        : "<PASTE_VALID_TOKEN_HERE>";
 
     // Construct FormData for file and text fields
     const form = new FormData();
 
     // Append basic text fields
-    form.append("location_address", formData.tripLocation || "123 Main St, Anytown, USA");
-    form.append("entrance_address", formData.entranceLocation || "123 Main St, Anytown, USA");
+    form.append(
+      "location_address",
+      formData.tripLocation || "123 Main St, Anytown, USA"
+    );
+    form.append(
+      "entrance_address",
+      formData.entranceLocation || "123 Main St, Anytown, USA"
+    );
     form.append("acres", formData.acres);
     form.append("property_name", formData.propertyName);
     form.append("property_type", formData.propertyType);
@@ -443,17 +455,18 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
     console.log(token, "---------------------");
     // Send form data to backend
     try {
-      const response = await fetch("https://high-tribe-backend.hiconsolutions.com/api/properties", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          // "Accept": "application/json",
-          // "Content-Type": "multipart/form-data",
-        },
-        body: form,
-      });
-
-
+      const response = await fetch(
+        "https://high-tribe-backend.hiconsolutions.com/api/properties",
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            // "Accept": "application/json",
+            // "Content-Type": "multipart/form-data",
+          },
+          body: form,
+        }
+      );
 
       if (!response.ok) {
         toast.error(`Server Error: ${response.status}`);
@@ -465,7 +478,6 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
       console.error("Network error:", error);
       toast.error("Something went wrong while submitting.");
     }
-
   };
 
   return (
@@ -487,10 +499,11 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
                     onClick={() => scrollToSection(section.ref)}
                   >
                     <div
-                      className={`w-8 h-8 rounded-full flex items-center justify-center mr-3 text-sm font-medium ${isCompleted
-                        ? "bg-[#1179FA] text-white"
-                        : "bg-gray-200 text-gray-500"
-                        }`}
+                      className={`w-8 h-8 rounded-full flex items-center justify-center mr-3 text-sm font-medium ${
+                        isCompleted
+                          ? "bg-[#1179FA] text-white"
+                          : "bg-gray-200 text-gray-500"
+                      }`}
                     >
                       {isCompleted ? "✓" : ""}
                     </div>
@@ -599,20 +612,23 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
                         )}
                     </div>
                     <div
-                      className={`flex items-center justify-center p-2 rounded-full cursor-pointer hover:shadow-lg transition-all delay-300 ${isFilters
-                        ? "bg-gradient-to-r from-[#D6D5D4] to-white"
-                        : "bg-gradient-to-r from-[#257CFF] to-[#0F62DE]"
-                        }`}
+                      className={`flex items-center justify-center p-2 rounded-full cursor-pointer hover:shadow-lg transition-all delay-300 ${
+                        isFilters
+                          ? "bg-gradient-to-r from-[#D6D5D4] to-white"
+                          : "bg-gradient-to-r from-[#257CFF] to-[#0F62DE]"
+                      }`}
                       onClick={() => setIsFilters(!isFilters)}
                     >
                       <Filters
-                        className={`${isFilters ? "text-[#6C6868]" : "text-white"
-                          } flex-shrink-0`}
+                        className={`${
+                          isFilters ? "text-[#6C6868]" : "text-white"
+                        } flex-shrink-0`}
                       />
                     </div>
                     <div
-                      className={`${isFilters ? "max-w-full" : "max-w-0"
-                        } flex items-center gap-2 transition-all w-fit delay-300 overflow-hidden`}
+                      className={`${
+                        isFilters ? "max-w-full" : "max-w-0"
+                      } flex items-center gap-2 transition-all w-fit delay-300 overflow-hidden`}
                     >
                       {filtersArray.map((filter, i) => (
                         <div

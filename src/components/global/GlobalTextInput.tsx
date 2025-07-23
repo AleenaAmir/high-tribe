@@ -21,8 +21,9 @@ const GlobalTextInput: React.FC<GlobalTextInputProps> = ({
       )}
       <input
         {...props}
-        className={`rounded-lg border py-3 px-5 text-[12px] h-[40px] placeholder:text-[#AFACAC] focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all ${error ? "border-red-400" : "border-[#848484]"
-          }`}
+        className={`rounded-lg border py-3 px-5 text-[12px] h-[40px] placeholder:text-[#AFACAC] focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all ${
+          error ? "border-red-400" : "border-[#848484]"
+        }`}
       />
       {error && <span className="text-xs text-red-500 mt-1">{error}</span>}
     </div>

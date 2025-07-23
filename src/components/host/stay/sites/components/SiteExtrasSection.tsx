@@ -52,7 +52,7 @@ const SiteExtrasSection: React.FC<SiteExtrasSectionProps> = ({
           <h3 className="text-base font-semibold">Extras</h3>
           <button
             type="button"
-            className="border border-gray-300 rounded-full w-10 h-10 flex items-center justify-center text-2xl hover:bg-gray-100 transition"
+            className="border border-gray-300 rounded-full w-14 h-14 flex items-center justify-center text-2xl hover:bg-gray-100 transition"
             onClick={() =>
               appendExtra({
                 type: "",
@@ -73,16 +73,16 @@ const SiteExtrasSection: React.FC<SiteExtrasSectionProps> = ({
         {extrasFields.map((item, index) => (
           <div
             key={item.id}
-            className="mb-10 p-6 bg-[#FAFAFA] rounded-xl shadow-sm border border-gray-100 relative"
+            className="mb-10 p-6 rounded-xl shadow-sm border border-gray-100 relative"
           >
             {/* Remove button */}
             <button
               type="button"
-              className="absolute top-4 right-4 text-red-500 border border-red-200 rounded-full px-3 py-1 text-xs hover:bg-red-50"
+              className="absolute top-2 right-2 text-red-500 border border-red-200 rounded-full w-8 h-8 flex items-center justify-center cursor-pointer text-lg hover:bg-red-50"
               onClick={() => removeExtra(index)}
               aria-label="Remove Extra"
             >
-              Remove
+              x
             </button>
             {/* Top row: type and name/title */}
             <div className="grid grid-cols-2 gap-4 mb-4">
@@ -92,7 +92,12 @@ const SiteExtrasSection: React.FC<SiteExtrasSectionProps> = ({
                 render={({ field }) => (
                   <GlobalSelect
                     {...field}
-                    label="Select the type extra*"
+                    label={
+                      <span>
+                        Select the type extra
+                        <span className="text-red-500">*</span>
+                      </span>
+                    }
                     required
                   >
                     <option value="">Select type</option>
@@ -106,7 +111,11 @@ const SiteExtrasSection: React.FC<SiteExtrasSectionProps> = ({
                 )}
               />
               <GlobalTextInput
-                label="Name/Title*"
+                label={
+                  <span>
+                    Name/Title<span className="text-red-500">*</span>
+                  </span>
+                }
                 required
                 {...register(`extras.${index}.name`, {
                   required: true,
@@ -115,10 +124,7 @@ const SiteExtrasSection: React.FC<SiteExtrasSectionProps> = ({
             </div>
             {/* Upload image field */}
             <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Upload image
-              </label>
-              <div className="w-full flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-lg py-8 bg-white cursor-pointer hover:border-blue-400 transition">
+              <div className="w-full flex flex-col items-center justify-center border border-dashed border-gray-300 rounded-lg max-h-[120px] h-full overflow-hidden bg-white cursor-pointer hover:border-blue-400 transition">
                 <input
                   type="file"
                   accept="image/*"
@@ -147,15 +153,15 @@ const SiteExtrasSection: React.FC<SiteExtrasSectionProps> = ({
                           : ""
                       }
                       alt="Preview"
-                      className="w-32 h-20 object-cover rounded border mb-2"
+                      className="object-contain rounded border mb-2"
                     />
                   ) : (
-                    <>
-                      <span className="text-3xl text-gray-300 mb-2">+</span>
-                      <span className="text-gray-400 text-sm">
+                    <div className="flex flex-col items-center justify-center py-4">
+                      <span className="text-5xl text-[#464444] ">+</span>
+                      <span className="text-[#464444] text-[10px]">
                         Upload image
                       </span>
-                    </>
+                    </div>
                   )}
                 </label>
               </div>
@@ -221,27 +227,7 @@ const SiteExtrasSection: React.FC<SiteExtrasSectionProps> = ({
             </div>
           </div>
         ))}
-        {extrasFields.length > 0 && (
-          <div className="flex justify-end mt-4">
-            <button
-              type="button"
-              className="border rounded-full px-4 py-2 flex items-center gap-2"
-              onClick={() =>
-                appendExtra({
-                  type: "",
-                  name: "",
-                  image: null,
-                  currency: "",
-                  rate: "",
-                  rateType: "",
-                  approval: "no",
-                })
-              }
-            >
-              Add Extras +
-            </button>
-          </div>
-        )}
+
         {extrasFields.length > 0 && (
           <div className="flex justify-end mt-8">
             <button

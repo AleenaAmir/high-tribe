@@ -1,4 +1,6 @@
 import React from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import PropertySites from "./PropertySites";
 
 export const listData = [
   {
@@ -9,6 +11,7 @@ export const listData = [
     img: "https://res.cloudinary.com/dtfzklzek/image/upload/v1753034297/image_cmn5fn.png",
     status: "active",
     link: "#",
+    id: 1,
   },
   {
     head: "Fully Furnished smart Studio Apartment",
@@ -18,6 +21,7 @@ export const listData = [
     img: "https://res.cloudinary.com/dtfzklzek/image/upload/v1753034297/image_cmn5fn.png",
     status: "active",
     link: "#",
+    id: 2,
   },
   {
     head: "Fully Furnished smart Studio Apartment",
@@ -27,6 +31,7 @@ export const listData = [
     img: "https://res.cloudinary.com/dtfzklzek/image/upload/v1753034297/image_cmn5fn.png",
     status: "active",
     link: "#",
+    id: 3,
   },
   {
     head: "Fully Furnished smart Studio Apartment",
@@ -36,6 +41,7 @@ export const listData = [
     img: "https://res.cloudinary.com/dtfzklzek/image/upload/v1753034297/image_cmn5fn.png",
     status: "deactive",
     link: "#",
+    id: 4,
   },
   {
     head: "Fully Furnished smart Studio Apartment",
@@ -45,6 +51,7 @@ export const listData = [
     img: "https://res.cloudinary.com/dtfzklzek/image/upload/v1753034297/image_cmn5fn.png",
     status: "deactive",
     link: "#",
+    id: 5,
   },
   {
     head: "Fully Furnished smart Studio Apartment",
@@ -54,34 +61,109 @@ export const listData = [
     img: "https://res.cloudinary.com/dtfzklzek/image/upload/v1753034297/image_cmn5fn.png",
     status: "active",
     link: "#",
-  },
-  {
-    head: "Fully Furnished smart Studio Apartment",
-    city: "Islamabad",
-    text: "Trip to Lahore and Islamabad",
-    date: "Sunday Jul 6",
-    img: "https://res.cloudinary.com/dtfzklzek/image/upload/v1753034297/image_cmn5fn.png",
-    status: "active",
-    link: "#",
-  },
-  {
-    head: "Fully Furnished smart Studio Apartment",
-    city: "Islamabad",
-    text: "Trip to Lahore and Islamabad",
-    date: "Sunday Jul 6",
-    img: "https://res.cloudinary.com/dtfzklzek/image/upload/v1753034297/image_cmn5fn.png",
-    status: "deactive",
-    link: "#",
+    id: 6,
   },
 ];
 
 export default function PropertyLanding() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const selectedPropertyId = searchParams.get("propertyId");
+  const showSites = searchParams.get("showSites") === "true";
+
+  const handlePropertyClick = (id: number) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("propertyId", id.toString());
+    params.set("showSites", "true");
+    router.push(`?${params.toString()}`);
+  };
+
+  const handleBackToProperties = () => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete("propertyId");
+    params.delete("showSites");
+    params.delete("showSiteForm");
+    router.push(`?${params.toString()}`);
+  };
+
+  // If showing sites for a specific property
+  if (showSites && selectedPropertyId) {
+    const selectedProperty = listData.find(
+      (item) => item.id === parseInt(selectedPropertyId)
+    );
+
+    return (
+      <div>
+        {/* Back button and property header */}
+        <div className="flex items-center gap-4 my-6">
+          <button
+            onClick={handleBackToProperties}
+            className="flex items-center gap-2 text-gray-600 hover:text-gray-800"
+          >
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M15 19l-7-7 7-7"
+              />
+            </svg>
+            <span className="text-sm font-medium">Back to Properties</span>
+          </button>
+        </div>
+
+        {/* Property header */}
+        <div className="bg-white rounded-lg p-4 mb-6 border border-gray-200">
+          <div className="flex items-center gap-4">
+            <div className="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0">
+              <img
+                src={selectedProperty?.img}
+                alt={selectedProperty?.head}
+                className="w-full h-full object-cover"
+              />
+            </div>
+            <div>
+              <h2 className="text-lg font-bold text-gray-900">
+                {selectedProperty?.head}
+              </h2>
+              <p className="text-sm text-gray-600">{selectedProperty?.city}</p>
+              <p className="text-sm text-gray-500">{selectedProperty?.text}</p>
+            </div>
+            <div className="ml-auto">
+              <span
+                className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
+                  selectedProperty?.status === "active"
+                    ? "bg-blue-100 text-blue-800"
+                    : "bg-orange-100 text-orange-800"
+                }`}
+              >
+                {selectedProperty?.status}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Sites section */}
+        <PropertySites
+          propertyId={parseInt(selectedPropertyId)}
+          onBack={handleBackToProperties}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 md:mt-10">
-      {listData.map((item, index) => (
+      {listData.map((item) => (
         <div
-          key={index}
-          className="bg-white rounded-[20px] shadow-md border border-gray-100 flex relative overflow-hidden"
+          onClick={() => handlePropertyClick(item.id)}
+          key={item.id}
+          className="bg-white rounded-[20px] shadow-md border border-gray-100 flex relative overflow-hidden cursor-pointer hover:shadow-lg transition-shadow"
         >
           {/* Left side - Image and Details */}
           <div className="flex flex-1 p-2">

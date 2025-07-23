@@ -3,6 +3,7 @@ import React from "react";
 import GlobalTextInput from "../../../../global/GlobalTextInput";
 import GlobalInputStepper from "../../../../global/GlobalInputStepper";
 import GlobalRadioGroup from "../../../../global/GlobalRadioGroup";
+import GlobalSelect from "../../../../global/GlobalSelect";
 import { useSitesForm } from "../contexts/SitesFormContext";
 
 interface SitePricingSectionProps {
@@ -36,6 +37,31 @@ const SitePricingSection: React.FC<SitePricingSectionProps> = ({
     "King Bed",
   ];
 
+  const hookupTypeOptions = [
+    "30 Amp",
+    "50 Amp",
+    "20 Amp",
+    "No Hookup",
+    "Water Only",
+    "Sewer Only",
+  ];
+
+  const drivewaySurfaceOptions = [
+    "Concrete",
+    "Asphalt",
+    "Gravel",
+    "Dirt",
+    "Grass",
+    "Paved",
+  ];
+
+  const hostingTypeOptions = [
+    "Exchange-based stay",
+    "Paid hosting",
+    "Free hosting",
+    "Work exchange",
+  ];
+
   const handleSave = async () => {
     const pricingData = {
       siteCapacity: state.siteCapacity,
@@ -63,29 +89,34 @@ const SitePricingSection: React.FC<SitePricingSectionProps> = ({
         {/* Amenities and Guest Capacity */}
         <div className="flex flex-wrap gap-8 mb-2">
           <div className="flex-1 min-w-[220px]">
+            <p className="text-[#1C231F] font-bold">
+              Let guests know which amenities are in this site.
+            </p>
             <GlobalTextInput
-              label="Let guests know which amenities are in this site."
-              placeholder="Site Capacity"
+              label="Site Capacity"
+              type="number"
+              min="1"
               value={state.siteCapacity}
               onChange={(e) => updateSiteCapacity(e.target.value)}
             />
           </div>
           <div className="flex-1 min-w-[220px]">
+            <p className="text-[#1C231F] font-bold">Guests Capacity</p>
             <div className="flex gap-2 items-end">
               <div className="flex-1">
-                <label className="block text-[13px] font-medium mb-1">
-                  Guests Capacity
-                </label>
                 <div className="flex gap-2">
                   <GlobalTextInput
-                    placeholder="Minimum"
+                    label="Minimum"
                     type="number"
+                    min="1"
+                    max={state.guestMax || undefined}
                     value={state.guestMin}
                     onChange={(e) => updateGuestMin(e.target.value)}
                   />
                   <GlobalTextInput
-                    placeholder="Maximum"
+                    label="Maximum"
                     type="number"
+                    min={state.guestMin || 1}
                     value={state.guestMax}
                     onChange={(e) => updateGuestMax(e.target.value)}
                   />
@@ -96,7 +127,8 @@ const SitePricingSection: React.FC<SitePricingSectionProps> = ({
         </div>
         {/* Bed Types */}
         <div>
-          <label className="block font-medium mb-2">Total Number of Beds</label>
+          <p className="text-[#1C231F] font-bold">Total Number of Beds</p>
+
           <div className="grid grid-cols-7 gap-2">
             {bedTypes.map((type, idx) => (
               <GlobalInputStepper
@@ -116,10 +148,10 @@ const SitePricingSection: React.FC<SitePricingSectionProps> = ({
         </div>
         {/* RV Details */}
         <div>
-          <label className="block font-medium mb-2">RV Details</label>
-          <div className="grid grid-cols-2 gap-4">
-            <GlobalTextInput
-              placeholder="Hookup Type"
+          <p className="text-[#1C231F] font-bold">RV Details</p>
+          <div className="grid grid-cols-2 gap-x-4 gap-y-0 mt-4">
+            <GlobalSelect
+              label="Hookup Type"
               value={state.rvDetails.hookupType}
               onChange={(e) =>
                 updateRvDetails({
@@ -127,19 +159,28 @@ const SitePricingSection: React.FC<SitePricingSectionProps> = ({
                   hookupType: e.target.value,
                 })
               }
-            />
+            >
+              <option value="">Select hookup type</option>
+              {hookupTypeOptions.map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
+            </GlobalSelect>
             <GlobalTextInput
-              placeholder="Antennas"
-              value={state.rvDetails.antennas}
+              label="Amperes"
+              type="number"
+              value={state.rvDetails.amperes}
               onChange={(e) =>
                 updateRvDetails({
                   ...state.rvDetails,
-                  antennas: e.target.value,
+                  amperes: e.target.value,
                 })
               }
             />
             <GlobalTextInput
-              placeholder="Maximum RV Length Allowed"
+              label="Maximum RV Length Allowed"
+              type="number"
               value={state.rvDetails.maxLength}
               onChange={(e) =>
                 updateRvDetails({
@@ -149,7 +190,8 @@ const SitePricingSection: React.FC<SitePricingSectionProps> = ({
               }
             />
             <GlobalTextInput
-              placeholder="Maximum RV Width Allowed"
+              label="Maximum RV Width Allowed"
+              type="number"
               value={state.rvDetails.maxWidth}
               onChange={(e) =>
                 updateRvDetails({
@@ -158,8 +200,8 @@ const SitePricingSection: React.FC<SitePricingSectionProps> = ({
                 })
               }
             />
-            <GlobalTextInput
-              placeholder="Driveway Surface"
+            <GlobalSelect
+              label="Driveway Surface"
               value={state.rvDetails.drivewaySurface}
               onChange={(e) =>
                 updateRvDetails({
@@ -167,9 +209,16 @@ const SitePricingSection: React.FC<SitePricingSectionProps> = ({
                   drivewaySurface: e.target.value,
                 })
               }
-            />
+            >
+              <option value="">Select driveway surface</option>
+              {drivewaySurfaceOptions.map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
+            </GlobalSelect>
             <GlobalTextInput
-              placeholder="Turning Radius / Clearance Warnings"
+              label="Turning Radius / Clearance Warnings"
               value={state.rvDetails.turningRadius}
               onChange={(e) =>
                 updateRvDetails({
@@ -181,14 +230,20 @@ const SitePricingSection: React.FC<SitePricingSectionProps> = ({
           </div>
         </div>
         {/* Pricing */}
-        <div>
-          <label className="block font-medium mb-2">Pricing</label>
-          <GlobalTextInput
+        <div className="max-w-[435px]">
+          <p className="text-[#1C231F] font-bold">Pricing</p>
+          <GlobalSelect
             label="Hosting Type"
-            placeholder="Exchange-based stay"
-            value={state.pricingType}
+            value={state.pricingType || "Exchange-based stay"}
             onChange={(e) => updatePricingType(e.target.value)}
-          />
+          >
+            <option value="">Select hosting type</option>
+            {hostingTypeOptions.map((option) => (
+              <option key={option} value={option}>
+                {option}
+              </option>
+            ))}
+          </GlobalSelect>
         </div>
         {/* Refunds */}
         <div>
@@ -205,8 +260,8 @@ const SitePricingSection: React.FC<SitePricingSectionProps> = ({
             ]}
           />
 
-          <div className="mt-2">
-            <label className="block font-medium mb-2">Allow refunds</label>
+          <div className="mt-4">
+            <p className="text-[#1C231F] font-bold mb-4">Allow refunds</p>
             <GlobalRadioGroup
               name="refundType"
               value={state.refundType}

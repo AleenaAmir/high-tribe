@@ -88,6 +88,7 @@ export interface RVDetails {
   maxWidth: string;
   drivewaySurface: string;
   turningRadius: string;
+  amperes: string;
 }
 
 export interface SiteFormState {

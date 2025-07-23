@@ -35,6 +35,10 @@ const SiteArrivalSection: React.FC<SiteArrivalSectionProps> = ({
         </h2>
       </div>
       <div className="p-6 bg-white rounded-lg shadow-sm mt-4">
+        <p className="text-[#1C231F] font-bold max-w-[590px]">
+          Arrival Instructions should include the following content (will not be
+          displayed for RV accommodation type):
+        </p>
         <div className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <GlobalTextInput

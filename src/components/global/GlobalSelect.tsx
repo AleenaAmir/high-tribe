@@ -25,8 +25,9 @@ const GlobalSelect: React.FC<GlobalSelectProps> = ({
       <div className="relative">
         <select
           {...props}
-          className={`rounded-lg w-full appearance-none h-[40px] border px-5 py-2 text-[12px] placeholder:text-[#AFACAC] focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all ${error ? "border-red-400" : "border-[#848484]"
-            }`}
+          className={`rounded-lg w-full appearance-none h-[40px] border px-5 py-2 text-[12px] placeholder:text-[#AFACAC] focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all ${
+            error ? "border-red-400" : "border-[#848484]"
+          }`}
         >
           {children}
         </select>
