@@ -2,7 +2,7 @@ import React from "react";
 
 interface GlobalTextInputProps
   extends React.InputHTMLAttributes<HTMLInputElement> {
-  label?: string;
+  label?: string | React.ReactNode;
   error?: string;
 }
 

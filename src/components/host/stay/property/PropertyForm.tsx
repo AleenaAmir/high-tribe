@@ -430,6 +430,10 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
     setUploadedImages((prev) => prev.filter((_, i) => i !== index));
   };
 
+  const removeVideo = (index: number) => {
+    setUploadedVideos((prev) => prev.filter((_, i) => i !== index));
+  };
+
   const handleContactMethodChange = (methodId: string) => {
     setFormData((prev) => ({
       ...prev,
@@ -493,7 +497,7 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
         {/* Left Sidebar */}
         <div className="w-80 bg-white shadow-lg h-screen overflow-y-auto sticky top-16">
           <div className="p-6">
-            <h1 className="text-2xl font-bold text-gray-900 mb-8">
+            <h1 className="text-2xl font-bold text-[#1C231F] mb-8">
               Property Setup
             </h1>
             <div className="space-y-3">
@@ -533,19 +537,19 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
             {/* Property Location Section */}
             <div ref={locationRef} className="">
               <div className=" ">
-                <h2 className="text-lg font-semibold text-gray-900">
+                <h2 className="text-[16px] font-bold text-[#1C231F]">
                   Property Location
                 </h2>
               </div>
               <div className=" bg-white rounded-lg shadow-sm mt-4">
                 <div className="flex items-center justify-between p-3 bg-[#F8F8F8] md:px-6 relative">
                   <div className="flex items-center gap-2 w-full  relative">
-                    <div className="flex items-center px-2 py-1 group gap-2 bg-white border border-[#EEEEEE] rounded-full w-full relative max-w-[160px]">
+                    <div className="flex items-center px-2 py-1 group gap-2 bg-white border border-[#EEEEEE] rounded-full w-full relative max-w-[200px]">
                       <Location className="flex-shrink-0 text-[#696969] group-hover:text-[#F6691D]" />
                       <input
                         type="text"
                         className="outline-none bg-transparent text-sm w-full"
-                        placeholder="Search property area..."
+                        placeholder="Property Location"
                         value={search}
                         onChange={(e) => {
                           setSearch(e.target.value);
@@ -576,12 +580,12 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
                         </div>
                       )}
                     </div>
-                    <div className="flex items-center px-2 py-1 gap-2 bg-white border border-[#EEEEEE] rounded-full w-full relative max-w-[160px]">
+                    <div className="flex items-center px-2 py-1 gap-2 bg-white border border-[#EEEEEE] rounded-full w-full relative max-w-[200px]">
                       <DestinationSvg className="flex-shrink-0" />
                       <input
                         type="text"
                         className="outline-none bg-transparent text-sm w-full"
-                        placeholder="Exact property entrance..."
+                        placeholder="Property Entrance"
                         value={entranceSearch}
                         onChange={(e) => {
                           setEntranceSearch(e.target.value);
@@ -667,86 +671,102 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
             {/* Property Overview Section */}
             <div ref={overviewRef} className="  ">
               <div className=" ">
-                <h2 className="text-lg font-semibold text-gray-900">
+                <h2 className="text-[16px] font-bold text-[#1C231F]">
                   Property Overview
                 </h2>
               </div>
               <div className="p-6 bg-white rounded-lg shadow-sm mt-4">
                 <div className="grid grid-cols-2 gap-2 mb-2">
-                  <GlobalTextInput
-                    label="Acres*"
-                    type="text"
-                    placeholder=""
-                    value={formData.acres || ""}
-                    onChange={(e) => handleInputChange("acres", e.target.value)}
-                  />
-                  <GlobalTextInput
-                    label="Property Name*"
-                    type="text"
-                    placeholder=""
-                    value={formData.propertyName}
-                    onChange={(e) =>
-                      handleInputChange("propertyName", e.target.value)
-                    }
-                  />
-                </div>
-                <div className="grid grid-cols-2 gap-2 mb-2">
-                  <GlobalSelect
-                    label="Property Type*"
-                    value={formData.propertyType}
-                    onChange={(e) =>
-                      handleInputChange("propertyType", e.target.value)
-                    }
-                  >
-                    <option value="">Select property type</option>
-                    {propertyTypes.map((type) => (
-                      <option key={type.value} value={type.value}>
-                        {type.label}
-                      </option>
-                    ))}
-                  </GlobalSelect>
-                  <GlobalSelect
-                    label="Languages Spoken at Property"
-                    value={formData.languagesSpoken}
-                    onChange={(e) =>
-                      handleInputChange("languagesSpoken", e.target.value)
-                    }
-                  >
-                    <option value="">Select language</option>
-                    {languages.map((language) => (
-                      <option key={language.value} value={language.value}>
-                        {language.label}
-                      </option>
-                    ))}
-                  </GlobalSelect>
-                </div>
-                <div className="grid grid-cols-2 gap-2 mb-2">
-                  <GlobalTextInput
-                    label="Website"
-                    type="url"
-                    value={formData.website}
-                    onChange={(e) =>
-                      handleInputChange("website", e.target.value)
-                    }
-                  />
-                  <GlobalTextArea
-                    label="Property Rules"
-                    value={formData.propertyRules}
-                    onChange={(e) =>
-                      handleInputChange("propertyRules", e.target.value)
-                    }
-                    rows={3}
-                  />
-                </div>
-                <div>
-                  <GlobalTextArea
-                    label="Short Description"
-                    value={formData.shortDescription}
-                    onChange={(e) =>
-                      handleInputChange("shortDescription", e.target.value)
-                    }
-                    rows={4}
-                  />
+                  <div className="grid gap-1 h-fit">
+                    <GlobalTextInput
+                      label={
+                        <span>
+                          Acres<span className="text-red-500">*</span>
+                        </span>
+                      }
+                      type="text"
+                      placeholder=""
+                      value={formData.acres || ""}
+                      onChange={(e) =>
+                        handleInputChange("acres", e.target.value)
+                      }
+                    />
+                    <GlobalSelect
+                      label={
+                        <span>
+                          Property Type<span className="text-red-500">*</span>
+                        </span>
+                      }
+                      value={formData.propertyType}
+                      onChange={(e) =>
+                        handleInputChange("propertyType", e.target.value)
+                      }
+                    >
+                      <option value="">Select property type</option>
+                      {propertyTypes.map((type) => (
+                        <option key={type.value} value={type.value}>
+                          {type.label}
+                        </option>
+                      ))}
+                    </GlobalSelect>
+                    <GlobalSelect
+                      label="Languages Spoken at Property"
+                      value={formData.languagesSpoken}
+                      onChange={(e) =>
+                        handleInputChange("languagesSpoken", e.target.value)
+                      }
+                    >
+                      <option value="">Select language</option>
+                      {languages.map((language) => (
+                        <option key={language.value} value={language.value}>
+                          {language.label}
+                        </option>
+                      ))}
+                    </GlobalSelect>
+
+                    <div className="-mt-1">
+                      <GlobalTextArea
+                        label="Short Description"
+                        value={formData.shortDescription}
+                        onChange={(e) =>
+                          handleInputChange("shortDescription", e.target.value)
+                        }
+                        rows={4}
+                      />
+                    </div>
+                  </div>
+                  <div className="grid gap-1 h-fit">
+                    <GlobalTextInput
+                      label={
+                        <span>
+                          Property Name<span className="text-red-500">*</span>
+                        </span>
+                      }
+                      type="text"
+                      placeholder=""
+                      value={formData.propertyName}
+                      onChange={(e) =>
+                        handleInputChange("propertyName", e.target.value)
+                      }
+                    />
+                    <GlobalTextInput
+                      label="Website"
+                      type="url"
+                      value={formData.website}
+                      onChange={(e) =>
+                        handleInputChange("website", e.target.value)
+                      }
+                    />
+
+                    <GlobalTextArea
+                      label="Property Rules"
+                      value={formData.propertyRules}
+                      onChange={(e) =>
+                        handleInputChange("propertyRules", e.target.value)
+                      }
+                      rows={3}
+                    />
+                  </div>
                 </div>
               </div>
             </div>
@@ -754,7 +774,7 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
             {/* Property Images/Videos Section */}
             <div ref={imagesRef} className="">
               <div className=" ">
-                <h2 className="text-lg font-semibold text-gray-900">
+                <h2 className="text-[16px] font-bold text-[#1C231F]">
                   Property Images/Videos
                 </h2>
               </div>
@@ -785,33 +805,30 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
                       </div>
                     ))}
 
-                    {/* Upload button for remaining slots */}
-                    {uploadedImages.length < 4 && (
-                      <div className="aspect-square border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-gray-400 transition-colors">
-                        <input
-                          type="file"
-                          accept="image/*"
-                          multiple
-                          onChange={(e) => {
-                            const files = Array.from(e.target.files || []);
-                            handleFileUpload(files, "image");
-                          }}
-                          className="hidden"
-                          id="image-upload"
-                        />
-                        <label
-                          htmlFor="image-upload"
-                          className="cursor-pointer flex flex-col items-center"
-                        >
-                          <span className="text-gray-400 text-2xl mb-1">+</span>
-                          <span className="text-gray-500 text-xs">
-                            Upload image
-                          </span>
-                        </label>
-                      </div>
-                    )}
+                    <div className="aspect-square p-4 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-gray-400 transition-colors">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        onChange={(e) => {
+                          const files = Array.from(e.target.files || []);
+                          handleFileUpload(files, "image");
+                        }}
+                        className="hidden"
+                        id="image-upload"
+                      />
+                      <label
+                        htmlFor="image-upload"
+                        className="cursor-pointer flex flex-col items-center"
+                      >
+                        <span className="text-gray-400 text-4xl mb-1">+</span>
+                        <span className="text-gray-500 text-xs">
+                          Upload image
+                        </span>
+                      </label>
+                    </div>
                   </div>
-                  <div className="text-center">
+                  {/* <div className="text-center">
                     <input
                       type="file"
                       accept="image/*"
@@ -829,7 +846,7 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
                     >
                       Upload image
                     </label>
-                  </div>
+                  </div> */}
                 </div>
 
                 {/* Upload Video Section */}
@@ -837,27 +854,34 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
                   <label className="block text-sm font-medium text-gray-700 mb-4">
                     Upload optimal short video
                   </label>
-                  <div className="grid grid-cols-2 gap-4 max-w-md">
+                  <div className="grid grid-cols-5 gap-4">
                     {/* Video preview or placeholder */}
-                    {uploadedVideos.length > 0 ? (
-                      <div className="relative">
-                        <div className="aspect-video bg-gray-100 rounded-lg overflow-hidden border border-gray-200">
-                          <video
-                            src={URL.createObjectURL(uploadedVideos[0])}
-                            className="w-full h-full object-cover"
-                            controls
-                          />
+                    {uploadedVideos.length > 0 &&
+                      uploadedVideos.map((file, index) => (
+                        <div key={index} className="relative group">
+                          <div className="aspect-video bg-gray-100 rounded-lg overflow-hidden border border-gray-200">
+                            <video
+                              src={URL.createObjectURL(file)}
+                              className="w-full h-full object-cover"
+                              controls
+                            />
+                            <button
+                              onClick={() => removeVideo(index)}
+                              className="absolute z-10 -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600"
+                              type="button"
+                              aria-label="Remove video"
+                            >
+                              ×
+                            </button>
+                          </div>
+                          <div className="mt-2 text-xs text-gray-500 truncate">
+                            {file.name}
+                          </div>
                         </div>
-                        <div className="mt-2 text-xs text-gray-500 truncate">
-                          {uploadedVideos[0].name}
-                        </div>
-                      </div>
-                    ) : (
-                      ""
-                    )}
+                      ))}
 
                     {/* Video upload button */}
-                    <div className="aspect-video border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-gray-400 transition-colors">
+                    <div className="aspect-video border-2 p-4 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-gray-400 transition-colors">
                       <input
                         type="file"
                         accept="video/*"
@@ -872,9 +896,9 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
                         htmlFor="video-upload"
                         className="cursor-pointer flex flex-col items-center"
                       >
-                        <span className="text-gray-400 text-2xl mb-1">+</span>
+                        <span className="text-gray-400 text-4xl mb-1">+</span>
                         <span className="text-gray-500 text-xs">
-                          Upload Max
+                          Upload Mp4
                         </span>
                       </label>
                     </div>
@@ -907,13 +931,14 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
                         </div>
                       </div>
                     ) : (
-                      <div className="aspect-video border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-gray-400 transition-colors">
+                      <div className="aspect-video border-2 p-4 h-fit w-fit border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-gray-400 transition-colors">
                         <input
                           type="file"
                           accept="image/*"
                           onChange={(e) => {
                             const files = Array.from(e.target.files || []);
-                            if (files.length > 0) {
+                            // Only allow one cover image to be selected
+                            if (files.length > 0 && !coverImage) {
                               setCoverImage(files[0]);
                             }
                           }}
@@ -924,7 +949,7 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
                           htmlFor="cover-upload"
                           className="cursor-pointer flex flex-col items-center"
                         >
-                          <span className="text-gray-400 text-2xl mb-1">+</span>
+                          <span className="text-gray-400 text-4xl mb-1">+</span>
                           <span className="text-gray-500 text-xs">
                             Upload cover
                           </span>
@@ -945,12 +970,12 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
             {/* Insurance Section */}
             <div ref={insuranceRef} className="">
               <div className=" ">
-                <h2 className="text-lg font-semibold text-gray-900">
+                <h2 className="text-[16px] font-bold text-[#1C231F]">
                   Insurance
                 </h2>
               </div>
               <div className="p-6 bg-white rounded-lg shadow-sm mt-4">
-                <div className="text-sm text-gray-700 mb-6">
+                <div className="text-sm font-bold mb-4">
                   You are not currently covered under the HighTribe Insurance
                   Policy
                 </div>
@@ -1004,14 +1029,14 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
             {/* Payouts and Taxes Section */}
             <div ref={payoutsRef} className="">
               <div className=" ">
-                <h2 className="text-lg font-semibold text-gray-900">
+                <h2 className="text-[16px] font-bold text-[#1C231F]">
                   Payouts and Taxes<span className="text-red-500">*</span>
                 </h2>
               </div>
               <div className="p-6 bg-white rounded-lg shadow-sm mt-4">
                 {/* Payout Methods Section */}
                 <div className="mb-8">
-                  <div className="text-sm text-gray-700 mb-4">
+                  <div className="text-sm font-bold mb-4">
                     The user should be able to select their payout/checkout
                     method
                   </div>
@@ -1039,7 +1064,7 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
                           }
                           className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500 focus:ring-2"
                         />
-                        <span className="text-gray-900">{method}</span>
+                        <span className="text-[#1C231F]">{method}</span>
                       </label>
                     ))}
                   </div>
@@ -1047,17 +1072,29 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
 
                 {/* Taxes Section */}
                 <div className="mb-8">
-                  <div className="text-sm text-gray-700 mb-4">
+                  <div className="text-sm font-bold mb-4">
                     The user should be able to set up taxes (required). Display
                     the following content
                   </div>
 
                   {/* Tax Subject Question */}
                   <div className="mb-4">
-                    <div className="text-sm text-gray-900 mb-3">
-                      Is your property subject to local stay or occupancy tax?
-                    </div>
-                    <div className="flex gap-8">
+                    <div className="flex flex-col gap-2">
+                      <label className="flex items-center gap-2 text-sm cursor-pointer">
+                        <input
+                          type="radio"
+                          name="isLocalTax"
+                          value="no"
+                          checked={formData.isLocalTax === "no"}
+                          onChange={() => handleInputChange("isLocalTax", "no")}
+                          className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500 focus:ring-2"
+                        />
+                        <span className="text-[#1C231F]">
+                          {" "}
+                          Is your property subject to local stay or occupancy
+                          tax?
+                        </span>
+                      </label>
                       <label className="flex items-center gap-2 text-sm cursor-pointer">
                         <input
                           type="radio"
@@ -1069,18 +1106,7 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
                           }
                           className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500 focus:ring-2"
                         />
-                        <span className="text-gray-900">Yes</span>
-                      </label>
-                      <label className="flex items-center gap-2 text-sm cursor-pointer">
-                        <input
-                          type="radio"
-                          name="isLocalTax"
-                          value="no"
-                          checked={formData.isLocalTax === "no"}
-                          onChange={() => handleInputChange("isLocalTax", "no")}
-                          className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500 focus:ring-2"
-                        />
-                        <span className="text-gray-900">No</span>
+                        <span className="text-[#1C231F]">Yes</span>
                       </label>
                     </div>
                   </div>
@@ -1089,7 +1115,7 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
                   {formData.isLocalTax === "yes" && (
                     <div className="space-y-4">
                       <div>
-                        <div className="text-sm text-gray-900 mb-3">
+                        <div className="text-sm font-bold mb-3">
                           If yes, how should it be collected?
                         </div>
                         <div className="space-y-3">
@@ -1117,7 +1143,7 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
                                 }
                                 className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500 focus:ring-2"
                               />
-                              <span className="text-gray-900">{option}</span>
+                              <span className="text-[#1C231F]">{option}</span>
                             </label>
                           ))}
                         </div>
@@ -1173,7 +1199,7 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
                   />
                   <label
                     htmlFor="terms"
-                    className="text-sm text-gray-900 select-none cursor-pointer"
+                    className="text-sm text-[#1C231F] select-none cursor-pointer"
                   >
                     Terms and Conditions of HighTribe for Property Listing
                   </label>

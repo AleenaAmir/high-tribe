@@ -3,9 +3,9 @@ import { ArrowDownIcon } from "../dashboard/modals/components/newjourney/Journey
 
 interface GlobalSelectProps
   extends React.SelectHTMLAttributes<HTMLSelectElement> {
-  label?: string;
+  label?: string | React.ReactNode;
   error?: string;
-  children: React.ReactNode;
+  children: string | React.ReactNode;
 }
 
 const GlobalSelect: React.FC<GlobalSelectProps> = ({
