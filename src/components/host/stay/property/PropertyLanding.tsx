@@ -161,7 +161,6 @@ export default function PropertyLanding() {
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 md:mt-10">
       {listData.map((item) => (
         <div
-          onClick={() => handlePropertyClick(item.id)}
           key={item.id}
           className="bg-white rounded-[20px] shadow-md border border-gray-100 flex relative overflow-hidden cursor-pointer hover:shadow-lg transition-shadow"
         >
@@ -235,8 +234,12 @@ export default function PropertyLanding() {
             </div>
 
             {/* Add site button */}
-            <button className="text-[13px] font-bold underline hover:no-underline">
-              Add site
+            <button
+              type="button"
+              onClick={() => handlePropertyClick(item.id)}
+              className="text-[13px] font-bold underline hover:no-underline cursor-pointer"
+            >
+              Sites
             </button>
           </div>
 

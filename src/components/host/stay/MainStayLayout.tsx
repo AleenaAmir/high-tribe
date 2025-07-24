@@ -64,6 +64,16 @@ export default function MainStayLayout() {
           <button
             type="button"
             className="text-white bg-[#3C83F6] py-2 px-5 rounded-lg text-[10px] md:text-[12px] cursor-pointer hover:shadow-md "
+            onClick={() => {
+              // Set the "property" search param to "true"
+              const params = new URLSearchParams(window.location.search);
+              params.set("property", "true");
+              window.history.replaceState(
+                {},
+                "",
+                `${window.location.pathname}?${params.toString()}`
+              );
+            }}
           >
             Add New Property
           </button>

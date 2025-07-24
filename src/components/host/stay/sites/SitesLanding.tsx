@@ -174,7 +174,7 @@ export default function SitesLanding() {
 
                 {/* Add site button */}
                 <button className="text-[13px] font-bold underline hover:no-underline">
-                  Add site
+                  Edit site
                 </button>
               </div>
 
