@@ -3,6 +3,7 @@ import Link from "next/link";
 import React from "react";
 import { useSearchParams } from "next/navigation";
 import PropertyMain from "./property/PropertyMain";
+import StatsMain from "./stats/StatsMain";
 
 const stayTabs = [
   "stats",
@@ -98,14 +99,21 @@ export default function MainStayLayout() {
         </div>
       )}
       {/* Content according to the tabs */}
-      <div className="p-3 md:px-4 md:py-3 lg:px-6 lg:py-4">
-        {currentTab === "stats" && <div>Stats</div>}
-        {currentTab === "booking" && <div>Booking</div>}
-        {currentTab === "property" && <PropertyMain />}
-        {currentTab === "calendar" && <div>Calendar</div>}
-        {currentTab === "inbox" && <div>Inbox</div>}
-        {currentTab === "notifications" && <div>Notifications</div>}
-      </div>
+
+      {currentTab === "stats" && (
+        <div>
+          <StatsMain />
+        </div>
+      )}
+      {currentTab === "booking" && <div>Booking</div>}
+      {currentTab === "property" && (
+        <div className="p-3 md:px-4 md:py-3 lg:px-6 lg:py-4">
+          <PropertyMain />
+        </div>
+      )}
+      {currentTab === "calendar" && <div>Calendar</div>}
+      {currentTab === "inbox" && <div>Inbox</div>}
+      {currentTab === "notifications" && <div>Notifications</div>}
     </div>
   );
 }
