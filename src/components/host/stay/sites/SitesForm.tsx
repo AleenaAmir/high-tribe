@@ -100,15 +100,15 @@ const SitesFormContent: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     let token = "";
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       token = localStorage.getItem("token") || "";
     }
     const formData = new FormData();
-    formData.append('publish_status', "scheduled");
-    formData.append('scheduled_publish_at', new Date().toISOString());
+    formData.append("publish_status", "scheduled");
+    formData.append("scheduled_publish_at", new Date().toISOString());
     try {
       const response = await fetch(
-        "https://high-tribe-backend.hiconsolutions.com/api/properties/16/review-publish",
+        "http://3.6.115.88/api/properties/16/review-publish",
         {
           method: "POST",
           headers: {
@@ -133,7 +133,7 @@ const SitesFormContent: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
       console.error("Upload error:", error);
       toast.error("An error occurred during upload");
     }
-  }
+  };
 
   const handleExit = () => {
     if (onBack) {

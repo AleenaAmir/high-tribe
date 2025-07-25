@@ -13,7 +13,6 @@ const SiteImagesSection = ({ sectionRef }: SiteImagesSectionProps) => {
     updateUploadedImages,
     updateUploadedVideos,
     updateCoverImage,
-
   } = useSitesForm();
 
   // Handle file upload
@@ -61,7 +60,7 @@ const SiteImagesSection = ({ sectionRef }: SiteImagesSectionProps) => {
 
     try {
       const response = await fetch(
-        "https://high-tribe-backend.hiconsolutions.com/api/properties/16/sites/media",
+        "http://3.6.115.88/api/properties/16/sites/media",
         {
           method: "POST",
           headers: {
@@ -87,7 +86,6 @@ const SiteImagesSection = ({ sectionRef }: SiteImagesSectionProps) => {
       toast.error("An error occurred during upload");
     }
   };
-
 
   return (
     <div ref={sectionRef}>
@@ -262,6 +260,6 @@ const SiteImagesSection = ({ sectionRef }: SiteImagesSectionProps) => {
       </div>
     </div>
   );
-}
+};
 
 export default SiteImagesSection;

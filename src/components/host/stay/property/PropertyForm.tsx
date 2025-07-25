@@ -20,7 +20,7 @@ import Filters from "@/components/dashboard/svgs/Filters";
 import { toast } from "react-hot-toast";
 const MAPBOX_ACCESS_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
 
-interface PropertyFormProps { }
+interface PropertyFormProps {}
 
 const PropertyForm: React.FC<PropertyFormProps> = () => {
   const [search, setSearch] = useState("");
@@ -403,6 +403,8 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
         ? localStorage.getItem("token") || "<PASTE_VALID_TOKEN_HERE>"
         : "<PASTE_VALID_TOKEN_HERE>";
 
+    console.log(token, "Token---------------------");
+
     // Construct FormData for file and text fields
     const form = new FormData();
 
@@ -459,19 +461,15 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
 
     // Send form data to backend
     try {
-      debugger;
-      const response = await fetch(
-        "https://high-tribe-backend.hiconsolutions.com/api/properties",
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            // "Accept": "application/json",
-            // "Content-Type": "multipart/form-data",
-          },
-          body: form,
-        }
-      );
+      const response = await fetch("http://3.6.115.88/api/properties", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          // "Accept": "application/json",
+          // "Content-Type": "multipart/form-data",
+        },
+        body: form,
+      });
 
       if (!response.ok) {
         toast.error(`Server Error: ${response.status}`);
@@ -506,10 +504,11 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
                     onClick={() => scrollToSection(section.ref)}
                   >
                     <div
-                      className={`w-8 h-8 rounded-full flex items-center justify-center mr-3 text-sm font-medium ${isCompleted
-                        ? "bg-[#1179FA] text-white"
-                        : "bg-gray-200 text-gray-500"
-                        }`}
+                      className={`w-8 h-8 rounded-full flex items-center justify-center mr-3 text-sm font-medium ${
+                        isCompleted
+                          ? "bg-[#1179FA] text-white"
+                          : "bg-gray-200 text-gray-500"
+                      }`}
                     >
                       {isCompleted ? "✓" : ""}
                     </div>
@@ -618,20 +617,23 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
                         )}
                     </div>
                     <div
-                      className={`flex items-center justify-center p-2 rounded-full cursor-pointer hover:shadow-lg transition-all delay-300 ${isFilters
-                        ? "bg-gradient-to-r from-[#D6D5D4] to-white"
-                        : "bg-gradient-to-r from-[#257CFF] to-[#0F62DE]"
-                        }`}
+                      className={`flex items-center justify-center p-2 rounded-full cursor-pointer hover:shadow-lg transition-all delay-300 ${
+                        isFilters
+                          ? "bg-gradient-to-r from-[#D6D5D4] to-white"
+                          : "bg-gradient-to-r from-[#257CFF] to-[#0F62DE]"
+                      }`}
                       onClick={() => setIsFilters(!isFilters)}
                     >
                       <Filters
-                        className={`${isFilters ? "text-[#6C6868]" : "text-white"
-                          } flex-shrink-0`}
+                        className={`${
+                          isFilters ? "text-[#6C6868]" : "text-white"
+                        } flex-shrink-0`}
                       />
                     </div>
                     <div
-                      className={`${isFilters ? "max-w-full" : "max-w-0"
-                        } flex items-center gap-2 transition-all w-fit delay-300 overflow-hidden`}
+                      className={`${
+                        isFilters ? "max-w-full" : "max-w-0"
+                      } flex items-center gap-2 transition-all w-fit delay-300 overflow-hidden`}
                     >
                       {filtersArray.map((filter, i) => (
                         <div
@@ -813,7 +815,9 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
                         htmlFor="image-upload"
                         className="cursor-pointer flex flex-col items-center"
                       >
-                        <span className="text-[#464444] text-4xl font-bold mb-1">+</span>
+                        <span className="text-[#464444] text-4xl font-bold mb-1">
+                          +
+                        </span>
                         <span className="text-[#464444] text-[14px] text-xs">
                           Upload image
                         </span>
@@ -888,7 +892,9 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
                         htmlFor="video-upload"
                         className="cursor-pointer flex flex-col items-center"
                       >
-                        <span className="text-[#464444] text-4xl font-bold mb-1">+</span>
+                        <span className="text-[#464444] text-4xl font-bold mb-1">
+                          +
+                        </span>
                         <span className="text-[#464444] text-[14px] text-xs">
                           Upload Mp4
                         </span>
@@ -941,7 +947,9 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
                           htmlFor="cover-upload"
                           className="cursor-pointer flex flex-col items-center"
                         >
-                          <span className="text-[#464444] text-4xl font-bold mb-1">+</span>
+                          <span className="text-[#464444] text-4xl font-bold mb-1">
+                            +
+                          </span>
                           <span className="text-[#464444] text-[14px] text-xs">
                             Upload cover
                           </span>
