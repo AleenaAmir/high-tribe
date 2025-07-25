@@ -20,7 +20,7 @@ import Filters from "@/components/dashboard/svgs/Filters";
 import { toast } from "react-hot-toast";
 const MAPBOX_ACCESS_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
 
-interface PropertyFormProps {}
+interface PropertyFormProps { }
 
 const PropertyForm: React.FC<PropertyFormProps> = () => {
   const [search, setSearch] = useState("");
@@ -37,6 +37,7 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
   const [coverImage, setCoverImage] = useState<File | null>(null);
   const [uploadedVideos, setUploadedVideos] = useState<File[]>([]);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Map location state
   const [selectedLocation, setSelectedLocation] = useState<{
@@ -357,6 +358,7 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
 
   const handleSubmit = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
+    setIsSubmitting(true);
 
     const newErrors: { [key: string]: string } = {};
 
@@ -390,9 +392,11 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
+      setIsSubmitting(false);
       return;
     }
 
+    console.log(formData, "---------------------");
     setErrors({});
     const token =
       typeof window !== "undefined"
@@ -452,9 +456,10 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
     uploadedVideos.forEach((file) => {
       form.append("videos[]", file);
     });
-    console.log(token, "---------------------");
+
     // Send form data to backend
     try {
+      debugger;
       const response = await fetch(
         "https://high-tribe-backend.hiconsolutions.com/api/properties",
         {
@@ -477,6 +482,8 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
     } catch (error) {
       console.error("Network error:", error);
       toast.error("Something went wrong while submitting.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -499,11 +506,10 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
                     onClick={() => scrollToSection(section.ref)}
                   >
                     <div
-                      className={`w-8 h-8 rounded-full flex items-center justify-center mr-3 text-sm font-medium ${
-                        isCompleted
-                          ? "bg-[#1179FA] text-white"
-                          : "bg-gray-200 text-gray-500"
-                      }`}
+                      className={`w-8 h-8 rounded-full flex items-center justify-center mr-3 text-sm font-medium ${isCompleted
+                        ? "bg-[#1179FA] text-white"
+                        : "bg-gray-200 text-gray-500"
+                        }`}
                     >
                       {isCompleted ? "✓" : ""}
                     </div>
@@ -612,23 +618,20 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
                         )}
                     </div>
                     <div
-                      className={`flex items-center justify-center p-2 rounded-full cursor-pointer hover:shadow-lg transition-all delay-300 ${
-                        isFilters
-                          ? "bg-gradient-to-r from-[#D6D5D4] to-white"
-                          : "bg-gradient-to-r from-[#257CFF] to-[#0F62DE]"
-                      }`}
+                      className={`flex items-center justify-center p-2 rounded-full cursor-pointer hover:shadow-lg transition-all delay-300 ${isFilters
+                        ? "bg-gradient-to-r from-[#D6D5D4] to-white"
+                        : "bg-gradient-to-r from-[#257CFF] to-[#0F62DE]"
+                        }`}
                       onClick={() => setIsFilters(!isFilters)}
                     >
                       <Filters
-                        className={`${
-                          isFilters ? "text-[#6C6868]" : "text-white"
-                        } flex-shrink-0`}
+                        className={`${isFilters ? "text-[#6C6868]" : "text-white"
+                          } flex-shrink-0`}
                       />
                     </div>
                     <div
-                      className={`${
-                        isFilters ? "max-w-full" : "max-w-0"
-                      } flex items-center gap-2 transition-all w-fit delay-300 overflow-hidden`}
+                      className={`${isFilters ? "max-w-full" : "max-w-0"
+                        } flex items-center gap-2 transition-all w-fit delay-300 overflow-hidden`}
                     >
                       {filtersArray.map((filter, i) => (
                         <div
@@ -770,7 +773,7 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
               <div className="p-6 bg-white rounded-lg shadow-sm mt-4">
                 {/* Upload Images Section */}
                 <div className="mb-8">
-                  <label className="block text-sm font-medium text-gray-700 mb-4">
+                  <label className="block text-[14px] font-medium  text-[#1C231F] mb-4">
                     Upload images
                   </label>
                   <div className="grid grid-cols-5 gap-4 mb-3">
@@ -810,8 +813,8 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
                         htmlFor="image-upload"
                         className="cursor-pointer flex flex-col items-center"
                       >
-                        <span className="text-gray-400 text-4xl mb-1">+</span>
-                        <span className="text-gray-500 text-xs">
+                        <span className="text-[#464444] text-4xl font-bold mb-1">+</span>
+                        <span className="text-[#464444] text-[14px] text-xs">
                           Upload image
                         </span>
                       </label>
@@ -840,7 +843,7 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
 
                 {/* Upload Video Section */}
                 <div className="mb-8">
-                  <label className="block text-sm font-medium text-gray-700 mb-4">
+                  <label className="block text-[14px] font-medium  text-[#1C231F] mb-4">
                     Upload optimal short video
                   </label>
                   <div className="grid grid-cols-5 gap-4">
@@ -885,8 +888,8 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
                         htmlFor="video-upload"
                         className="cursor-pointer flex flex-col items-center"
                       >
-                        <span className="text-gray-400 text-4xl mb-1">+</span>
-                        <span className="text-gray-500 text-xs">
+                        <span className="text-[#464444] text-4xl font-bold mb-1">+</span>
+                        <span className="text-[#464444] text-[14px] text-xs">
                           Upload Mp4
                         </span>
                       </label>
@@ -896,7 +899,7 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
 
                 {/* Choose Cover Image Section */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-4">
+                  <label className="block text-[14px] font-medium  text-[#1C231F] mb-4">
                     Choose a cover image
                   </label>
                   <div className="max-w-xs">
@@ -938,8 +941,8 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
                           htmlFor="cover-upload"
                           className="cursor-pointer flex flex-col items-center"
                         >
-                          <span className="text-gray-400 text-4xl mb-1">+</span>
-                          <span className="text-gray-500 text-xs">
+                          <span className="text-[#464444] text-4xl font-bold mb-1">+</span>
+                          <span className="text-[#464444] text-[14px] text-xs">
                             Upload cover
                           </span>
                         </label>
@@ -964,7 +967,7 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
                 </h2>
               </div>
               <div className="p-6 bg-white rounded-lg shadow-sm mt-4">
-                <div className="text-sm font-bold mb-4">
+                <div className="text-[12px] font-bold mb-4">
                   You are not currently covered under the HighTribe Insurance
                   Policy
                 </div>
@@ -1025,7 +1028,7 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
               <div className="p-6 bg-white rounded-lg shadow-sm mt-4">
                 {/* Payout Methods Section */}
                 <div className="mb-8">
-                  <div className="text-sm font-bold mb-4">
+                  <div className="text-[12px] font-bold mb-4">
                     The user should be able to select their payout/checkout
                     method
                   </div>
@@ -1061,7 +1064,7 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
 
                 {/* Taxes Section */}
                 <div className="mb-8">
-                  <div className="text-sm font-bold mb-4">
+                  <div className="text-[12px] font-bold mb-4">
                     The user should be able to set up taxes (required). Display
                     the following content
                   </div>
@@ -1104,7 +1107,7 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
                   {formData.isLocalTax === "yes" && (
                     <div className="space-y-4">
                       <div>
-                        <div className="text-sm font-bold mb-3">
+                        <div className="text-[12px] font-bold mb-3">
                           If yes, how should it be collected?
                         </div>
                         <div className="space-y-3">
@@ -1210,8 +1213,9 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
               <button
                 type="submit"
                 className="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors text-sm shadow-sm"
+                disabled={isSubmitting}
               >
-                Save & Next
+                {isSubmitting ? "Saving..." : "Save & Next"}
               </button>
             </div>
           </form>

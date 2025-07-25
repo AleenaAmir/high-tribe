@@ -121,6 +121,12 @@ export default function PropertyLanding() {
       (item) => item.id === parseInt(selectedPropertyId)
     );
 
+    const handleAddSites = () => {
+      const params = new URLSearchParams(searchParams.toString());
+      params.set("showSiteForm", "true");
+      router.push(`?${params.toString()}`);
+    };
+
     return (
       <div>
         {/* Back button and property header */}
@@ -176,6 +182,12 @@ export default function PropertyLanding() {
             </div>
           </div>
         </div>
+        <button
+          onClick={handleAddSites}
+          className="text-[13px] font-bold underline hover:no-underline cursor-pointer"
+        >
+          Add Sites
+        </button>
 
         {/* Sites section */}
         <PropertySites

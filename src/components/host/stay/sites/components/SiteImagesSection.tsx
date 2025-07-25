@@ -99,7 +99,7 @@ const SiteImagesSection = ({ sectionRef }: SiteImagesSectionProps) => {
       <div className="p-6 bg-white rounded-lg shadow-sm mt-4">
         {/* Upload Images Section */}
         <div className="mb-8">
-          <label className="block text-[16px] font-medium text-[#1C231F] mb-4">
+          <label className="block text-[14px] font-medium text-[#1C231F] mb-4">
             Upload images
           </label>
           <div className="grid grid-cols-5 gap-4 mb-3">
@@ -148,7 +148,7 @@ const SiteImagesSection = ({ sectionRef }: SiteImagesSectionProps) => {
 
         {/* Upload Video Section */}
         <div className="mb-8">
-          <label className="block text-[16px] font-medium text-[#1C231F] mb-4">
+          <label className="block text-[14px] font-medium text-[#1C231F] mb-4">
             Upload optimal short video
           </label>
           <div className="grid grid-cols-5 gap-4">
@@ -200,7 +200,7 @@ const SiteImagesSection = ({ sectionRef }: SiteImagesSectionProps) => {
 
         {/* Choose Cover Image Section */}
         <div>
-          <label className="block text-[16px] font-medium text-[#1C231F] mb-4">
+          <label className="block text-[14px] font-medium text-[#1C231F] mb-4">
             Choose a cover images
           </label>
           <div className="max-w-xs">
