@@ -71,13 +71,13 @@ const SiteExtrasSection: React.FC<SiteExtrasSectionProps> = ({ sectionRef }) => 
     values.extras.forEach((extra, i) => {
       formData.append(`extras[${i}][type]`, extra.type);
       formData.append(`extras[${i}][title]`, extra.name);
-      formData.append(`extras[${i}][description]`, extra.description || "");
+      // formData.append(`extras[${i}][description]`, extra.description || "");
       formData.append(`extras[${i}][currency]`, extra.currency);
       formData.append(`extras[${i}][rate_type]`, extra.rateType);
-      formData.append(`extras[${i}][base_rate]`, extra.baseRate || "0");
-      formData.append(`extras[${i}][weekdays_rate]`, extra.weekdaysRate || "0");
-      formData.append(`extras[${i}][weekends_rate]`, extra.weekendsRate || "0");
-      formData.append(`extras[${i}][holidays_rate]`, extra.holidaysRate || "0");
+      // formData.append(`extras[${i}][base_rate]`, extra.baseRate || "0");
+      // formData.append(`extras[${i}][weekdays_rate]`, extra.weekdaysRate || "0");
+      // formData.append(`extras[${i}][weekends_rate]`, extra.weekendsRate || "0");
+      // formData.append(`extras[${i}][holidays_rate]`, extra.holidaysRate || "0");
       formData.append(
         `extras[${i}][post_booking_approval]`,
         extra.approval === "yes" ? "required" : "not_required"
