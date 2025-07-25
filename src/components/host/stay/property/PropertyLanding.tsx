@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import PropertySites from "./PropertySites";
+import { apiRequest } from "@/lib/api";
 
 export const listData = [
   {
@@ -71,6 +72,31 @@ export default function PropertyLanding() {
   const selectedPropertyId = searchParams.get("propertyId");
   const showSites = searchParams.get("showSites") === "true";
 
+  const [properties, setProperties] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+    setLoading(true);
+    setError(null);
+    apiRequest<any>("properties", { method: "GET" })
+      .then((data) => {
+        if (isMounted) {
+          setProperties(data?.data);
+        }
+      })
+      .catch((err) => {
+        if (isMounted) setError(err.message || "Failed to fetch properties");
+      })
+      .finally(() => {
+        if (isMounted) setLoading(false);
+      });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   const handlePropertyClick = (id: number) => {
     const params = new URLSearchParams(searchParams.toString());
     params.set("propertyId", id.toString());
@@ -86,9 +112,12 @@ export default function PropertyLanding() {
     router.push(`?${params.toString()}`);
   };
 
+  // Placeholder image for properties without media
+  const defaultImage = "https://via.placeholder.com/150?text=No+Image";
+
   // If showing sites for a specific property
   if (showSites && selectedPropertyId) {
-    const selectedProperty = listData.find(
+    const selectedProperty = properties.find(
       (item) => item.id === parseInt(selectedPropertyId)
     );
 
@@ -122,27 +151,27 @@ export default function PropertyLanding() {
           <div className="flex items-center gap-4">
             <div className="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0">
               <img
-                src={selectedProperty?.img}
-                alt={selectedProperty?.head}
+                src={selectedProperty?.media?.[0]?.file_path || defaultImage}
+                alt={selectedProperty?.property_name || "Property"}
                 className="w-full h-full object-cover"
               />
             </div>
             <div>
               <h2 className="text-lg font-bold text-gray-900">
-                {selectedProperty?.head}
+                {selectedProperty?.property_name || "No Name"}
               </h2>
-              <p className="text-sm text-gray-600">{selectedProperty?.city}</p>
-              <p className="text-sm text-gray-500">{selectedProperty?.text}</p>
+              <p className="text-sm text-gray-600">
+                {selectedProperty?.location_address || "No City"}
+              </p>
+              <p className="text-sm text-gray-500">
+                {selectedProperty?.short_description || "No Description"}
+              </p>
             </div>
             <div className="ml-auto">
               <span
-                className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
-                  selectedProperty?.status === "active"
-                    ? "bg-blue-100 text-blue-800"
-                    : "bg-orange-100 text-orange-800"
-                }`}
+                className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800`}
               >
-                {selectedProperty?.status}
+                Active
               </span>
             </div>
           </div>
@@ -157,11 +186,22 @@ export default function PropertyLanding() {
     );
   }
 
+  if (loading) {
+    return <div className="text-center py-10">Loading properties...</div>;
+  }
+
+  if (error) {
+    return <div className="text-center py-10 text-red-500">{error}</div>;
+  }
+
+  if (!properties.length) {
+    return <div className="text-center py-10">No properties found.</div>;
+  }
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 md:mt-10">
-      {listData.map((item) => (
+      {properties.map((item) => (
         <div
-          onClick={() => handlePropertyClick(item.id)}
           key={item.id}
           className="bg-white rounded-[20px] shadow-md border border-gray-100 flex relative overflow-hidden cursor-pointer hover:shadow-lg transition-shadow"
         >
@@ -170,8 +210,8 @@ export default function PropertyLanding() {
             {/* Image */}
             <div className="w-16 h-16 rounded-lg my-auto overflow-hidden mr-4 flex-shrink-0">
               <img
-                src={item.img}
-                alt={item.head}
+                src={item.media?.[0]?.file_path || defaultImage}
+                alt={item.property_name || "Property"}
                 className="w-full h-full object-cover"
               />
             </div>
@@ -179,29 +219,25 @@ export default function PropertyLanding() {
             {/* Details */}
             <div className="flex-1 min-w-0">
               <h3 className="font-bold text-sm text-gray-900  truncate">
-                {item.head}
+                {item.property_name || "No Name"}
               </h3>
-              <p className="text-sm text-gray-600 ">{item.city}</p>
-              <p className="text-sm text-gray-600 ">{item.text}</p>
-              <p className="text-xs text-gray-500 mt-1">{item.date}</p>
+              <p className="text-sm text-gray-600 ">
+                {item.location_address || "No City"}
+              </p>
+              <p className="text-sm text-gray-600 ">
+                {item.short_description || "No Description"}
+              </p>
+              <p className="text-xs text-gray-500 mt-1">
+                {item.property_type || "No Type"}
+              </p>
             </div>
           </div>
 
           <div className="flex flex-col justify-between items-end gap-2 p-2">
             <div
-              className={`flex items-center space-x-1 border rounded-full px-2 py-1 ${
-                item.status === "active"
-                  ? "border-blue-600"
-                  : "border-orange-600"
-              }`}
+              className={`flex items-center space-x-1 border rounded-full px-2 py-1 border-blue-600`}
             >
-              <span
-                className={`text-xs font-medium ${
-                  item.status === "active" ? "text-blue-600" : "text-orange-600"
-                }`}
-              >
-                {item.status}
-              </span>
+              <span className="text-xs font-medium text-blue-600">Active</span>
               <svg
                 className="w-3 h-3"
                 fill="none"
@@ -235,17 +271,17 @@ export default function PropertyLanding() {
             </div>
 
             {/* Add site button */}
-            <button className="text-[13px] font-bold underline hover:no-underline">
-              Add site
+            <button
+              type="button"
+              onClick={() => handlePropertyClick(item.id)}
+              className="text-[13px] font-bold underline hover:no-underline cursor-pointer"
+            >
+              Sites
             </button>
           </div>
 
           {/* Right side - Status strip and actions */}
-          <div
-            className={`w-8 flex flex-col items-center justify-between py-4 ${
-              item.status === "active" ? "bg-blue-500" : "bg-orange-500"
-            }`}
-          ></div>
+          <div className="w-8 flex flex-col items-center justify-between py-4 bg-blue-500"></div>
         </div>
       ))}
     </div>
