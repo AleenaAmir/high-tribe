@@ -16,19 +16,60 @@ const SiteAmenitiesSection: React.FC<SiteAmenitiesSectionProps> = ({
   };
 
   const handleSave = async () => {
-    const amenitiesData = {
-      siteAmenities: state.formData.siteAmenities,
-      siteFacilities: state.formData.siteFacilities,
-      safetyItems: state.formData.safetyItems,
-      petPolicy: state.formData.petPolicy,
-      otherAmenities: state.formData.otherAmenities,
-      otherFacilities: state.formData.otherFacilities,
-      otherSafety: state.formData.otherSafety,
-      parkingVehicles: state.formData.parkingVehicles,
-    };
+    const formData = new FormData();
 
-    await saveSection("amenities", amenitiesData);
+    // Append array fields
+    (state.formData.siteAmenities || []).forEach((item: string) =>
+      formData.append("amenities[]", item)
+    );
+
+    (state.formData.siteFacilities || []).forEach((item: string) =>
+      formData.append("facilities[]", item)
+    );
+
+    (state.formData.safetyItems || []).forEach((item: string) =>
+      formData.append("safety_items[]", item)
+    );
+
+    // Append other fields
+    if (state.formData.otherAmenities)
+      formData.append("other_amenity", state.formData.otherAmenities);
+
+    if (state.formData.otherFacilities)
+      formData.append("other_facility", state.formData.otherFacilities);
+
+    if (state.formData.otherSafety)
+      formData.append("other_safety_item", state.formData.otherSafety);
+
+    if (state.formData.petPolicy)
+      // formData.append("pet_policy", state.formData.petPolicy);
+      formData.append("pet_policy", "yes_on_leash");
+
+    if (state.formData.parkingVehicles)
+      formData.append("free_parking_slots", state.formData.parkingVehicles); // or change key if backend expects differently
+
+    // Call API
+    const token = localStorage.getItem("token");
+    try {
+      const response = await fetch(
+        "https://high-tribe-backend.hiconsolutions.com/api/properties/16/sites/amenities",
+        {
+          method: "POST",
+          headers: {
+            Accept: "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: formData,
+        }
+      );
+
+      const result = await response.json();
+      console.log("API response:", result);
+    } catch (error) {
+      console.error("Error saving amenities:", error);
+    }
   };
+
 
   return (
     <div ref={sectionRef}>
@@ -378,10 +419,10 @@ const SiteAmenitiesSection: React.FC<SiteAmenitiesSectionProps> = ({
             </label>
             <div className="flex items-center flex-wrap gap-2">
               {[
-                { id: "pets-yes", label: "Yes", checked: false },
-                { id: "pets-no", label: "No", checked: false },
+                { id: "yes_on_leash", label: "Yes", checked: false },
+                { id: "no_on_leash", label: "No", checked: false },
                 {
-                  id: "pets-on-leash",
+                  id: "on_leash",
                   label: "On leash",
                   checked: false,
                 },

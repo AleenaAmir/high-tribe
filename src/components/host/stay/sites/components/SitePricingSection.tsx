@@ -63,20 +63,88 @@ const SitePricingSection: React.FC<SitePricingSectionProps> = ({
   ];
 
   const handleSave = async () => {
-    const pricingData = {
-      siteCapacity: state.siteCapacity,
-      guestMin: state.guestMin,
-      guestMax: state.guestMax,
-      bedCounts: state.bedCounts,
-      rvDetails: state.rvDetails,
-      pricingType: state.pricingType,
-      allowRefunds: state.allowRefunds,
-      refundType: state.refundType,
-      autoRefunds: state.autoRefunds,
-    };
+    const token = localStorage.getItem("token");
+    const formData = new FormData();
 
-    await saveSection("pricing", pricingData);
+    formData.append("site_id", "16");
+    formData.append("guest_capacity_min", state.guestMin || "1");
+    formData.append("guest_capacity_max", state.guestMax || "1");
+
+    // Total Beds
+    const totalBeds = state.bedCounts.reduce((a, b) => a + (parseInt(b.toString()) || 0), 0);
+    formData.append("total_beds", totalBeds.toString());
+
+    // Bed types in backend format
+    const bedTypeKeys = [
+      "sofa_bed",
+      "floor_mattress",
+      "hammock",
+      "futon",
+      "bunk_bed",
+      "queen_bed",
+      "king_bed",
+    ];
+
+    state.bedCounts.forEach((count, idx) => {
+      const parsedCount = parseInt(count.toString(), 10);
+      if (parsedCount > 0) {
+        formData.append(`bed_types[${bedTypeKeys[idx]}]`, parsedCount.toString());
+      }
+    });
+    // RV details
+    if (state.rvDetails.hookupType)
+      formData.append("hookup_type", "back_in");
+    if (state.rvDetails.amperes)
+      formData.append("amperes", state.rvDetails.amperes);
+    if (state.rvDetails.maxLength)
+      formData.append("max_length", state.rvDetails.maxLength);
+    if (state.rvDetails.maxWidth)
+      formData.append("max_width", state.rvDetails.maxWidth);
+    if (state.rvDetails.drivewaySurface)
+      formData.append("driveway_surface", "gravel");
+
+    // Hosting
+    if (state.pricingType) formData.append("hosting_type", "paid");
+
+    // Refund policy
+    if (state.refundType) formData.append("refund_policy", state.refundType);
+    if (state.refundType === "days") formData.append("refund_days", "3");
+
+    // Other assumed defaults
+    formData.append("currency", "USD");
+    formData.append("payment_type", "advance");
+    formData.append("base_price", "49.5"); // optional, change accordingly
+
+    // API Call
+    try {
+      const response = await fetch(
+        "https://high-tribe-backend.hiconsolutions.com/api/properties/2/sites/pricing",
+        {
+          method: "POST",
+          headers: {
+            Accept: "application/json",
+            Authorization:
+              `Bearer ${token}`,
+          },
+          body: formData,
+        }
+      );
+
+      if (!response.ok) {
+        const error = await response.json();
+        console.error("❌ Validation Error:", error);
+        alert("Failed: " + JSON.stringify(error));
+      } else {
+        const result = await response.json();
+        console.log("✅ Success:", result);
+        alert("Pricing saved successfully!");
+      }
+    } catch (error) {
+      console.error("❌ API Error:", error);
+      alert("An error occurred while saving pricing.");
+    }
   };
+
 
   return (
     <div ref={sectionRef}>
@@ -300,7 +368,7 @@ const SitePricingSection: React.FC<SitePricingSectionProps> = ({
         <div className="flex justify-end">
           <button
             type="button"
-            className="btn btn-primary px-8"
+            className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors text-sm shadow-sm"
             onClick={handleSave}
           >
             Save

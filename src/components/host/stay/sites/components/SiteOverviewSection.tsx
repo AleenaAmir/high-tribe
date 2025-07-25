@@ -4,6 +4,7 @@ import GlobalTextInput from "../../../../global/GlobalTextInput";
 import GlobalSelect from "../../../../global/GlobalSelect";
 import GlobalTextArea from "../../../../global/GlobalTextArea";
 import { useSitesForm } from "../contexts/SitesFormContext";
+import { toast } from "react-hot-toast";
 
 interface SiteOverviewSectionProps {
   sectionRef: React.RefObject<HTMLDivElement | null>;
@@ -23,15 +24,15 @@ const SiteOverviewSection: React.FC<SiteOverviewSectionProps> = ({
     formData.append('location_name', "lahore");
     formData.append('latitude', '3.66');
     formData.append('longitude', '55.47');
-    formData.append('accommodation_type', state.formData.accommodation_type);
-    formData.append('house_sharing', state.formData.house_sharing.join(','));
+    formData.append('accommodation_type', "room_in_house");
+    (state.formData.house_sharing || []).forEach(val => formData.append('house_sharing[]', val));
     formData.append('campsite_type', state.formData.campsiteType);
     formData.append('site_name', state.formData.siteName);
     formData.append('site_description', state.formData.shortDescription);
     formData.append('site_rules', state.formData.siteRules);
     formData.append('privacy_type', state.formData.sitePrivacy);
 
-    const response = await fetch('https://high-tribe-backend.hiconsolutions.com/api/properties/2/sites/location-overview', {
+    const response = await fetch('https://high-tribe-backend.hiconsolutions.com/api/properties/16/sites/location-overview', {
       method: 'POST',
       body: formData,
       headers: {
@@ -39,10 +40,11 @@ const SiteOverviewSection: React.FC<SiteOverviewSectionProps> = ({
         'Accept': 'application/json'
       }
     });
+    debugger;
     const data = await response.json();
-    console.log(data);
-
-    //  await saveSection("overview", overviewData);
+    if (data.message) {
+      toast.success(data.message);
+    }
   };
 
   return (

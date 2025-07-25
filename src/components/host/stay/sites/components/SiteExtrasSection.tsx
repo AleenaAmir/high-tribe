@@ -10,51 +10,122 @@ interface SiteExtrasSectionProps {
   sectionRef: React.RefObject<HTMLDivElement | null>;
 }
 
-const SiteExtrasSection: React.FC<SiteExtrasSectionProps> = ({
-  sectionRef,
-}) => {
+// Reusable select option arrays
+const extraTypeOptions = [
+  { value: "guide", label: "Professional Guide" },
+  { value: "transport", label: "Transportation" },
+  { value: "meals", label: "Meals Included" },
+  { value: "equipment", label: "Equipment Rental" },
+  { value: "photography", label: "Photography Service" },
+  { value: "insurance", label: "Activity Insurance" },
+];
+
+const currencyOptions = [
+  { value: "", label: "Currency" },
+  { value: "usd", label: "USD" },
+  { value: "eur", label: "EUR" },
+  { value: "pkr", label: "PKR" },
+  { value: "gbp", label: "GBP" },
+];
+
+const rateTypeOptions = [
+  { value: "", label: "Rate Type" },
+  { value: "one_time", label: "One time" },
+  { value: "hourly", label: "Hourly" },
+  { value: "daily", label: "Daily" },
+];
+
+const rateCategoryOptions = [
+  { value: "", label: "Rate Category" },
+  { value: "weekdays", label: "Weekdays" },
+  { value: "weekends", label: "Weekends" },
+  { value: "holidays", label: "Holidays" },
+  { value: "specific_dates", label: "Specific Dates" },
+];
+
+const SiteExtrasSection: React.FC<SiteExtrasSectionProps> = ({ sectionRef }) => {
   const { saveSection } = useSitesForm();
 
-  // React Hook Form setup for Extras
   const {
     control,
-    handleSubmit: rhfHandleSubmit,
     register,
     setValue,
+    handleSubmit,
     watch,
-    formState: { errors: rhfErrors },
+    formState: { errors },
   } = useForm<{ extras: Extra[] }>({
-    defaultValues: {
-      extras: [],
-    },
+    defaultValues: { extras: [] },
   });
-  const {
-    fields: extrasFields,
-    append: appendExtra,
-    remove: removeExtra,
-  } = useFieldArray({
+
+  const { fields, append, remove } = useFieldArray({
     control,
     name: "extras",
   });
 
   const handleSave = async () => {
-    const formData = watch();
-    await saveSection("extras", formData);
+    const formData = new FormData();
+    const values = watch();
+
+    formData.append("site_id", "16"); // Replace with dynamic site ID if needed
+
+    values.extras.forEach((extra, i) => {
+      formData.append(`extras[${i}][type]`, extra.type);
+      formData.append(`extras[${i}][title]`, extra.name);
+      formData.append(`extras[${i}][description]`, extra.description || "");
+      formData.append(`extras[${i}][currency]`, extra.currency);
+      formData.append(`extras[${i}][rate_type]`, extra.rateType);
+      formData.append(`extras[${i}][base_rate]`, extra.baseRate || "0");
+      formData.append(`extras[${i}][weekdays_rate]`, extra.weekdaysRate || "0");
+      formData.append(`extras[${i}][weekends_rate]`, extra.weekendsRate || "0");
+      formData.append(`extras[${i}][holidays_rate]`, extra.holidaysRate || "0");
+      formData.append(
+        `extras[${i}][post_booking_approval]`,
+        extra.approval === "yes" ? "required" : "not_required"
+      );
+
+      if (extra.image) {
+        formData.append(`extras[${i}][image]`, extra.image);
+      }
+    });
+
+    try {
+      const response = await fetch(
+        "https://high-tribe-backend.hiconsolutions.com/api/properties/16/sites/extras",
+        {
+          method: "POST",
+          headers: {
+            Accept: "application/json",
+            Authorization: "Bearer YOUR_ACCESS_TOKEN", // Replace this
+          },
+          body: formData,
+        }
+      );
+
+      const result = await response.json();
+      if (response.ok) {
+        console.log("✅ Extras saved successfully:", result);
+        alert("Extras saved!");
+      } else {
+        console.error("❌ Failed to save extras:", result);
+        alert("Error: " + JSON.stringify(result));
+      }
+    } catch (error) {
+      console.error("❌ Network error:", error);
+      alert("Network error");
+    }
   };
+
 
   return (
     <div ref={sectionRef}>
-      <div>
-        <h2 className="text-lg font-semibold text-gray-900">Extras</h2>
-      </div>
+      <h2 className="text-lg font-semibold text-gray-900">Extras</h2>
       <div className="p-6 bg-white rounded-lg shadow-sm mt-4">
         <div className="flex justify-end items-center mb-6 gap-2">
           <h3 className="text-base font-semibold">Extras</h3>
           <button
             type="button"
-            className="border border-gray-300 rounded-full w-14 h-14 flex items-center justify-center text-2xl hover:bg-gray-100 transition"
             onClick={() =>
-              appendExtra({
+              append({
                 type: "",
                 name: "",
                 image: null,
@@ -64,142 +135,127 @@ const SiteExtrasSection: React.FC<SiteExtrasSectionProps> = ({
                 approval: "no",
               })
             }
-            aria-label="Add Extras"
+            className="border border-gray-300 rounded-full w-14 h-14 text-2xl flex items-center justify-center hover:bg-gray-100"
           >
             +
           </button>
         </div>
 
-        {extrasFields.map((item, index) => (
+        {fields.map((item, index) => (
           <div
             key={item.id}
-            className="mb-10 p-6 rounded-xl shadow-sm border border-gray-100 relative"
+            className="mb-10 p-6 border border-gray-100 rounded-xl shadow-sm relative"
           >
-            {/* Remove button */}
             <button
               type="button"
-              className="absolute top-2 right-2 text-red-500 border border-red-200 rounded-full w-8 h-8 flex items-center justify-center cursor-pointer text-lg hover:bg-red-50"
-              onClick={() => removeExtra(index)}
-              aria-label="Remove Extra"
+              className="absolute top-2 right-2 text-red-500 border border-red-200 rounded-full w-8 h-8 flex items-center justify-center"
+              onClick={() => remove(index)}
             >
               x
             </button>
-            {/* Top row: type and name/title */}
+
+            {/* Type & Name */}
             <div className="grid grid-cols-2 gap-4 mb-4">
               <Controller
                 control={control}
                 name={`extras.${index}.type`}
+                rules={{ required: true }}
                 render={({ field }) => (
                   <GlobalSelect
                     {...field}
                     label={
-                      <span>
-                        Select the type extra
-                        <span className="text-red-500">*</span>
-                      </span>
+                      <>
+                        Type <span className="text-red-500">*</span>
+                      </>
                     }
                     required
                   >
                     <option value="">Select type</option>
-                    <option value="guide">Professional Guide</option>
-                    <option value="transport">Transportation</option>
-                    <option value="meals">Meals Included</option>
-                    <option value="equipment">Equipment Rental</option>
-                    <option value="photography">Photography Service</option>
-                    <option value="insurance">Activity Insurance</option>
+                    {extraTypeOptions.map((opt) => (
+                      <option key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </option>
+                    ))}
                   </GlobalSelect>
                 )}
               />
+
               <GlobalTextInput
                 label={
-                  <span>
-                    Name/Title<span className="text-red-500">*</span>
-                  </span>
+                  <>
+                    Name/Title <span className="text-red-500">*</span>
+                  </>
                 }
                 required
-                {...register(`extras.${index}.name`, {
-                  required: true,
-                })}
+                {...register(`extras.${index}.name`, { required: true })}
               />
             </div>
-            {/* Upload image field */}
+
+            {/* Image Upload */}
             <div className="mb-4">
-              <div className="w-full flex flex-col items-center justify-center border border-dashed border-gray-300 rounded-lg max-h-[120px] h-full overflow-hidden bg-white cursor-pointer hover:border-blue-400 transition">
+              <div className="border border-dashed border-gray-300 rounded-lg cursor-pointer">
                 <input
                   type="file"
                   accept="image/*"
                   id={`extras-image-upload-${index}`}
                   style={{ display: "none" }}
                   onChange={(e) => {
-                    const file =
-                      e.target.files && e.target.files[0]
-                        ? e.target.files[0]
-                        : null;
+                    const file = e.target.files?.[0] || null;
                     setValue(`extras.${index}.image`, file);
                   }}
                 />
                 <label
                   htmlFor={`extras-image-upload-${index}`}
-                  className="flex flex-col items-center cursor-pointer"
+                  className="flex flex-col items-center justify-center py-4 cursor-pointer"
                 >
-                  {watch(`extras.${index}.image`) &&
-                  watch(`extras.${index}.image`) instanceof File ? (
+                  {watch(`extras.${index}.image`) ? (
                     <img
-                      src={
-                        watch(`extras.${index}.image`)
-                          ? URL.createObjectURL(
-                              watch(`extras.${index}.image`) as File
-                            )
-                          : ""
-                      }
+                      src={URL.createObjectURL(watch(`extras.${index}.image`) as File)}
                       alt="Preview"
-                      className="object-contain rounded border mb-2"
+                      className="object-contain h-24 rounded border mb-2"
                     />
                   ) : (
-                    <div className="flex flex-col items-center justify-center py-4">
-                      <span className="text-5xl text-[#464444] ">+</span>
-                      <span className="text-[#464444] text-[10px]">
-                        Upload image
-                      </span>
-                    </div>
+                    <>
+                      <span className="text-5xl text-gray-500">+</span>
+                      <span className="text-xs text-gray-500">Upload image</span>
+                    </>
                   )}
                 </label>
               </div>
             </div>
-            {/* Currency, Rate type, Rate */}
+
+            {/* Currency & Rate Type */}
             <div className="grid grid-cols-2 gap-4 mb-4">
-              <GlobalSelect
-                label="Currency"
-                {...register(`extras.${index}.currency`)}
-              >
-                <option value="">Currency</option>
-                <option value="usd">USD</option>
-                <option value="eur">EUR</option>
-                <option value="pkr">PKR</option>
-                <option value="gbp">GBP</option>
+              <GlobalSelect label="Currency" {...register(`extras.${index}.currency`)}>
+                {currencyOptions.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
               </GlobalSelect>
-              <GlobalSelect
-                label="Rate type"
-                {...register(`extras.${index}.rateType`)}
-              >
-                <option value="">Rate type</option>
-                <option value="one_time">One time</option>
-                <option value="hourly">Hourly</option>
-                <option value="daily">Daily</option>
+
+              <GlobalSelect label="Rate Type" {...register(`extras.${index}.rateType`)}>
+                {rateTypeOptions.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
               </GlobalSelect>
             </div>
+
+            {/* Rate Category */}
             <div className="grid grid-cols-2 gap-4 mb-4">
-              <GlobalSelect label="Rate" {...register(`extras.${index}.rate`)}>
-                <option value="">Rate</option>
-                <option value="weekdays">Weekdays</option>
-                <option value="weekends">Weekends</option>
-                <option value="holidays">Holidays</option>
-                <option value="specific_dates">Specific Dates</option>
+              <GlobalSelect label="Rate Category" {...register(`extras.${index}.rate`)}>
+                {rateCategoryOptions.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
               </GlobalSelect>
-              {/* Empty for layout symmetry, or add price input if needed */}
               <div></div>
             </div>
-            {/* Post-booking approval radio group */}
+
+            {/* Approval Setting */}
             <div className="mb-4">
               <label className="block font-medium mb-2">
                 Post-booking request settings
@@ -212,7 +268,7 @@ const SiteExtrasSection: React.FC<SiteExtrasSectionProps> = ({
                     {...register(`extras.${index}.approval`)}
                     className="accent-blue-600 w-4 h-4"
                   />
-                  <span>Approval required after site is booked</span>
+                  <span>Approval required after booking</span>
                 </label>
                 <label className="flex items-center gap-2">
                   <input
@@ -221,19 +277,19 @@ const SiteExtrasSection: React.FC<SiteExtrasSectionProps> = ({
                     {...register(`extras.${index}.approval`)}
                     className="accent-blue-600 w-4 h-4"
                   />
-                  <span>No approval required after site is booked</span>
+                  <span>No approval required after booking</span>
                 </label>
               </div>
             </div>
           </div>
         ))}
 
-        {extrasFields.length > 0 && (
+        {fields.length > 0 && (
           <div className="flex justify-end mt-8">
             <button
               type="button"
-              className="px-8 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors text-sm shadow-sm"
               onClick={handleSave}
+              className="px-8 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium text-sm shadow-sm"
             >
               Save
             </button>

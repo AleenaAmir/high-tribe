@@ -16,15 +16,29 @@ const SiteArrivalSection: React.FC<SiteArrivalSectionProps> = ({
   const handleInputChange = (field: string, value: string) => {
     updateFormData(field, value);
   };
+  let token = "";
+  if (typeof window !== 'undefined') {
+    token = localStorage.getItem("token") || "";
+  }
 
   const handleSave = async () => {
-    const arrivalData = {
-      checkInTime: state.formData.checkInTime,
-      checkOutTime: state.formData.checkOutTime,
-      arrivalInstructions: state.formData.arrivalInstructions,
-    };
+    const formData = new FormData();
+    formData.append('site_id', "16");
+    formData.append('check_in_time', state.formData.checkInTime);
+    formData.append('check_out_time', state.formData.checkOutTime);
+    formData.append('arrival_instructions', state.formData.arrivalInstructions);
 
-    await saveSection("arrival", arrivalData);
+    fetch('https://high-tribe-backend.hiconsolutions.com/api/properties/16/sites/arrival-instructions', {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: formData
+
+    })
+      .then(res => res.json())
+      .then(data => console.log(data));
   };
 
   return (

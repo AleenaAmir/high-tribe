@@ -11,6 +11,7 @@ import SiteExtrasSection from "./components/SiteExtrasSection";
 import SiteAvailabilitySection from "./components/SiteAvailabilitySection";
 import SiteArrivalSection from "./components/SiteArrivalSection";
 import { Section } from "./types/sites";
+import { toast } from "react-hot-toast";
 
 interface SitesFormProps {
   onBack?: () => void;
@@ -98,8 +99,41 @@ const SitesFormContent: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await publishSite();
-  };
+    let token = "";
+    if (typeof window !== 'undefined') {
+      token = localStorage.getItem("token") || "";
+    }
+    const formData = new FormData();
+    formData.append('publish_status', "scheduled");
+    formData.append('scheduled_publish_at', new Date().toISOString());
+    try {
+      const response = await fetch(
+        "https://high-tribe-backend.hiconsolutions.com/api/properties/16/review-publish",
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            Accept: "application/json",
+          },
+          body: formData,
+        }
+      );
+
+      const data = await response.json();
+      if (data.message) {
+        toast.success(data.message);
+      }
+
+      if (response.ok) {
+        toast.success("Media uploaded successfully");
+      } else {
+        toast.error("Upload failed");
+      }
+    } catch (error) {
+      console.error("Upload error:", error);
+      toast.error("An error occurred during upload");
+    }
+  }
 
   const handleExit = () => {
     if (onBack) {
@@ -159,13 +193,14 @@ const SitesFormContent: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
                 className="px-8 py-3 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg font-medium transition-colors text-sm shadow-sm"
                 onClick={handleExit}
               >
-                Exit
+                Save as draft
               </button>
               <button
+                onClick={handleSubmit}
                 type="submit"
                 className="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors text-sm shadow-sm"
               >
-                Publish Site
+                Review & Published
               </button>
             </div>
           </form>

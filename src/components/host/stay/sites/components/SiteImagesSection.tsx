@@ -1,20 +1,19 @@
 "use client";
 import React from "react";
 import { useSitesForm } from "../contexts/SitesFormContext";
+import { toast } from "react-hot-toast";
 
 interface SiteImagesSectionProps {
   sectionRef: React.RefObject<HTMLDivElement | null>;
 }
 
-const SiteImagesSection: React.FC<SiteImagesSectionProps> = ({
-  sectionRef,
-}) => {
+const SiteImagesSection = ({ sectionRef }: SiteImagesSectionProps) => {
   const {
     state,
     updateUploadedImages,
     updateUploadedVideos,
     updateCoverImage,
-    saveSection,
+
   } = useSitesForm();
 
   // Handle file upload
@@ -42,14 +41,53 @@ const SiteImagesSection: React.FC<SiteImagesSectionProps> = ({
   };
 
   const handleSave = async () => {
-    const imagesData = {
-      uploadedImages: state.uploadedImages,
-      uploadedVideos: state.uploadedVideos,
-      coverImage: state.coverImage,
-    };
+    const formData = new FormData();
 
-    await saveSection("images", imagesData);
+    // Append media_images[] (multiple files)
+    state.uploadedImages.forEach((image) => {
+      formData.append("media_images[]", image);
+    });
+
+    // Append cover_image (single file)
+    if (state.coverImage) {
+      formData.append("cover_image", state.coverImage);
+    }
+
+    const token = localStorage.getItem("token");
+    if (!token) {
+      console.error("Token missing");
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        "https://high-tribe-backend.hiconsolutions.com/api/properties/16/sites/media",
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            Accept: "application/json",
+          },
+          body: formData,
+        }
+      );
+
+      const data = await response.json();
+      if (data.message) {
+        toast.success(data.message);
+      }
+
+      if (response.ok) {
+        toast.success("Media uploaded successfully");
+      } else {
+        toast.error("Upload failed");
+      }
+    } catch (error) {
+      console.error("Upload error:", error);
+      toast.error("An error occurred during upload");
+    }
   };
+
 
   return (
     <div ref={sectionRef}>
@@ -224,6 +262,6 @@ const SiteImagesSection: React.FC<SiteImagesSectionProps> = ({
       </div>
     </div>
   );
-};
+}
 
 export default SiteImagesSection;
