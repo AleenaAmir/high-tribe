@@ -21,25 +21,30 @@ const SiteOverviewSection: React.FC<SiteOverviewSectionProps> = ({
 
   const handleSave = async () => {
     const formData = new FormData();
-    formData.append('location_name', "lahore");
-    formData.append('latitude', '3.66');
-    formData.append('longitude', '55.47');
-    formData.append('accommodation_type', "room_in_house");
-    (state.formData.house_sharing || []).forEach(val => formData.append('house_sharing[]', val));
-    formData.append('campsite_type', state.formData.campsiteType);
-    formData.append('site_name', state.formData.siteName);
-    formData.append('site_description', state.formData.shortDescription);
-    formData.append('site_rules', state.formData.siteRules);
-    formData.append('privacy_type', state.formData.sitePrivacy);
+    formData.append("location_name", "lahore");
+    formData.append("latitude", "3.66");
+    formData.append("longitude", "55.47");
+    formData.append("accommodation_type", "room_in_house");
+    (state.formData.house_sharing || []).forEach((val) =>
+      formData.append("house_sharing[]", val)
+    );
+    formData.append("campsite_type", state.formData.campsiteType);
+    formData.append("site_name", state.formData.siteName);
+    formData.append("site_description", state.formData.shortDescription);
+    formData.append("site_rules", state.formData.siteRules);
+    formData.append("privacy_type", state.formData.sitePrivacy);
 
-    const response = await fetch('https://high-tribe-backend.hiconsolutions.com/api/properties/16/sites/location-overview', {
-      method: 'POST',
-      body: formData,
-      headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        'Accept': 'application/json'
+    const response = await fetch(
+      "http://3.6.115.88/api/properties/16/sites/location-overview",
+      {
+        method: "POST",
+        body: formData,
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          Accept: "application/json",
+        },
       }
-    });
+    );
     debugger;
     const data = await response.json();
     if (data.message) {
@@ -70,11 +75,16 @@ const SiteOverviewSection: React.FC<SiteOverviewSectionProps> = ({
                   </>
                 }
                 value={state.formData.accommodation_type || ""}
-                onChange={(e) => handleInputChange("accommodation_type", e.target.value)}
+                onChange={(e) =>
+                  handleInputChange("accommodation_type", e.target.value)
+                }
               >
                 <option value=""></option>
                 {[
-                  { value: "standalone-cabin", label: "Stand-alone Cabin/Studio" },
+                  {
+                    value: "standalone-cabin",
+                    label: "Stand-alone Cabin/Studio",
+                  },
                   { value: "apartment", label: "Apartment" },
                   { value: "entire-house", label: "Entire House" },
                   { value: "glamp", label: "Glamp" },
@@ -85,7 +95,6 @@ const SiteOverviewSection: React.FC<SiteOverviewSectionProps> = ({
                   </option>
                 ))}
               </GlobalSelect>
-
             </div>
 
             {/* Campsite Type */}
@@ -97,11 +106,13 @@ const SiteOverviewSection: React.FC<SiteOverviewSectionProps> = ({
                 {[
                   {
                     value: "undefined",
-                    label: "Undefined Campsite (Guests can choose their own spot)",
+                    label:
+                      "Undefined Campsite (Guests can choose their own spot)",
                   },
                   {
                     value: "defined",
-                    label: "Defined Campsite (Guests will be given a specific spot)",
+                    label:
+                      "Defined Campsite (Guests will be given a specific spot)",
                   },
                 ].map((option) => (
                   <label
@@ -113,7 +124,9 @@ const SiteOverviewSection: React.FC<SiteOverviewSectionProps> = ({
                       name="campsiteType"
                       value={option.value}
                       checked={state.formData.campsiteType === option.value}
-                      onChange={(e) => handleInputChange("campsiteType", e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange("campsiteType", e.target.value)
+                      }
                       className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
                     />
                     <span className="text-[13px] text-[#1C231F] font-medium">
@@ -122,13 +135,13 @@ const SiteOverviewSection: React.FC<SiteOverviewSectionProps> = ({
                   </label>
                 ))}
               </div>
-
             </div>
 
             {/* Who lives in the house */}
             <div>
               <p className="font-bold text-[14px] text-[#1C231F] mb-4 mt-4">
-                Does anyone else live in the house?<span className="text-red-500">*</span>
+                Does anyone else live in the house?
+                <span className="text-red-500">*</span>
               </p>
               <div className="flex flex-wrap gap-6">
                 {[
@@ -137,24 +150,36 @@ const SiteOverviewSection: React.FC<SiteOverviewSectionProps> = ({
                   { label: "Other Guests", value: "guests" },
                   { label: "Roommates", value: "roommates" },
                 ].map((option) => (
-                  <label key={option.value} className="flex items-center gap-2 cursor-pointer">
+                  <label
+                    key={option.value}
+                    className="flex items-center gap-2 cursor-pointer"
+                  >
                     <input
                       type="checkbox"
-                      checked={state.formData.house_sharing?.includes(option.value) || false}
+                      checked={
+                        state.formData.house_sharing?.includes(option.value) ||
+                        false
+                      }
                       onChange={(e) => {
                         const updated = e.target.checked
-                          ? [...(state.formData.house_sharing || []), option.value]
-                          : (state.formData.house_sharing || []).filter((v) => v !== option.value);
+                          ? [
+                              ...(state.formData.house_sharing || []),
+                              option.value,
+                            ]
+                          : (state.formData.house_sharing || []).filter(
+                              (v) => v !== option.value
+                            );
                         handleInputChange("house_sharing", updated);
                       }}
                       className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                     />
-                    <span className="text-[13px] text-[#1C231F] font-medium">{option.label}</span>
+                    <span className="text-[13px] text-[#1C231F] font-medium">
+                      {option.label}
+                    </span>
                   </label>
                 ))}
               </div>
             </div>
-
 
             {/* Site Privacy */}
             <div>
@@ -166,22 +191,27 @@ const SiteOverviewSection: React.FC<SiteOverviewSectionProps> = ({
                   { label: "Shared", value: "shared" },
                   { label: "Private", value: "private" },
                 ].map((option) => (
-                  <label key={option.value} className="flex items-center gap-2 cursor-pointer">
+                  <label
+                    key={option.value}
+                    className="flex items-center gap-2 cursor-pointer"
+                  >
                     <input
                       type="radio"
                       name="sitePrivacy"
                       value={option.value}
                       checked={state.formData.sitePrivacy === option.value}
-                      onChange={() => handleInputChange("sitePrivacy", option.value)}
+                      onChange={() =>
+                        handleInputChange("sitePrivacy", option.value)
+                      }
                       className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
                     />
-                    <span className="text-[13px] text-[#1C231F] font-medium">{option.label}</span>
+                    <span className="text-[13px] text-[#1C231F] font-medium">
+                      {option.label}
+                    </span>
                   </label>
                 ))}
               </div>
             </div>
-
-
           </div>
 
           {/* Right Column */}
@@ -189,7 +219,11 @@ const SiteOverviewSection: React.FC<SiteOverviewSectionProps> = ({
             {/* Site Name */}
             <div>
               <GlobalTextInput
-                label={<span>Site Name <span className="text-red-500">*</span></span>}
+                label={
+                  <span>
+                    Site Name <span className="text-red-500">*</span>
+                  </span>
+                }
                 type="text"
                 placeholder="Enter site name"
                 value={state.formData.siteName}
@@ -200,7 +234,11 @@ const SiteOverviewSection: React.FC<SiteOverviewSectionProps> = ({
             {/* Site Description */}
             <div>
               <GlobalTextArea
-                label={<span>Site Description <span className="text-red-500">*</span></span>}
+                label={
+                  <span>
+                    Site Description <span className="text-red-500">*</span>
+                  </span>
+                }
                 placeholder="Describe your site..."
                 value={state.formData.shortDescription}
                 onChange={(e) =>
@@ -212,7 +250,6 @@ const SiteOverviewSection: React.FC<SiteOverviewSectionProps> = ({
 
             {/* Select RV */}
             <div>
-
               <GlobalSelect
                 label="Select RV"
                 value={state.formData.rvType || ""}
@@ -233,17 +270,14 @@ const SiteOverviewSection: React.FC<SiteOverviewSectionProps> = ({
                   </option>
                 ))}
               </GlobalSelect>
-
             </div>
 
             {/* Site Rules */}
             <div>
-
               <GlobalTextInput
                 label="Site Rules"
                 value={state.formData.siteRules}
                 onChange={(e) => handleInputChange("siteRules", e.target.value)}
-
               />
             </div>
           </div>

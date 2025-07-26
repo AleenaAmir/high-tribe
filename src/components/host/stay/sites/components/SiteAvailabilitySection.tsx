@@ -53,7 +53,7 @@ const SiteAvailabilitySection: React.FC<SiteAvailabilitySectionProps> = ({
 
   return (
     <div ref={sectionRef}>
-      <div className="bg-white rounded-2xl shadow p-10 max-w-4xl mx-auto mt-8">
+      <div className="bg-white rounded-2xl shadow p-10 mx-auto mt-8">
         <h2 className="text-base font-medium text-black mb-8">
           Availability and Booking Details
         </h2>

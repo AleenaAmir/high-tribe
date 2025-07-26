@@ -71,7 +71,10 @@ const SitePricingSection: React.FC<SitePricingSectionProps> = ({
     formData.append("guest_capacity_max", state.guestMax || "1");
 
     // Total Beds
-    const totalBeds = state.bedCounts.reduce((a, b) => a + (parseInt(b.toString()) || 0), 0);
+    const totalBeds = state.bedCounts.reduce(
+      (a, b) => a + (parseInt(b.toString()) || 0),
+      0
+    );
     formData.append("total_beds", totalBeds.toString());
 
     // Bed types in backend format
@@ -88,12 +91,14 @@ const SitePricingSection: React.FC<SitePricingSectionProps> = ({
     state.bedCounts.forEach((count, idx) => {
       const parsedCount = parseInt(count.toString(), 10);
       if (parsedCount > 0) {
-        formData.append(`bed_types[${bedTypeKeys[idx]}]`, parsedCount.toString());
+        formData.append(
+          `bed_types[${bedTypeKeys[idx]}]`,
+          parsedCount.toString()
+        );
       }
     });
     // RV details
-    if (state.rvDetails.hookupType)
-      formData.append("hookup_type", "back_in");
+    if (state.rvDetails.hookupType) formData.append("hookup_type", "back_in");
     if (state.rvDetails.amperes)
       formData.append("amperes", state.rvDetails.amperes);
     if (state.rvDetails.maxLength)
@@ -118,13 +123,12 @@ const SitePricingSection: React.FC<SitePricingSectionProps> = ({
     // API Call
     try {
       const response = await fetch(
-        "https://high-tribe-backend.hiconsolutions.com/api/properties/2/sites/pricing",
+        "http://3.6.115.88/api/properties/2/sites/pricing",
         {
           method: "POST",
           headers: {
             Accept: "application/json",
-            Authorization:
-              `Bearer ${token}`,
+            Authorization: `Bearer ${token}`,
           },
           body: formData,
         }
@@ -144,7 +148,6 @@ const SitePricingSection: React.FC<SitePricingSectionProps> = ({
       alert("An error occurred while saving pricing.");
     }
   };
-
 
   return (
     <div ref={sectionRef}>

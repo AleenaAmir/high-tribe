@@ -413,6 +413,8 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
         ? localStorage.getItem("token") || "<PASTE_VALID_TOKEN_HERE>"
         : "<PASTE_VALID_TOKEN_HERE>";
 
+    console.log(token, "Token---------------------");
+
     // Construct FormData for file and text fields
     const form = new FormData();
 
@@ -528,8 +530,8 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
                   >
                     <div
                       className={`w-8 h-8 rounded-full flex items-center justify-center mr-3 text-sm font-medium ${isCompleted
-                        ? "bg-[#1179FA] text-white"
-                        : "bg-gray-200 text-gray-500"
+                          ? "bg-[#1179FA] text-white"
+                          : "bg-gray-200 text-gray-500"
                         }`}
                     >
                       {isCompleted ? "✓" : ""}
@@ -640,8 +642,8 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
                     </div>
                     <div
                       className={`flex items-center justify-center p-2 rounded-full cursor-pointer hover:shadow-lg transition-all delay-300 ${isFilters
-                        ? "bg-gradient-to-r from-[#D6D5D4] to-white"
-                        : "bg-gradient-to-r from-[#257CFF] to-[#0F62DE]"
+                          ? "bg-gradient-to-r from-[#D6D5D4] to-white"
+                          : "bg-gradient-to-r from-[#257CFF] to-[#0F62DE]"
                         }`}
                       onClick={() => setIsFilters(!isFilters)}
                     >
@@ -834,7 +836,9 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
                         htmlFor="image-upload"
                         className="cursor-pointer flex flex-col items-center"
                       >
-                        <span className="text-[#464444] text-4xl font-bold mb-1">+</span>
+                        <span className="text-[#464444] text-4xl font-bold mb-1">
+                          +
+                        </span>
                         <span className="text-[#464444] text-[14px] text-xs">
                           Upload image
                         </span>
@@ -909,7 +913,9 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
                         htmlFor="video-upload"
                         className="cursor-pointer flex flex-col items-center"
                       >
-                        <span className="text-[#464444] text-4xl font-bold mb-1">+</span>
+                        <span className="text-[#464444] text-4xl font-bold mb-1">
+                          +
+                        </span>
                         <span className="text-[#464444] text-[14px] text-xs">
                           Upload Mp4
                         </span>
@@ -962,7 +968,9 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
                           htmlFor="cover-upload"
                           className="cursor-pointer flex flex-col items-center"
                         >
-                          <span className="text-[#464444] text-4xl font-bold mb-1">+</span>
+                          <span className="text-[#464444] text-4xl font-bold mb-1">
+                            +
+                          </span>
                           <span className="text-[#464444] text-[14px] text-xs">
                             Upload cover
                           </span>

@@ -43,7 +43,9 @@ const rateCategoryOptions = [
   { value: "specific_dates", label: "Specific Dates" },
 ];
 
-const SiteExtrasSection: React.FC<SiteExtrasSectionProps> = ({ sectionRef }) => {
+const SiteExtrasSection: React.FC<SiteExtrasSectionProps> = ({
+  sectionRef,
+}) => {
   const { saveSection } = useSitesForm();
 
   const {
@@ -90,7 +92,7 @@ const SiteExtrasSection: React.FC<SiteExtrasSectionProps> = ({ sectionRef }) => 
 
     try {
       const response = await fetch(
-        "https://high-tribe-backend.hiconsolutions.com/api/properties/16/sites/extras",
+        "http://3.6.115.88/api/properties/16/sites/extras",
         {
           method: "POST",
           headers: {
@@ -114,7 +116,6 @@ const SiteExtrasSection: React.FC<SiteExtrasSectionProps> = ({ sectionRef }) => 
       alert("Network error");
     }
   };
-
 
   return (
     <div ref={sectionRef}>
@@ -210,14 +211,18 @@ const SiteExtrasSection: React.FC<SiteExtrasSectionProps> = ({ sectionRef }) => 
                 >
                   {watch(`extras.${index}.image`) ? (
                     <img
-                      src={URL.createObjectURL(watch(`extras.${index}.image`) as File)}
+                      src={URL.createObjectURL(
+                        watch(`extras.${index}.image`) as File
+                      )}
                       alt="Preview"
                       className="object-contain h-24 rounded border mb-2"
                     />
                   ) : (
                     <>
                       <span className="text-5xl text-gray-500">+</span>
-                      <span className="text-xs text-gray-500">Upload image</span>
+                      <span className="text-xs text-gray-500">
+                        Upload image
+                      </span>
                     </>
                   )}
                 </label>
@@ -226,7 +231,10 @@ const SiteExtrasSection: React.FC<SiteExtrasSectionProps> = ({ sectionRef }) => 
 
             {/* Currency & Rate Type */}
             <div className="grid grid-cols-2 gap-4 mb-4">
-              <GlobalSelect label="Currency" {...register(`extras.${index}.currency`)}>
+              <GlobalSelect
+                label="Currency"
+                {...register(`extras.${index}.currency`)}
+              >
                 {currencyOptions.map((opt) => (
                   <option key={opt.value} value={opt.value}>
                     {opt.label}
@@ -234,7 +242,10 @@ const SiteExtrasSection: React.FC<SiteExtrasSectionProps> = ({ sectionRef }) => 
                 ))}
               </GlobalSelect>
 
-              <GlobalSelect label="Rate Type" {...register(`extras.${index}.rateType`)}>
+              <GlobalSelect
+                label="Rate Type"
+                {...register(`extras.${index}.rateType`)}
+              >
                 {rateTypeOptions.map((opt) => (
                   <option key={opt.value} value={opt.value}>
                     {opt.label}
@@ -245,7 +256,10 @@ const SiteExtrasSection: React.FC<SiteExtrasSectionProps> = ({ sectionRef }) => 
 
             {/* Rate Category */}
             <div className="grid grid-cols-2 gap-4 mb-4">
-              <GlobalSelect label="Rate Category" {...register(`extras.${index}.rate`)}>
+              <GlobalSelect
+                label="Rate Category"
+                {...register(`extras.${index}.rate`)}
+              >
                 {rateCategoryOptions.map((opt) => (
                   <option key={opt.value} value={opt.value}>
                     {opt.label}

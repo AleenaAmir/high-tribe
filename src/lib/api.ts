@@ -2,7 +2,7 @@ import ky, { Options, KyInstance } from "ky";
 import { toast } from "react-hot-toast";
 
 // You can set your API base URL here
-const apiBaseUrl = "https://high-tribe-backend.hiconsolutions.com/api/";
+const apiBaseUrl = "http://3.6.115.88/api/";
 
 const api = ky.create({
   prefixUrl: apiBaseUrl,

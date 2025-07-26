@@ -572,7 +572,7 @@ export function useJourneyForm() {
       // Submit to API using FormData with direct fetch (like the working example)
       const token = localStorage.getItem("token") || "<PASTE_VALID_TOKEN_HERE>";
 
-      const response = await fetch('https://high-tribe-backend.hiconsolutions.com/api/posts', {
+      const response = await fetch('http://3.6.115.88/api/posts', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,

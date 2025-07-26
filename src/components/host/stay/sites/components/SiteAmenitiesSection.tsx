@@ -52,7 +52,7 @@ const SiteAmenitiesSection: React.FC<SiteAmenitiesSectionProps> = ({
     const token = localStorage.getItem("token");
     try {
       const response = await fetch(
-        "https://high-tribe-backend.hiconsolutions.com/api/properties/16/sites/amenities",
+        "http://3.6.115.88/api/properties/16/sites/amenities",
         {
           method: "POST",
           headers: {
@@ -69,7 +69,6 @@ const SiteAmenitiesSection: React.FC<SiteAmenitiesSectionProps> = ({
       console.error("Error saving amenities:", error);
     }
   };
-
 
   return (
     <div ref={sectionRef}>
