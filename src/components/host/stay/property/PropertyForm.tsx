@@ -63,37 +63,40 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
 
   // Form state
   const [formData, setFormData] = useState({
-    tripLocation: "",
-    entranceLocation: "123 Main St, Anytown, USA",
-    propertyPresence: "",
+
     location_address: "123 Main St, Anytown, USA",
-    access: "",
-    acres: "",
-    propertyName: "",
-    propertyType: "",
-    website: "",
-    languagesSpoken: "",
-    propertyRules: "",
-    shortDescription: "",
-    insurance: "Insurance is required",
-    contactMethods: [] as string[],
-    payoutMethod: "Credit/Debit Cards",
-    bankName: "",
-    accountNumber: "",
-    routingNumber: "",
-    accountHolderName: "",
-    taxInfo: "Tax is 10% of the nightly rate",
-    taxCountry: "United States",
-    amenities: [] as string[],
-    enrollmentPeriod: "",
-    coveredExample: "",
-    notCoveredExample: "",
-    isLocalTax: "yes",
-    taxCollectionMethod: "Included in nightly rate",
-    taxName: "Tax",
-    taxRate: "10",
-    taxNotes: "Tax is 10% of the nightly rate",
-    termsAccepted: false,
+    location_lat: "123.2",
+    location_lng: "123.2",
+
+    entrance_address: "123 Main St, Anytown, USA",
+    entrance_lat: "123.2",
+    entrance_lng: "123.2",
+
+
+    acres: "5",
+    property_name: "Test Property",
+    property_type: "house",
+    website_url: "https://www.example.com",
+    languages: "english",
+    property_rules: "N/A",
+    short_description: "Test description",
+
+    media: [] as string[],
+    type: "image",
+    has_insurance: "1",
+    enrollment_period: "5",
+    typically_covered: "property_damage",
+    not_covered: "wear_tear",
+
+    payout_method: "Credit/Debit Cards",
+    insurance_policy_file: "",
+    is_tax_applicable: "1",
+
+    tax_collection_method: "Included in nightly rate",
+    tax_name: "Tax",
+    tax_rate: "10",
+    tax_notes: "Tax is 10% of the nightly rate",
+    agreed_to_terms: "1",
   });
 
   const sections = [
@@ -102,7 +105,7 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
       title: "Property Location",
       icon: "📍",
       ref: locationRef,
-      requiredFields: ["entranceLocation"], // Entrance location is required, not general property location
+      requiredFields: ["entrance_address"], // Entrance location is required, not general property location
     },
     {
       id: "overview",
@@ -111,9 +114,9 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
       ref: overviewRef,
       requiredFields: [
         "acres",
-        "propertyName",
-        "propertyType",
-        "languagesSpoken",
+        "property_name",
+        "property_type",
+        "languages",
       ],
     },
     {
@@ -128,14 +131,14 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
       title: "Insurance",
       icon: "🛡️",
       ref: insuranceRef,
-      requiredFields: ["insurance"],
+      requiredFields: ["has_insurance"],
     },
     {
       id: "payouts",
       title: "Payouts and Taxes",
       icon: "💰",
       ref: payoutsRef,
-      requiredFields: ["payoutMethod", "taxInfo", "taxCountry"],
+      requiredFields: ["payout_method", "is_tax_applicable"],
     },
   ];
 
@@ -175,15 +178,7 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
   };
 
   // Add additional validation for bank fields when bank is selected
-  const isBankSectionComplete = () => {
-    if (formData.payoutMethod !== "bank") return true;
-    return (
-      formData.bankName &&
-      formData.accountNumber &&
-      formData.routingNumber &&
-      formData.accountHolderName
-    );
-  };
+
 
   // Enhanced section completion check
   const getSectionStatus = (section: (typeof sections)[0]) => {
@@ -191,11 +186,11 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
 
     if (section.id === "location") {
       // Location section is complete when exact entrance location is set
-      return formData.entranceLocation;
+      return formData.entrance_address && formData.entrance_address.trim() !== "";
     }
 
     if (section.id === "payouts") {
-      return baseComplete && isBankSectionComplete();
+      return baseComplete;
     }
 
     if (section.id === "images") {
@@ -253,9 +248,9 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
     apiUrl += `&types=address,poi,place,locality,neighborhood`;
 
     // If property location is set, bias the search towards that area
-    if (formData.tripLocation) {
+    if (formData.location_address) {
       // Add the property location as context to the search
-      searchQuery = `${entranceSearch}, ${formData.tripLocation}`;
+      searchQuery = `${entranceSearch}, ${formData.location_address}`;
       apiUrl = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(
         searchQuery
       )}.json?access_token=${MAPBOX_ACCESS_TOKEN}&autocomplete=true&limit=10&types=address,poi,place,locality,neighborhood`;
@@ -278,12 +273,17 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
         setEntranceSuggestions([]);
         setIsEntranceLoading(false);
       });
-  }, [entranceSearch, formData.tripLocation, selectedLocation.coords]);
+  }, [entranceSearch, formData.location_address, selectedLocation.coords]);
 
   // Handle suggestion click
   const handleSuggestionClick = (feature: any) => {
     setSearch(feature.place_name);
-    setFormData((prev) => ({ ...prev, tripLocation: feature.place_name }));
+    setFormData((prev) => ({
+      ...prev,
+      location_address: feature.place_name,
+      location_lat: feature.center ? feature.center[1].toString() : "31.88",
+      location_lng: feature.center ? feature.center[0].toString() : "71.56"
+    }));
     setSuggestions([]);
     setShowSuggestions(false);
 
@@ -305,7 +305,12 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
   // Handle entrance suggestion click
   const handleEntranceSuggestionClick = (feature: any) => {
     setEntranceSearch(feature.place_name);
-    setFormData((prev) => ({ ...prev, entranceLocation: feature.place_name }));
+    setFormData((prev) => ({
+      ...prev,
+      entrance_address: feature.place_name,
+      entrance_lat: feature.center ? feature.center[1].toString() : "123.2",
+      entrance_lng: feature.center ? feature.center[0].toString() : "123.2"
+    }));
     setEntranceSuggestions([]);
     setShowEntranceSuggestions(false);
 
@@ -321,7 +326,12 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
   const handleMapLocationSelect = useCallback(
     (coords: [number, number], placeName: string) => {
       setEntranceSearch(placeName);
-      setFormData((prev) => ({ ...prev, entranceLocation: placeName }));
+      setFormData((prev) => ({
+        ...prev,
+        entrance_address: placeName,
+        entrance_lat: coords[1].toString(),
+        entrance_lng: coords[0].toString()
+      }));
       setSelectedLocation({
         coords,
         name: placeName,
@@ -372,7 +382,7 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
       });
     });
 
-    if (formData.payoutMethod === "bank") {
+    if (formData.payout_method === "bank") {
       [
         "bankName",
         "accountNumber",
@@ -409,53 +419,59 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
     // Append basic text fields
     form.append(
       "location_address",
-      formData.tripLocation || "123 Main St, Anytown, USA"
+      formData.location_address || "123 Main St, Anytown, USA"
     );
+    form.append("location_lat", formData.location_lat || "31.88");
+    form.append("location_lng", formData.location_lng || "71.56");
     form.append(
       "entrance_address",
-      formData.entranceLocation || "123 Main St, Anytown, USA"
+      formData.entrance_address || "123 Main St, Anytown, USA"
     );
+    form.append("entrance_lat", formData.entrance_lat || "123.2");
+    form.append("entrance_lng", formData.entrance_lng || "123.2");
     form.append("acres", formData.acres);
-    form.append("property_name", formData.propertyName);
-    form.append("property_type", formData.propertyType);
-    form.append("short_description", formData.shortDescription);
-    form.append("website_url", formData.website);
-    form.append("languages", formData.languagesSpoken);
-    form.append("property_rules", formData.propertyRules);
-    form.append("has_insurance", formData.insurance ? "1" : "0");
-    form.append("enrollment_period", formData.enrollmentPeriod || "");
-    form.append("typically_covered", formData.coveredExample || "");
-    form.append("not_covered", formData.notCoveredExample || "");
-    form.append("payout_method", formData.payoutMethod);
-    form.append("is_tax_applicable", formData.isLocalTax === "yes" ? "1" : "0");
-    form.append("tax_collection_method", formData.taxCollectionMethod);
-    form.append("tax_name", formData.taxName);
-    form.append("tax_rate", formData.taxRate);
-    form.append("tax_notes", formData.taxNotes);
-    form.append("agreed_to_terms", formData.termsAccepted ? "1" : "0");
+    form.append("property_name", formData.property_name);
+    form.append("property_type", formData.property_type);
+    form.append("short_description", formData.short_description);
+    form.append("website_url", formData.website_url);
+    form.append("languages", formData.languages);
+    form.append("property_rules", formData.property_rules);
+    form.append("has_insurance", formData.has_insurance ? "1" : "0");
+    form.append("enrollment_period", formData.enrollment_period || "");
+    form.append("typically_covered", formData.typically_covered || "");
+    form.append("not_covered", formData.not_covered || "");
+    form.append("payout_method", "credit_card");
+    form.append("is_tax_applicable", formData.is_tax_applicable ? "1" : "0");
+    form.append("insurance_policy_file", formData.insurance_policy_file || "");
+    form.append("tax_collection_method", "collected_at_checkin");
+    form.append("tax_name", formData.tax_name || "Tax");
+    form.append("tax_rate", formData.tax_rate || "10");
+    form.append("tax_notes", formData.tax_notes || "Tax is 10% of the nightly rate");
+    form.append("agreed_to_terms", formData.agreed_to_terms);
 
-    // Append optional bank fields
-    if (formData.payoutMethod === "bank") {
-      form.append("bank_name", formData.bankName);
-      form.append("account_number", formData.accountNumber);
-      form.append("routing_number", formData.routingNumber);
-      form.append("account_holder_name", formData.accountHolderName);
-    }
+
+
 
     // Append uploaded images
-    uploadedImages.forEach((file) => {
-      form.append("media[]", file);
-    });
+    if (uploadedImages.length > 0) {
+      uploadedImages.forEach((file) => {
+        form.append("media[]", file);
+      });
+    } else {
+      // If no images uploaded, send a placeholder
+      form.append("media[]", new Blob([''], { type: 'image/png' }), 'placeholder.png');
+    }
+    form.append("type", "image");
 
     // Append cover image
-    if (coverImage) {
-      form.append("cover_image", coverImage);
-    }
+    // if (coverImage) {
+    //   form.append("cover_image", coverImage);
+    // }
 
-    // Append uploaded videos (if supported by backend)
-    uploadedVideos.forEach((file) => {
-      form.append("videos[]", file);
-    });
+    // // Append uploaded videos (if supported by backend)
+    // uploadedVideos.forEach((file) => {
+    //   form.append("videos[]", file);
+    // });
 
     // Send form data to backend
     try {
@@ -466,19 +482,24 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
           method: "POST",
           headers: {
             Authorization: `Bearer ${token}`,
-            // "Accept": "application/json",
-            // "Content-Type": "multipart/form-data",
+            "Accept": "application/json",
+            // Remove Content-Type header - let browser set it automatically for FormData
           },
           body: form,
         }
       );
 
       if (!response.ok) {
-        toast.error(`Server Error: ${response.status}`);
+        const errorData = await response.text();
+        console.error("Server response:", errorData);
+        toast.error(`Server Error: ${response.status} - ${errorData}`);
+        return;
       }
 
+      const result = await response.json();
+      console.log("Property created successfully:", result);
       toast.success("Property created successfully!");
-      // for debugging
+
     } catch (error) {
       console.error("Network error:", error);
       toast.error("Something went wrong while submitting.");
@@ -689,9 +710,9 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
                           Property Type<span className="text-red-500">*</span>
                         </span>
                       }
-                      value={formData.propertyType}
+                      value={formData.property_type}
                       onChange={(e) =>
-                        handleInputChange("propertyType", e.target.value)
+                        handleInputChange("property_type", e.target.value)
                       }
                     >
                       <option value="">Select property type</option>
@@ -703,9 +724,9 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
                     </GlobalSelect>
                     <GlobalSelect
                       label="Languages Spoken at Property"
-                      value={formData.languagesSpoken}
+                      value={formData.languages}
                       onChange={(e) =>
-                        handleInputChange("languagesSpoken", e.target.value)
+                        handleInputChange("languages", e.target.value)
                       }
                     >
                       <option value="">Select language</option>
@@ -719,9 +740,9 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
                     <div className="-mt-1">
                       <GlobalTextArea
                         label="Short Description"
-                        value={formData.shortDescription}
+                        value={formData.short_description}
                         onChange={(e) =>
-                          handleInputChange("shortDescription", e.target.value)
+                          handleInputChange("short_description", e.target.value)
                         }
                         rows={4}
                       />
@@ -736,25 +757,25 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
                       }
                       type="text"
                       placeholder=""
-                      value={formData.propertyName}
+                      value={formData.property_name}
                       onChange={(e) =>
-                        handleInputChange("propertyName", e.target.value)
+                        handleInputChange("property_name", e.target.value)
                       }
                     />
                     <GlobalTextInput
                       label="Website"
                       type="url"
-                      value={formData.website}
+                      value={formData.website_url}
                       onChange={(e) =>
-                        handleInputChange("website", e.target.value)
+                        handleInputChange("website_url", e.target.value)
                       }
                     />
 
                     <GlobalTextArea
                       label="Property Rules"
-                      value={formData.propertyRules}
+                      value={formData.property_rules}
                       onChange={(e) =>
-                        handleInputChange("propertyRules", e.target.value)
+                        handleInputChange("property_rules", e.target.value)
                       }
                       rows={3}
                     />
@@ -977,9 +998,9 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
                   <GlobalTextInput
                     label="Enrollment period"
                     type="text"
-                    value={formData.enrollmentPeriod || ""}
+                    value={formData.enrollment_period || ""}
                     onChange={(e) =>
-                      handleInputChange("enrollmentPeriod", e.target.value)
+                      handleInputChange("enrollment_period", e.target.value)
                     }
                   />
                 </div>
@@ -988,9 +1009,9 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
                 <div className="grid grid-cols-2 gap-4">
                   <GlobalSelect
                     label="Examples of what is typically covered"
-                    value={formData.coveredExample || ""}
+                    value={formData.typically_covered || ""}
                     onChange={(e) =>
-                      handleInputChange("coveredExample", e.target.value)
+                      handleInputChange("typically_covered", e.target.value)
                     }
                   >
                     <option value="">Select an example</option>
@@ -1001,9 +1022,9 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
                   </GlobalSelect>
                   <GlobalSelect
                     label="Examples of what is not covered"
-                    value={formData.notCoveredExample || ""}
+                    value={formData.not_covered || ""}
                     onChange={(e) =>
-                      handleInputChange("notCoveredExample", e.target.value)
+                      handleInputChange("not_covered", e.target.value)
                     }
                   >
                     <option value="">Select an example</option>
@@ -1050,9 +1071,9 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
                           type="radio"
                           name="payoutMethod"
                           value={method}
-                          checked={formData.payoutMethod === method}
+                          checked={formData.payout_method === method}
                           onChange={() =>
-                            handleInputChange("payoutMethod", method)
+                            handleInputChange("payout_method", method)
                           }
                           className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500 focus:ring-2"
                         />
@@ -1077,8 +1098,8 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
                           type="radio"
                           name="isLocalTax"
                           value="no"
-                          checked={formData.isLocalTax === "no"}
-                          onChange={() => handleInputChange("isLocalTax", "no")}
+                          checked={formData.is_tax_applicable === "no"}
+                          onChange={() => handleInputChange("is_tax_applicable", "no")}
                           className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500 focus:ring-2"
                         />
                         <span className="text-[#1C231F]">
@@ -1092,9 +1113,9 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
                           type="radio"
                           name="isLocalTax"
                           value="yes"
-                          checked={formData.isLocalTax === "yes"}
+                          checked={formData.is_tax_applicable === "yes"}
                           onChange={() =>
-                            handleInputChange("isLocalTax", "yes")
+                            handleInputChange("is_tax_applicable", "yes")
                           }
                           className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500 focus:ring-2"
                         />
@@ -1104,7 +1125,7 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
                   </div>
 
                   {/* Collection Method (shown when Yes is selected) */}
-                  {formData.isLocalTax === "yes" && (
+                  {formData.is_tax_applicable === "yes" && (
                     <div className="space-y-4">
                       <div>
                         <div className="text-[12px] font-bold mb-3">
@@ -1125,7 +1146,7 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
                                 name="taxCollectionMethod"
                                 value={option}
                                 checked={
-                                  formData.taxCollectionMethod === option
+                                  formData.tax_collection_method === option
                                 }
                                 onChange={() =>
                                   handleInputChange(
@@ -1146,17 +1167,17 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
                         <GlobalTextInput
                           label="Tax Name"
                           type="text"
-                          value={formData.taxName || ""}
+                          value={formData.tax_name || ""}
                           onChange={(e) =>
-                            handleInputChange("taxName", e.target.value)
+                            handleInputChange("tax_name", e.target.value)
                           }
                         />
                         <GlobalTextInput
                           label="Tax Rate"
                           type="text"
-                          value={formData.taxRate || ""}
+                          value={formData.tax_rate || ""}
                           onChange={(e) =>
-                            handleInputChange("taxRate", e.target.value)
+                            handleInputChange("tax_rate", e.target.value)
                           }
                         />
                       </div>
@@ -1165,9 +1186,9 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
                       <GlobalTextArea
                         label="Additional Notes"
                         placeholder="Notes"
-                        value={formData.taxNotes || ""}
+                        value={formData.tax_notes || ""}
                         onChange={(e) =>
-                          handleInputChange("taxNotes", e.target.value)
+                          handleInputChange("tax_notes", e.target.value)
                         }
                         rows={3}
                       />
@@ -1180,11 +1201,11 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
                   <input
                     type="checkbox"
                     id="terms"
-                    checked={formData.termsAccepted || false}
+                    checked={formData.agreed_to_terms === 'true'}
                     onChange={(e) =>
                       setFormData((prev) => ({
                         ...prev,
-                        termsAccepted: e.target.checked,
+                        agreed_to_terms: e.target.checked.toString(),
                       }))
                     }
                     className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 focus:ring-2 mt-0.5"
