@@ -3,7 +3,8 @@ import React from "react";
 import GlobalTextInput from "../../../../global/GlobalTextInput";
 import GlobalSelect from "../../../../global/GlobalSelect";
 import { useForm, useFieldArray, Controller } from "react-hook-form";
-import { useSitesForm } from "../contexts/SitesFormContext";
+import { useSitesForm } from "../hooks/useSitesForm";
+import FormError from "./FormError";
 import { Extra } from "../types/sites";
 import { useSearchParams } from "next/navigation";
 import toast from "react-hot-toast";
@@ -49,6 +50,7 @@ const SiteExtrasSection: React.FC<SiteExtrasSectionProps> = ({
   const searchParams = useSearchParams();
   const propertyId = searchParams ? searchParams.get("propertyId") : null;
   const siteId = searchParams ? searchParams.get("siteId") : null;
+
   const {
     control,
     register,
@@ -66,46 +68,46 @@ const SiteExtrasSection: React.FC<SiteExtrasSectionProps> = ({
   });
 
   const handleSave = async () => {
-    const formData = new FormData();
-    const values = watch();
-
-    // @ts-ignore
-    formData.append("site_id", siteId); // Replace with dynamic site ID if needed
-
-    values.extras.forEach((extra, i) => {
-      formData.append(`type`, extra.type);
-      formData.append(`title`, extra.name);
-      formData.append(`description`, "hello");
-      formData.append(`currency`, extra.currency.toUpperCase());
-      formData.append(`rate_type`, extra.rateType);
-      // @ts-ignore
-      formData.append(`base_rate`, 123);
-      formData.append(`weekdays_rate`, "12");
-      formData.append(`weekends_rate`, "12");
-      formData.append(`holidays_rate`, "12");
-      formData.append(
-        `post_booking_approval`,
-        extra.approval === "yes" ? "required" : "not_required"
-      );
-
-      if (extra.image) {
-        formData.append(`image`, extra.image);
-      }
-    });
-
-    let token = "";
-    if (typeof window !== "undefined") {
-      token = localStorage.getItem("token") || "";
-    }
-
     try {
+      const formData = new FormData();
+      const values = watch();
+
+      // @ts-ignore
+      formData.append("site_id", siteId);
+
+      values.extras.forEach((extra, i) => {
+        formData.append(`type`, extra.type);
+        formData.append(`title`, extra.name);
+        formData.append(`description`, "hello");
+        formData.append(`currency`, extra.currency.toUpperCase());
+        formData.append(`rate_type`, extra.rateType);
+        // @ts-ignore
+        formData.append(`base_rate`, 123);
+        formData.append(`weekdays_rate`, "12");
+        formData.append(`weekends_rate`, "12");
+        formData.append(`holidays_rate`, "12");
+        formData.append(
+          `post_booking_approval`,
+          extra.approval === "yes" ? "required" : "not_required"
+        );
+
+        if (extra.image) {
+          formData.append(`image`, extra.image);
+        }
+      });
+
+      let token = "";
+      if (typeof window !== "undefined") {
+        token = localStorage.getItem("token") || "";
+      }
+
       const response = await fetch(
         `https://api.hightribe.com/api/properties/${propertyId}/sites/extras`,
         {
           method: "POST",
           headers: {
             Accept: "application/json",
-            Authorization: `Bearer ${token}`, // Replace this
+            Authorization: `Bearer ${token}`,
           },
           body: formData,
         }
@@ -188,6 +190,7 @@ const SiteExtrasSection: React.FC<SiteExtrasSectionProps> = ({
                   </GlobalSelect>
                 )}
               />
+              <FormError error={errors.extras?.[index]?.type?.message} />
 
               <GlobalTextInput
                 label={
@@ -198,6 +201,7 @@ const SiteExtrasSection: React.FC<SiteExtrasSectionProps> = ({
                 required
                 {...register(`extras.${index}.name`, { required: true })}
               />
+              <FormError error={errors.extras?.[index]?.name?.message} />
             </div>
 
             {/* Image Upload */}

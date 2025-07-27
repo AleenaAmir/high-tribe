@@ -3,7 +3,8 @@ import React from "react";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
 import "../CustomCalendar.css";
-import { useSitesForm } from "../contexts/SitesFormContext";
+import { useSitesForm } from "../hooks/useSitesForm";
+import FormError from "./FormError";
 import { useSearchParams } from "next/navigation";
 import toast from "react-hot-toast";
 
@@ -15,7 +16,14 @@ const SiteAvailabilitySection: React.FC<SiteAvailabilitySectionProps> = ({
   sectionRef,
 }) => {
   const {
-    state,
+    selectedDays,
+    selectDaysChecked,
+    selectedDates,
+    selectDateChecked,
+    noticePeriod,
+    advanceBookingLimit,
+    cancellationPolicy,
+    bookingType,
     updateSelectedDays,
     updateSelectDaysChecked,
     updateSelectedDates,
@@ -25,6 +33,7 @@ const SiteAvailabilitySection: React.FC<SiteAvailabilitySectionProps> = ({
     updateCancellationPolicy,
     updateBookingType,
     saveSection,
+    formState: { errors },
   } = useSitesForm();
 
   // Helper for days
@@ -37,46 +46,36 @@ const SiteAvailabilitySection: React.FC<SiteAvailabilitySectionProps> = ({
     "Saturday",
     "Sunday",
   ];
+
   const searchParams = useSearchParams();
   const propertyId = searchParams ? searchParams.get("propertyId") : null;
   const siteId = searchParams ? searchParams.get("siteId") : null;
 
   const handleSave = async () => {
-    const availabilityData = {
-      selectedDays: state.selectedDays,
-      selectDaysChecked: state.selectDaysChecked,
-      selectedDates: state.selectedDates,
-      selectDateChecked: state.selectDateChecked,
-      noticePeriod: state.noticePeriod,
-      advanceBookingLimit: state.advanceBookingLimit,
-      cancellationPolicy: state.cancellationPolicy,
-      bookingType: state.bookingType,
-    };
-
-    const formData = new FormData();
-
-    // Your dynamic data array (can be moved to top-level or context if reused)
-
-    // @ts-ignore
-    formData.append("site_id", siteId);
-
-    formData.append("availability_type", "days");
-    formData.append("available_days[]", "sunday");
-    formData.append("available_days[]", "monday");
-    formData.append("notice_period", "Book the room 1 day before arrival");
-    formData.append("booking_type", state.bookingType);
-    formData.append("advance_booking_limit", "up to 1-2 month ahead");
-    formData.append("cancellation_policy", state.cancellationPolicy);
-
-    // Append all fields dynamically
-
-
-    let token = "";
-    if (typeof window !== "undefined") {
-      token = localStorage.getItem("token") || "";
-    }
-
     try {
+      const isValid = await saveSection("availability");
+      if (!isValid) {
+        return;
+      }
+
+      const formData = new FormData();
+
+      // @ts-ignore
+      formData.append("site_id", siteId);
+
+      formData.append("availability_type", "days");
+      formData.append("available_days[]", "sunday");
+      formData.append("available_days[]", "monday");
+      formData.append("notice_period", "Book the room 1 day before arrival");
+      formData.append("booking_type", bookingType);
+      formData.append("advance_booking_limit", "up to 1-2 month ahead");
+      formData.append("cancellation_policy", cancellationPolicy);
+
+      let token = "";
+      if (typeof window !== "undefined") {
+        token = localStorage.getItem("token") || "";
+      }
+
       const response = await fetch(
         `https://api.hightribe.com/api/properties/${propertyId}/sites/availability`,
         {
@@ -91,10 +90,10 @@ const SiteAvailabilitySection: React.FC<SiteAvailabilitySectionProps> = ({
 
       const result = await response.json();
       if (response.ok) {
-        console.log("✅ Extras saved successfully:", result);
+        console.log("✅ Availability saved successfully:", result);
         toast.success(result.message);
       } else {
-        console.error("❌ Failed to save extras:", result);
+        console.error("❌ Failed to save availability:", result);
         toast.error(result.message);
       }
     } catch (error) {
@@ -102,7 +101,6 @@ const SiteAvailabilitySection: React.FC<SiteAvailabilitySectionProps> = ({
       toast.error("Network error");
     }
   };
-
 
   return (
     <div ref={sectionRef}>
@@ -120,7 +118,7 @@ const SiteAvailabilitySection: React.FC<SiteAvailabilitySectionProps> = ({
               <label className="flex items-center gap-2 mb-2">
                 <input
                   type="checkbox"
-                  checked={state.selectDaysChecked}
+                  checked={selectDaysChecked}
                   onChange={(e) => updateSelectDaysChecked(e.target.checked)}
                   className="accent-black w-4 h-4 rounded border-gray-300"
                 />
@@ -133,14 +131,14 @@ const SiteAvailabilitySection: React.FC<SiteAvailabilitySectionProps> = ({
                   <label key={day} className="flex items-center gap-2">
                     <input
                       type="checkbox"
-                      checked={state.selectedDays.includes(day)}
-                      disabled={!state.selectDaysChecked}
+                      checked={selectedDays.includes(day)}
+                      disabled={!selectDaysChecked}
                       onChange={(e) => {
                         if (e.target.checked) {
-                          updateSelectedDays([...state.selectedDays, day]);
+                          updateSelectedDays([...selectedDays, day]);
                         } else {
                           updateSelectedDays(
-                            state.selectedDays.filter((d) => d !== day)
+                            selectedDays.filter((d) => d !== day)
                           );
                         }
                       }}
@@ -159,7 +157,7 @@ const SiteAvailabilitySection: React.FC<SiteAvailabilitySectionProps> = ({
             <label className="flex items-center gap-2 mb-2 self-start">
               <input
                 type="checkbox"
-                checked={state.selectDateChecked}
+                checked={selectDateChecked}
                 onChange={(e) => updateSelectDateChecked(e.target.checked)}
                 className="accent-black w-4 h-4 rounded border-gray-300"
               />
@@ -169,36 +167,32 @@ const SiteAvailabilitySection: React.FC<SiteAvailabilitySectionProps> = ({
             </label>
             <div
               className={
-                state.selectDateChecked
-                  ? "block"
-                  : "opacity-50 pointer-events-none"
+                selectDateChecked ? "block" : "opacity-50 pointer-events-none"
               }
             >
               <div className="bg-white rounded-xl shadow-sm p-2">
                 <Calendar
                   selectRange={false}
                   value={
-                    state.selectedDates.length > 0
-                      ? state.selectedDates[0]
-                      : undefined
+                    selectedDates.length > 0 ? selectedDates[0] : undefined
                   }
                   onClickDay={(date) => {
-                    const exists = state.selectedDates.some(
+                    const exists = selectedDates.some(
                       (d) => d.toDateString() === date.toDateString()
                     );
                     if (exists) {
                       updateSelectedDates(
-                        state.selectedDates.filter(
+                        selectedDates.filter(
                           (d) => d.toDateString() !== date.toDateString()
                         )
                       );
                     } else {
-                      updateSelectedDates([...state.selectedDates, date]);
+                      updateSelectedDates([...selectedDates, date]);
                     }
                   }}
                   tileClassName={({ date, view }) => {
                     if (view === "month") {
-                      const isSelected = state.selectedDates.some(
+                      const isSelected = selectedDates.some(
                         (d) => d.toDateString() === date.toDateString()
                       );
                       return isSelected ? "react-calendar__tile--active" : "";
@@ -227,10 +221,11 @@ const SiteAvailabilitySection: React.FC<SiteAvailabilitySectionProps> = ({
               <input
                 type="text"
                 className="w-full border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-black"
-                value={state.noticePeriod}
+                value={noticePeriod || ""}
                 onChange={(e) => updateNoticePeriod(e.target.value)}
                 placeholder="Notice period for booking"
               />
+              <FormError error={errors.noticePeriod?.message} />
             </div>
             <div>
               <span className="block text-sm font-semibold text-black mb-4">
@@ -238,7 +233,7 @@ const SiteAvailabilitySection: React.FC<SiteAvailabilitySectionProps> = ({
               </span>
               <select
                 className="w-full border border-gray-300 rounded-lg px-4 py-2 text-sm mb-4 focus:outline-none focus:ring-2 focus:ring-black"
-                value={state.advanceBookingLimit}
+                value={advanceBookingLimit || ""}
                 onChange={(e) => updateAdvanceBookingLimit(e.target.value)}
               >
                 <option value="">Advance Booking Limit</option>
@@ -247,9 +242,10 @@ const SiteAvailabilitySection: React.FC<SiteAvailabilitySectionProps> = ({
                 <option value="7">1 week</option>
                 <option value="30">1 month</option>
               </select>
+              <FormError error={errors.advanceBookingLimit?.message} />
               <select
                 className="w-full border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-black"
-                value={state.cancellationPolicy}
+                value={cancellationPolicy || ""}
                 onChange={(e) => updateCancellationPolicy(e.target.value)}
               >
                 <option value="">Cancellation Policy</option>
@@ -257,6 +253,7 @@ const SiteAvailabilitySection: React.FC<SiteAvailabilitySectionProps> = ({
                 <option value="moderate">Moderate</option>
                 <option value="strict">Strict</option>
               </select>
+              <FormError error={errors.cancellationPolicy?.message} />
             </div>
           </div>
           {/* Right: Radio Buttons */}
@@ -267,7 +264,7 @@ const SiteAvailabilitySection: React.FC<SiteAvailabilitySectionProps> = ({
                   type="radio"
                   name="bookingType"
                   value="instant"
-                  checked={state.bookingType === "instant"}
+                  checked={bookingType === "instant"}
                   onChange={() => updateBookingType("instant")}
                   className="accent-black w-4 h-4"
                 />
@@ -280,7 +277,7 @@ const SiteAvailabilitySection: React.FC<SiteAvailabilitySectionProps> = ({
                   type="radio"
                   name="bookingType"
                   value="request"
-                  checked={state.bookingType === "request"}
+                  checked={bookingType === "request"}
                   onChange={() => updateBookingType("request")}
                   className="accent-blue-600 w-4 h-4"
                 />
@@ -289,6 +286,7 @@ const SiteAvailabilitySection: React.FC<SiteAvailabilitySectionProps> = ({
                 </span>
               </label>
             </div>
+            <FormError error={errors.bookingType?.message} />
           </div>
         </div>
         {/* Save Button */}

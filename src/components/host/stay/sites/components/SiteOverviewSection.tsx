@@ -3,313 +3,287 @@ import React from "react";
 import GlobalTextInput from "../../../../global/GlobalTextInput";
 import GlobalSelect from "../../../../global/GlobalSelect";
 import GlobalTextArea from "../../../../global/GlobalTextArea";
-import { useSitesForm } from "../contexts/SitesFormContext";
+import { useSitesForm } from "../hooks/useSitesForm";
+import FormError from "./FormError";
 import { toast } from "react-hot-toast";
-import { useSearchParams } from "next/navigation";
-import { useRouter } from "next/navigation";
 
 interface SiteOverviewSectionProps {
   sectionRef: React.RefObject<HTMLDivElement | null>;
+  formMethods: ReturnType<typeof useSitesForm>;
 }
 
 const SiteOverviewSection: React.FC<SiteOverviewSectionProps> = ({
   sectionRef,
+  formMethods,
 }) => {
-  const { state, updateFormData, saveSection } = useSitesForm();
-  const searchParams = useSearchParams();
-  const router = useRouter();
-  const propertyId = searchParams ? searchParams.get("propertyId") : null;
-  console.log(propertyId);
+  const {
+    register,
+    setValue,
+    watch,
+    formState: { errors },
+    saveSection,
+    isSaving,
+  } = formMethods;
+
+  // Watch form values
+  const accommodationType = watch("accommodation_type");
+  const campsiteType = watch("campsiteType");
+  const houseSharing = watch("house_sharing") || [];
+  const sitePrivacy = watch("sitePrivacy");
+  const siteName = watch("siteName");
+  const shortDescription = watch("shortDescription");
+  const rvType = watch("rvType");
+  const siteRules = watch("siteRules");
+  const siteLocation = watch("siteLocation");
+  const entranceLocation = watch("entranceLocation");
+  const selectedLocation = watch("selectedLocation");
+  const siteType = watch("siteType");
 
   const handleInputChange = (field: string, value: string | string[]) => {
-    updateFormData(field, value);
+    setValue(field as any, value);
   };
 
-  const handleSave = async () => {
-    const formData = new FormData();
-    formData.append("location_name", "lahore");
-    formData.append("latitude", "3.66");
-    formData.append("longitude", "55.47");
-    formData.append("accommodation_type", "room_in_house");
-    (state.formData.house_sharing || []).forEach((val) =>
-      formData.append("house_sharing[]", val)
-    );
-    formData.append("campsite_type", state.formData.campsiteType);
-    formData.append("site_name", state.formData.siteName);
-    formData.append("site_description", state.formData.shortDescription);
-    formData.append("site_rules", state.formData.siteRules);
-    formData.append("privacy_type", state.formData.sitePrivacy);
-
-    const response = await fetch(
-      `https://api.hightribe.com/api/properties/${propertyId}/sites/location-overview`,
-      {
-        method: "POST",
-        body: formData,
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-          Accept: "application/json",
-        },
-      }
-    );
-    debugger;
-    const data = await response.json();
-
-    if (data.message) {
-      toast.success(data.message);
-      const siteId = data.data.id; // Extract the site ID from the response
-      // Use the siteId as needed, for example, sending it as a parameter
-      console.log(`Site ID: ${siteId}`);
-      const updatedUrl = new URL(window.location.href);
-      updatedUrl.searchParams.set("siteId", siteId);
-      router.push(updatedUrl.toString());
-
-
-    }
+  const handleSaveSection = async () => {
+    await saveSection("overview");
   };
 
   return (
-    <div ref={sectionRef}>
-      <div>
-        <h2 className=" text-[#1C231F] text-[14px] font-bold mb-2">
-          Site Overview
-        </h2>
+    <section ref={sectionRef} className="bg-white p-6 rounded-lg shadow-sm">
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-xl font-semibold text-gray-900">Site Overview</h2>
+        <button
+          type="button"
+          onClick={handleSaveSection}
+          disabled={isSaving}
+          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {isSaving ? "Saving..." : "Save Section"}
+        </button>
       </div>
-      <div className="p-6 bg-white rounded-lg shadow-md mt-4">
-        <p className="font-bold text-[14px] text-[#1C231F]">
-          What kind of accommodation does this site offer?*
-        </p>
-        <div className="grid grid-cols-2 gap-6 mt-4">
-          {/* Left Column */}
-          <div className="space-y-6">
-            {/* Accommodation Type */}
-            <div>
-              <GlobalSelect
-                label={
-                  <>
-                    Accommodation <span className="text-red-500">*</span>
-                  </>
-                }
-                value={state.formData.accommodation_type || ""}
-                onChange={(e) =>
-                  handleInputChange("accommodation_type", e.target.value)
-                }
-              >
-                <option value=""></option>
-                {[
-                  {
-                    value: "standalone-cabin",
-                    label: "Stand-alone Cabin/Studio",
-                  },
-                  { value: "apartment", label: "Apartment" },
-                  { value: "entire-house", label: "Entire House" },
-                  { value: "glamp", label: "Glamp" },
-                  { value: "coliving-hostel", label: "Co-living/Hostel" },
-                ].map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </GlobalSelect>
-            </div>
 
-            {/* Campsite Type */}
-            <div>
-              <p className="font-bold text-[14px] text-[#1C231F] mb-4 mt-4">
-                What type of campsite is it?
-              </p>
-              <div className="space-y-2">
-                {[
-                  {
-                    value: "undefined",
-                    label:
-                      "Undefined Campsite (Guests can choose their own spot)",
-                  },
-                  {
-                    value: "defined",
-                    label:
-                      "Defined Campsite (Guests will be given a specific spot)",
-                  },
-                ].map((option) => (
-                  <label
-                    key={option.value}
-                    className="flex items-center gap-3 cursor-pointer"
-                  >
-                    <input
-                      type="radio"
-                      name="campsiteType"
-                      value={option.value}
-                      checked={state.formData.campsiteType === option.value}
-                      onChange={(e) =>
-                        handleInputChange("campsiteType", e.target.value)
-                      }
-                      className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
-                    />
-                    <span className="text-[13px] text-[#1C231F] font-medium">
-                      {option.label}
-                    </span>
-                  </label>
-                ))}
-              </div>
-            </div>
-
-            {/* Who lives in the house */}
-            <div>
-              <p className="font-bold text-[14px] text-[#1C231F] mb-4 mt-4">
-                Does anyone else live in the house?
-                <span className="text-red-500">*</span>
-              </p>
-              <div className="flex flex-wrap gap-6">
-                {[
-                  { label: "Me", value: "me" },
-                  { label: "My family", value: "family" },
-                  { label: "Other Guests", value: "guests" },
-                  { label: "Roommates", value: "roommates" },
-                ].map((option) => (
-                  <label
-                    key={option.value}
-                    className="flex items-center gap-2 cursor-pointer"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={
-                        state.formData.house_sharing?.includes(option.value) ||
-                        false
-                      }
-                      onChange={(e) => {
-                        const updated = e.target.checked
-                          ? [
-                            ...(state.formData.house_sharing || []),
-                            option.value,
-                          ]
-                          : (state.formData.house_sharing || []).filter(
-                            (v) => v !== option.value
-                          );
-                        handleInputChange("house_sharing", updated);
-                      }}
-                      className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                    />
-                    <span className="text-[13px] text-[#1C231F] font-medium">
-                      {option.label}
-                    </span>
-                  </label>
-                ))}
-              </div>
-            </div>
-
-            {/* Site Privacy */}
-            <div>
-              <p className="font-bold text-[14px] text-[#1C231F] mb-4 mt-4">
-                Site Privacy<span className="text-red-500">*</span>
-              </p>
-              <div className="flex flex-wrap gap-6">
-                {[
-                  { label: "Shared", value: "shared" },
-                  { label: "Private", value: "private" },
-                ].map((option) => (
-                  <label
-                    key={option.value}
-                    className="flex items-center gap-2 cursor-pointer"
-                  >
-                    <input
-                      type="radio"
-                      name="sitePrivacy"
-                      value={option.value}
-                      checked={state.formData.sitePrivacy === option.value}
-                      onChange={() =>
-                        handleInputChange("sitePrivacy", option.value)
-                      }
-                      className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
-                    />
-                    <span className="text-[13px] text-[#1C231F] font-medium">
-                      {option.label}
-                    </span>
-                  </label>
-                ))}
-              </div>
-            </div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Left Column */}
+        <div className="space-y-6">
+          {/* Site Name */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Site Name *
+            </label>
+            <input
+              {...register("siteName")}
+              placeholder="Enter your site name"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+            <FormError error={errors.siteName?.message} />
           </div>
 
-          {/* Right Column */}
-          <div className="">
-            {/* Site Name */}
-            <div>
-              <GlobalTextInput
-                label={
-                  <span>
-                    Site Name <span className="text-red-500">*</span>
-                  </span>
-                }
-                type="text"
-                placeholder="Enter site name"
-                value={state.formData.siteName}
-                onChange={(e) => handleInputChange("siteName", e.target.value)}
-              />
-            </div>
+          {/* Site Area */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Site Area *
+            </label>
+            <input
+              {...register("siteArea")}
+              placeholder="Enter site area (e.g., 500 sq ft)"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+            <FormError error={errors.siteArea?.message} />
+          </div>
 
-            {/* Site Description */}
-            <div>
-              <GlobalTextArea
-                label={
-                  <span>
-                    Site Description <span className="text-red-500">*</span>
-                  </span>
-                }
-                placeholder="Describe your site..."
-                value={state.formData.shortDescription}
-                onChange={(e) =>
-                  handleInputChange("shortDescription", e.target.value)
-                }
-                rows={4}
-              />
-            </div>
+          {/* Site Type */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Site Type *
+            </label>
+            <select
+              {...register("siteType")}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="">Select site type</option>
+              <option value="campsite">Campsite</option>
+              <option value="rv-park">RV Park</option>
+              <option value="glamping">Glamping</option>
+              <option value="cabin">Cabin</option>
+              <option value="house">House</option>
+              <option value="apartment">Apartment</option>
+              <option value="other">Other</option>
+            </select>
+            <FormError error={errors.siteType?.message} />
+          </div>
 
-            {/* Select RV */}
-            <div>
-              <GlobalSelect
-                label="Select RV"
-                value={state.formData.rvType || ""}
-                onChange={(e) => handleInputChange("rvType", e.target.value)}
-              >
-                <option value="">Select RV type</option>
-                {[
-                  { value: "class-a", label: "Class A Motorhome" },
-                  { value: "class-b", label: "Class B Motorhome" },
-                  { value: "class-c", label: "Class C Motorhome" },
-                  { value: "travel-trailer", label: "Travel Trailer" },
-                  { value: "fifth-wheel", label: "Fifth Wheel" },
-                  { value: "pop-up", label: "Pop-up Camper" },
-                  { value: "truck-camper", label: "Truck Camper" },
-                ].map((rv) => (
-                  <option key={rv.value} value={rv.value}>
-                    {rv.label}
-                  </option>
-                ))}
-              </GlobalSelect>
-            </div>
+          {/* Languages Spoken */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Languages Spoken *
+            </label>
+            <input
+              {...register("languagesSpoken")}
+              placeholder="e.g., English, Spanish, French"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+            <FormError error={errors.languagesSpoken?.message} />
+          </div>
 
-            {/* Site Rules */}
-            <div>
-              <GlobalTextInput
-                label="Site Rules"
-                value={state.formData.siteRules}
-                onChange={(e) => handleInputChange("siteRules", e.target.value)}
-              />
-            </div>
+          {/* Website */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Website (Optional)
+            </label>
+            <input
+              {...register("website")}
+              type="url"
+              placeholder="https://yourwebsite.com"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+            <FormError error={errors.website?.message} />
           </div>
         </div>
 
-        {/* Save Button */}
-        <div className="flex justify-end mt-8">
-          <button
-            type="button"
-            onClick={handleSave}
-            className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors text-sm shadow-sm"
+        {/* Right Column */}
+        <div className="space-y-6">
+          {/* Short Description */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Short Description
+            </label>
+            <textarea
+              {...register("shortDescription")}
+              rows={4}
+              placeholder="Describe your site in a few sentences..."
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+            />
+            <FormError error={errors.shortDescription?.message} />
+            <p className="text-xs text-gray-500 mt-1">Maximum 500 characters</p>
+          </div>
+
+          {/* Site Rules */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Site Rules
+            </label>
+            <textarea
+              {...register("siteRules")}
+              rows={3}
+              placeholder="List any important rules for your site..."
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+            />
+            <FormError error={errors.siteRules?.message} />
+          </div>
+
+          {/* Accommodation Type */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Accommodation Type
+            </label>
+            <select
+              {...register("accommodation_type")}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="">Select accommodation type</option>
+              <option value="entire-place">Entire Place</option>
+              <option value="private-room">Private Room</option>
+              <option value="shared-space">Shared Space</option>
+            </select>
+            <FormError error={errors.accommodation_type?.message} />
+          </div>
+
+          {/* Site Privacy */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Site Privacy
+            </label>
+            <select
+              {...register("sitePrivacy")}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="">Select privacy level</option>
+              <option value="private">Private</option>
+              <option value="semi-private">Semi-Private</option>
+              <option value="shared">Shared</option>
+            </select>
+            <FormError error={errors.sitePrivacy?.message} />
+          </div>
+        </div>
+      </div>
+
+      {/* Conditional Fields */}
+      {accommodationType === "shared-space" && (
+        <div className="mt-6">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            House Sharing Details
+          </label>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            {[
+              "Kitchen",
+              "Bathroom",
+              "Living Room",
+              "Dining Room",
+              "Garden",
+              "Parking",
+            ].map((item) => (
+              <label key={item} className="flex items-center">
+                <input
+                  type="checkbox"
+                  value={item}
+                  checked={houseSharing.includes(item)}
+                  onChange={(e) => {
+                    const newSharing = e.target.checked
+                      ? [...houseSharing, item]
+                      : houseSharing.filter((s) => s !== item);
+                    setValue("house_sharing", newSharing);
+                  }}
+                  className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                />
+                {item}
+              </label>
+            ))}
+          </div>
+          <FormError error={errors.house_sharing?.message} />
+        </div>
+      )}
+
+      {siteType === "rv-park" && (
+        <div className="mt-6">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            RV Type Accommodation
+          </label>
+          <select
+            {...register("rvType")}
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           >
-            Save
-          </button>
+            <option value="">Select RV type</option>
+            <option value="class-a">Class A</option>
+            <option value="class-b">Class B</option>
+            <option value="class-c">Class C</option>
+            <option value="travel-trailer">Travel Trailer</option>
+            <option value="fifth-wheel">Fifth Wheel</option>
+            <option value="toy-hauler">Toy Hauler</option>
+            <option value="any">Any RV Type</option>
+          </select>
+          <FormError error={errors.rvType?.message} />
         </div>
-      </div>
-    </div>
+      )}
+
+      {siteType === "campsite" && (
+        <div className="mt-6">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Campsite Type
+          </label>
+          <select
+            {...register("campsiteType")}
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          >
+            <option value="">Select campsite type</option>
+            <option value="tent-only">Tent Only</option>
+            <option value="rv-tent">RV & Tent</option>
+            <option value="primitive">Primitive</option>
+            <option value="developed">Developed</option>
+            <option value="backcountry">Backcountry</option>
+          </select>
+          <FormError error={errors.campsiteType?.message} />
+        </div>
+      )}
+    </section>
   );
 };
 

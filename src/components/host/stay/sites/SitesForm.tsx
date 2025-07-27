@@ -1,6 +1,6 @@
 "use client";
 import React, { useRef } from "react";
-import { SitesFormProvider, useSitesForm } from "./contexts/SitesFormContext";
+import { useSitesForm } from "./hooks/useSitesForm";
 import SitesFormSidebar from "./components/SitesFormSidebar";
 import SiteLocationSection from "./components/SiteLocationSection";
 import SiteOverviewSection from "./components/SiteOverviewSection";
@@ -11,15 +11,14 @@ import SiteExtrasSection from "./components/SiteExtrasSection";
 import SiteAvailabilitySection from "./components/SiteAvailabilitySection";
 import SiteArrivalSection from "./components/SiteArrivalSection";
 import { Section } from "./types/sites";
-import { toast } from "react-hot-toast";
-import { useSearchParams } from "next/navigation";
 
 interface SitesFormProps {
   onBack?: () => void;
 }
 
 const SitesFormContent: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
-  const { publishSite } = useSitesForm();
+  const formMethods = useSitesForm();
+  const { publishSite, saveAsDraft, isPublishing, isSaving } = formMethods;
 
   // Section refs for scrolling
   const locationRef = useRef<HTMLDivElement>(null);
@@ -38,7 +37,7 @@ const SitesFormContent: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
       title: "Site Location",
       icon: "📍",
       ref: locationRef,
-      requiredFields: ["entranceLocation"], // Entrance location is required, not general site location
+      requiredFields: ["entranceLocation"],
     },
     {
       id: "overview",
@@ -52,7 +51,7 @@ const SitesFormContent: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
       title: "Site Images/Videos",
       icon: "📷",
       ref: imagesRef,
-      requiredFields: [], // Images are optional
+      requiredFields: [],
     },
     {
       id: "amenities",
@@ -97,89 +96,18 @@ const SitesFormContent: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
       requiredFields: ["termsAccepted"],
     },
   ];
-  const searchParams = useSearchParams();
-  const propertyId = searchParams ? searchParams.get("propertyId") : null;
-  const siteId = searchParams ? searchParams.get("siteId") : null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    let token = "";
-    if (typeof window !== "undefined") {
-      token = localStorage.getItem("token") || "";
-    }
-    const formData = new FormData();
-    // @ts-ignore
-    formData.append("site_id", siteId);
-    formData.append("publish_status", "scheduled");
-    const now = new Date();
-    const futureDate = new Date(now.getTime() + 5 * 60 * 1000); // 5 minutes from now
-    formData.append("scheduled_publish_at", futureDate.toISOString());
-    try {
-      const response = await fetch(
-        `https://api.hightribe.com/api/properties/${propertyId}/sites/review-publish`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            Accept: "application/json",
-          },
-          body: formData,
-        }
-      );
-
-      const data = await response.json();
-      if (data.message) {
-        toast.success(data.message);
-      }
-
-      if (response.ok) {
-        toast.success("Media uploaded successfully");
-      } else {
-        toast.error("Upload failed");
-      }
-    } catch (error) {
-      console.error("Upload error:", error);
-      toast.error("An error occurred during upload");
+    if (!isPublishing) {
+      await publishSite();
     }
   };
 
   const handleExit = async (e: React.FormEvent) => {
     e.preventDefault();
-    let token = "";
-    if (typeof window !== "undefined") {
-      token = localStorage.getItem("token") || "";
-    }
-    const formData = new FormData();
-    // @ts-ignore
-    formData.append("site_id", siteId);
-    formData.append("publish_status", "draft");
-
-    try {
-      const response = await fetch(
-        `https://api.hightribe.com/api/properties/${propertyId}/sites/review-publish`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            Accept: "application/json",
-          },
-          body: formData,
-        }
-      );
-
-      const data = await response.json();
-      if (data.message) {
-        toast.success(data.message);
-      }
-
-      if (response.ok) {
-        toast.success("Site saved as draft");
-      } else {
-        toast.error("Site not saved as draft");
-      }
-    } catch (error) {
-      console.error("Upload error:", error);
-      toast.error("An error occurred during upload");
+    if (!isSaving) {
+      await saveAsDraft();
     }
   };
 
@@ -187,7 +115,7 @@ const SitesFormContent: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
     <div className="min-h-screen bg-gray-50">
       <div className="flex">
         {/* Left Sidebar */}
-        <SitesFormSidebar sections={sections} />
+        <SitesFormSidebar sections={sections} formMethods={formMethods} />
 
         {/* Main Content */}
         <div className="flex-1 p-6">
@@ -196,44 +124,69 @@ const SitesFormContent: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
             className="max-w-[940px] mx-auto space-y-8"
           >
             {/* Site Location Section */}
-            <SiteLocationSection sectionRef={locationRef} />
+            <SiteLocationSection
+              sectionRef={locationRef}
+              formMethods={formMethods}
+            />
 
             {/* Site Overview Section */}
-            <SiteOverviewSection sectionRef={overviewRef} />
+            <SiteOverviewSection
+              sectionRef={overviewRef}
+              formMethods={formMethods}
+            />
 
             {/* Site Images/Videos Section */}
-            <SiteImagesSection sectionRef={imagesRef} />
+            <SiteImagesSection
+              sectionRef={imagesRef}
+              formMethods={formMethods}
+            />
 
             {/* Site Amenities and Facilities Section */}
-            <SiteAmenitiesSection sectionRef={amenitiesRef} />
+            <SiteAmenitiesSection
+              sectionRef={amenitiesRef}
+              formMethods={formMethods}
+            />
 
             {/* Site Pricing and Capacity Section */}
-            <SitePricingSection sectionRef={pricingRef} />
+            <SitePricingSection
+              sectionRef={pricingRef}
+              formMethods={formMethods}
+            />
 
             {/* Extras Section */}
-            <SiteExtrasSection sectionRef={extrasRef} />
+            <SiteExtrasSection
+              sectionRef={extrasRef}
+              formMethods={formMethods}
+            />
 
             {/* Availability and Booking Details Section */}
-            <SiteAvailabilitySection sectionRef={availabilityRef} />
+            <SiteAvailabilitySection
+              sectionRef={availabilityRef}
+              formMethods={formMethods}
+            />
 
             {/* Arrival Instructions Section */}
-            <SiteArrivalSection sectionRef={arrivalRef} />
+            <SiteArrivalSection
+              sectionRef={arrivalRef}
+              formMethods={formMethods}
+            />
 
             {/* Submit Button */}
             <div ref={reviewRef} className="flex justify-end pt-4 gap-4">
               <button
                 type="button"
-                className="px-8 py-3 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg font-medium transition-colors text-sm shadow-sm"
+                className="px-8 py-3 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg font-medium transition-colors text-sm shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
                 onClick={handleExit}
+                disabled={isSaving || isPublishing}
               >
-                Save as draft
+                {isSaving ? "Saving..." : "Save as draft"}
               </button>
               <button
-                onClick={handleSubmit}
                 type="submit"
-                className="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors text-sm shadow-sm"
+                className="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors text-sm shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={isSaving || isPublishing}
               >
-                Review & Published
+                {isPublishing ? "Publishing..." : "Review & Publish"}
               </button>
             </div>
           </form>
@@ -244,11 +197,7 @@ const SitesFormContent: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
 };
 
 const SitesForm: React.FC<SitesFormProps> = ({ onBack }) => {
-  return (
-    <SitesFormProvider>
-      <SitesFormContent onBack={onBack} />
-    </SitesFormProvider>
-  );
+  return <SitesFormContent onBack={onBack} />;
 };
 
 export default SitesForm;

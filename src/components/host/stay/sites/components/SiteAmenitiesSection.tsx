@@ -1,7 +1,9 @@
 "use client";
 import React from "react";
-import { useSitesForm } from "../contexts/SitesFormContext";
+import { useSitesForm } from "../hooks/useSitesForm";
+import FormError from "./FormError";
 import { useSearchParams } from "next/navigation";
+import { toast } from "react-hot-toast";
 
 interface SiteAmenitiesSectionProps {
   sectionRef: React.RefObject<HTMLDivElement | null>;
@@ -10,51 +12,67 @@ interface SiteAmenitiesSectionProps {
 const SiteAmenitiesSection: React.FC<SiteAmenitiesSectionProps> = ({
   sectionRef,
 }) => {
-  const { state, updateFormData, saveSection } = useSitesForm();
+  const {
+    setValue,
+    watch,
+    formState: { errors },
+    saveSection,
+  } = useSitesForm();
+
   const searchParams = useSearchParams();
   const propertyId = searchParams ? searchParams.get("propertyId") : null;
   const siteId = searchParams ? searchParams.get("siteId") : null;
 
+  // Watch form values
+  const siteAmenities = watch("siteAmenities") || [];
+  const siteFacilities = watch("siteFacilities") || [];
+  const safetyItems = watch("safetyItems") || [];
+  const otherAmenities = watch("otherAmenities") || "";
+  const otherFacilities = watch("otherFacilities") || "";
+  const otherSafety = watch("otherSafety") || "";
+  const petPolicy = watch("petPolicy") || "";
+  const parkingVehicles = watch("parkingVehicles") || "";
+
   const handleInputChange = (field: string, value: string | string[]) => {
-    updateFormData(field, value);
+    setValue(field, value);
   };
 
   const handleSave = async () => {
-    const formData = new FormData();
-
-    // Append array fields
-    (state.formData.siteAmenities || []).forEach((item: string) =>
-      formData.append("amenities[]", item)
-    );
-
-    (state.formData.siteFacilities || []).forEach((item: string) =>
-      formData.append("facilities[]", item)
-    );
-
-    (state.formData.safetyItems || []).forEach((item: string) =>
-      formData.append("safety_items[]", item)
-    );
-
-    // Append other fields
-    if (state.formData.otherAmenities)
-      formData.append("other_amenity", state.formData.otherAmenities);
-
-    if (state.formData.otherFacilities)
-      formData.append("other_facility", state.formData.otherFacilities);
-
-    if (state.formData.otherSafety)
-      formData.append("other_safety_item", state.formData.otherSafety);
-
-    if (state.formData.petPolicy)
-      // formData.append("pet_policy", state.formData.petPolicy);
-      formData.append("pet_policy", "yes_on_leash");
-
-    if (state.formData.parkingVehicles)
-      formData.append("free_parking_slots", state.formData.parkingVehicles); // or change key if backend expects differently
-
-    // Call API
-    const token = localStorage.getItem("token");
     try {
+      const isValid = await saveSection("amenities");
+      if (!isValid) {
+        return;
+      }
+
+      const formData = new FormData();
+
+      // Append array fields
+      siteAmenities.forEach((item: string) =>
+        formData.append("amenities[]", item)
+      );
+
+      siteFacilities.forEach((item: string) =>
+        formData.append("facilities[]", item)
+      );
+
+      safetyItems.forEach((item: string) =>
+        formData.append("safety_items[]", item)
+      );
+
+      // Append other fields
+      if (otherAmenities) formData.append("other_amenity", otherAmenities);
+
+      if (otherFacilities) formData.append("other_facility", otherFacilities);
+
+      if (otherSafety) formData.append("other_safety_item", otherSafety);
+
+      if (petPolicy) formData.append("pet_policy", "yes_on_leash");
+
+      if (parkingVehicles)
+        formData.append("free_parking_slots", parkingVehicles);
+
+      // Call API
+      const token = localStorage.getItem("token");
       const response = await fetch(
         `https://api.hightribe.com/api/properties/${propertyId}/sites/amenities`,
         {
@@ -69,8 +87,15 @@ const SiteAmenitiesSection: React.FC<SiteAmenitiesSectionProps> = ({
 
       const result = await response.json();
       console.log("API response:", result);
+
+      if (response.ok) {
+        toast.success("Amenities saved successfully");
+      } else {
+        toast.error("Failed to save amenities");
+      }
     } catch (error) {
       console.error("Error saving amenities:", error);
+      toast.error("An error occurred while saving amenities");
     }
   };
 
@@ -159,22 +184,17 @@ const SiteAmenitiesSection: React.FC<SiteAmenitiesSectionProps> = ({
                 >
                   <input
                     type="checkbox"
-                    checked={
-                      state.formData.siteAmenities?.includes(amenity.id) ||
-                      amenity.checked
-                    }
+                    checked={siteAmenities.includes(amenity.id)}
                     onChange={(e) => {
-                      const currentAmenities =
-                        state.formData.siteAmenities || [];
                       if (e.target.checked) {
                         handleInputChange("siteAmenities", [
-                          ...currentAmenities,
+                          ...siteAmenities,
                           amenity.id,
                         ]);
                       } else {
                         handleInputChange(
                           "siteAmenities",
-                          currentAmenities.filter((a) => a !== amenity.id)
+                          siteAmenities.filter((a) => a !== amenity.id)
                         );
                       }
                     }}
@@ -187,7 +207,7 @@ const SiteAmenitiesSection: React.FC<SiteAmenitiesSectionProps> = ({
                       type="text"
                       placeholder="Please specify..."
                       className="text-[13px] border  border-[#848484] rounded-[5px] font-normal text-gray-800 bg-transparent  outline-none p-1 ml-2 min-w-[300px]"
-                      value={state.formData.otherAmenities || ""}
+                      value={otherAmenities}
                       onChange={(e) =>
                         handleInputChange("otherAmenities", e.target.value)
                       }
@@ -196,6 +216,7 @@ const SiteAmenitiesSection: React.FC<SiteAmenitiesSectionProps> = ({
                 </label>
               ))}
             </div>
+            <FormError error={errors.siteAmenities?.message} />
           </div>
           {/* Facilities */}
           <div>
@@ -315,22 +336,17 @@ const SiteAmenitiesSection: React.FC<SiteAmenitiesSectionProps> = ({
                 >
                   <input
                     type="checkbox"
-                    checked={
-                      state.formData.siteFacilities?.includes(facility.id) ||
-                      facility.checked
-                    }
+                    checked={siteFacilities.includes(facility.id)}
                     onChange={(e) => {
-                      const currentFacilities =
-                        state.formData.siteFacilities || [];
                       if (e.target.checked) {
                         handleInputChange("siteFacilities", [
-                          ...currentFacilities,
+                          ...siteFacilities,
                           facility.id,
                         ]);
                       } else {
                         handleInputChange(
                           "siteFacilities",
-                          currentFacilities.filter((f) => f !== facility.id)
+                          siteFacilities.filter((f) => f !== facility.id)
                         );
                       }
                     }}
@@ -343,7 +359,7 @@ const SiteAmenitiesSection: React.FC<SiteAmenitiesSectionProps> = ({
                       type="text"
                       placeholder="Number of allowed vehicles"
                       className="flex-1 text-[13px] border border-[#848484] rounded-[5px] font-normal text-gray-400 bg-transparent  outline-none p-1 ml-2 min-w-0 placeholder-gray-400"
-                      value={state.formData.parkingVehicles || ""}
+                      value={parkingVehicles}
                       onChange={(e) =>
                         handleInputChange("parkingVehicles", e.target.value)
                       }
@@ -352,6 +368,7 @@ const SiteAmenitiesSection: React.FC<SiteAmenitiesSectionProps> = ({
                 </label>
               ))}
             </div>
+            <FormError error={errors.siteFacilities?.message} />
           </div>
           {/* Safety Items */}
           <div>
@@ -388,22 +405,17 @@ const SiteAmenitiesSection: React.FC<SiteAmenitiesSectionProps> = ({
                 >
                   <input
                     type="checkbox"
-                    checked={
-                      state.formData.safetyItems?.includes(safety.id) ||
-                      safety.checked
-                    }
+                    checked={safetyItems.includes(safety.id)}
                     onChange={(e) => {
-                      const currentSafetyItems =
-                        state.formData.safetyItems || [];
                       if (e.target.checked) {
                         handleInputChange("safetyItems", [
-                          ...currentSafetyItems,
+                          ...safetyItems,
                           safety.id,
                         ]);
                       } else {
                         handleInputChange(
                           "safetyItems",
-                          currentSafetyItems.filter((s) => s !== safety.id)
+                          safetyItems.filter((s) => s !== safety.id)
                         );
                       }
                     }}
@@ -414,6 +426,7 @@ const SiteAmenitiesSection: React.FC<SiteAmenitiesSectionProps> = ({
                 </label>
               ))}
             </div>
+            <FormError error={errors.safetyItems?.message} />
           </div>
           {/* Pet Policy */}
           <div>
@@ -441,7 +454,7 @@ const SiteAmenitiesSection: React.FC<SiteAmenitiesSectionProps> = ({
                 >
                   <input
                     type="checkbox"
-                    checked={state.formData.petPolicy === pet.id}
+                    checked={petPolicy === pet.id}
                     onChange={(e) => {
                       if (e.target.checked) {
                         handleInputChange("petPolicy", pet.id);
@@ -454,6 +467,7 @@ const SiteAmenitiesSection: React.FC<SiteAmenitiesSectionProps> = ({
                 </label>
               ))}
             </div>
+            <FormError error={errors.petPolicy?.message} />
           </div>
         </div>
         {/* Save Button */}

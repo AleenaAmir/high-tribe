@@ -12,19 +12,51 @@ import { filtersArray } from "@/components/dashboard/center/MapDashboard";
 import DestinationSvg from "@/components/dashboard/svgs/DestinationSvg";
 import Location from "@/components/dashboard/svgs/Location";
 import Filters from "@/components/dashboard/svgs/Filters";
-import { useSitesForm } from "../contexts/SitesFormContext";
+import { useSitesForm } from "../hooks/useSitesForm";
+import FormError from "./FormError";
+import {
+  fetchGooglePlaceSuggestions,
+  getGooglePlaceDetails,
+  getCoordinatesForGooglePlace,
+} from "@/lib/googlePlaces";
 
+// Environment variable validation
 const MAPBOX_ACCESS_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
 
 interface SiteLocationSectionProps {
   sectionRef: React.RefObject<HTMLDivElement | null>;
+  formMethods: ReturnType<typeof useSitesForm>;
 }
+
+// Debounce hook
+const useDebounce = (value: string, delay: number) => {
+  const [debouncedValue, setDebouncedValue] = useState(value);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [value, delay]);
+
+  return debouncedValue;
+};
 
 const SiteLocationSection: React.FC<SiteLocationSectionProps> = ({
   sectionRef,
+  formMethods,
 }) => {
-  const { state, updateFormData, updateSelectedLocation, saveSection } =
-    useSitesForm();
+  const {
+    register,
+    setValue,
+    watch,
+    formState: { errors },
+    saveSection,
+    isSaving,
+  } = formMethods;
 
   const [search, setSearch] = useState("");
   const [suggestions, setSuggestions] = useState<any[]>([]);
@@ -37,10 +69,19 @@ const SiteLocationSection: React.FC<SiteLocationSectionProps> = ({
   const [isFilters, setIsFilters] = useState(false);
   const mapRef = useRef<SitesLocationMapRef>(null);
 
+  // Watch form values
+  const siteLocation = watch("siteLocation");
+  const entranceLocation = watch("entranceLocation");
+  const selectedLocation = watch("selectedLocation");
+
+  // Debounced values for API calls
+  const debouncedSearch = useDebounce(search, 300);
+  const debouncedEntranceSearch = useDebounce(entranceSearch, 300);
+
   // Memoize selected location to prevent unnecessary re-renders
   const memoizedSelectedLocation = useMemo(
-    () => state.selectedLocation,
-    [state.selectedLocation.coords, state.selectedLocation.name]
+    () => selectedLocation || { coords: null, name: "" },
+    [selectedLocation?.coords, selectedLocation?.name]
   );
 
   // Autocomplete functionality
@@ -55,6 +96,11 @@ const SiteLocationSection: React.FC<SiteLocationSectionProps> = ({
         return;
       }
 
+      if (!MAPBOX_ACCESS_TOKEN) {
+        console.warn("MAPBOX_ACCESS_TOKEN is not available");
+        return;
+      }
+
       setLoading(true);
       try {
         const response = await fetch(
@@ -62,6 +108,11 @@ const SiteLocationSection: React.FC<SiteLocationSectionProps> = ({
             query
           )}.json?access_token=${MAPBOX_ACCESS_TOKEN}&limit=5&country=pk&types=place,region,locality,district`
         );
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch suggestions");
+        }
+
         const data = await response.json();
         setSuggestions(data.features || []);
       } catch (error) {
@@ -74,262 +125,283 @@ const SiteLocationSection: React.FC<SiteLocationSectionProps> = ({
     []
   );
 
-  // Entrance search with contextual suggestions based on site location
+  // Entrance search with Google Places API for better POI suggestions
   const fetchEntranceSuggestions = useCallback(
-    async (
-      query: string,
-      setSuggestions: (suggestions: any[]) => void,
-      setLoading: (loading: boolean) => void
-    ) => {
-      if (query.length < 2) {
-        setSuggestions([]);
-        return;
+    async (query: string) => {
+      if (!query.trim() || !selectedLocation?.coords) return;
+
+      setIsEntranceLoading(true);
+      try {
+        // Try Google Places API first with location bias
+        const [lng, lat] = selectedLocation.coords;
+        const googleResults = await fetchGooglePlaceSuggestions(query, {
+          lat,
+          lng,
+        });
+
+        if (googleResults && googleResults.length > 0) {
+          setEntranceSuggestions(googleResults);
+        } else {
+          // Fallback to Mapbox if Google Places doesn't return results
+          const response = await fetch(
+            `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(
+              query
+            )}.json?access_token=${MAPBOX_ACCESS_TOKEN}&limit=5&proximity=${lng},${lat}&types=poi,address,place`
+          );
+
+          if (response.ok) {
+            const data = await response.json();
+            setEntranceSuggestions(data.features || []);
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching entrance suggestions:", error);
+        setEntranceSuggestions([]);
+      } finally {
+        setIsEntranceLoading(false);
+      }
+    },
+    [selectedLocation?.coords]
+  );
+
+  // Effect for debounced search
+  useEffect(() => {
+    if (debouncedSearch) {
+      fetchSuggestions(debouncedSearch, setSuggestions, setIsLoading);
+    }
+  }, [debouncedSearch, fetchSuggestions]);
+
+  // Effect for debounced entrance search
+  useEffect(() => {
+    if (debouncedEntranceSearch) {
+      fetchEntranceSuggestions(debouncedEntranceSearch);
+    }
+  }, [debouncedEntranceSearch, fetchEntranceSuggestions]);
+
+  const handleLocationSelect = useCallback(
+    (suggestion: any) => {
+      const locationName = suggestion.place_name || suggestion.text;
+      const coords = suggestion.center || suggestion.geometry?.coordinates;
+
+      setSearch(locationName);
+      setValue("siteLocation", locationName);
+      setValue("selectedLocation", {
+        coords: coords ? [coords[0], coords[1]] : null,
+        name: locationName,
+      });
+
+      // Update map
+      if (mapRef.current && coords) {
+        mapRef.current.centerMap(coords[0], coords[1], locationName);
       }
 
-      setLoading(true);
+      setSuggestions([]);
+      setShowSuggestions(false);
+    },
+    [setValue]
+  );
+
+  const handleEntranceSelect = useCallback(
+    async (suggestion: any) => {
       try {
-        // Build search query with site location context if available
-        let searchQuery = query;
-        let apiUrl = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(
-          searchQuery
-        )}.json?access_token=${MAPBOX_ACCESS_TOKEN}&limit=5&country=pk`;
+        let locationName =
+          suggestion.place_name || suggestion.description || suggestion.text;
+        let coords = suggestion.center || suggestion.geometry?.coordinates;
 
-        // Configure API for detailed address/street results
-        apiUrl += `&types=address,poi,place,locality,neighborhood`;
-
-        // If site location is set, bias the search towards that area
-        if (state.formData.siteLocation) {
-          // Add the site location as context to the search
-          searchQuery = `${query}, ${state.formData.siteLocation}`;
-          apiUrl = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(
-            searchQuery
-          )}.json?access_token=${MAPBOX_ACCESS_TOKEN}&limit=10&country=pk&types=address,poi,place,locality,neighborhood`;
-
-          // If we have coordinates from the selected location, use proximity bias
-          if (state.selectedLocation.coords) {
-            const [lng, lat] = state.selectedLocation.coords;
-            apiUrl += `&proximity=${lng},${lat}`;
+        // If it's a Google Places suggestion, get detailed info
+        if (suggestion.place_id && !coords) {
+          const details = await getGooglePlaceDetails(suggestion.place_id);
+          if (details) {
+            locationName = details.name;
+            coords = [
+              details.geometry.location.lng,
+              details.geometry.location.lat,
+            ];
           }
         }
 
-        const response = await fetch(apiUrl);
-        const data = await response.json();
-        setSuggestions(data.features || []);
+        setEntranceSearch(locationName);
+        setValue("entranceLocation", locationName);
+
+        setEntranceSuggestions([]);
+        setShowEntranceSuggestions(false);
       } catch (error) {
-        console.error("Error fetching entrance suggestions:", error);
-        setSuggestions([]);
-      } finally {
-        setLoading(false);
+        console.error("Error selecting entrance location:", error);
       }
     },
-    [state.formData.siteLocation, state.selectedLocation.coords]
+    [setValue]
   );
 
-  useEffect(() => {
-    const debounceTimer = setTimeout(() => {
-      fetchSuggestions(search, setSuggestions, setIsLoading);
-    }, 300);
-
-    return () => clearTimeout(debounceTimer);
-  }, [search, fetchSuggestions]);
-
-  useEffect(() => {
-    const debounceTimer = setTimeout(() => {
-      fetchEntranceSuggestions(
-        entranceSearch,
-        setEntranceSuggestions,
-        setIsEntranceLoading
-      );
-    }, 300);
-
-    return () => clearTimeout(debounceTimer);
-  }, [entranceSearch, fetchEntranceSuggestions]);
-
-  // Handle suggestion clicks
-  const handleSuggestionClick = (feature: any) => {
-    setSearch(feature.place_name);
-    updateFormData("siteLocation", feature.place_name);
-    setShowSuggestions(false);
-
-    // Store the general area coordinates for entrance search context
-    if (feature.geometry?.coordinates) {
-      const [lng, lat] = feature.geometry.coordinates;
-      updateSelectedLocation({
-        coords: [lng, lat],
-        name: feature.place_name,
-      });
-    }
-
-    // Only fly to the location, don't add marker yet
-    if (mapRef.current && feature.geometry?.coordinates) {
-      const [lng, lat] = feature.geometry.coordinates;
-      mapRef.current.centerMap(lng, lat, feature.place_name);
-    }
-  };
-
-  const handleEntranceSuggestionClick = (feature: any) => {
-    setEntranceSearch(feature.place_name);
-    updateFormData("entranceLocation", feature.place_name);
-    setShowEntranceSuggestions(false);
-
-    // Add marker at the exact entrance location
-    if (mapRef.current && feature.geometry?.coordinates) {
-      const [lng, lat] = feature.geometry.coordinates;
-      mapRef.current.addMarker(lng, lat, feature.place_name);
-      updateSelectedLocation({ coords: [lng, lat], name: feature.place_name });
-    }
-  };
-
-  // Handle map location selection - this is for entrance location
-  const handleMapLocationSelect = useCallback(
-    (coords: [number, number], placeName: string) => {
-      updateSelectedLocation({ coords, name: placeName });
-      updateFormData("entranceLocation", placeName);
-      setEntranceSearch(placeName);
-    },
-    [updateSelectedLocation, updateFormData]
-  );
-
-  const handleSave = async () => {
-    const locationData = {
-      siteLocation: state.formData.siteLocation,
-      entranceLocation: state.formData.entranceLocation,
-      selectedLocation: state.selectedLocation,
-    };
-
-    await saveSection("location", locationData);
+  const handleSaveSection = async () => {
+    await saveSection("location");
   };
 
   return (
-    <div ref={sectionRef}>
-      <div>
-        <h2 className="text-lg font-semibold text-gray-900">Site Location</h2>
+    <section ref={sectionRef} className="bg-white p-6 rounded-lg shadow-sm">
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-xl font-semibold text-gray-900">Site Location</h2>
+        <button
+          type="button"
+          onClick={handleSaveSection}
+          disabled={isSaving}
+          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {isSaving ? "Saving..." : "Save Section"}
+        </button>
       </div>
-      <div className="bg-white rounded-lg shadow-sm mt-4">
-        <div className="flex items-center justify-between p-3 bg-[#F8F8F8] md:px-6 relative">
-          <div className="flex items-center gap-2 w-full relative">
-            <div className="flex items-center px-2 py-1 group gap-2 bg-white border border-[#EEEEEE] rounded-full w-full relative max-w-[160px]">
-              <Location className="flex-shrink-0 text-[#696969] group-hover:text-[#F6691D]" />
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Left Column - Form Inputs */}
+        <div className="space-y-6">
+          {/* Site Location Search */}
+          <div className="relative">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Site Location *
+            </label>
+            <div className="relative">
               <input
-                type="text"
-                className="outline-none bg-transparent text-sm w-full"
-                placeholder="Search site area..."
+                {...register("siteLocation")}
                 value={search}
                 onChange={(e) => {
                   setSearch(e.target.value);
                   setShowSuggestions(true);
                 }}
                 onFocus={() => setShowSuggestions(true)}
-                onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
-                autoComplete="off"
+                placeholder="Search for your site location..."
+                className="w-full px-4 py-3 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
+              <Location className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
               {isLoading && (
-                <span className="ml-2 text-xs text-gray-400">Loading...</span>
-              )}
-              {showSuggestions && suggestions.length > 0 && (
-                <div className="absolute left-0 top-10 w-full bg-white border border-gray-200 rounded-lg shadow-lg z-20 max-h-60 overflow-auto">
-                  {suggestions.map((feature) => (
-                    <div
-                      key={feature.id}
-                      className="px-4 py-2 cursor-pointer hover:bg-blue-50 text-sm"
-                      onClick={() => handleSuggestionClick(feature)}
-                    >
-                      {feature.place_name}
-                    </div>
-                  ))}
+                <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
                 </div>
               )}
             </div>
-            <div className="flex items-center px-2 py-1 gap-2 bg-white border border-[#EEEEEE] rounded-full w-full relative max-w-[160px]">
-              <DestinationSvg className="flex-shrink-0" />
+            <FormError error={errors.siteLocation?.message} />
+
+            {/* Suggestions Dropdown */}
+            {showSuggestions && suggestions.length > 0 && (
+              <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                {suggestions.map((suggestion, index) => (
+                  <div
+                    key={index}
+                    className="px-4 py-3 hover:bg-gray-50 cursor-pointer border-b last:border-b-0"
+                    onClick={() => handleLocationSelect(suggestion)}
+                  >
+                    <div className="font-medium text-gray-900">
+                      {suggestion.text}
+                    </div>
+                    <div className="text-sm text-gray-600">
+                      {suggestion.place_name}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Entrance Location Search */}
+          <div className="relative">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Exact Entrance Location *
+            </label>
+            <div className="relative">
               <input
-                type="text"
-                className="outline-none bg-transparent text-sm w-full"
-                placeholder="Exact site entrance..."
+                {...register("entranceLocation")}
                 value={entranceSearch}
                 onChange={(e) => {
                   setEntranceSearch(e.target.value);
                   setShowEntranceSuggestions(true);
                 }}
                 onFocus={() => setShowEntranceSuggestions(true)}
-                onBlur={() =>
-                  setTimeout(() => setShowEntranceSuggestions(false), 150)
-                }
-                autoComplete="off"
+                placeholder="Enter specific entrance or landmark..."
+                className="w-full px-4 py-3 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                disabled={!selectedLocation?.coords}
               />
+              <DestinationSvg className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
               {isEntranceLoading && (
-                <span className="ml-2 text-xs text-gray-400">Loading...</span>
+                <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                </div>
               )}
-              {showEntranceSuggestions && entranceSuggestions.length > 0 && (
-                <div className="absolute left-0 top-10 w-full bg-white border border-gray-200 rounded-lg shadow-lg z-20 max-h-60 overflow-auto">
-                  {entranceSuggestions.map((feature) => (
-                    <div
-                      key={feature.id}
-                      className="px-4 py-2 cursor-pointer hover:bg-blue-50 text-sm"
-                      onClick={() => handleEntranceSuggestionClick(feature)}
-                    >
-                      {feature.place_name}
+            </div>
+            <FormError error={errors.entranceLocation?.message} />
+
+            {/* Entrance Suggestions Dropdown */}
+            {showEntranceSuggestions && entranceSuggestions.length > 0 && (
+              <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                {entranceSuggestions.map((suggestion, index) => (
+                  <div
+                    key={index}
+                    className="px-4 py-3 hover:bg-gray-50 cursor-pointer border-b last:border-b-0"
+                    onClick={() => handleEntranceSelect(suggestion)}
+                  >
+                    <div className="font-medium text-gray-900">
+                      {suggestion.description ||
+                        suggestion.text ||
+                        suggestion.name}
                     </div>
-                  ))}
-                </div>
-              )}
+                    {suggestion.place_name && (
+                      <div className="text-sm text-gray-600">
+                        {suggestion.place_name}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Additional Location Details */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Site Management
+              </label>
+              <select
+                {...register("siteManagement")}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="">Select management type</option>
+                <option value="self-managed">Self Managed</option>
+                <option value="property-manager">Property Manager</option>
+                <option value="company">Company Managed</option>
+              </select>
+              <FormError error={errors.siteManagement?.message} />
             </div>
-            <div
-              className={`flex items-center justify-center p-2 rounded-full cursor-pointer hover:shadow-lg transition-all delay-300 ${
-                isFilters
-                  ? "bg-gradient-to-r from-[#D6D5D4] to-white"
-                  : "bg-gradient-to-r from-[#257CFF] to-[#0F62DE]"
-              }`}
-              onClick={() => setIsFilters(!isFilters)}
-            >
-              <Filters
-                className={`${
-                  isFilters ? "text-[#6C6868]" : "text-white"
-                } flex-shrink-0`}
-              />
-            </div>
-            <div
-              className={`${
-                isFilters ? "max-w-full" : "max-w-0"
-              } flex items-center gap-2 transition-all w-fit delay-300 overflow-hidden`}
-            >
-              {filtersArray.map((filter, i) => (
-                <div
-                  key={i}
-                  className="flex items-center justify-center p-2 rounded-full cursor-pointer hover:shadow-lg border border-gray-200"
-                >
-                  <Image
-                    src={filter.img}
-                    width={17}
-                    height={17}
-                    alt="svg"
-                    className="w-[17px] object-contain flex-shrink-0"
-                  />
-                </div>
-              ))}
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Access Type
+              </label>
+              <select
+                {...register("access")}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="">Select access type</option>
+                <option value="public">Public Access</option>
+                <option value="private">Private Access</option>
+                <option value="restricted">Restricted Access</option>
+              </select>
+              <FormError error={errors.access?.message} />
             </div>
           </div>
         </div>
-        <div className="overflow-hidden h-fit">
+
+        {/* Right Column - Map */}
+        <div className="h-96 lg:h-auto">
           <SitesLocationMap
             ref={mapRef}
             selectedLocation={memoizedSelectedLocation}
-            onLocationSelect={handleMapLocationSelect}
+            onLocationSelect={(coords, name) => {
+              setValue("selectedLocation", { coords, name });
+              setValue("siteLocation", name);
+              setSearch(name);
+            }}
           />
         </div>
       </div>
-
-      {/* Save Button */}
-      <div className="flex justify-end mt-4">
-        <button
-          type="button"
-          onClick={handleSave}
-          className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors text-sm shadow-sm"
-        >
-          Save
-        </button>
-      </div>
-    </div>
+    </section>
   );
 };
 

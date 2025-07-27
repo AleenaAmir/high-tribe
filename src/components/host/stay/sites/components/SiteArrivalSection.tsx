@@ -2,8 +2,10 @@
 import React from "react";
 import GlobalTextInput from "../../../../global/GlobalTextInput";
 import GlobalTextArea from "../../../../global/GlobalTextArea";
-import { useSitesForm } from "../contexts/SitesFormContext";
+import { useSitesForm } from "../hooks/useSitesForm";
+import FormError from "./FormError";
 import { useSearchParams } from "next/navigation";
+import { toast } from "react-hot-toast";
 
 interface SiteArrivalSectionProps {
   sectionRef: React.RefObject<HTMLDivElement | null>;
@@ -12,36 +14,69 @@ interface SiteArrivalSectionProps {
 const SiteArrivalSection: React.FC<SiteArrivalSectionProps> = ({
   sectionRef,
 }) => {
-  const { state, updateFormData, saveSection } = useSitesForm();
+  const {
+    setValue,
+    watch,
+    formState: { errors },
+    saveSection,
+  } = useSitesForm();
+
   const searchParams = useSearchParams();
   const propertyId = searchParams ? searchParams.get("propertyId") : null;
   const siteId = searchParams ? searchParams.get("siteId") : null;
+
+  // Watch form values
+  const checkInTime = watch("checkInTime") || "";
+  const checkOutTime = watch("checkOutTime") || "";
+  const arrivalInstructions = watch("arrivalInstructions") || "";
+
   const handleInputChange = (field: string, value: string) => {
-    updateFormData(field, value);
+    setValue(field, value);
   };
-  let token = "";
-  if (typeof window !== "undefined") {
-    token = localStorage.getItem("token") || "";
-  }
 
   const handleSave = async () => {
-    const formData = new FormData();
-    // @ts-ignore
-    formData.append("site_id", siteId);
-    formData.append("check_in_time", state.formData.checkInTime);
-    formData.append("check_out_time", state.formData.checkOutTime);
-    formData.append("arrival_instructions", state.formData.arrivalInstructions);
+    try {
+      const isValid = await saveSection("arrival");
+      if (!isValid) {
+        return;
+      }
 
-    fetch(`https://api.hightribe.com/api/properties/${propertyId}/sites/arrival-instructions`, {
-      method: "POST",
-      headers: {
-        Accept: "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: formData,
-    })
-      .then((res) => res.json())
-      .then((data) => console.log(data));
+      const formData = new FormData();
+      // @ts-ignore
+      formData.append("site_id", siteId);
+      formData.append("check_in_time", checkInTime);
+      formData.append("check_out_time", checkOutTime);
+      formData.append("arrival_instructions", arrivalInstructions);
+
+      let token = "";
+      if (typeof window !== "undefined") {
+        token = localStorage.getItem("token") || "";
+      }
+
+      const response = await fetch(
+        `https://api.hightribe.com/api/properties/${propertyId}/sites/arrival-instructions`,
+        {
+          method: "POST",
+          headers: {
+            Accept: "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: formData,
+        }
+      );
+
+      const data = await response.json();
+      if (response.ok) {
+        console.log("✅ Arrival instructions saved successfully:", data);
+        toast.success("Arrival instructions saved successfully");
+      } else {
+        console.error("❌ Failed to save arrival instructions:", data);
+        toast.error("Failed to save arrival instructions");
+      }
+    } catch (error) {
+      console.error("❌ Network error:", error);
+      toast.error("An error occurred while saving arrival instructions");
+    }
   };
 
   return (
@@ -61,13 +96,13 @@ const SiteArrivalSection: React.FC<SiteArrivalSectionProps> = ({
             <GlobalTextInput
               label="Check-in Time"
               type="time"
-              value={state.formData.checkInTime}
+              value={checkInTime}
               onChange={(e) => handleInputChange("checkInTime", e.target.value)}
             />
             <GlobalTextInput
               label="Check-out Time"
               type="time"
-              value={state.formData.checkOutTime}
+              value={checkOutTime}
               onChange={(e) =>
                 handleInputChange("checkOutTime", e.target.value)
               }
@@ -76,12 +111,13 @@ const SiteArrivalSection: React.FC<SiteArrivalSectionProps> = ({
           <GlobalTextArea
             label="Arrival Instructions*"
             placeholder="Provide detailed instructions for visitors to find and access your site..."
-            value={state.formData.arrivalInstructions}
+            value={arrivalInstructions}
             onChange={(e) =>
               handleInputChange("arrivalInstructions", e.target.value)
             }
             rows={5}
           />
+          <FormError error={errors.arrivalInstructions?.message} />
         </div>
 
         {/* Save Button */}

@@ -58,7 +58,6 @@ export interface FormData {
   rvType: string;
   campsiteType: string;
   sitePrivacy: string;
-
   siteAmenities: string[];
   siteFacilities: string[];
   safetyItems: string[];
@@ -89,60 +88,4 @@ export interface RVDetails {
   drivewaySurface: string;
   turningRadius: string;
   amperes: string;
-}
-
-export interface SiteFormState {
-  formData: FormData;
-  selectedLocation: SelectedLocation;
-  uploadedImages: File[];
-  uploadedVideos: File[];
-  coverImage: File | null;
-  bedCounts: number[];
-  siteCapacity: string;
-  guestMin: string;
-  guestMax: string;
-  rvDetails: RVDetails;
-  pricingType: string;
-  allowRefunds: string;
-  refundType: string;
-  autoRefunds: string;
-  selectedDays: string[];
-  selectDaysChecked: boolean;
-  selectedDates: Date[];
-  selectDateChecked: boolean;
-  noticePeriod: string;
-  advanceBookingLimit: string;
-  cancellationPolicy: string;
-  bookingType: string;
-  errors: { [key: string]: string };
-}
-
-export interface SiteFormContextType {
-  state: SiteFormState;
-  updateFormData: (field: string, value: string | string[]) => void;
-  updateSelectedLocation: (location: SelectedLocation) => void;
-  updateUploadedImages: (images: File[]) => void;
-  updateUploadedVideos: (videos: File[]) => void;
-  updateCoverImage: (image: File | null) => void;
-  updateBedCounts: (counts: number[]) => void;
-  updateSiteCapacity: (capacity: string) => void;
-  updateGuestMin: (min: string) => void;
-  updateGuestMax: (max: string) => void;
-  updateRvDetails: (details: RVDetails) => void;
-  updatePricingType: (type: string) => void;
-  updateAllowRefunds: (allow: string) => void;
-  updateRefundType: (type: string) => void;
-  updateAutoRefunds: (auto: string) => void;
-  updateSelectedDays: (days: string[]) => void;
-  updateSelectDaysChecked: (checked: boolean) => void;
-  updateSelectedDates: (dates: Date[]) => void;
-  updateSelectDateChecked: (checked: boolean) => void;
-  updateNoticePeriod: (period: string) => void;
-  updateAdvanceBookingLimit: (limit: string) => void;
-  updateCancellationPolicy: (policy: string) => void;
-  updateBookingType: (type: string) => void;
-  setError: (field: string, error: string) => void;
-  clearError: (field: string) => void;
-  saveSection: (sectionId: string, data: any) => Promise<void>;
-  publishSite: () => Promise<void>;
 } 

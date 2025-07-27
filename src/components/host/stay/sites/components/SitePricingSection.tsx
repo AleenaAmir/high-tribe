@@ -4,7 +4,8 @@ import GlobalTextInput from "../../../../global/GlobalTextInput";
 import GlobalInputStepper from "../../../../global/GlobalInputStepper";
 import GlobalRadioGroup from "../../../../global/GlobalRadioGroup";
 import GlobalSelect from "../../../../global/GlobalSelect";
-import { useSitesForm } from "../contexts/SitesFormContext";
+import { useSitesForm } from "../hooks/useSitesForm";
+import FormError from "./FormError";
 import { useSearchParams } from "next/navigation";
 import { toast } from "react-hot-toast";
 
@@ -16,7 +17,18 @@ const SitePricingSection: React.FC<SitePricingSectionProps> = ({
   sectionRef,
 }) => {
   const {
-    state,
+    setValue,
+    watch,
+    formState: { errors },
+    saveSection,
+    bedCounts,
+    siteCapacity,
+    guestMin,
+    guestMax,
+    pricingType,
+    allowRefunds,
+    refundType,
+    autoRefunds,
     updateSiteCapacity,
     updateGuestMin,
     updateGuestMax,
@@ -26,8 +38,18 @@ const SitePricingSection: React.FC<SitePricingSectionProps> = ({
     updateAllowRefunds,
     updateRefundType,
     updateAutoRefunds,
-    saveSection,
   } = useSitesForm();
+
+  // Watch form values
+  const rvDetails = watch("rvDetails") || {
+    hookupType: "",
+    antennas: "",
+    maxLength: "",
+    maxWidth: "",
+    drivewaySurface: "",
+    turningRadius: "",
+    amperes: "",
+  };
 
   const bedTypes = [
     "Couch / Sofa Bed",
@@ -63,71 +85,76 @@ const SitePricingSection: React.FC<SitePricingSectionProps> = ({
     "Free hosting",
     "Work exchange",
   ];
+
   const searchParams = useSearchParams();
   const propertyId = searchParams ? searchParams.get("propertyId") : null;
   const siteId = searchParams ? searchParams.get("siteId") : null;
 
   const handleSave = async () => {
-    const token = localStorage.getItem("token");
-    const formData = new FormData();
-
-    // @ts-ignore
-    formData.append("site_id", siteId);
-    formData.append("guest_capacity_min", state.guestMin || "1");
-    formData.append("guest_capacity_max", state.guestMax || "1");
-
-    // Total Beds
-    const totalBeds = state.bedCounts.reduce(
-      (a, b) => a + (parseInt(b.toString()) || 0),
-      0
-    );
-    formData.append("total_beds", totalBeds.toString());
-
-    // Bed types in backend format
-    const bedTypeKeys = [
-      "sofa_bed",
-      "floor_mattress",
-      "hammock",
-      "futon",
-      "bunk_bed",
-      "queen_bed",
-      "king_bed",
-    ];
-
-    state.bedCounts.forEach((count, idx) => {
-      const parsedCount = parseInt(count.toString(), 10);
-      if (parsedCount > 0) {
-        formData.append(
-          `bed_types[${bedTypeKeys[idx]}]`,
-          parsedCount.toString()
-        );
-      }
-    });
-    // RV details
-    if (state.rvDetails.hookupType) formData.append("hookup_type", "back_in");
-    if (state.rvDetails.amperes)
-      formData.append("amperes", state.rvDetails.amperes);
-    if (state.rvDetails.maxLength)
-      formData.append("max_length", state.rvDetails.maxLength);
-    if (state.rvDetails.maxWidth)
-      formData.append("max_width", state.rvDetails.maxWidth);
-    if (state.rvDetails.drivewaySurface)
-      formData.append("driveway_surface", "gravel");
-
-    // Hosting
-    if (state.pricingType) formData.append("hosting_type", "paid");
-
-    // Refund policy
-    if (state.refundType) formData.append("refund_policy", state.refundType);
-    if (state.refundType === "days") formData.append("refund_days", "3");
-
-    // Other assumed defaults
-    formData.append("currency", "USD");
-    formData.append("payment_type", "advance");
-    formData.append("base_price", "49.5"); // optional, change accordingly
-
-    // API Call
     try {
+      const isValid = await saveSection("pricing");
+      if (!isValid) {
+        return;
+      }
+
+      const token = localStorage.getItem("token");
+      const formData = new FormData();
+
+      // @ts-ignore
+      formData.append("site_id", siteId);
+      formData.append("guest_capacity_min", guestMin || "1");
+      formData.append("guest_capacity_max", guestMax || "1");
+
+      // Total Beds
+      const totalBeds = bedCounts.reduce(
+        (a, b) => a + (parseInt(b.toString()) || 0),
+        0
+      );
+      formData.append("total_beds", totalBeds.toString());
+
+      // Bed types in backend format
+      const bedTypeKeys = [
+        "sofa_bed",
+        "floor_mattress",
+        "hammock",
+        "futon",
+        "bunk_bed",
+        "queen_bed",
+        "king_bed",
+      ];
+
+      bedCounts.forEach((count, idx) => {
+        const parsedCount = parseInt(count.toString(), 10);
+        if (parsedCount > 0) {
+          formData.append(
+            `bed_types[${bedTypeKeys[idx]}]`,
+            parsedCount.toString()
+          );
+        }
+      });
+
+      // RV details
+      if (rvDetails.hookupType) formData.append("hookup_type", "back_in");
+      if (rvDetails.amperes) formData.append("amperes", rvDetails.amperes);
+      if (rvDetails.maxLength)
+        formData.append("max_length", rvDetails.maxLength);
+      if (rvDetails.maxWidth) formData.append("max_width", rvDetails.maxWidth);
+      if (rvDetails.drivewaySurface)
+        formData.append("driveway_surface", "gravel");
+
+      // Hosting
+      if (pricingType) formData.append("hosting_type", "paid");
+
+      // Refund policy
+      if (refundType) formData.append("refund_policy", refundType);
+      if (refundType === "days") formData.append("refund_days", "3");
+
+      // Other assumed defaults
+      formData.append("currency", "USD");
+      formData.append("payment_type", "advance");
+      formData.append("base_price", "49.5"); // optional, change accordingly
+
+      // API Call
       const response = await fetch(
         `https://api.hightribe.com/api/properties/${propertyId}/sites/pricing`,
         {
@@ -173,9 +200,10 @@ const SitePricingSection: React.FC<SitePricingSectionProps> = ({
               label="Site Capacity"
               type="number"
               min="1"
-              value={state.siteCapacity}
+              value={siteCapacity || ""}
               onChange={(e) => updateSiteCapacity(e.target.value)}
             />
+            <FormError error={errors.siteCapacity?.message} />
           </div>
           <div className="flex-1 min-w-[220px]">
             <p className="text-[#1C231F] font-bold">Guests Capacity</p>
@@ -186,18 +214,20 @@ const SitePricingSection: React.FC<SitePricingSectionProps> = ({
                     label="Minimum"
                     type="number"
                     min="1"
-                    max={state.guestMax || undefined}
-                    value={state.guestMin}
+                    max={guestMax || undefined}
+                    value={guestMin || ""}
                     onChange={(e) => updateGuestMin(e.target.value)}
                   />
                   <GlobalTextInput
                     label="Maximum"
                     type="number"
-                    min={state.guestMin || 1}
-                    value={state.guestMax}
+                    min={guestMin || 1}
+                    value={guestMax || ""}
                     onChange={(e) => updateGuestMax(e.target.value)}
                   />
                 </div>
+                <FormError error={errors.guestMin?.message} />
+                <FormError error={errors.guestMax?.message} />
               </div>
             </div>
           </div>
@@ -211,9 +241,9 @@ const SitePricingSection: React.FC<SitePricingSectionProps> = ({
               <GlobalInputStepper
                 key={type}
                 label={type}
-                value={state.bedCounts[idx]}
+                value={bedCounts[idx]}
                 onChange={(val) => {
-                  const newCounts = [...state.bedCounts];
+                  const newCounts = [...bedCounts];
                   newCounts[idx] = val;
                   updateBedCounts(newCounts);
                 }}
@@ -229,10 +259,10 @@ const SitePricingSection: React.FC<SitePricingSectionProps> = ({
           <div className="grid grid-cols-2 gap-x-4 gap-y-0 mt-4">
             <GlobalSelect
               label="Hookup Type"
-              value={state.rvDetails.hookupType}
+              value={rvDetails.hookupType || ""}
               onChange={(e) =>
                 updateRvDetails({
-                  ...state.rvDetails,
+                  ...rvDetails,
                   hookupType: e.target.value,
                 })
               }
@@ -247,10 +277,10 @@ const SitePricingSection: React.FC<SitePricingSectionProps> = ({
             <GlobalTextInput
               label="Amperes"
               type="number"
-              value={state.rvDetails.amperes}
+              value={rvDetails.amperes || ""}
               onChange={(e) =>
                 updateRvDetails({
-                  ...state.rvDetails,
+                  ...rvDetails,
                   amperes: e.target.value,
                 })
               }
@@ -258,10 +288,10 @@ const SitePricingSection: React.FC<SitePricingSectionProps> = ({
             <GlobalTextInput
               label="Maximum RV Length Allowed"
               type="number"
-              value={state.rvDetails.maxLength}
+              value={rvDetails.maxLength || ""}
               onChange={(e) =>
                 updateRvDetails({
-                  ...state.rvDetails,
+                  ...rvDetails,
                   maxLength: e.target.value,
                 })
               }
@@ -269,20 +299,20 @@ const SitePricingSection: React.FC<SitePricingSectionProps> = ({
             <GlobalTextInput
               label="Maximum RV Width Allowed"
               type="number"
-              value={state.rvDetails.maxWidth}
+              value={rvDetails.maxWidth || ""}
               onChange={(e) =>
                 updateRvDetails({
-                  ...state.rvDetails,
+                  ...rvDetails,
                   maxWidth: e.target.value,
                 })
               }
             />
             <GlobalSelect
               label="Driveway Surface"
-              value={state.rvDetails.drivewaySurface}
+              value={rvDetails.drivewaySurface || ""}
               onChange={(e) =>
                 updateRvDetails({
-                  ...state.rvDetails,
+                  ...rvDetails,
                   drivewaySurface: e.target.value,
                 })
               }
@@ -296,10 +326,10 @@ const SitePricingSection: React.FC<SitePricingSectionProps> = ({
             </GlobalSelect>
             <GlobalTextInput
               label="Turning Radius / Clearance Warnings"
-              value={state.rvDetails.turningRadius}
+              value={rvDetails.turningRadius || ""}
               onChange={(e) =>
                 updateRvDetails({
-                  ...state.rvDetails,
+                  ...rvDetails,
                   turningRadius: e.target.value,
                 })
               }
@@ -311,7 +341,7 @@ const SitePricingSection: React.FC<SitePricingSectionProps> = ({
           <p className="text-[#1C231F] font-bold">Pricing</p>
           <GlobalSelect
             label="Hosting Type"
-            value={state.pricingType || "Exchange-based stay"}
+            value={pricingType || "Exchange-based stay"}
             onChange={(e) => updatePricingType(e.target.value)}
           >
             <option value="">Select hosting type</option>
@@ -321,12 +351,13 @@ const SitePricingSection: React.FC<SitePricingSectionProps> = ({
               </option>
             ))}
           </GlobalSelect>
+          <FormError error={errors.pricingType?.message} />
         </div>
         {/* Refunds */}
         <div>
           <GlobalRadioGroup
             name="allowRefunds"
-            value={state.allowRefunds}
+            value={allowRefunds}
             onChange={updateAllowRefunds}
             options={[
               {
@@ -341,7 +372,7 @@ const SitePricingSection: React.FC<SitePricingSectionProps> = ({
             <p className="text-[#1C231F] font-bold mb-4">Allow refunds</p>
             <GlobalRadioGroup
               name="refundType"
-              value={state.refundType}
+              value={refundType}
               onChange={updateRefundType}
               options={[
                 {
@@ -362,7 +393,7 @@ const SitePricingSection: React.FC<SitePricingSectionProps> = ({
           </label>
           <GlobalRadioGroup
             name="autoRefunds"
-            value={state.autoRefunds}
+            value={autoRefunds}
             onChange={updateAutoRefunds}
             options={[
               { label: "Yes, automate refunds", value: "yes" },
