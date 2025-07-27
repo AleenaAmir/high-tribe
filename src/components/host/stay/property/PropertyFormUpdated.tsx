@@ -26,6 +26,7 @@ import {
   fetchGooglePlaceSuggestions,
   getCoordinatesForGooglePlace,
 } from "@/lib/googlePlaces";
+import { useRouter } from "next/navigation";
 const MAPBOX_ACCESS_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
 
 interface PropertyFormProps {}
@@ -143,6 +144,7 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
   const [coverImageIndex, setCoverImageIndex] = useState<number | null>(null);
   const [coverImage, setCoverImage] = useState<File | null>(null);
   const [uploadedVideos, setUploadedVideos] = useState<File[]>([]);
+  const router = useRouter();
 
   // React Hook Form setup
   const {
@@ -650,18 +652,15 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
 
     // Send form data to backend
     try {
-      const response = await fetch(
-        "https://api.hightribe.com/api/properties",
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            Accept: "application/json",
-            // Remove Content-Type header - let browser set it automatically for FormData
-          },
-          body: form,
-        }
-      );
+      const response = await fetch("https://api.hightribe.com/api/properties", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json",
+          // Remove Content-Type header - let browser set it automatically for FormData
+        },
+        body: form,
+      });
 
       if (!response.ok) {
         const errorData = await response.text();
@@ -692,6 +691,7 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
       const result = await response.json();
       console.log("Property created successfully:", result);
       toast.success("Property created successfully!");
+      router.push("/host/stay?tab=property");
     } catch (error) {
       console.error("Network error:", error);
       toast.error("Something went wrong while submitting.");
