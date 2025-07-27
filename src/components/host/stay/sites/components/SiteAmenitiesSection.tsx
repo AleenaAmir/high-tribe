@@ -22,6 +22,9 @@ const SiteAmenitiesSection: React.FC<SiteAmenitiesSectionProps> = ({
   const handleSave = async () => {
     const formData = new FormData();
 
+    //@ts-ignore
+    formData.append("site_id", siteId);
+
     // Append array fields
     (state.formData.siteAmenities || []).forEach((item: string) =>
       formData.append("amenities[]", item)

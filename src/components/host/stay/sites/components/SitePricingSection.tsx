@@ -118,7 +118,7 @@ const SitePricingSection: React.FC<SitePricingSectionProps> = ({
     if (state.pricingType) formData.append("hosting_type", "paid");
 
     // Refund policy
-    if (state.refundType) formData.append("refund_policy", state.refundType);
+    if (state.refundType) formData.append("refund_policy", "auto");
     if (state.refundType === "days") formData.append("refund_days", "3");
 
     // Other assumed defaults

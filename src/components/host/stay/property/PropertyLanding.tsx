@@ -209,6 +209,9 @@ export default function PropertyLanding() {
   if (!properties.length) {
     return <div className="text-center py-10">No properties found.</div>;
   }
+  const getImageUrl = (media: any[]) =>
+    (media?.[0]?.file_path || "").replace(/\\/g, "") || "https://via.placeholder.com/150?text=No+Image";
+
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 md:mt-10">
@@ -222,7 +225,7 @@ export default function PropertyLanding() {
             {/* Image */}
             <div className="w-16 h-16 rounded-lg my-auto overflow-hidden mr-4 flex-shrink-0">
               <img
-                src={item.media?.[0]?.file_path || defaultImage}
+                src={getImageUrl(item.media)}
                 alt={item.property_name || "Property"}
                 className="w-full h-full object-cover"
               />

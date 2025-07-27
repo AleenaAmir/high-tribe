@@ -161,8 +161,8 @@ const SiteOverviewSection: React.FC<SiteOverviewSectionProps> = ({
               <div className="flex flex-wrap gap-6">
                 {[
                   { label: "Me", value: "me" },
-                  { label: "My family", value: "family" },
-                  { label: "Other Guests", value: "guests" },
+                  { label: "My family", value: "my_family" },
+                  { label: "Other Guests", value: "other_guests" },
                   { label: "Roommates", value: "roommates" },
                 ].map((option) => (
                   <label

@@ -17,6 +17,7 @@ const SiteImagesSection = ({ sectionRef }: SiteImagesSectionProps) => {
   } = useSitesForm();
   const searchParams = useSearchParams();
   const propertyId = searchParams ? searchParams.get("propertyId") : null;
+  const siteId = searchParams ? searchParams.get("siteId") : null;
 
   // Handle file upload
   const handleFileUpload = (
@@ -48,6 +49,8 @@ const SiteImagesSection = ({ sectionRef }: SiteImagesSectionProps) => {
 
     // Append media_images[] (multiple files)
     state.uploadedImages.forEach((image) => {
+      //@ts-ignore
+      formData.append("site_id", siteId);
       formData.append("media_images[]", image);
     });
 
