@@ -383,7 +383,7 @@ const SiteLocationSection: React.FC<SiteLocationSectionProps> = ({
       </div>
 
       {/* Save Button */}
-      <div className="flex justify-end mt-4">
+      {/* <div className="flex justify-end mt-4">
         <button
           type="button"
           onClick={handleSave}
@@ -391,7 +391,7 @@ const SiteLocationSection: React.FC<SiteLocationSectionProps> = ({
         >
           Save
         </button>
-      </div>
+      </div> */}
     </div>
   );
 };

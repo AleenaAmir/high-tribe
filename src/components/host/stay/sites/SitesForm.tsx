@@ -45,7 +45,7 @@ const SitesFormContent: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
       title: "Site Overview",
       icon: "📋",
       ref: overviewRef,
-      requiredFields: ["siteArea", "siteName", "siteType", "languagesSpoken"],
+      requiredFields: ["siteName", "shortDescription", "accommodation_type"],
     },
     {
       id: "images",
@@ -59,14 +59,14 @@ const SitesFormContent: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
       title: "Site Amenities and Facilities",
       icon: "🏕️",
       ref: amenitiesRef,
-      requiredFields: ["activities"],
+      requiredFields: [],
     },
     {
       id: "pricing",
       title: "Site Pricing and Capacity",
       icon: "💰",
       ref: pricingRef,
-      requiredFields: ["maxGroupSize", "pricing"],
+      requiredFields: ["guestMax", "pricingType"],
     },
     {
       id: "extras",
@@ -80,7 +80,7 @@ const SitesFormContent: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
       title: "Availability and Booking Details",
       icon: "📅",
       ref: availabilityRef,
-      requiredFields: ["safetyMeasures"],
+      requiredFields: ["bookingType"],
     },
     {
       id: "arrival",
@@ -94,7 +94,7 @@ const SitesFormContent: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
       title: "Review and Publish",
       icon: "✅",
       ref: reviewRef,
-      requiredFields: ["termsAccepted"],
+      requiredFields: [],
     },
   ];
   const searchParams = useSearchParams();

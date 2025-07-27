@@ -15,9 +15,49 @@ const SitesFormSidebar: React.FC<SitesFormSidebarProps> = ({ sections }) => {
     if (section.requiredFields.length === 0) return true;
 
     return section.requiredFields.every((field) => {
-      const value = state.formData[field as keyof typeof state.formData];
+      // Check different parts of the state based on field name
+      let value: any;
+
+      // Check if field is in formData
+      if (field in state.formData) {
+        value = state.formData[field as keyof typeof state.formData];
+      }
+      // Check if field is in root state
+      else if (field in state) {
+        value = state[field as keyof typeof state];
+      }
+      // Check specific fields that might be stored differently
+      else if (field === "maxGroupSize") {
+        value = state.guestMax;
+      } else if (field === "pricing") {
+        value = state.pricingType;
+      } else if (field === "guestMax") {
+        value = state.guestMax;
+      } else if (field === "pricingType") {
+        value = state.pricingType;
+      } else if (field === "noticePeriod") {
+        value = state.noticePeriod;
+      } else if (field === "cancellationPolicy") {
+        value = state.cancellationPolicy;
+      } else if (field === "bookingType") {
+        value = state.bookingType;
+      } else {
+        value = null;
+      }
+
+      // Debug logging
+      console.log(`Section ${section.id}, Field ${field}:`, value);
+
+      // Special handling for array fields that might be undefined
+      if (Array.isArray(value) && value.length === 0) {
+        console.log(`Section ${section.id}, Field ${field} is empty array`);
+      }
+
       if (Array.isArray(value)) {
         return value.length > 0;
+      }
+      if (typeof value === "boolean") {
+        return value === true;
       }
       return value && value.toString().trim() !== "";
     });
@@ -33,6 +73,16 @@ const SitesFormSidebar: React.FC<SitesFormSidebarProps> = ({ sections }) => {
 
     if (section.id === "images") {
       return state.uploadedImages.length > 0 || state.coverImage !== null;
+    }
+
+    // Debug logging for availability section
+    if (section.id === "availability") {
+      console.log("Availability section debug:", {
+        baseComplete,
+        bookingType: state.bookingType,
+        noticePeriod: state.noticePeriod,
+        cancellationPolicy: state.cancellationPolicy,
+      });
     }
 
     return baseComplete;

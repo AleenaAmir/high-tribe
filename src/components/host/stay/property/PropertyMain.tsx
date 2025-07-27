@@ -1,7 +1,7 @@
 import React from "react";
 import { useSearchParams } from "next/navigation";
 import PropertyLanding from "./PropertyLanding";
-import PropertyForm from "./PropertyForm";
+import PropertyForm from "./PropertyFormUpdated";
 
 export default function PropertyMain() {
   const searchParams = useSearchParams();
