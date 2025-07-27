@@ -1,6 +1,7 @@
 "use client";
 import React from "react";
 import { useSitesForm } from "../contexts/SitesFormContext";
+import { useSearchParams } from "next/navigation";
 
 interface SiteAmenitiesSectionProps {
   sectionRef: React.RefObject<HTMLDivElement | null>;
@@ -10,6 +11,9 @@ const SiteAmenitiesSection: React.FC<SiteAmenitiesSectionProps> = ({
   sectionRef,
 }) => {
   const { state, updateFormData, saveSection } = useSitesForm();
+  const searchParams = useSearchParams();
+  const propertyId = searchParams ? searchParams.get("propertyId") : null;
+  const siteId = searchParams ? searchParams.get("siteId") : null;
 
   const handleInputChange = (field: string, value: string | string[]) => {
     updateFormData(field, value);
@@ -52,7 +56,7 @@ const SiteAmenitiesSection: React.FC<SiteAmenitiesSectionProps> = ({
     const token = localStorage.getItem("token");
     try {
       const response = await fetch(
-        "http://3.6.115.88/api/properties/16/sites/amenities",
+        `https://api.hightribe.com/api/properties/${propertyId}/sites/amenities`,
         {
           method: "POST",
           headers: {

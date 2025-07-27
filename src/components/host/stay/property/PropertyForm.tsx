@@ -33,7 +33,6 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
   const [showEntranceSuggestions, setShowEntranceSuggestions] = useState(false);
   const mapRef = useRef<PropertyLocationMapRef>(null);
   const [uploadedImages, setUploadedImages] = useState<File[]>([]);
-  const [coverImageIndex, setCoverImageIndex] = useState<number | null>(null);
   const [coverImage, setCoverImage] = useState<File | null>(null);
   const [uploadedVideos, setUploadedVideos] = useState<File[]>([]);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
@@ -479,7 +478,7 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
     try {
       debugger;
       const response = await fetch(
-        "https://high-tribe-backend.hiconsolutions.com/api/properties",
+        "https://api.hightribe.com/api/properties",
         {
           method: "POST",
           headers: {
@@ -530,8 +529,8 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
                   >
                     <div
                       className={`w-8 h-8 rounded-full flex items-center justify-center mr-3 text-sm font-medium ${isCompleted
-                          ? "bg-[#1179FA] text-white"
-                          : "bg-gray-200 text-gray-500"
+                        ? "bg-[#1179FA] text-white"
+                        : "bg-gray-200 text-gray-500"
                         }`}
                     >
                       {isCompleted ? "✓" : ""}
@@ -642,8 +641,8 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
                     </div>
                     <div
                       className={`flex items-center justify-center p-2 rounded-full cursor-pointer hover:shadow-lg transition-all delay-300 ${isFilters
-                          ? "bg-gradient-to-r from-[#D6D5D4] to-white"
-                          : "bg-gradient-to-r from-[#257CFF] to-[#0F62DE]"
+                        ? "bg-gradient-to-r from-[#D6D5D4] to-white"
+                        : "bg-gradient-to-r from-[#257CFF] to-[#0F62DE]"
                         }`}
                       onClick={() => setIsFilters(!isFilters)}
                     >

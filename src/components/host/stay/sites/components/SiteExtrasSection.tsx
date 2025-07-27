@@ -5,6 +5,8 @@ import GlobalSelect from "../../../../global/GlobalSelect";
 import { useForm, useFieldArray, Controller } from "react-hook-form";
 import { useSitesForm } from "../contexts/SitesFormContext";
 import { Extra } from "../types/sites";
+import { useSearchParams } from "next/navigation";
+import toast from "react-hot-toast";
 
 interface SiteExtrasSectionProps {
   sectionRef: React.RefObject<HTMLDivElement | null>;
@@ -12,12 +14,9 @@ interface SiteExtrasSectionProps {
 
 // Reusable select option arrays
 const extraTypeOptions = [
-  { value: "guide", label: "Professional Guide" },
-  { value: "transport", label: "Transportation" },
-  { value: "meals", label: "Meals Included" },
-  { value: "equipment", label: "Equipment Rental" },
-  { value: "photography", label: "Photography Service" },
-  { value: "insurance", label: "Activity Insurance" },
+  { value: "rental_services", label: "Rental Services" },
+  { value: "goods_availability", label: "Goods Availability" },
+  { value: "experience_services", label: "Experience Services" },
 ];
 
 const currencyOptions = [
@@ -47,7 +46,9 @@ const SiteExtrasSection: React.FC<SiteExtrasSectionProps> = ({
   sectionRef,
 }) => {
   const { saveSection } = useSitesForm();
-
+  const searchParams = useSearchParams();
+  const propertyId = searchParams ? searchParams.get("propertyId") : null;
+  const siteId = searchParams ? searchParams.get("siteId") : null;
   const {
     control,
     register,
@@ -68,36 +69,43 @@ const SiteExtrasSection: React.FC<SiteExtrasSectionProps> = ({
     const formData = new FormData();
     const values = watch();
 
-    formData.append("site_id", "16"); // Replace with dynamic site ID if needed
+    // @ts-ignore
+    formData.append("site_id", siteId); // Replace with dynamic site ID if needed
 
     values.extras.forEach((extra, i) => {
-      formData.append(`extras[${i}][type]`, extra.type);
-      formData.append(`extras[${i}][title]`, extra.name);
-      // formData.append(`extras[${i}][description]`, extra.description || "");
-      formData.append(`extras[${i}][currency]`, extra.currency);
-      formData.append(`extras[${i}][rate_type]`, extra.rateType);
-      // formData.append(`extras[${i}][base_rate]`, extra.baseRate || "0");
-      // formData.append(`extras[${i}][weekdays_rate]`, extra.weekdaysRate || "0");
-      // formData.append(`extras[${i}][weekends_rate]`, extra.weekendsRate || "0");
-      // formData.append(`extras[${i}][holidays_rate]`, extra.holidaysRate || "0");
+      formData.append(`type`, extra.type);
+      formData.append(`title`, extra.name);
+      formData.append(`description`, "hello");
+      formData.append(`currency`, extra.currency.toUpperCase());
+      formData.append(`rate_type`, extra.rateType);
+      // @ts-ignore
+      formData.append(`base_rate`, 123);
+      formData.append(`weekdays_rate`, "12");
+      formData.append(`weekends_rate`, "12");
+      formData.append(`holidays_rate`, "12");
       formData.append(
-        `extras[${i}][post_booking_approval]`,
+        `post_booking_approval`,
         extra.approval === "yes" ? "required" : "not_required"
       );
 
       if (extra.image) {
-        formData.append(`extras[${i}][image]`, extra.image);
+        formData.append(`image`, extra.image);
       }
     });
 
+    let token = "";
+    if (typeof window !== "undefined") {
+      token = localStorage.getItem("token") || "";
+    }
+
     try {
       const response = await fetch(
-        "http://3.6.115.88/api/properties/16/sites/extras",
+        `https://api.hightribe.com/api/properties/${propertyId}/sites/extras`,
         {
           method: "POST",
           headers: {
             Accept: "application/json",
-            Authorization: "Bearer YOUR_ACCESS_TOKEN", // Replace this
+            Authorization: `Bearer ${token}`, // Replace this
           },
           body: formData,
         }
@@ -106,14 +114,14 @@ const SiteExtrasSection: React.FC<SiteExtrasSectionProps> = ({
       const result = await response.json();
       if (response.ok) {
         console.log("✅ Extras saved successfully:", result);
-        alert("Extras saved!");
+        toast.success(result.message);
       } else {
         console.error("❌ Failed to save extras:", result);
-        alert("Error: " + JSON.stringify(result));
+        toast.error(result.message);
       }
     } catch (error) {
       console.error("❌ Network error:", error);
-      alert("Network error");
+      toast.error("Network error");
     }
   };
 

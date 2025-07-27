@@ -70,7 +70,7 @@ const registeruser = () => {
 
     const token = localStorage.getItem("token") || "<PASTE_VALID_TOKEN_HERE>";
 
-    const response = await fetch("http://3.6.115.88/api/host-profiles", {
+    const response = await fetch("https://api.hightribe.com/api/host-profiles", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${token}`,

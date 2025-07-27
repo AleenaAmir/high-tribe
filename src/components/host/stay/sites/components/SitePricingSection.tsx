@@ -5,6 +5,8 @@ import GlobalInputStepper from "../../../../global/GlobalInputStepper";
 import GlobalRadioGroup from "../../../../global/GlobalRadioGroup";
 import GlobalSelect from "../../../../global/GlobalSelect";
 import { useSitesForm } from "../contexts/SitesFormContext";
+import { useSearchParams } from "next/navigation";
+import { toast } from "react-hot-toast";
 
 interface SitePricingSectionProps {
   sectionRef: React.RefObject<HTMLDivElement | null>;
@@ -61,12 +63,16 @@ const SitePricingSection: React.FC<SitePricingSectionProps> = ({
     "Free hosting",
     "Work exchange",
   ];
+  const searchParams = useSearchParams();
+  const propertyId = searchParams ? searchParams.get("propertyId") : null;
+  const siteId = searchParams ? searchParams.get("siteId") : null;
 
   const handleSave = async () => {
     const token = localStorage.getItem("token");
     const formData = new FormData();
 
-    formData.append("site_id", "16");
+    // @ts-ignore
+    formData.append("site_id", siteId);
     formData.append("guest_capacity_min", state.guestMin || "1");
     formData.append("guest_capacity_max", state.guestMax || "1");
 
@@ -123,7 +129,7 @@ const SitePricingSection: React.FC<SitePricingSectionProps> = ({
     // API Call
     try {
       const response = await fetch(
-        "http://3.6.115.88/api/properties/2/sites/pricing",
+        `https://api.hightribe.com/api/properties/${propertyId}/sites/pricing`,
         {
           method: "POST",
           headers: {
@@ -137,15 +143,15 @@ const SitePricingSection: React.FC<SitePricingSectionProps> = ({
       if (!response.ok) {
         const error = await response.json();
         console.error("❌ Validation Error:", error);
-        alert("Failed: " + JSON.stringify(error));
+        toast.error("Failed: " + JSON.stringify(error));
       } else {
         const result = await response.json();
         console.log("✅ Success:", result);
-        alert("Pricing saved successfully!");
+        toast.success("Pricing saved successfully!");
       }
     } catch (error) {
       console.error("❌ API Error:", error);
-      alert("An error occurred while saving pricing.");
+      toast.error("An error occurred while saving pricing.");
     }
   };
 

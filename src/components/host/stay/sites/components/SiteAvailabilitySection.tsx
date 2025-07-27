@@ -4,6 +4,8 @@ import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
 import "../CustomCalendar.css";
 import { useSitesForm } from "../contexts/SitesFormContext";
+import { useSearchParams } from "next/navigation";
+import toast from "react-hot-toast";
 
 interface SiteAvailabilitySectionProps {
   sectionRef: React.RefObject<HTMLDivElement | null>;
@@ -35,6 +37,9 @@ const SiteAvailabilitySection: React.FC<SiteAvailabilitySectionProps> = ({
     "Saturday",
     "Sunday",
   ];
+  const searchParams = useSearchParams();
+  const propertyId = searchParams ? searchParams.get("propertyId") : null;
+  const siteId = searchParams ? searchParams.get("siteId") : null;
 
   const handleSave = async () => {
     const availabilityData = {
@@ -48,8 +53,56 @@ const SiteAvailabilitySection: React.FC<SiteAvailabilitySectionProps> = ({
       bookingType: state.bookingType,
     };
 
-    await saveSection("availability", availabilityData);
+    const formData = new FormData();
+
+    // Your dynamic data array (can be moved to top-level or context if reused)
+
+    // @ts-ignore
+    formData.append("site_id", siteId);
+
+    formData.append("availability_type", "days");
+    formData.append("available_days[]", "sunday");
+    formData.append("available_days[]", "monday");
+    formData.append("notice_period", "Book the room 1 day before arrival");
+    formData.append("booking_type", state.bookingType);
+    formData.append("advance_booking_limit", "up to 1-2 month ahead");
+    formData.append("cancellation_policy", state.cancellationPolicy);
+
+    // Append all fields dynamically
+
+
+    let token = "";
+    if (typeof window !== "undefined") {
+      token = localStorage.getItem("token") || "";
+    }
+
+    try {
+      const response = await fetch(
+        `https://api.hightribe.com/api/properties/${propertyId}/sites/availability`,
+        {
+          method: "POST",
+          headers: {
+            Accept: "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: formData,
+        }
+      );
+
+      const result = await response.json();
+      if (response.ok) {
+        console.log("✅ Extras saved successfully:", result);
+        toast.success(result.message);
+      } else {
+        console.error("❌ Failed to save extras:", result);
+        toast.error(result.message);
+      }
+    } catch (error) {
+      console.error("❌ Network error:", error);
+      toast.error("Network error");
+    }
   };
+
 
   return (
     <div ref={sectionRef}>

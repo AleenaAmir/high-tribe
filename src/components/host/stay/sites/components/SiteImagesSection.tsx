@@ -2,6 +2,7 @@
 import React from "react";
 import { useSitesForm } from "../contexts/SitesFormContext";
 import { toast } from "react-hot-toast";
+import { useSearchParams } from "next/navigation";
 
 interface SiteImagesSectionProps {
   sectionRef: React.RefObject<HTMLDivElement | null>;
@@ -14,6 +15,8 @@ const SiteImagesSection = ({ sectionRef }: SiteImagesSectionProps) => {
     updateUploadedVideos,
     updateCoverImage,
   } = useSitesForm();
+  const searchParams = useSearchParams();
+  const propertyId = searchParams ? searchParams.get("propertyId") : null;
 
   // Handle file upload
   const handleFileUpload = (
@@ -26,6 +29,7 @@ const SiteImagesSection = ({ sectionRef }: SiteImagesSectionProps) => {
       updateUploadedVideos([...state.uploadedVideos, ...files]);
     }
   };
+
 
   // Remove image
   const removeImage = (index: number) => {
@@ -60,7 +64,7 @@ const SiteImagesSection = ({ sectionRef }: SiteImagesSectionProps) => {
 
     try {
       const response = await fetch(
-        "http://3.6.115.88/api/properties/16/sites/media",
+        `https://api.hightribe.com/api/properties/${propertyId}/sites/media`,
         {
           method: "POST",
           headers: {

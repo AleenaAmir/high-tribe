@@ -5,6 +5,8 @@ import GlobalSelect from "../../../../global/GlobalSelect";
 import GlobalTextArea from "../../../../global/GlobalTextArea";
 import { useSitesForm } from "../contexts/SitesFormContext";
 import { toast } from "react-hot-toast";
+import { useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 interface SiteOverviewSectionProps {
   sectionRef: React.RefObject<HTMLDivElement | null>;
@@ -14,6 +16,10 @@ const SiteOverviewSection: React.FC<SiteOverviewSectionProps> = ({
   sectionRef,
 }) => {
   const { state, updateFormData, saveSection } = useSitesForm();
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const propertyId = searchParams ? searchParams.get("propertyId") : null;
+  console.log(propertyId);
 
   const handleInputChange = (field: string, value: string | string[]) => {
     updateFormData(field, value);
@@ -35,7 +41,7 @@ const SiteOverviewSection: React.FC<SiteOverviewSectionProps> = ({
     formData.append("privacy_type", state.formData.sitePrivacy);
 
     const response = await fetch(
-      "http://3.6.115.88/api/properties/16/sites/location-overview",
+      `https://api.hightribe.com/api/properties/${propertyId}/sites/location-overview`,
       {
         method: "POST",
         body: formData,
@@ -47,8 +53,17 @@ const SiteOverviewSection: React.FC<SiteOverviewSectionProps> = ({
     );
     debugger;
     const data = await response.json();
+
     if (data.message) {
       toast.success(data.message);
+      const siteId = data.data.id; // Extract the site ID from the response
+      // Use the siteId as needed, for example, sending it as a parameter
+      console.log(`Site ID: ${siteId}`);
+      const updatedUrl = new URL(window.location.href);
+      updatedUrl.searchParams.set("siteId", siteId);
+      router.push(updatedUrl.toString());
+
+
     }
   };
 
@@ -163,12 +178,12 @@ const SiteOverviewSection: React.FC<SiteOverviewSectionProps> = ({
                       onChange={(e) => {
                         const updated = e.target.checked
                           ? [
-                              ...(state.formData.house_sharing || []),
-                              option.value,
-                            ]
+                            ...(state.formData.house_sharing || []),
+                            option.value,
+                          ]
                           : (state.formData.house_sharing || []).filter(
-                              (v) => v !== option.value
-                            );
+                            (v) => v !== option.value
+                          );
                         handleInputChange("house_sharing", updated);
                       }}
                       className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"

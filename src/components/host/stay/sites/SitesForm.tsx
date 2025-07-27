@@ -12,6 +12,7 @@ import SiteAvailabilitySection from "./components/SiteAvailabilitySection";
 import SiteArrivalSection from "./components/SiteArrivalSection";
 import { Section } from "./types/sites";
 import { toast } from "react-hot-toast";
+import { useSearchParams } from "next/navigation";
 
 interface SitesFormProps {
   onBack?: () => void;
@@ -96,6 +97,9 @@ const SitesFormContent: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
       requiredFields: ["termsAccepted"],
     },
   ];
+  const searchParams = useSearchParams();
+  const propertyId = searchParams ? searchParams.get("propertyId") : null;
+  const siteId = searchParams ? searchParams.get("siteId") : null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -104,11 +108,15 @@ const SitesFormContent: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
       token = localStorage.getItem("token") || "";
     }
     const formData = new FormData();
+    // @ts-ignore
+    formData.append("site_id", siteId);
     formData.append("publish_status", "scheduled");
-    formData.append("scheduled_publish_at", new Date().toISOString());
+    const now = new Date();
+    const futureDate = new Date(now.getTime() + 5 * 60 * 1000); // 5 minutes from now
+    formData.append("scheduled_publish_at", futureDate.toISOString());
     try {
       const response = await fetch(
-        "http://3.6.115.88/api/properties/16/review-publish",
+        `https://api.hightribe.com/api/properties/${propertyId}/sites/review-publish`,
         {
           method: "POST",
           headers: {
@@ -135,18 +143,43 @@ const SitesFormContent: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
     }
   };
 
-  const handleExit = () => {
-    if (onBack) {
-      onBack();
-    } else {
-      // Fallback to original behavior
-      const params = new URLSearchParams(window.location.search);
-      params.delete("sites");
-      window.history.replaceState(
-        {},
-        "",
-        `${window.location.pathname}?${params.toString()}`
+  const handleExit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    let token = "";
+    if (typeof window !== "undefined") {
+      token = localStorage.getItem("token") || "";
+    }
+    const formData = new FormData();
+    // @ts-ignore
+    formData.append("site_id", siteId);
+    formData.append("publish_status", "draft");
+
+    try {
+      const response = await fetch(
+        `https://api.hightribe.com/api/properties/${propertyId}/sites/review-publish`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            Accept: "application/json",
+          },
+          body: formData,
+        }
       );
+
+      const data = await response.json();
+      if (data.message) {
+        toast.success(data.message);
+      }
+
+      if (response.ok) {
+        toast.success("Site saved as draft");
+      } else {
+        toast.error("Site not saved as draft");
+      }
+    } catch (error) {
+      console.error("Upload error:", error);
+      toast.error("An error occurred during upload");
     }
   };
 

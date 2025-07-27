@@ -3,6 +3,7 @@ import React from "react";
 import GlobalTextInput from "../../../../global/GlobalTextInput";
 import GlobalTextArea from "../../../../global/GlobalTextArea";
 import { useSitesForm } from "../contexts/SitesFormContext";
+import { useSearchParams } from "next/navigation";
 
 interface SiteArrivalSectionProps {
   sectionRef: React.RefObject<HTMLDivElement | null>;
@@ -12,7 +13,9 @@ const SiteArrivalSection: React.FC<SiteArrivalSectionProps> = ({
   sectionRef,
 }) => {
   const { state, updateFormData, saveSection } = useSitesForm();
-
+  const searchParams = useSearchParams();
+  const propertyId = searchParams ? searchParams.get("propertyId") : null;
+  const siteId = searchParams ? searchParams.get("siteId") : null;
   const handleInputChange = (field: string, value: string) => {
     updateFormData(field, value);
   };
@@ -23,12 +26,13 @@ const SiteArrivalSection: React.FC<SiteArrivalSectionProps> = ({
 
   const handleSave = async () => {
     const formData = new FormData();
-    formData.append("site_id", "16");
+    // @ts-ignore
+    formData.append("site_id", siteId);
     formData.append("check_in_time", state.formData.checkInTime);
     formData.append("check_out_time", state.formData.checkOutTime);
     formData.append("arrival_instructions", state.formData.arrivalInstructions);
 
-    fetch("http://3.6.115.88/api/properties/16/sites/arrival-instructions", {
+    fetch(`https://api.hightribe.com/api/properties/${propertyId}/sites/arrival-instructions`, {
       method: "POST",
       headers: {
         Accept: "application/json",
