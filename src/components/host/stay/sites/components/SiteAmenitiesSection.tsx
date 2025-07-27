@@ -2,6 +2,7 @@
 import React from "react";
 import { useSitesForm } from "../contexts/SitesFormContext";
 import { useSearchParams } from "next/navigation";
+import { toast } from "react-hot-toast";
 
 interface SiteAmenitiesSectionProps {
   sectionRef: React.RefObject<HTMLDivElement | null>;
@@ -71,6 +72,7 @@ const SiteAmenitiesSection: React.FC<SiteAmenitiesSectionProps> = ({
       );
 
       const result = await response.json();
+      toast.success("Amenities saved successfully!");
       console.log("API response:", result);
     } catch (error) {
       console.error("Error saving amenities:", error);

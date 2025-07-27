@@ -4,6 +4,7 @@ import GlobalTextInput from "../../../../global/GlobalTextInput";
 import GlobalTextArea from "../../../../global/GlobalTextArea";
 import { useSitesForm } from "../contexts/SitesFormContext";
 import { useSearchParams } from "next/navigation";
+import toast from "react-hot-toast";
 
 interface SiteArrivalSectionProps {
   sectionRef: React.RefObject<HTMLDivElement | null>;
@@ -32,16 +33,22 @@ const SiteArrivalSection: React.FC<SiteArrivalSectionProps> = ({
     formData.append("check_out_time", state.formData.checkOutTime);
     formData.append("arrival_instructions", state.formData.arrivalInstructions);
 
-    fetch(`https://api.hightribe.com/api/properties/${propertyId}/sites/arrival-instructions`, {
-      method: "POST",
-      headers: {
-        Accept: "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: formData,
-    })
+    fetch(
+      `https://api.hightribe.com/api/properties/${propertyId}/sites/arrival-instructions`,
+      {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: formData,
+      }
+    )
       .then((res) => res.json())
-      .then((data) => console.log(data));
+      .then((data) => {
+        console.log(data);
+        toast.success("Arrival instructions saved successfully!");
+      });
   };
 
   return (

@@ -13,6 +13,11 @@ import DestinationSvg from "@/components/dashboard/svgs/DestinationSvg";
 import Location from "@/components/dashboard/svgs/Location";
 import Filters from "@/components/dashboard/svgs/Filters";
 import { useSitesForm } from "../contexts/SitesFormContext";
+import {
+  fetchGooglePlaceSuggestions,
+  getGooglePlaceDetails,
+  getCoordinatesForGooglePlace,
+} from "@/lib/googlePlaces";
 
 const MAPBOX_ACCESS_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
 
@@ -74,7 +79,7 @@ const SiteLocationSection: React.FC<SiteLocationSectionProps> = ({
     []
   );
 
-  // Entrance search with contextual suggestions based on site location
+  // Entrance search with Google Places API for better POI suggestions
   const fetchEntranceSuggestions = useCallback(
     async (
       query: string,
@@ -88,7 +93,20 @@ const SiteLocationSection: React.FC<SiteLocationSectionProps> = ({
 
       setLoading(true);
       try {
-        // Build search query with site location context if available
+        // Try Google Places API first with location bias
+        if (state.selectedLocation.coords) {
+          const googleSuggestions = await fetchGooglePlaceSuggestions(query, {
+            lat: state.selectedLocation.coords[1],
+            lng: state.selectedLocation.coords[0],
+          });
+
+          if (googleSuggestions.length > 0) {
+            setSuggestions(googleSuggestions);
+            return;
+          }
+        }
+
+        // Fallback to Mapbox if Google Places returns no results
         let searchQuery = query;
         let apiUrl = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(
           searchQuery
@@ -167,16 +185,46 @@ const SiteLocationSection: React.FC<SiteLocationSectionProps> = ({
     }
   };
 
-  const handleEntranceSuggestionClick = (feature: any) => {
-    setEntranceSearch(feature.place_name);
-    updateFormData("entranceLocation", feature.place_name);
-    setShowEntranceSuggestions(false);
+  const handleEntranceSuggestionClick = async (suggestion: any) => {
+    try {
+      let coordinates: [number, number] | null = null;
+      let selectedText = "";
 
-    // Add marker at the exact entrance location
-    if (mapRef.current && feature.geometry?.coordinates) {
-      const [lng, lat] = feature.geometry.coordinates;
-      mapRef.current.addMarker(lng, lat, feature.place_name);
-      updateSelectedLocation({ coords: [lng, lat], name: feature.place_name });
+      // Check if this is a Google Places suggestion
+      if (suggestion.place_id && suggestion.structured_formatting) {
+        // Google Places suggestion
+        coordinates = await getCoordinatesForGooglePlace(suggestion.place_id);
+        if (coordinates) {
+          selectedText = suggestion.description;
+          updateFormData("entranceLocation", selectedText);
+          updateSelectedLocation({
+            coords: coordinates,
+            name: selectedText,
+          });
+        }
+      } else {
+        // Mapbox suggestion
+        coordinates = suggestion.geometry?.coordinates;
+        selectedText = suggestion.place_name;
+        updateFormData("entranceLocation", selectedText);
+        if (coordinates) {
+          updateSelectedLocation({
+            coords: coordinates,
+            name: selectedText,
+          });
+        }
+      }
+
+      if (coordinates && mapRef.current) {
+        mapRef.current.addMarker(coordinates[0], coordinates[1], "entrance");
+        mapRef.current.centerMap(coordinates[0], coordinates[1]);
+      }
+
+      setEntranceSuggestions([]);
+      setEntranceSearch(selectedText);
+      setShowEntranceSuggestions(false);
+    } catch (error) {
+      console.error("Error handling entrance suggestion click:", error);
     }
   };
 
@@ -262,13 +310,28 @@ const SiteLocationSection: React.FC<SiteLocationSectionProps> = ({
               )}
               {showEntranceSuggestions && entranceSuggestions.length > 0 && (
                 <div className="absolute left-0 top-10 w-full bg-white border border-gray-200 rounded-lg shadow-lg z-20 max-h-60 overflow-auto">
-                  {entranceSuggestions.map((feature) => (
+                  {entranceSuggestions.map((suggestion: any, index: number) => (
                     <div
-                      key={feature.id}
-                      className="px-4 py-2 cursor-pointer hover:bg-blue-50 text-sm"
-                      onClick={() => handleEntranceSuggestionClick(feature)}
+                      key={suggestion.place_id || suggestion.id || index}
+                      className="p-3 hover:bg-gray-100 cursor-pointer border-b border-gray-200 last:border-b-0"
+                      onClick={() => handleEntranceSuggestionClick(suggestion)}
                     >
-                      {feature.place_name}
+                      {suggestion.structured_formatting ? (
+                        // Google Places suggestion
+                        <div>
+                          <div className="font-medium text-gray-900">
+                            {suggestion.structured_formatting.main_text}
+                          </div>
+                          <div className="text-sm text-gray-500">
+                            {suggestion.structured_formatting.secondary_text}
+                          </div>
+                        </div>
+                      ) : (
+                        // Mapbox suggestion
+                        <div className="text-gray-700">
+                          {suggestion.place_name}
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>

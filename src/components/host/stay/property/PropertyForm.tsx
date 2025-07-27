@@ -18,9 +18,15 @@ import DestinationSvg from "@/components/dashboard/svgs/DestinationSvg";
 import Location from "@/components/dashboard/svgs/Location";
 import Filters from "@/components/dashboard/svgs/Filters";
 import { toast } from "react-hot-toast";
+import {
+  fetchGooglePlaceSuggestions,
+  getGooglePlaceDetails,
+  getCoordinatesForGooglePlace,
+} from "@/lib/googlePlaces";
+
 const MAPBOX_ACCESS_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
 
-interface PropertyFormProps { }
+interface PropertyFormProps {}
 
 const PropertyForm: React.FC<PropertyFormProps> = () => {
   const [search, setSearch] = useState("");
@@ -62,7 +68,6 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
 
   // Form state
   const [formData, setFormData] = useState({
-
     location_address: "123 Main St, Anytown, USA",
     location_lat: "123.2",
     location_lng: "123.2",
@@ -70,7 +75,6 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
     entrance_address: "123 Main St, Anytown, USA",
     entrance_lat: "123.2",
     entrance_lng: "123.2",
-
 
     acres: "5",
     property_name: "Test Property",
@@ -111,12 +115,7 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
       title: "Property Overview",
       icon: "📋",
       ref: overviewRef,
-      requiredFields: [
-        "acres",
-        "property_name",
-        "property_type",
-        "languages",
-      ],
+      requiredFields: ["acres", "property_name", "property_type", "languages"],
     },
     {
       id: "images",
@@ -178,14 +177,15 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
 
   // Add additional validation for bank fields when bank is selected
 
-
   // Enhanced section completion check
   const getSectionStatus = (section: (typeof sections)[0]) => {
     const baseComplete = isSectionCompleted(section);
 
     if (section.id === "location") {
       // Location section is complete when exact entrance location is set
-      return formData.entrance_address && formData.entrance_address.trim() !== "";
+      return (
+        formData.entrance_address && formData.entrance_address.trim() !== ""
+      );
     }
 
     if (section.id === "payouts") {
@@ -229,7 +229,7 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
       });
   }, [search]);
 
-  // Autocomplete for entrance search input
+  // Autocomplete for entrance search input with Google Places API
   useEffect(() => {
     if (entranceSearch.length < 2) {
       setEntranceSuggestions([]);
@@ -237,41 +237,61 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
     }
     setIsEntranceLoading(true);
 
-    // Build search query with property location context if available
-    let searchQuery = entranceSearch;
-    let apiUrl = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(
-      searchQuery
-    )}.json?access_token=${MAPBOX_ACCESS_TOKEN}&autocomplete=true&limit=5`;
+    const fetchEntranceSuggestions = async () => {
+      try {
+        // Try Google Places API first with location bias
+        if (selectedLocation.coords) {
+          const googleSuggestions = await fetchGooglePlaceSuggestions(
+            entranceSearch,
+            {
+              lat: selectedLocation.coords[1],
+              lng: selectedLocation.coords[0],
+            }
+          );
 
-    // Configure API for detailed address/street results
-    apiUrl += `&types=address,poi,place,locality,neighborhood`;
+          if (googleSuggestions.length > 0) {
+            setEntranceSuggestions(googleSuggestions);
+            setIsEntranceLoading(false);
+            return;
+          }
+        }
 
-    // If property location is set, bias the search towards that area
-    if (formData.location_address) {
-      // Add the property location as context to the search
-      searchQuery = `${entranceSearch}, ${formData.location_address}`;
-      apiUrl = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(
-        searchQuery
-      )}.json?access_token=${MAPBOX_ACCESS_TOKEN}&autocomplete=true&limit=10&types=address,poi,place,locality,neighborhood`;
+        // Fallback to Mapbox if Google Places returns no results
+        let searchQuery = entranceSearch;
+        let apiUrl = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(
+          searchQuery
+        )}.json?access_token=${MAPBOX_ACCESS_TOKEN}&autocomplete=true&limit=5`;
 
-      // If we have coordinates from the selected location, use proximity bias
-      if (selectedLocation.coords) {
-        const [lng, lat] = selectedLocation.coords;
-        apiUrl += `&proximity=${lng},${lat}`;
-      }
-    }
+        // Configure API for detailed address/street results
+        apiUrl += `&types=address,poi,place,locality,neighborhood`;
 
-    fetch(apiUrl)
-      .then((res) => res.json())
-      .then((data) => {
+        // If property location is set, bias the search towards that area
+        if (formData.location_address) {
+          // Add the property location as context to the search
+          searchQuery = `${entranceSearch}, ${formData.location_address}`;
+          apiUrl = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(
+            searchQuery
+          )}.json?access_token=${MAPBOX_ACCESS_TOKEN}&autocomplete=true&limit=10&types=address,poi,place,locality,neighborhood`;
+
+          // If we have coordinates from the selected location, use proximity bias
+          if (selectedLocation.coords) {
+            const [lng, lat] = selectedLocation.coords;
+            apiUrl += `&proximity=${lng},${lat}`;
+          }
+        }
+
+        const response = await fetch(apiUrl);
+        const data = await response.json();
         setEntranceSuggestions(data.features || []);
-        setIsEntranceLoading(false);
-      })
-      .catch((error) => {
+      } catch (error) {
         console.error("Error fetching entrance suggestions:", error);
         setEntranceSuggestions([]);
+      } finally {
         setIsEntranceLoading(false);
-      });
+      }
+    };
+
+    fetchEntranceSuggestions();
   }, [entranceSearch, formData.location_address, selectedLocation.coords]);
 
   // Handle suggestion click
@@ -281,7 +301,7 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
       ...prev,
       location_address: feature.place_name,
       location_lat: feature.center ? feature.center[1].toString() : "31.88",
-      location_lng: feature.center ? feature.center[0].toString() : "71.56"
+      location_lng: feature.center ? feature.center[0].toString() : "71.56",
     }));
     setSuggestions([]);
     setShowSuggestions(false);
@@ -302,22 +322,57 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
   };
 
   // Handle entrance suggestion click
-  const handleEntranceSuggestionClick = (feature: any) => {
-    setEntranceSearch(feature.place_name);
-    setFormData((prev) => ({
-      ...prev,
-      entrance_address: feature.place_name,
-      entrance_lat: feature.center ? feature.center[1].toString() : "123.2",
-      entrance_lng: feature.center ? feature.center[0].toString() : "123.2"
-    }));
-    setEntranceSuggestions([]);
-    setShowEntranceSuggestions(false);
+  const handleEntranceSuggestionClick = async (suggestion: any) => {
+    try {
+      let coordinates: [number, number] | null = null;
+      let selectedText = "";
 
-    // Add marker at the exact entrance location
-    if (mapRef.current && feature.center) {
-      const [lng, lat] = feature.center;
-      mapRef.current.addMarker(lng, lat, feature.place_name);
-      setSelectedLocation({ coords: [lng, lat], name: feature.place_name });
+      // Check if this is a Google Places suggestion
+      if (suggestion.place_id && suggestion.structured_formatting) {
+        // Google Places suggestion
+        coordinates = await getCoordinatesForGooglePlace(suggestion.place_id);
+        if (coordinates) {
+          selectedText = suggestion.description;
+          setEntranceSearch(selectedText);
+          setFormData((prev) => ({
+            ...prev,
+            entrance_address: selectedText,
+            entrance_lat: coordinates![1].toString(),
+            entrance_lng: coordinates![0].toString(),
+          }));
+        }
+      } else {
+        // Mapbox suggestion
+        coordinates = suggestion.center;
+        selectedText = suggestion.place_name;
+        setEntranceSearch(selectedText);
+        if (coordinates) {
+          setFormData((prev) => ({
+            ...prev,
+            entrance_address: selectedText,
+            entrance_lat: coordinates![1].toString(),
+            entrance_lng: coordinates![0].toString(),
+          }));
+        } else {
+          setFormData((prev) => ({
+            ...prev,
+            entrance_address: selectedText,
+            entrance_lat: "123.2",
+            entrance_lng: "123.2",
+          }));
+        }
+      }
+
+      // Add marker at the exact entrance location
+      if (coordinates && mapRef.current) {
+        mapRef.current.addMarker(coordinates[0], coordinates[1], "entrance");
+        setSelectedLocation({ coords: coordinates, name: selectedText });
+      }
+
+      setEntranceSuggestions([]);
+      setShowEntranceSuggestions(false);
+    } catch (error) {
+      console.error("Error handling entrance suggestion click:", error);
     }
   };
 
@@ -329,7 +384,7 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
         ...prev,
         entrance_address: placeName,
         entrance_lat: coords[1].toString(),
-        entrance_lng: coords[0].toString()
+        entrance_lng: coords[0].toString(),
       }));
       setSelectedLocation({
         coords,
@@ -367,6 +422,12 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
 
   const handleSubmit = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
+
+    // Prevent double submission
+    if (isSubmitting) {
+      return;
+    }
+
     setIsSubmitting(true);
 
     const newErrors: { [key: string]: string } = {};
@@ -447,11 +508,11 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
     form.append("tax_collection_method", "collected_at_checkin");
     form.append("tax_name", formData.tax_name || "Tax");
     form.append("tax_rate", formData.tax_rate || "10");
-    form.append("tax_notes", formData.tax_notes || "Tax is 10% of the nightly rate");
+    form.append(
+      "tax_notes",
+      formData.tax_notes || "Tax is 10% of the nightly rate"
+    );
     form.append("agreed_to_terms", formData.agreed_to_terms);
-
-
-
 
     // Append uploaded images
     if (uploadedImages.length > 0) {
@@ -460,7 +521,11 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
       });
     } else {
       // If no images uploaded, send a placeholder
-      form.append("media[]", new Blob([''], { type: 'image/png' }), 'placeholder.png');
+      form.append(
+        "media[]",
+        new Blob([""], { type: "image/png" }),
+        "placeholder.png"
+      );
     }
     form.append("type", "image");
 
@@ -476,19 +541,15 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
 
     // Send form data to backend
     try {
-      debugger;
-      const response = await fetch(
-        "https://api.hightribe.com/api/properties",
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Accept": "application/json",
-            // Remove Content-Type header - let browser set it automatically for FormData
-          },
-          body: form,
-        }
-      );
+      const response = await fetch("https://api.hightribe.com/api/properties", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json",
+          // Remove Content-Type header - let browser set it automatically for FormData
+        },
+        body: form,
+      });
 
       if (!response.ok) {
         const errorData = await response.text();
@@ -499,8 +560,15 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
 
       const result = await response.json();
       console.log("Property created successfully:", result);
-      toast.success("Property created successfully!");
 
+      // Use a unique toast ID to prevent duplicates
+      toast.success("Property created successfully!", {
+        id: "property-created-success",
+      });
+      // Redirect to "/host/stay?tab=property" after successful property creation
+      if (typeof window !== "undefined") {
+        window.location.href = "/host/stay?tab=property";
+      }
     } catch (error) {
       console.error("Network error:", error);
       toast.error("Something went wrong while submitting.");
@@ -528,10 +596,11 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
                     onClick={() => scrollToSection(section.ref)}
                   >
                     <div
-                      className={`w-8 h-8 rounded-full flex items-center justify-center mr-3 text-sm font-medium ${isCompleted
-                        ? "bg-[#1179FA] text-white"
-                        : "bg-gray-200 text-gray-500"
-                        }`}
+                      className={`w-8 h-8 rounded-full flex items-center justify-center mr-3 text-sm font-medium ${
+                        isCompleted
+                          ? "bg-[#1179FA] text-white"
+                          : "bg-gray-200 text-gray-500"
+                      }`}
                     >
                       {isCompleted ? "✓" : ""}
                     </div>
@@ -625,35 +694,65 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
                       {showEntranceSuggestions &&
                         entranceSuggestions.length > 0 && (
                           <div className="absolute left-0 top-10 w-full bg-white border border-gray-200 rounded-lg shadow-lg z-20 max-h-60 overflow-auto">
-                            {entranceSuggestions.map((feature) => (
-                              <div
-                                key={feature.id}
-                                className="px-4 py-2 cursor-pointer hover:bg-blue-50 text-sm"
-                                onClick={() =>
-                                  handleEntranceSuggestionClick(feature)
-                                }
-                              >
-                                {feature.place_name}
-                              </div>
-                            ))}
+                            {entranceSuggestions.map(
+                              (suggestion: any, index: number) => (
+                                <div
+                                  key={
+                                    suggestion.place_id ||
+                                    suggestion.id ||
+                                    index
+                                  }
+                                  className="p-3 hover:bg-gray-100 cursor-pointer border-b border-gray-200 last:border-b-0"
+                                  onClick={() =>
+                                    handleEntranceSuggestionClick(suggestion)
+                                  }
+                                >
+                                  {suggestion.structured_formatting ? (
+                                    // Google Places suggestion
+                                    <div>
+                                      <div className="font-medium text-gray-900">
+                                        {
+                                          suggestion.structured_formatting
+                                            .main_text
+                                        }
+                                      </div>
+                                      <div className="text-sm text-gray-500">
+                                        {
+                                          suggestion.structured_formatting
+                                            .secondary_text
+                                        }
+                                      </div>
+                                    </div>
+                                  ) : (
+                                    // Mapbox suggestion
+                                    <div className="text-gray-700">
+                                      {suggestion.place_name}
+                                    </div>
+                                  )}
+                                </div>
+                              )
+                            )}
                           </div>
                         )}
                     </div>
                     <div
-                      className={`flex items-center justify-center p-2 rounded-full cursor-pointer hover:shadow-lg transition-all delay-300 ${isFilters
-                        ? "bg-gradient-to-r from-[#D6D5D4] to-white"
-                        : "bg-gradient-to-r from-[#257CFF] to-[#0F62DE]"
-                        }`}
+                      className={`flex items-center justify-center p-2 rounded-full cursor-pointer hover:shadow-lg transition-all delay-300 ${
+                        isFilters
+                          ? "bg-gradient-to-r from-[#D6D5D4] to-white"
+                          : "bg-gradient-to-r from-[#257CFF] to-[#0F62DE]"
+                      }`}
                       onClick={() => setIsFilters(!isFilters)}
                     >
                       <Filters
-                        className={`${isFilters ? "text-[#6C6868]" : "text-white"
-                          } flex-shrink-0`}
+                        className={`${
+                          isFilters ? "text-[#6C6868]" : "text-white"
+                        } flex-shrink-0`}
                       />
                     </div>
                     <div
-                      className={`${isFilters ? "max-w-full" : "max-w-0"
-                        } flex items-center gap-2 transition-all w-fit delay-300 overflow-hidden`}
+                      className={`${
+                        isFilters ? "max-w-full" : "max-w-0"
+                      } flex items-center gap-2 transition-all w-fit delay-300 overflow-hidden`}
                     >
                       {filtersArray.map((filter, i) => (
                         <div
@@ -1106,7 +1205,9 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
                           name="isLocalTax"
                           value="no"
                           checked={formData.is_tax_applicable === "no"}
-                          onChange={() => handleInputChange("is_tax_applicable", "no")}
+                          onChange={() =>
+                            handleInputChange("is_tax_applicable", "no")
+                          }
                           className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500 focus:ring-2"
                         />
                         <span className="text-[#1C231F]">
@@ -1208,7 +1309,7 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
                   <input
                     type="checkbox"
                     id="terms"
-                    checked={formData.agreed_to_terms === 'true'}
+                    checked={formData.agreed_to_terms === "true"}
                     onChange={(e) =>
                       setFormData((prev) => ({
                         ...prev,
