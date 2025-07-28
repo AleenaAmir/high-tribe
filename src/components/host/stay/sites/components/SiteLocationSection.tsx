@@ -65,7 +65,7 @@ const SiteLocationSection: React.FC<SiteLocationSectionProps> = ({
         const response = await fetch(
           `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(
             query
-          )}.json?access_token=${MAPBOX_ACCESS_TOKEN}&limit=5&country=pk&types=place,region,locality,district`
+          )}.json?access_token=${MAPBOX_ACCESS_TOKEN}&limit=5&types=place,region,locality,district`
         );
         const data = await response.json();
         setSuggestions(data.features || []);

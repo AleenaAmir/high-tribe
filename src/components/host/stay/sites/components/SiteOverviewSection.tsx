@@ -51,7 +51,7 @@ const SiteOverviewSection: React.FC<SiteOverviewSectionProps> = ({
         },
       }
     );
-    debugger;
+
     const data = await response.json();
 
     if (data.message) {
@@ -61,9 +61,7 @@ const SiteOverviewSection: React.FC<SiteOverviewSectionProps> = ({
       console.log(`Site ID: ${siteId}`);
       const updatedUrl = new URL(window.location.href);
       updatedUrl.searchParams.set("siteId", siteId);
-      router.push(updatedUrl.toString());
-
-
+      router.push(updatedUrl.toString(), { scroll: false });
     }
   };
 
@@ -178,12 +176,12 @@ const SiteOverviewSection: React.FC<SiteOverviewSectionProps> = ({
                       onChange={(e) => {
                         const updated = e.target.checked
                           ? [
-                            ...(state.formData.house_sharing || []),
-                            option.value,
-                          ]
+                              ...(state.formData.house_sharing || []),
+                              option.value,
+                            ]
                           : (state.formData.house_sharing || []).filter(
-                            (v) => v !== option.value
-                          );
+                              (v) => v !== option.value
+                            );
                         handleInputChange("house_sharing", updated);
                       }}
                       className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
