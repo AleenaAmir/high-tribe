@@ -392,7 +392,7 @@ export const SitesFormProvider: React.FC<SitesFormProviderProps> = ({
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
       // For now, just show success message
-      alert(`${sectionId} data saved successfully!`);
+      // alert(`${sectionId} data saved successfully!`);
     } catch (error) {
       console.error(`Error saving ${sectionId}:`, error);
       alert(`Error saving ${sectionId} data`);

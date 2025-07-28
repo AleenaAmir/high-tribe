@@ -151,6 +151,161 @@ export async function apiRequest<T>(
   }
 }
 
+/**
+ * Helper for FormData requests
+ * 
+ * @example
+ * ```typescript
+ * const formData = new FormData();
+ * formData.append("file", file);
+ * formData.append("title", "My Title");
+ * 
+ * const result = await apiFormDataRequest<ApiResponse>(
+ *   "upload/endpoint",
+ *   formData,
+ *   { method: "POST" },
+ *   "File uploaded successfully!"
+ * );
+ * ```
+ */
+export async function apiFormDataRequest<T>(
+  input: string,
+  formData: FormData,
+  options?: Omit<RequestInit, 'body'>,
+  successMessage?: string
+): Promise<T> {
+  try {
+    // Get token from localStorage
+    let token = "";
+    if (typeof window !== "undefined") {
+      token = localStorage.getItem("token") || "";
+      // TEMP: Hardcoded token for testing. REMOVE after testing!
+      if (!token) {
+        token = "<PASTE_VALID_TOKEN_HERE>";
+      }
+    }
+
+    // Prepare headers
+    const headers: HeadersInit = {
+      Accept: "application/json",
+    };
+
+    if (token) {
+      headers.Authorization = `Bearer ${token}`;
+    }
+
+    // Make the request
+    const response = await fetch(`${apiBaseUrl}${input}`, {
+      method: options?.method || "POST",
+      headers,
+      body: formData,
+      ...options,
+    });
+
+    // Parse response
+    let data: T;
+    try {
+      data = await response.json();
+    } catch (parseError) {
+      throw new Error("Failed to parse response");
+    }
+
+    // Check if the response contains an error message even with 200 status
+    if (data && typeof data === 'object' && 'error' in data && !('user' in data) && !('token' in data)) {
+      const errorMessage = (data as any).message || (data as any).error || "An error occurred";
+      const error = new Error(errorMessage) as Error & { status?: number };
+      error.name = "ApiError";
+      error.status = 400; // Treat as client error
+
+      toast.error(errorMessage);
+      throw error;
+    }
+
+    // Handle HTTP error status codes
+    if (!response.ok) {
+      let message = "An error occurred during the request.";
+      
+      if (data && typeof data === 'object' && 'message' in data) {
+        message = (data as any).message;
+      } else if (data && typeof data === 'object' && 'error' in data) {
+        message = (data as any).error;
+      } else {
+        // Provide meaningful messages based on HTTP status codes
+        switch (response.status) {
+          case 400:
+            message = "Invalid request. Please check your input and try again.";
+            break;
+          case 401:
+            message = "Authentication failed. Please check your credentials.";
+            break;
+          case 403:
+            message = "Access denied. You don't have permission to perform this action.";
+            break;
+          case 404:
+            message = "Resource not found. Please check the URL and try again.";
+            break;
+          case 409:
+            message = "Conflict detected. This resource already exists.";
+            break;
+          case 422:
+            message = "Validation failed. Please check your input data.";
+            break;
+          case 429:
+            message = "Too many requests. Please wait a moment and try again.";
+            break;
+          case 500:
+            message = "Server error. Please try again later.";
+            break;
+          case 502:
+          case 503:
+          case 504:
+            message = "Service temporarily unavailable. Please try again later.";
+            break;
+          default:
+            message = `Request failed (${response.status}). Please try again.`;
+        }
+      }
+
+      const error = new Error(message) as Error & { status?: number };
+      error.name = "ApiError";
+      error.status = response.status;
+      toast.error(message);
+      throw error;
+    }
+
+    // Only show success message if no error was found
+    if (successMessage) {
+      toast.success(successMessage);
+    }
+    return data;
+  } catch (err: any) {
+    // If it's already an ApiError, re-throw it
+    if (err.name === "ApiError") {
+      throw err;
+    }
+
+    let message = "An unexpected error occurred. Please try again.";
+
+    if (err?.message) {
+      // Handle network errors
+      if (err.message.includes("fetch")) {
+        message = "Network error. Please check your internet connection and try again.";
+      } else if (err.message.includes("timeout")) {
+        message = "Request timed out. Please try again.";
+      } else {
+        message = err.message;
+      }
+    }
+
+    // Create a new error with the proper message
+    const error = new Error(message) as Error & { status?: number };
+    error.name = "ApiError";
+
+    toast.error(message);
+    throw error;
+  }
+}
+
 // Helper function to get user-friendly error messages
 export function getErrorMessage(error: any, context?: string): string {
   if (error?.message) {
