@@ -724,7 +724,7 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
       const result = await response.json();
       console.log("Property created successfully:", result);
       toast.success("Property created successfully!");
-      // router.push("/host/stay?tab=property");
+      router.push("/host/stay?tab=property");
     } catch (error) {
       console.error("Network error:", error);
       toast.error("Something went wrong while submitting.");
