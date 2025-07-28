@@ -202,12 +202,17 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
       // Set default values if they're not already set
       if (!formData.tax_collection_method) {
         setValue("tax_collection_method", "collected_at_checkin");
+        console.log(
+          "Set default tax_collection_method to collected_at_checkin"
+        );
       }
       if (!formData.tax_name) {
         setValue("tax_name", "tax");
+        console.log("Set default tax_name to tax");
       }
       if (!formData.tax_rate) {
         setValue("tax_rate", "15");
+        console.log("Set default tax_rate to 15");
       }
     }
   }, [
@@ -535,6 +540,17 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
   // Form submission handler
   const onSubmit = async (data: PropertyFormData) => {
     console.log(data, "Form data---------------------");
+
+    // Validate tax fields before submission
+    if (data.is_tax_applicable === "yes") {
+      console.log("Tax validation:", {
+        tax_collection_method: data.tax_collection_method,
+        tax_name: data.tax_name,
+        tax_rate: data.tax_rate,
+        tax_name_valid: typeof data.tax_name === "string",
+        tax_rate_valid: !isNaN(parseFloat(data.tax_rate || "0")),
+      });
+    }
     const token =
       typeof window !== "undefined"
         ? localStorage.getItem("token") || "<PASTE_VALID_TOKEN_HERE>"
@@ -590,44 +606,48 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
     });
     form.append("insurance_policy_file", data.insurance_policy_file || "");
     // Handle tax fields - always append with appropriate values
-    if (data.is_tax_applicable === "yes") {
-      // Map the tax collection method from label to enum value
-      const taxCollectionMethodMap: { [key: string]: string } = {
-        "Included in nightly rate": "included_in_rate",
-        "Collected separately at check-in": "collected_at_checkin",
-        "Collected by HighTribe at checkout": "collected_by_hightribe",
-      };
+    // if (data.is_tax_applicable === "yes") {
+    // The radio buttons already use the correct enum values, no mapping needed
+    const taxCollectionMethod =
+      data.tax_collection_method || "collected_at_checkin";
+    const taxName = data.tax_name || "";
+    const taxRate = data.tax_rate ? parseFloat(data.tax_rate) : 0;
 
-      // Get the correct enum value for tax collection method
-      const taxCollectionMethod =
-        taxCollectionMethodMap[data.tax_collection_method || ""] ||
-        "collected_at_checkin";
-      const taxName = data.tax_name;
-      const taxRate = data.tax_rate;
+    // Validate data types before sending
+    console.log("Tax field validation:", {
+      taxCollectionMethod,
+      taxName,
+      taxRate,
+      taxNameType: typeof taxName,
+      taxRateType: typeof taxRate,
+    });
 
-      // Always append tax fields when tax is applicable
-      form.append("tax_collection_method", taxCollectionMethod);
-      form.append("tax_name", taxName || "");
-      form.append("tax_rate", taxRate || "");
+    // Always append tax fields when tax is applicable
+    form.append("tax_collection_method", taxCollectionMethod);
+    form.append("tax_name", taxName);
+    form.append("tax_rate", taxRate.toString());
 
-      console.log("Tax fields being sent (tax applicable):", {
-        tax_collection_method: taxCollectionMethod,
-        tax_name: taxName,
-        tax_rate: taxRate,
-        original_value: data.tax_collection_method,
-      });
-    } else {
-      // When tax is not applicable, send empty values or defaults
-      form.append("tax_collection_method", "");
-      form.append("tax_name", "");
-      form.append("tax_rate", "");
+    console.log("Tax fields being sent (tax applicable):", {
+      tax_collection_method: taxCollectionMethod,
+      tax_name: taxName,
+      tax_rate: taxRate.toString(),
+      original_value: data.tax_collection_method,
+      data_tax_name: data.tax_name,
+      data_tax_rate: data.tax_rate,
+    });
+    // } else {
+    //   // When tax is not applicable, send empty values or defaults
+    //   form.append("tax_collection_method", "");
+    //   form.append("tax_name", "");
+    //   form.append("tax_rate", "");
 
-      console.log("Tax fields being sent (tax not applicable):", {
-        tax_collection_method: "",
-        tax_name: "",
-        tax_rate: "",
-      });
-    }
+    //   console.log("Tax fields being sent (tax not applicable):", {
+    //     tax_collection_method: "",
+    //     tax_name: "",
+    //     tax_rate: "",
+    //     is_tax_applicable: data.is_tax_applicable,
+    //   });
+    // }
     form.append("tax_notes", data.tax_notes || "");
     form.append("agreed_to_terms", data.agreed_to_terms ? "1" : "0");
 
@@ -652,6 +672,15 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
       console.log(`${key}: ${value}`);
     }
 
+    // Debug: Log the original form data
+    console.log("Original form data:", data);
+    console.log("Tax-related form data:", {
+      is_tax_applicable: data.is_tax_applicable,
+      tax_collection_method: data.tax_collection_method,
+      tax_name: data.tax_name,
+      tax_rate: data.tax_rate,
+    });
+
     // Send form data to backend
     try {
       const response = await fetch("https://api.hightribe.com/api/properties", {
@@ -671,6 +700,7 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
         // Try to parse as JSON for better error display
         try {
           const errorJson = JSON.parse(errorData);
+          console.log("Parsed error response:", errorJson);
           if (errorJson.errors) {
             const errorMessages = Object.entries(errorJson.errors)
               .map(
@@ -685,6 +715,7 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
             toast.error(`Server Error: ${response.status} - ${errorData}`);
           }
         } catch {
+          console.log("Raw error response:", errorData);
           toast.error(`Server Error: ${response.status} - ${errorData}`);
         }
         return;
@@ -693,7 +724,7 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
       const result = await response.json();
       console.log("Property created successfully:", result);
       toast.success("Property created successfully!");
-      router.push("/host/stay?tab=property");
+      // router.push("/host/stay?tab=property");
     } catch (error) {
       console.error("Network error:", error);
       toast.error("Something went wrong while submitting.");
@@ -1334,17 +1365,7 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
                             <input
                               type="radio"
                               value={option.value}
-                              checked={
-                                formData.tax_collection_method === option.value
-                              }
-                              onChange={(e) => {
-                                if (e.target.checked) {
-                                  setValue(
-                                    "tax_collection_method",
-                                    option.value
-                                  );
-                                }
-                              }}
+                              {...register("tax_collection_method")}
                               className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500 focus:ring-2"
                             />
                             <span className="text-[#1C231F]">
