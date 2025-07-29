@@ -130,11 +130,12 @@ export default function PropertyLanding() {
     return (
       <div>
         {/* Back button and property header */}
-        <div className="flex items-center gap-4 my-6">
-          <button
-            onClick={handleBackToProperties}
-            className="flex items-center gap-2 text-gray-600 hover:text-gray-800"
-          >
+        <button
+          type="button"
+          onClick={handleBackToProperties}
+          className="flex items-center gap-4 my-6 cursor-pointer"
+        >
+          <div className="flex items-center gap-2 text-gray-600 hover:text-gray-800">
             <svg
               className="w-4 h-4"
               fill="none"
@@ -149,8 +150,8 @@ export default function PropertyLanding() {
               />
             </svg>
             <span className="text-sm font-medium">Back to Properties</span>
-          </button>
-        </div>
+          </div>
+        </button>
 
         {/* Property header */}
         <div className="bg-white rounded-lg p-4 mb-6 border border-gray-200">
@@ -182,12 +183,12 @@ export default function PropertyLanding() {
             </div>
           </div>
         </div>
-        <button
+        {/* <button
           onClick={handleAddSites}
           className="text-[13px] font-bold underline hover:no-underline cursor-pointer"
         >
           Add Sites
-        </button>
+        </button> */}
 
         {/* Sites section */}
         <PropertySites
@@ -210,8 +211,8 @@ export default function PropertyLanding() {
     return <div className="text-center py-10">No properties found.</div>;
   }
   const getImageUrl = (media: any[]) =>
-    (media?.[0]?.file_path || "").replace(/\\/g, "") || "https://via.placeholder.com/150?text=No+Image";
-
+    (media?.[0]?.file_path || "").replace(/\\/g, "") ||
+    "https://via.placeholder.com/150?text=No+Image";
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 md:mt-10">

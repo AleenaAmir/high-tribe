@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-const GOOGLE_API_KEY = 'AIzaSyBp5MLzQRWKHDrnyNRWJkByjh14RRyC2pg';
+const GOOGLE_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_LOCATION_API_KEY;
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -17,6 +17,7 @@ export async function GET(request: Request) {
 
     let url = `https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${encodeURIComponent(input)}&key=${GOOGLE_API_KEY}&types=establishment|geocode`;
 
+    // Only add location and radius if location is provided
     if (location) {
       url += `&location=${location}&radius=${radius}`;
     }

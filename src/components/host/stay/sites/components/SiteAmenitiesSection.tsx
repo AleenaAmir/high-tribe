@@ -1,11 +1,23 @@
 "use client";
-import React from "react";
+import React, { useState } from "react";
 import { useSitesForm } from "../contexts/SitesFormContext";
 import { useSearchParams } from "next/navigation";
 import { toast } from "react-hot-toast";
 
 interface SiteAmenitiesSectionProps {
   sectionRef: React.RefObject<HTMLDivElement | null>;
+}
+
+interface ValidationErrors {
+  siteAmenities?: string;
+  siteFacilities?: string;
+  safetyItems?: string;
+  petPolicy?: string;
+  otherAmenities?: string;
+  otherFacilities?: string;
+  otherSafety?: string;
+  parkingVehicles?: string;
+  paidParkingVehicles?: string;
 }
 
 const SiteAmenitiesSection: React.FC<SiteAmenitiesSectionProps> = ({
@@ -16,11 +28,110 @@ const SiteAmenitiesSection: React.FC<SiteAmenitiesSectionProps> = ({
   const propertyId = searchParams ? searchParams.get("propertyId") : null;
   const siteId = searchParams ? searchParams.get("siteId") : null;
 
+  const [validationErrors, setValidationErrors] = useState<ValidationErrors>(
+    {}
+  );
+  const [isSaving, setIsSaving] = useState(false);
+
   const handleInputChange = (field: string, value: string | string[]) => {
     updateFormData(field, value);
+    // Clear validation error when user starts typing/selecting
+    if (validationErrors[field as keyof ValidationErrors]) {
+      setValidationErrors((prev) => ({
+        ...prev,
+        [field]: undefined,
+      }));
+    }
+  };
+
+  const validateForm = (): boolean => {
+    const errors: ValidationErrors = {};
+
+    // Validate site amenities (at least 1 required)
+    if (
+      !state.formData.siteAmenities ||
+      state.formData.siteAmenities.length === 0
+    ) {
+      errors.siteAmenities = "Please select at least one amenity";
+    }
+
+    // Validate other amenities if "Other" is selected
+    if (
+      state.formData.siteAmenities?.includes("other-amenities") &&
+      (!state.formData.otherAmenities ||
+        state.formData.otherAmenities.trim() === "")
+    ) {
+      errors.otherAmenities = "Please specify the other amenity";
+    }
+
+    // Validate site facilities (at least 1 required)
+    if (
+      !state.formData.siteFacilities ||
+      state.formData.siteFacilities.length === 0
+    ) {
+      errors.siteFacilities = "Please select at least one facility";
+    }
+
+    // Validate other facilities if "Other" is selected
+    if (
+      state.formData.siteFacilities?.includes("other-facilities") &&
+      (!state.formData.otherFacilities ||
+        state.formData.otherFacilities.trim() === "")
+    ) {
+      errors.otherFacilities = "Please specify the other facility";
+    }
+
+    // Validate safety items (at least 1 required)
+    if (
+      !state.formData.safetyItems ||
+      state.formData.safetyItems.length === 0
+    ) {
+      errors.safetyItems = "Please select at least one safety item";
+    }
+
+    // Validate other safety if "Other" is selected
+    if (
+      state.formData.safetyItems?.includes("other-safety") &&
+      (!state.formData.otherSafety || state.formData.otherSafety.trim() === "")
+    ) {
+      errors.otherSafety = "Please specify the other safety item";
+    }
+
+    // Validate pet policy (required)
+    if (!state.formData.petPolicy) {
+      errors.petPolicy = "Please select a pet policy";
+    }
+
+    // Validate parking vehicles if free parking is selected
+    if (
+      state.formData.siteFacilities?.includes("free-parking") &&
+      (!state.formData.parkingVehicles ||
+        state.formData.parkingVehicles.trim() === "")
+    ) {
+      errors.parkingVehicles = "Please specify the number of allowed vehicles";
+    }
+
+    // Validate paid parking vehicles if paid parking is selected
+    if (
+      state.formData.siteFacilities?.includes("paid-parking") &&
+      (!state.formData.paidParkingVehicles ||
+        state.formData.paidParkingVehicles.trim() === "")
+    ) {
+      errors.paidParkingVehicles =
+        "Please specify the number of allowed vehicles";
+    }
+
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
   };
 
   const handleSave = async () => {
+    if (!validateForm()) {
+      toast.error("Please fix the validation errors before saving");
+      return;
+    }
+
+    setIsSaving(true);
     const formData = new FormData();
 
     //@ts-ignore
@@ -50,11 +161,13 @@ const SiteAmenitiesSection: React.FC<SiteAmenitiesSectionProps> = ({
       formData.append("other_safety_item", state.formData.otherSafety);
 
     if (state.formData.petPolicy)
-      // formData.append("pet_policy", state.formData.petPolicy);
-      formData.append("pet_policy", "yes_on_leash");
+      formData.append("pet_policy", state.formData.petPolicy);
 
     if (state.formData.parkingVehicles)
-      formData.append("free_parking_slots", state.formData.parkingVehicles); // or change key if backend expects differently
+      formData.append("free_parking_slots", state.formData.parkingVehicles);
+
+    if (state.formData.paidParkingVehicles)
+      formData.append("paid_parking_slots", state.formData.paidParkingVehicles);
 
     // Call API
     const token = localStorage.getItem("token");
@@ -72,10 +185,17 @@ const SiteAmenitiesSection: React.FC<SiteAmenitiesSectionProps> = ({
       );
 
       const result = await response.json();
-      toast.success("Amenities saved successfully!");
-      console.log("API response:", result);
+      if (response.ok) {
+        toast.success("Amenities saved successfully!");
+        console.log("API response:", result);
+      } else {
+        toast.error("Failed to save amenities");
+      }
     } catch (error) {
       console.error("Error saving amenities:", error);
+      toast.error("An error occurred while saving amenities");
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -90,73 +210,36 @@ const SiteAmenitiesSection: React.FC<SiteAmenitiesSectionProps> = ({
         <div className="space-y-8">
           {/* Site Amenities */}
           <div>
-            <label className="text-sm font-normal text-gray-700 block mb-3">
-              Let guests know which amenities are in this site.
+            <label className="text-sm font-medium text-gray-900 block mb-3">
+              Let guests know which amenities are in this site.{" "}
+              <span className="text-red-500">*</span>
             </label>
             <div className="flex items-center flex-wrap gap-2">
               {[
-                { id: "wifi", label: "Wi-Fi", checked: false },
-                { id: "tv", label: "TV", checked: false },
-                { id: "kitchen", label: "Kitchen", checked: false },
-                { id: "washer", label: "Washer", checked: false },
-                {
-                  id: "air-conditioner",
-                  label: "Air Conditioner",
-                  checked: false,
-                },
-                {
-                  id: "heating-system",
-                  label: "Heating System",
-                  checked: false,
-                },
-                {
-                  id: "bed-linens",
-                  label: "Bed Linens",
-                  checked: false,
-                },
-                {
-                  id: "clothing-storage",
-                  label: "Clothing Storage",
-                  checked: false,
-                },
-                {
-                  id: "extra-pillows",
-                  label: "Extra Pillows",
-                  checked: false,
-                },
-                {
-                  id: "extra-blankets",
-                  label: "Extra Blankets",
-                  checked: false,
-                },
-                { id: "hangers", label: "Hangers", checked: false },
-                { id: "iron", label: "Iron", checked: false },
-                { id: "bathroom", label: "Bathroom", checked: false },
+                { id: "wifi", label: "Wi-Fi" },
+                { id: "tv", label: "TV" },
+                { id: "kitchen", label: "Kitchen" },
+                { id: "bathroom", label: "Bathroom" },
                 {
                   id: "shared-non-ensuite",
-                  label: "Shared Non-ensuite",
-                  checked: false,
+                  label: "Shared Non-ensuite Bathroom",
                 },
                 {
                   id: "private-non-ensuite",
-                  label: "Private Non-ensuite",
-                  checked: false,
+                  label: "Private Non-ensuite Bathroom",
                 },
-                {
-                  id: "private-ensuite",
-                  label: "Private Ensuite",
-                  checked: false,
-                },
-                {
-                  id: "shared-ensuite",
-                  label: "Shared Ensuite",
-                  checked: false,
-                },
-                {
-                  id: "other-amenities",
-                  label: "Other",
-                  checked: false,
-                },
+                { id: "private-ensuite", label: "Private Ensuite Bathroom" },
+                { id: "shared-ensuite", label: "Shared Ensuite Bathroom" },
+                { id: "washer", label: "Washer" },
+                { id: "air-conditioner", label: "Air Conditioner" },
+                { id: "heating-system", label: "Heating System" },
+                { id: "bed-linens", label: "Bed Linens" },
+                { id: "clothing-storage", label: "Clothing Storage" },
+                { id: "extra-pillows", label: "Extra Pillows" },
+                { id: "extra-blankets", label: "Extra Blankets" },
+                { id: "hangers", label: "Hangers" },
+                { id: "iron", label: "Iron" },
+                { id: "other-amenities", label: "Other" },
               ].map((amenity) => (
                 <label
                   key={amenity.id}
@@ -166,7 +249,7 @@ const SiteAmenitiesSection: React.FC<SiteAmenitiesSectionProps> = ({
                     type="checkbox"
                     checked={
                       state.formData.siteAmenities?.includes(amenity.id) ||
-                      amenity.checked
+                      false
                     }
                     onChange={(e) => {
                       const currentAmenities =
@@ -190,8 +273,12 @@ const SiteAmenitiesSection: React.FC<SiteAmenitiesSectionProps> = ({
                   {amenity.id === "other-amenities" && (
                     <input
                       type="text"
-                      placeholder="Please specify..."
-                      className="text-[13px] border  border-[#848484] rounded-[5px] font-normal text-gray-800 bg-transparent  outline-none p-1 ml-2 min-w-[300px]"
+                      // placeholder="Please specify..."
+                      className={`text-[13px] border rounded-[5px] font-normal text-gray-800 bg-transparent outline-none p-1 ml-2 min-w-[300px] ${
+                        validationErrors.otherAmenities
+                          ? "border-red-500"
+                          : "border-[#848484]"
+                      }`}
                       value={state.formData.otherAmenities || ""}
                       onChange={(e) =>
                         handleInputChange("otherAmenities", e.target.value)
@@ -201,118 +288,50 @@ const SiteAmenitiesSection: React.FC<SiteAmenitiesSectionProps> = ({
                 </label>
               ))}
             </div>
+            {validationErrors.siteAmenities && (
+              <p className="text-red-500 text-sm mt-2">
+                {validationErrors.siteAmenities}
+              </p>
+            )}
+            {validationErrors.otherAmenities && (
+              <p className="text-red-500 text-sm mt-2">
+                {validationErrors.otherAmenities}
+              </p>
+            )}
           </div>
+
           {/* Facilities */}
           <div>
-            <label className="text-sm font-medium text-gray-900 block mb-2">
+            <label className="text-sm font-medium text-gray-900 block mb-3">
               Do you have any other facilities to which the guests will have
-              access? Select all that apply
+              access? Select all that apply{" "}
+              <span className="text-red-500">*</span>
             </label>
             <div className="flex items-center flex-wrap gap-2">
               {[
-                {
-                  id: "shared-pool",
-                  label: "Shared Pool",
-                  checked: false,
-                },
-                {
-                  id: "private-pool",
-                  label: "Private Pool",
-                  checked: false,
-                },
-                { id: "hot-tub", label: "Hot Tub", checked: false },
-                {
-                  id: "outdoor-seating",
-                  label: "Outdoor Seating or Patio",
-                  checked: false,
-                },
-                {
-                  id: "fire-pit",
-                  label: "Fire Pit or Barbecue",
-                  checked: false,
-                },
-                {
-                  id: "outdoor-dining",
-                  label: "Outdoor Dining Area",
-                  checked: false,
-                },
-                { id: "play-area", label: "Play Area", checked: false },
-                {
-                  id: "indoor-games",
-                  label: "Indoor Games",
-                  checked: false,
-                },
-                {
-                  id: "outdoor-games",
-                  label: "Outdoor Games",
-                  checked: false,
-                },
-                {
-                  id: "indoor-fireplace",
-                  label: "Indoor Fireplace",
-                  checked: false,
-                },
-                {
-                  id: "musical-instruments",
-                  label: "Musical Instruments",
-                  checked: false,
-                },
-                {
-                  id: "facility-kitchen",
-                  label: "Kitchen",
-                  checked: false,
-                },
-                {
-                  id: "shared-bathroom",
-                  label: "Shared Bathroom",
-                  checked: false,
-                },
-                { id: "gym", label: "Gym", checked: false },
-                {
-                  id: "lake-access",
-                  label: "Lake Access",
-                  checked: false,
-                },
-                {
-                  id: "beach-access",
-                  label: "Beach Access",
-                  checked: false,
-                },
-                {
-                  id: "outdoor-shower",
-                  label: "Outdoor Shower",
-                  checked: false,
-                },
-                {
-                  id: "art-studio",
-                  label: "Art Studio / Creative Zone",
-                  checked: false,
-                },
-                {
-                  id: "wheelchair",
-                  label: "Wheelchair",
-                  checked: false,
-                },
-                {
-                  id: "dedicated-workspace",
-                  label: "Dedicated Workspace",
-                  checked: false,
-                },
-                {
-                  id: "free-parking",
-                  label: "Free Parking",
-                  checked: false,
-                },
-                {
-                  id: "paid-parking",
-                  label: "Paid Parking",
-                  checked: false,
-                },
-                {
-                  id: "other-facilities",
-                  label: "Other",
-                  checked: false,
-                },
+                { id: "shared-pool", label: "Shared Pool" },
+                { id: "private-pool", label: "Private Pool" },
+                { id: "hot-tub", label: "Hot Tub" },
+                { id: "outdoor-seating", label: "Outdoor Seating or Patio" },
+                { id: "fire-pit", label: "Fire Pit or Barbecue" },
+                { id: "outdoor-dining", label: "Outdoor Dining Area" },
+                { id: "play-area", label: "Play Area" },
+                { id: "indoor-games", label: "Indoor Games" },
+                { id: "outdoor-games", label: "Outdoor Games" },
+                { id: "indoor-fireplace", label: "Indoor Fireplace" },
+                { id: "musical-instruments", label: "Musical Instruments" },
+                { id: "facility-kitchen", label: "Kitchen" },
+                { id: "shared-bathroom", label: "Shared Bathroom" },
+                { id: "gym", label: "Gym" },
+                { id: "lake-access", label: "Lake Access" },
+                { id: "beach-access", label: "Beach Access" },
+                { id: "outdoor-shower", label: "Outdoor Shower" },
+                { id: "art-studio", label: "Art Studio / Creative Zone" },
+                { id: "wheelchair", label: "Wheelchair" },
+                { id: "dedicated-workspace", label: "Dedicated Workspace" },
+                { id: "free-parking", label: "Free Parking" },
+                { id: "paid-parking", label: "Paid Parking" },
+                { id: "other-facilities", label: "Other" },
               ].map((facility) => (
                 <label
                   key={facility.id}
@@ -322,7 +341,7 @@ const SiteAmenitiesSection: React.FC<SiteAmenitiesSectionProps> = ({
                     type="checkbox"
                     checked={
                       state.formData.siteFacilities?.includes(facility.id) ||
-                      facility.checked
+                      false
                     }
                     onChange={(e) => {
                       const currentFacilities =
@@ -345,9 +364,13 @@ const SiteAmenitiesSection: React.FC<SiteAmenitiesSectionProps> = ({
                   <span className="text-[14px]">{facility.label}</span>
                   {facility.id === "free-parking" && (
                     <input
-                      type="text"
+                      type="number"
                       placeholder="Number of allowed vehicles"
-                      className="flex-1 text-[13px] border border-[#848484] rounded-[5px] font-normal text-gray-400 bg-transparent  outline-none p-1 ml-2 min-w-0 placeholder-gray-400"
+                      className={`text-[13px] border rounded-[5px] font-normal text-gray-800 bg-transparent outline-none p-1 ml-2 min-w-[200px] ${
+                        validationErrors.parkingVehicles
+                          ? "border-red-500"
+                          : "border-[#848484]"
+                      }`}
                       value={state.formData.parkingVehicles || ""}
                       onChange={(e) =>
                         handleInputChange("parkingVehicles", e.target.value)
@@ -357,35 +380,41 @@ const SiteAmenitiesSection: React.FC<SiteAmenitiesSectionProps> = ({
                 </label>
               ))}
             </div>
+            {validationErrors.siteFacilities && (
+              <p className="text-red-500 text-sm mt-2">
+                {validationErrors.siteFacilities}
+              </p>
+            )}
+            {validationErrors.otherFacilities && (
+              <p className="text-red-500 text-sm mt-2">
+                {validationErrors.otherFacilities}
+              </p>
+            )}
+            {validationErrors.parkingVehicles && (
+              <p className="text-red-500 text-sm mt-2">
+                {validationErrors.parkingVehicles}
+              </p>
+            )}
+            {validationErrors.paidParkingVehicles && (
+              <p className="text-red-500 text-sm mt-2">
+                {validationErrors.paidParkingVehicles}
+              </p>
+            )}
           </div>
+
           {/* Safety Items */}
           <div>
-            <label className="text-sm font-medium text-gray-900 block mb-2">
-              Do you have any of these safety items?
+            <label className="text-sm font-medium text-gray-900 block mb-3">
+              Do you have any of these safety items?{" "}
+              <span className="text-red-500">*</span>
             </label>
             <div className="flex items-center flex-wrap gap-2">
               {[
-                {
-                  id: "smoke-alarm",
-                  label: "Smoke Alarm",
-                  checked: false,
-                },
-                {
-                  id: "first-aid-kit",
-                  label: "First Aid Kit",
-                  checked: false,
-                },
-                {
-                  id: "fire-extinguisher",
-                  label: "Fire Extinguisher",
-                  checked: false,
-                },
-                {
-                  id: "carbon-monoxide-alarm",
-                  label: "Carbon Monoxide Alarm",
-                  checked: false,
-                },
-                { id: "other-safety", label: "Other", checked: false },
+                { id: "smoke-alarm", label: "Smoke Alarm" },
+                { id: "first-aid-kit", label: "First Aid Kit" },
+                { id: "fire-extinguisher", label: "Fire Extinguisher" },
+                { id: "carbon-monoxide-alarm", label: "Carbon Monoxide Alarm" },
+                // { id: "other-safety", label: "Other" },
               ].map((safety) => (
                 <label
                   key={safety.id}
@@ -394,8 +423,7 @@ const SiteAmenitiesSection: React.FC<SiteAmenitiesSectionProps> = ({
                   <input
                     type="checkbox"
                     checked={
-                      state.formData.safetyItems?.includes(safety.id) ||
-                      safety.checked
+                      state.formData.safetyItems?.includes(safety.id) || false
                     }
                     onChange={(e) => {
                       const currentSafetyItems =
@@ -419,33 +447,35 @@ const SiteAmenitiesSection: React.FC<SiteAmenitiesSectionProps> = ({
                 </label>
               ))}
             </div>
+            {validationErrors.safetyItems && (
+              <p className="text-red-500 text-sm mt-2">
+                {validationErrors.safetyItems}
+              </p>
+            )}
+            {validationErrors.otherSafety && (
+              <p className="text-red-500 text-sm mt-2">
+                {validationErrors.otherSafety}
+              </p>
+            )}
           </div>
+
           {/* Pet Policy */}
           <div>
-            <label className="text-sm font-medium text-gray-900 block mb-2">
-              Do you allow pet?
+            <label className="text-sm font-medium text-gray-900 block mb-3">
+              Do you allow pet? <span className="text-red-500">*</span>
             </label>
             <div className="flex items-center flex-wrap gap-2">
               {[
-                { id: "yes_on_leash", label: "Yes", checked: false },
-                { id: "no_on_leash", label: "No", checked: false },
-                {
-                  id: "on_leash",
-                  label: "On leash",
-                  checked: false,
-                },
-                {
-                  id: "pets-without-leash",
-                  label: "Without leash",
-                  checked: false,
-                },
+                { id: "yes", label: "Yes" },
+                { id: "no", label: "No" },
               ].map((pet) => (
                 <label
                   key={pet.id}
                   className="flex items-center justify-center gap-2 px-3 py-2 border border-black rounded-[5px] cursor-pointer hover:bg-gray-50 transition-colors text-gray-800 text-[13px] font-normal whitespace-nowrap"
                 >
                   <input
-                    type="checkbox"
+                    type="radio"
+                    name="petPolicy"
                     checked={state.formData.petPolicy === pet.id}
                     onChange={(e) => {
                       if (e.target.checked) {
@@ -459,16 +489,60 @@ const SiteAmenitiesSection: React.FC<SiteAmenitiesSectionProps> = ({
                 </label>
               ))}
             </div>
+
+            {/* Show additional options only when "Yes" is selected */}
+            {(state.formData.petPolicy === "yes" ||
+              state.formData.petPolicy === "yes_on_leash" ||
+              state.formData.petPolicy === "yes_without_leash") && (
+              <div className="mt-3">
+                <label className="text-sm font-medium text-gray-900 block mb-2">
+                  Pet restrictions:
+                </label>
+                <div className="flex items-center flex-wrap gap-2">
+                  {[
+                    { id: "yes_on_leash", label: "On leash" },
+                    { id: "yes_without_leash", label: "Without leash" },
+                  ].map((restriction) => (
+                    <label
+                      key={restriction.id}
+                      className="flex items-center justify-center gap-2 px-3 py-2 border border-black rounded-[5px] cursor-pointer hover:bg-gray-50 transition-colors text-gray-800 text-[13px] font-normal whitespace-nowrap"
+                    >
+                      <input
+                        type="radio"
+                        name="petRestriction"
+                        checked={state.formData.petPolicy === restriction.id}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            handleInputChange("petPolicy", restriction.id);
+                          }
+                        }}
+                        className="w-4 h-4 border border-gray-400 rounded-sm focus:ring-0 focus:ring-offset-0 mr-1 accent-blue-600"
+                        style={{ minWidth: 16, minHeight: 16 }}
+                      />
+                      <span className="text-[14px]">{restriction.label}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {validationErrors.petPolicy && (
+              <p className="text-red-500 text-sm mt-2">
+                {validationErrors.petPolicy}
+              </p>
+            )}
           </div>
         </div>
+
         {/* Save Button */}
         <div className="flex justify-end mt-8">
           <button
             type="button"
             onClick={handleSave}
-            className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors text-sm shadow-sm"
+            className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors text-sm shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={isSaving}
           >
-            Save
+            {isSaving ? "Saving..." : "Save"}
           </button>
         </div>
       </div>

@@ -1,11 +1,5 @@
 "use client";
-import React, {
-  useState,
-  useRef,
-  useEffect,
-  useCallback,
-  useMemo,
-} from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -15,135 +9,213 @@ import PropertyLocationMap, {
 import GlobalTextInput from "../../../global/GlobalTextInput";
 import GlobalSelect from "../../../global/GlobalSelect";
 import GlobalTextArea from "../../../global/GlobalTextArea";
-import Image from "next/image";
-import { filtersArray } from "@/components/dashboard/center/MapDashboard";
-import DestinationSvg from "@/components/dashboard/svgs/DestinationSvg";
 import Location from "@/components/dashboard/svgs/Location";
-import Filters from "@/components/dashboard/svgs/Filters";
 import { toast } from "react-hot-toast";
-import { apiRequest } from "@/lib/api";
+import { useRouter } from "next/navigation";
 import {
   fetchGooglePlaceSuggestions,
   getCoordinatesForGooglePlace,
 } from "@/lib/googlePlaces";
-import { useRouter } from "next/navigation";
-const MAPBOX_ACCESS_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
+import LocationSmall from "@/components/dashboard/svgs/LocationSmall";
 
 interface PropertyFormProps {}
 
-// Zod schema for property form validation
-const propertyFormSchema = z
-  .object({
-    location_address: z.string().min(1, "Property location is required"),
-    location_lat: z.string().min(1, "Location latitude is required"),
-    location_lng: z.string().min(1, "Location longitude is required"),
-    entrance_address: z.string().min(1, "Entrance address is required"),
-    entrance_lat: z.string().min(1, "Entrance latitude is required"),
-    entrance_lng: z.string().min(1, "Entrance longitude is required"),
-    acres: z.string().min(1, "Acres is required"),
-    property_name: z.string().min(1, "Property name is required"),
-    property_type: z.string().min(1, "Property type is required"),
-    website_url: z
-      .string()
-      .url("Please enter a valid URL")
-      .optional()
-      .or(z.literal("")),
-    languages: z.string().min(1, "Languages spoken is required"),
-    property_rules: z.string().optional(),
-    short_description: z.string().optional(),
-    has_insurance: z.string().optional(),
-    enrollment_period: z.string().optional(),
-    typically_covered: z.string().optional(),
-    not_covered: z.string().optional(),
-    payout_method: z.string().min(1, "Payout method is required"),
-    insurance_policy_file: z.string().optional(),
-    is_tax_applicable: z.string().min(1, "Tax applicability is required"),
-    tax_collection_method: z.string().optional(),
-    tax_name: z.string().optional(),
-    tax_rate: z
-      .string()
-      .optional()
-      .refine(
-        (val) => {
-          if (!val) return true; // Allow empty for optional field
-          const num = parseFloat(val);
-          return !isNaN(num) && num >= 0 && num <= 100;
-        },
-        {
-          message: "Tax rate must be a valid number between 0 and 100.",
-        }
-      ),
-    tax_notes: z.string().optional(),
-    agreed_to_terms: z.boolean().refine((val) => val === true, {
-      message: "You must agree to terms and conditions",
-    }),
-  })
-  .refine(
-    (data) => {
-      // Additional validation for tax fields when tax is applicable
-      if (data.is_tax_applicable === "yes") {
-        return (
-          data.tax_name &&
-          data.tax_name.trim() !== "" &&
-          data.tax_rate &&
-          data.tax_rate.trim() !== ""
-        );
-      }
-      return true;
-    },
-    {
-      message: "Tax name and rate are required when tax is applicable",
-      path: ["tax_name"],
-    }
-  )
-  .refine(
-    (data) => {
-      // Additional validation for tax_rate when tax is applicable
-      if (data.is_tax_applicable === "yes") {
-        return data.tax_rate && data.tax_rate.trim() !== "";
-      }
-      return true;
-    },
-    {
-      message: "Tax rate is required when tax is applicable",
-      path: ["tax_rate"],
-    }
-  );
+// Simplified Zod schema for property form validation
+const propertyFormSchema = z.object({
+  location_address: z.string().min(1, "Property address is required"),
+  location_lat: z.string().min(1, "Property latitude is required"),
+  location_lng: z.string().min(1, "Property longitude is required"),
+  property_name: z.string().min(1, "Property name is required"),
+  languages: z.string().min(1, "Languages spoken is required"),
+  short_description: z.string().optional(),
+  images: z.array(z.any()).min(1, "At least one image is required"),
+  cover_image: z.any().refine((val) => val !== null, "Cover image is required"),
+});
 
 type PropertyFormData = z.infer<typeof propertyFormSchema>;
 
-const PropertyForm: React.FC<PropertyFormProps> = () => {
-  // Function to call properties/enums API and console results
-  const callPropertiesEnumsAPI = async () => {
-    try {
-      console.log("Calling properties/enums API...");
-      const result = await apiRequest("properties/enums");
-      console.log("Properties/enums API response:", result);
-      return result;
-    } catch (error) {
-      console.error("Error calling properties/enums API:", error);
-      throw error;
-    }
-  };
+// Language Multi-Select Component
+interface LanguageMultiSelectProps {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  error?: string;
+  languages: { value: string; label: string }[];
+}
 
-  // Call the API when component mounts
+const LanguageMultiSelect: React.FC<LanguageMultiSelectProps> = ({
+  label,
+  value,
+  onChange,
+  error,
+  languages,
+}) => {
+  const [selectedLanguages, setSelectedLanguages] = useState<string[]>([]);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Parse comma-separated value on mount
   useEffect(() => {
-    callPropertiesEnumsAPI();
+    if (value) {
+      setSelectedLanguages(value.split(",").map((lang) => lang.trim()));
+    }
+  }, [value]);
+
+  // Click outside handler
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setShowDropdown(false);
+        setSearchQuery("");
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
   }, []);
 
+  const handleLanguageToggle = (languageValue: string) => {
+    const newSelected = selectedLanguages.includes(languageValue)
+      ? selectedLanguages.filter((lang) => lang !== languageValue)
+      : [...selectedLanguages, languageValue];
+
+    setSelectedLanguages(newSelected);
+    onChange(newSelected.join(", "));
+  };
+
+  const removeLanguage = (languageValue: string) => {
+    const newSelected = selectedLanguages.filter(
+      (lang) => lang !== languageValue
+    );
+    setSelectedLanguages(newSelected);
+    onChange(newSelected.join(", "));
+  };
+
+  // Filter languages based on search query
+  const filteredLanguages = languages.filter((language) =>
+    language.label.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  return (
+    <div className="flex flex-col gap-1" ref={dropdownRef}>
+      <label className="text-[12px] font-medium text-black z-10 translate-y-3.5 translate-x-4 bg-white w-fit px-1">
+        {label}
+      </label>
+      <div className="relative">
+        <div
+          className={`flex flex-wrap items-center gap-2 rounded-lg min-h-[40px] border px-3 py-2 focus-within:ring-2 focus-within:ring-blue-400 transition-all ${
+            error ? "border-red-400" : "border-[#848484]"
+          }`}
+          onClick={() => setShowDropdown(!showDropdown)}
+        >
+          {selectedLanguages.length > 0
+            ? selectedLanguages.map((langValue) => {
+                const language = languages.find(
+                  (lang) => lang.value === langValue
+                );
+                return (
+                  <span
+                    key={langValue}
+                    className="bg-blue-100 text-blue-700 rounded-full px-3 py-1 text-xs flex items-center gap-1"
+                  >
+                    <span className="font-medium">
+                      {language?.label || langValue}
+                    </span>
+                    <button
+                      type="button"
+                      className="ml-1 text-blue-500 hover:text-red-500 font-bold text-sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        removeLanguage(langValue);
+                      }}
+                      title="Remove language"
+                    >
+                      ×
+                    </button>
+                  </span>
+                );
+              })
+            : ""}
+        </div>
+
+        {showDropdown && (
+          <div className="absolute z-50 left-0 right-0 bg-white border rounded-lg shadow mt-1 max-h-48 overflow-y-auto">
+            {/* Search input */}
+            <div className="sticky top-0 bg-white border-b border-gray-200 p-2">
+              <input
+                type="text"
+                placeholder="Search languages..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                onClick={(e) => e.stopPropagation()}
+                autoFocus
+              />
+            </div>
+
+            {/* Language options */}
+            <div className="max-h-32 overflow-y-auto">
+              {filteredLanguages.length > 0 ? (
+                filteredLanguages.map((language) => (
+                  <div
+                    key={language.value}
+                    className={`px-3 py-2 text-sm cursor-pointer hover:bg-blue-100 flex items-center gap-2 ${
+                      selectedLanguages.includes(language.value)
+                        ? "bg-blue-50"
+                        : ""
+                    }`}
+                    onClick={() => handleLanguageToggle(language.value)}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={selectedLanguages.includes(language.value)}
+                      onChange={() => handleLanguageToggle(language.value)}
+                      className="mr-2"
+                    />
+                    <span className="font-medium">{language.label}</span>
+                  </div>
+                ))
+              ) : (
+                <div className="px-3 py-2 text-sm text-gray-500">
+                  {searchQuery
+                    ? "No languages found"
+                    : "No languages available"}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+      {error && <span className="text-xs text-red-500 mt-1">{error}</span>}
+    </div>
+  );
+};
+
+const PropertyForm: React.FC<PropertyFormProps> = () => {
   const [search, setSearch] = useState("");
   const [suggestions, setSuggestions] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
-  const [entranceSearch, setEntranceSearch] = useState("");
-  const [entranceSuggestions, setEntranceSuggestions] = useState<any[]>([]);
-  const [isEntranceLoading, setIsEntranceLoading] = useState(false);
-  const [showEntranceSuggestions, setShowEntranceSuggestions] = useState(false);
+  const [selectedLocation, setSelectedLocation] = useState<{
+    coords: [number, number] | null;
+    name: string;
+  }>({
+    coords: null,
+    name: "",
+  });
   const mapRef = useRef<PropertyLocationMapRef>(null);
   const [uploadedImages, setUploadedImages] = useState<File[]>([]);
-  const [coverImageIndex, setCoverImageIndex] = useState<number | null>(null);
+  const [uploadedVideo, setUploadedVideo] = useState<File | null>(null);
   const [coverImage, setCoverImage] = useState<File | null>(null);
-  const [uploadedVideos, setUploadedVideos] = useState<File[]>([]);
+  const [videoUrl, setVideoUrl] = useState("");
+  const [imageError, setImageError] = useState("");
+  const [coverImageError, setCoverImageError] = useState("");
   const router = useRouter();
 
   // React Hook Form setup
@@ -153,7 +225,8 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
     formState: { errors, isSubmitting },
     setValue,
     watch,
-    reset,
+    setError,
+    clearErrors,
   } = useForm<PropertyFormData>({
     resolver: zodResolver(propertyFormSchema),
     mode: "onTouched",
@@ -161,97 +234,61 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
       location_address: "",
       location_lat: "",
       location_lng: "",
-      entrance_address: "",
-      entrance_lat: "",
-      entrance_lng: "",
-      acres: "",
       property_name: "",
-      property_type: "",
-      website_url: "",
       languages: "",
-      property_rules: "",
       short_description: "",
-      has_insurance: "",
-      enrollment_period: "",
-      typically_covered: "",
-      not_covered: "",
-      payout_method: "",
-      insurance_policy_file: "",
-      is_tax_applicable: "",
-      tax_collection_method: "collected_at_checkin",
-      tax_name: "tax",
-      tax_rate: "15",
-      tax_notes: "",
-      agreed_to_terms: false,
+      images: [],
+      cover_image: null,
     },
   });
 
   // Watch form values for real-time updates
   const formData = watch();
 
-  // Debug form data changes and set default values
+  // Update form values when images change
   useEffect(() => {
-    if (formData.is_tax_applicable === "yes") {
-      console.log("Tax form data:", {
-        is_tax_applicable: formData.is_tax_applicable,
-        tax_collection_method: formData.tax_collection_method,
-        tax_name: formData.tax_name,
-        tax_rate: formData.tax_rate,
-      });
-
-      // Set default values if they're not already set
-      if (!formData.tax_collection_method) {
-        setValue("tax_collection_method", "collected_at_checkin");
-        console.log(
-          "Set default tax_collection_method to collected_at_checkin"
-        );
-      }
-      if (!formData.tax_name) {
-        setValue("tax_name", "tax");
-        console.log("Set default tax_name to tax");
-      }
-      if (!formData.tax_rate) {
-        setValue("tax_rate", "15");
-        console.log("Set default tax_rate to 15");
-      }
+    setValue("images", uploadedImages);
+    if (uploadedImages.length > 0) {
+      clearErrors("images");
+      setImageError("");
     }
-  }, [
-    formData.is_tax_applicable,
-    formData.tax_collection_method,
-    formData.tax_name,
-    formData.tax_rate,
-    setValue,
-  ]);
+  }, [uploadedImages, setValue, clearErrors]);
 
-  // Debug radio button values
+  // Update form values when cover image changes
   useEffect(() => {
-    console.log(
-      "Current tax_collection_method value:",
-      formData.tax_collection_method
-    );
-  }, [formData.tax_collection_method]);
+    setValue("cover_image", coverImage);
+    if (coverImage) {
+      clearErrors("cover_image");
+      setCoverImageError("");
+    }
+  }, [coverImage, setValue, clearErrors]);
 
-  // Map location state
-  const [selectedLocation, setSelectedLocation] = useState<{
-    coords: [number, number] | null;
-    name: string;
-  }>({
-    coords: null,
-    name: "",
-  });
+  // Clear languages error when at least one language is selected
+  useEffect(() => {
+    if (formData.languages && formData.languages.trim() !== "") {
+      clearErrors("languages");
+    }
+  }, [formData.languages, clearErrors]);
 
-  // Memoize selected location to prevent unnecessary re-renders
-  const memoizedSelectedLocation = useMemo(
-    () => selectedLocation,
-    [selectedLocation.coords, selectedLocation.name]
-  );
+  // Custom location validation
+  const getLocationError = () => {
+    const hasAddress =
+      formData.location_address && formData.location_address.trim() !== "";
+    const hasLat = formData.location_lat && formData.location_lat.trim() !== "";
+    const hasLng = formData.location_lng && formData.location_lng.trim() !== "";
+
+    if (!hasAddress || !hasLat || !hasLng) {
+      return "Please select a valid property location";
+    }
+    return null;
+  };
+
+  const locationError = getLocationError();
 
   // Section refs for scrolling
   const locationRef = useRef<HTMLDivElement>(null);
   const overviewRef = useRef<HTMLDivElement>(null);
   const imagesRef = useRef<HTMLDivElement>(null);
-  const insuranceRef = useRef<HTMLDivElement>(null);
-  const payoutsRef = useRef<HTMLDivElement>(null);
 
   const sections = [
     {
@@ -259,58 +296,22 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
       title: "Property Location",
       icon: "📍",
       ref: locationRef,
-      requiredFields: ["entrance_address"], // Entrance location is required, not general property location
+      requiredFields: ["location_address", "location_lat", "location_lng"],
     },
     {
       id: "overview",
       title: "Property Overview",
       icon: "📋",
       ref: overviewRef,
-      requiredFields: ["acres", "property_name", "property_type", "languages"],
+      requiredFields: ["property_name", "languages"],
     },
     {
       id: "images",
       title: "Property Images/Videos",
       icon: "📷",
       ref: imagesRef,
-      requiredFields: [], // Images are optional
+      requiredFields: ["images", "cover_image"],
     },
-    {
-      id: "insurance",
-      title: "Insurance",
-      icon: "🛡️",
-      ref: insuranceRef,
-      requiredFields: ["enrollment_period"],
-    },
-    {
-      id: "payouts",
-      title: "Payouts and Taxes",
-      icon: "💰",
-      ref: payoutsRef,
-      requiredFields: ["payout_method", "is_tax_applicable"],
-    },
-  ];
-
-  const propertyTypes = [
-    { value: "apartment", label: "Apartment" },
-    { value: "house", label: "House" },
-    { value: "villa", label: "Villa" },
-    { value: "condo", label: "Condo" },
-    { value: "hotel", label: "Hotel" },
-    { value: "hostel", label: "Hostel" },
-    { value: "guesthouse", label: "Guesthouse" },
-    { value: "bnb", label: "Bed & Breakfast" },
-  ];
-
-  const languages = [
-    { value: "english", label: "English" },
-    { value: "urdu", label: "Urdu" },
-    { value: "punjabi", label: "Punjabi" },
-    { value: "arabic", label: "Arabic" },
-    { value: "french", label: "French" },
-    { value: "spanish", label: "Spanish" },
-    { value: "german", label: "German" },
-    { value: "chinese", label: "Chinese" },
   ];
 
   // Check if section is completed based on required fields
@@ -331,25 +332,16 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
     const baseComplete = isSectionCompleted(section);
 
     if (section.id === "location") {
-      // Location section is complete when exact entrance location is set
       return (
-        formData.entrance_address && formData.entrance_address.trim() !== ""
+        formData.location_address &&
+        formData.location_address.trim() !== "" &&
+        formData.location_lat &&
+        formData.location_lng
       );
-    }
-
-    if (section.id === "insurance") {
-      // Insurance section is complete if enrollment_period has a value
-      return (
-        formData.enrollment_period && formData.enrollment_period.trim() !== ""
-      );
-    }
-
-    if (section.id === "payouts") {
-      return baseComplete;
     }
 
     if (section.id === "images") {
-      return uploadedImages.length > 0 || coverImage !== null; // At least one image uploaded or cover image
+      return uploadedImages.length > 0 && coverImage !== null;
     }
 
     return baseComplete;
@@ -366,157 +358,85 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
     });
   };
 
-  // Autocomplete for search input (general area search)
-  useEffect(() => {
-    if (search.length < 2) {
+  // Google Places API search functionality
+  const fetchSuggestions = useCallback(async (query: string) => {
+    if (query.length < 2) {
       setSuggestions([]);
       return;
     }
+
     setIsLoading(true);
-    fetch(
-      `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(
-        search
-      )}.json?access_token=${MAPBOX_ACCESS_TOKEN}&autocomplete=true&limit=5&types=place,region,locality,district`
-    )
-      .then((res) => res.json())
-      .then((data) => {
-        setSuggestions(data.features || []);
-        setIsLoading(false);
-      });
-  }, [search]);
-
-  // Entrance search with Google Places API for better POI suggestions
-  const fetchEntranceSuggestions = useCallback(
-    async (query: string) => {
-      if (!query.trim() || !selectedLocation?.coords) return;
-
-      try {
-        // Try Google Places API first with location bias
-        const googleSuggestions = await fetchGooglePlaceSuggestions(query, {
-          lat: selectedLocation.coords[1],
-          lng: selectedLocation.coords[0],
-        });
-
-        if (googleSuggestions.length > 0) {
-          setEntranceSuggestions(googleSuggestions);
-          return;
-        }
-
-        // Fallback to Mapbox if Google Places returns no results
-        const response = await fetch(
-          `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(
-            query
-          )}.json?access_token=${
-            process.env.NEXT_PUBLIC_MAPBOX_TOKEN
-          }&proximity=${selectedLocation.coords[0]},${
-            selectedLocation.coords[1]
-          }&types=poi,address&limit=5`
-        );
-
-        if (response.ok) {
-          const data = await response.json();
-          setEntranceSuggestions(data.features || []);
-        }
-      } catch (error) {
-        console.error("Error fetching entrance suggestions:", error);
-        setEntranceSuggestions([]);
-      }
-    },
-    [selectedLocation]
-  );
+    try {
+      // Use Google Places API for suggestions
+      const googleSuggestions = await fetchGooglePlaceSuggestions(query);
+      setSuggestions(googleSuggestions);
+    } catch (error) {
+      console.error("Error fetching suggestions:", error);
+      setSuggestions([]);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
     const debounceTimer = setTimeout(() => {
-      fetchEntranceSuggestions(entranceSearch);
+      fetchSuggestions(search);
     }, 300);
 
     return () => clearTimeout(debounceTimer);
-  }, [entranceSearch, fetchEntranceSuggestions]);
+  }, [search, fetchSuggestions]);
 
   // Handle suggestion click for location search
-  const handleSuggestionClick = (feature: any) => {
-    setSearch(feature.place_name);
-    setValue("location_address", feature.place_name);
-    setValue(
-      "location_lat",
-      feature.center ? feature.center[1].toString() : ""
-    );
-    setValue(
-      "location_lng",
-      feature.center ? feature.center[0].toString() : ""
-    );
-    setSuggestions([]);
-    setShowSuggestions(false);
-
-    // Store the general area coordinates for entrance search context
-    if (feature.center) {
-      setSelectedLocation({
-        coords: [feature.center[0], feature.center[1]],
-        name: feature.place_name,
-      });
-    }
-
-    // Only fly to the location, don't add marker yet
-    if (mapRef.current && feature.center) {
-      const [lng, lat] = feature.center;
-      mapRef.current.centerMap(lng, lat, feature.place_name);
-    }
-  };
-
-  const handleEntranceSuggestionClick = async (suggestion: any) => {
+  const handleSuggestionClick = async (suggestion: any) => {
     try {
       let coordinates: [number, number] | null = null;
       let selectedText = "";
 
-      // Check if this is a Google Places suggestion
+      // Handle Google Places suggestion
       if (suggestion.place_id && suggestion.structured_formatting) {
-        // Google Places suggestion
         coordinates = await getCoordinatesForGooglePlace(suggestion.place_id);
         if (coordinates) {
           selectedText = suggestion.description;
-          setValue("entrance_address", selectedText);
-          setValue("entrance_lat", coordinates[1].toString());
-          setValue("entrance_lng", coordinates[0].toString());
-        }
-      } else {
-        // Mapbox suggestion
-        coordinates = suggestion.center;
-        selectedText = suggestion.place_name;
-        setValue("entrance_address", selectedText);
-        if (coordinates) {
-          setValue("entrance_lat", coordinates[1].toString());
-          setValue("entrance_lng", coordinates[0].toString());
+          setValue("location_address", selectedText);
+          setValue("location_lat", coordinates[1].toString());
+          setValue("location_lng", coordinates[0].toString());
         }
       }
 
-      if (coordinates && mapRef.current) {
-        mapRef.current.addMarker(coordinates[0], coordinates[1], "entrance");
-        mapRef.current.centerMap(coordinates[0], coordinates[1]);
+      if (coordinates) {
+        setSelectedLocation({
+          coords: coordinates,
+          name: selectedText,
+        });
       }
 
-      setEntranceSuggestions([]);
-      setEntranceSearch(selectedText);
+      setSearch(selectedText);
+      setSuggestions([]);
+      setShowSuggestions(false);
+
+      // Fly to the location on map
+      if (mapRef.current && coordinates) {
+        mapRef.current.centerMap(coordinates[0], coordinates[1], selectedText);
+      }
     } catch (error) {
-      console.error("Error handling entrance suggestion click:", error);
+      console.error("Error handling suggestion click:", error);
     }
   };
 
-  // Handle map location selection - this is for entrance location
-  const handleMapLocationSelect = useCallback(
-    (coords: [number, number], placeName: string) => {
-      setEntranceSearch(placeName);
-      setValue("entrance_address", placeName);
-      setValue("entrance_lat", coords[1].toString());
-      setValue("entrance_lng", coords[0].toString());
-      setSelectedLocation({
-        coords,
-        name: placeName,
-      });
-    },
-    [setValue]
-  );
-
-  const [isFilters, setIsFilters] = useState<boolean>(false);
+  // Handle map location selection
+  const handleMapLocationSelect = (
+    coords: [number, number],
+    placeName: string
+  ) => {
+    setSearch(placeName);
+    setValue("location_address", placeName);
+    setValue("location_lat", coords[1].toString());
+    setValue("location_lng", coords[0].toString());
+    setSelectedLocation({
+      coords,
+      name: placeName,
+    });
+  };
 
   const handleFileUpload = (
     files: File[],
@@ -525,7 +445,7 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
     if (type === "image") {
       setUploadedImages((prev) => [...prev, ...files]);
     } else {
-      setUploadedVideos((prev) => [...prev, ...files]);
+      setUploadedVideo(files[0] || null);
     }
   };
 
@@ -533,162 +453,105 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
     setUploadedImages((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const removeVideo = (index: number) => {
-    setUploadedVideos((prev) => prev.filter((_, i) => i !== index));
+  const removeVideo = () => {
+    setUploadedVideo(null);
   };
+
+  // Fetch languages from a free API (e.g., restcountries.com)
+  const [languages, setLanguages] = useState<
+    { value: string; label: string }[]
+  >([]);
+
+  useEffect(() => {
+    const fetchLanguages = async () => {
+      try {
+        const response = await fetch("https://libretranslate.com/languages");
+        const data = await response.json();
+
+        const langs = data.map((lang: any) => ({
+          value: lang.code,
+          label: lang.name,
+        }));
+
+        setLanguages(langs);
+      } catch (error) {
+        console.error("Failed to fetch languages:", error);
+        setLanguages([
+          { value: "en", label: "English" },
+          { value: "es", label: "Spanish" },
+          { value: "fr", label: "French" },
+        ]);
+      }
+    };
+
+    fetchLanguages();
+  }, []);
 
   // Form submission handler
   const onSubmit = async (data: PropertyFormData) => {
-    console.log(data, "Form data---------------------");
+    console.log("Form data:", data);
 
-    // Validate tax fields before submission
-    if (data.is_tax_applicable === "yes") {
-      console.log("Tax validation:", {
-        tax_collection_method: data.tax_collection_method,
-        tax_name: data.tax_name,
-        tax_rate: data.tax_rate,
-        tax_name_valid: typeof data.tax_name === "string",
-        tax_rate_valid: !isNaN(parseFloat(data.tax_rate || "0")),
-      });
+    // Check location validation
+    if (locationError) {
+      toast.error("Please select a valid property location");
+      return;
     }
-    const token =
-      typeof window !== "undefined"
-        ? localStorage.getItem("token") || "<PASTE_VALID_TOKEN_HERE>"
-        : "<PASTE_VALID_TOKEN_HERE>";
 
-    console.log(token, "Token---------------------");
+    // Validate images and cover image before submission
+    if (uploadedImages.length === 0) {
+      setError("images", { message: "At least one image is required" });
+      setImageError("At least one image is required");
+      return;
+    }
+
+    if (!coverImage) {
+      setError("cover_image", { message: "Cover image is required" });
+      setCoverImageError("Cover image is required");
+      return;
+    }
+
+    const token =
+      typeof window !== "undefined" ? localStorage.getItem("token") || "" : "";
 
     // Construct FormData for file and text fields
     const form = new FormData();
 
-    // Append basic text fields - only send real data, no fallbacks
+    // Append basic text fields with coordinates
     form.append("location_address", data.location_address);
     form.append("location_lat", data.location_lat);
     form.append("location_lng", data.location_lng);
-    form.append("entrance_address", data.entrance_address);
-    form.append("entrance_lat", data.entrance_lat);
-    form.append("entrance_lng", data.entrance_lng);
-    form.append("acres", data.acres);
     form.append("property_name", data.property_name);
-    form.append("property_type", data.property_type);
-    form.append("short_description", data.short_description || "");
-    form.append("website_url", data.website_url || "");
     form.append("languages", data.languages);
-    form.append("property_rules", data.property_rules || "");
-    // Derive has_insurance based on enrollment_period
-    const hasInsurance =
-      data.enrollment_period && data.enrollment_period.trim() !== ""
-        ? true
-        : false;
-    form.append("has_insurance", hasInsurance ? "1" : "0");
-    form.append("enrollment_period", data.enrollment_period || "");
-    form.append("typically_covered", data.typically_covered || "");
-    form.append("not_covered", data.not_covered || "");
-    form.append("payout_method", data.payout_method);
-    // Convert is_tax_applicable to string
-    form.append(
-      "is_tax_applicable",
-      data.is_tax_applicable === "yes" ? "1" : "0"
-    );
-
-    // Log the values being sent for debugging
-    console.log("Form data being sent:", {
-      has_insurance: hasInsurance,
-      is_tax_applicable: data.is_tax_applicable === "yes" ? "1" : "0",
-      payout_method: data.payout_method,
-      tax_collection_method:
-        data.tax_collection_method || "collected_at_checkin",
-      tax_name: data.tax_name,
-      tax_rate: data.tax_rate,
-      tax_rate_parsed: data.tax_rate ? parseFloat(data.tax_rate) : 15,
-      is_tax_applicable_raw: data.is_tax_applicable,
-      formData: data,
-    });
-    form.append("insurance_policy_file", data.insurance_policy_file || "");
-    // Handle tax fields - always append with appropriate values
-    // if (data.is_tax_applicable === "yes") {
-    // The radio buttons already use the correct enum values, no mapping needed
-    const taxCollectionMethod =
-      data.tax_collection_method || "collected_at_checkin";
-    const taxName = data.tax_name || "";
-    const taxRate = data.tax_rate ? parseFloat(data.tax_rate) : 0;
-
-    // Validate data types before sending
-    console.log("Tax field validation:", {
-      taxCollectionMethod,
-      taxName,
-      taxRate,
-      taxNameType: typeof taxName,
-      taxRateType: typeof taxRate,
-    });
-
-    // Always append tax fields when tax is applicable
-    form.append("tax_collection_method", taxCollectionMethod);
-    form.append("tax_name", taxName);
-    form.append("tax_rate", taxRate.toString());
-
-    console.log("Tax fields being sent (tax applicable):", {
-      tax_collection_method: taxCollectionMethod,
-      tax_name: taxName,
-      tax_rate: taxRate.toString(),
-      original_value: data.tax_collection_method,
-      data_tax_name: data.tax_name,
-      data_tax_rate: data.tax_rate,
-    });
-    // } else {
-    //   // When tax is not applicable, send empty values or defaults
-    //   form.append("tax_collection_method", "");
-    //   form.append("tax_name", "");
-    //   form.append("tax_rate", "");
-
-    //   console.log("Tax fields being sent (tax not applicable):", {
-    //     tax_collection_method: "",
-    //     tax_name: "",
-    //     tax_rate: "",
-    //     is_tax_applicable: data.is_tax_applicable,
-    //   });
-    // }
-    form.append("tax_notes", data.tax_notes || "");
-    form.append("agreed_to_terms", data.agreed_to_terms ? "1" : "0");
+    form.append("short_description", data.short_description || "");
 
     // Append uploaded images
     if (uploadedImages.length > 0) {
       uploadedImages.forEach((file) => {
         form.append("media[]", file);
       });
-    } else {
-      // If no images uploaded, send a placeholder
-      form.append(
-        "media[]",
-        new Blob([""], { type: "image/png" }),
-        "placeholder.png"
-      );
-    }
-    form.append("type", "image");
-
-    // Debug: Log all form data being sent
-    console.log("All form data being sent:");
-    for (let [key, value] of form.entries()) {
-      console.log(`${key}: ${value}`);
     }
 
-    // Debug: Log the original form data
-    console.log("Original form data:", data);
-    console.log("Tax-related form data:", {
-      is_tax_applicable: data.is_tax_applicable,
-      tax_collection_method: data.tax_collection_method,
-      tax_name: data.tax_name,
-      tax_rate: data.tax_rate,
-    });
+    // Append video if uploaded
+    if (uploadedVideo) {
+      form.append("video", uploadedVideo);
+    }
 
-    // Send form data to backend
+    // Append cover image if selected
+    if (coverImage) {
+      form.append("cover_image", coverImage);
+    }
+
+    // Append 360 video URL if provided
+    if (videoUrl.trim()) {
+      form.append("video_url", videoUrl);
+    }
+
     try {
       const response = await fetch("https://api.hightribe.com/api/properties", {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
           Accept: "application/json",
-          // Remove Content-Type header - let browser set it automatically for FormData
         },
         body: form,
       });
@@ -696,28 +559,7 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
       if (!response.ok) {
         const errorData = await response.text();
         console.error("Server response:", errorData);
-
-        // Try to parse as JSON for better error display
-        try {
-          const errorJson = JSON.parse(errorData);
-          console.log("Parsed error response:", errorJson);
-          if (errorJson.errors) {
-            const errorMessages = Object.entries(errorJson.errors)
-              .map(
-                ([field, messages]) =>
-                  `${field}: ${
-                    Array.isArray(messages) ? messages.join(", ") : messages
-                  }`
-              )
-              .join("\n");
-            toast.error(`Validation Error:\n${errorMessages}`);
-          } else {
-            toast.error(`Server Error: ${response.status} - ${errorData}`);
-          }
-        } catch {
-          console.log("Raw error response:", errorData);
-          toast.error(`Server Error: ${response.status} - ${errorData}`);
-        }
+        toast.error(`Server Error: ${response.status}`);
         return;
       }
 
@@ -741,7 +583,7 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
               Property Setup
             </h1>
             <div className="space-y-3">
-              {sections.map((section, index) => {
+              {sections.map((section) => {
                 const isCompleted = getSectionStatus(section);
                 return (
                   <div
@@ -758,9 +600,7 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
                     >
                       {isCompleted ? "✓" : ""}
                     </div>
-                    <span className={`font-medium text-sm `}>
-                      {section.title}
-                    </span>
+                    <span className="font-medium text-sm">{section.title}</span>
                   </div>
                 );
               })}
@@ -776,159 +616,87 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
           >
             {/* Property Location Section */}
             <div ref={locationRef} className="">
-              <div className=" ">
+              <div className="">
                 <h2 className="text-[16px] font-bold text-[#1C231F]">
                   Property Location
                 </h2>
               </div>
-              <div className=" bg-white rounded-lg shadow-sm mt-4">
-                <div className="flex items-center justify-between p-3 bg-[#F8F8F8] md:px-6 relative">
-                  <div className="flex items-center gap-2 w-full  relative">
-                    <div className="flex items-center px-2 py-1 group gap-2 bg-white border border-[#EEEEEE] rounded-full w-full relative max-w-[200px]">
-                      <Location className="flex-shrink-0 text-[#696969] group-hover:text-[#F6691D]" />
-                      <input
-                        type="text"
-                        className="outline-none bg-transparent text-sm w-full"
-                        placeholder="Property Location"
-                        value={search}
-                        onChange={(e) => {
-                          setSearch(e.target.value);
-                          setShowSuggestions(true);
-                        }}
-                        onFocus={() => setShowSuggestions(true)}
-                        onBlur={() =>
-                          setTimeout(() => setShowSuggestions(false), 150)
-                        }
-                        autoComplete="off"
-                      />
-                      {isLoading && (
-                        <span className="ml-2 text-xs text-gray-400">
-                          Loading...
-                        </span>
-                      )}
-                      {showSuggestions && suggestions.length > 0 && (
-                        <div className="absolute left-0 top-10 w-full bg-white border border-gray-200 rounded-lg shadow-lg z-20 max-h-60 overflow-auto">
-                          {suggestions.map((feature) => (
-                            <div
-                              key={feature.id}
-                              className="px-4 py-2 cursor-pointer hover:bg-blue-50 text-sm"
-                              onClick={() => handleSuggestionClick(feature)}
-                            >
-                              {feature.place_name}
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                    <div className="flex items-center px-2 py-1 gap-2 bg-white border border-[#EEEEEE] rounded-full w-full relative max-w-[200px]">
-                      <DestinationSvg className="flex-shrink-0" />
-                      <input
-                        type="text"
-                        className="outline-none bg-transparent text-sm w-full"
-                        placeholder="Property Entrance"
-                        value={entranceSearch}
-                        onChange={(e) => {
-                          setEntranceSearch(e.target.value);
-                          setShowEntranceSuggestions(true);
-                        }}
-                        onFocus={() => setShowEntranceSuggestions(true)}
-                        onBlur={() =>
-                          setTimeout(
-                            () => setShowEntranceSuggestions(false),
-                            150
-                          )
-                        }
-                        autoComplete="off"
-                      />
-                      {isEntranceLoading && (
-                        <span className="ml-2 text-xs text-gray-400">
-                          Loading...
-                        </span>
-                      )}
-                      {showEntranceSuggestions &&
-                        entranceSuggestions.length > 0 && (
-                          <div className="absolute left-0 top-10 w-full bg-white border border-gray-200 rounded-lg shadow-lg z-20 max-h-60 overflow-auto">
-                            {entranceSuggestions.map(
-                              (suggestion: any, index: number) => (
-                                <div
-                                  key={
-                                    suggestion.place_id ||
-                                    suggestion.id ||
-                                    index
-                                  }
-                                  className="p-3 hover:bg-gray-100 cursor-pointer border-b border-gray-200 last:border-b-0"
-                                  onClick={() =>
-                                    handleEntranceSuggestionClick(suggestion)
-                                  }
-                                >
-                                  {suggestion.structured_formatting ? (
-                                    // Google Places suggestion
-                                    <div>
-                                      <div className="font-medium text-gray-900">
-                                        {
-                                          suggestion.structured_formatting
-                                            .main_text
-                                        }
-                                      </div>
-                                      <div className="text-sm text-gray-500">
-                                        {
-                                          suggestion.structured_formatting
-                                            .secondary_text
-                                        }
-                                      </div>
-                                    </div>
-                                  ) : (
-                                    // Mapbox suggestion
-                                    <div className="text-gray-700">
-                                      {suggestion.place_name}
-                                    </div>
-                                  )}
-                                </div>
-                              )
-                            )}
-                          </div>
-                        )}
-                    </div>
-                    <div
-                      className={`flex items-center justify-center p-2 rounded-full cursor-pointer hover:shadow-lg transition-all delay-300 ${
-                        isFilters
-                          ? "bg-gradient-to-r from-[#D6D5D4] to-white"
-                          : "bg-gradient-to-r from-[#257CFF] to-[#0F62DE]"
-                      }`}
-                      onClick={() => setIsFilters(!isFilters)}
+              <div
+                className={` rounded-lg shadow-sm mt-4 ${
+                  locationError ? "bg-red-100" : "bg-[#F8F8F8]"
+                }`}
+              >
+                <div className="px-4 py-2 relative max-w-[410px]">
+                  <div className="flex items-center gap-2  border rounded-full border-[#EEEEEE] bg-white px-2 py-1">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="10"
+                      height="12"
+                      fill="none"
+                      viewBox="0 0 10 12"
                     >
-                      <Filters
-                        className={`${
-                          isFilters ? "text-[#6C6868]" : "text-white"
-                        } flex-shrink-0`}
-                      />
-                    </div>
-                    <div
-                      className={`${
-                        isFilters ? "max-w-full" : "max-w-0"
-                      } flex items-center gap-2 transition-all w-fit delay-300 overflow-hidden`}
-                    >
-                      {filtersArray.map((filter, i) => (
+                      <path
+                        fill="#F61818"
+                        d="M4.815 6q.481 0 .824-.343.343-.342.343-.824 0-.48-.343-.824a1.12 1.12 0 0 0-.824-.343q-.48 0-.824.343a1.12 1.12 0 0 0-.343.824q0 .482.343.824.343.343.824.343m0 4.287q1.779-1.633 2.64-2.967.86-1.335.86-2.37 0-1.59-1.013-2.603-1.014-1.014-2.487-1.014T2.33 2.347 1.315 4.95q0 1.035.86 2.37.861 1.334 2.64 2.967m0 1.546Q2.468 9.835 1.308 8.122.148 6.408.148 4.95q0-2.188 1.408-3.486Q2.963.167 4.816.167q1.851 0 3.258 1.297Q9.482 2.762 9.482 4.95q0 1.458-1.16 3.172t-3.507 3.711"
+                      ></path>
+                    </svg>
+                    <input
+                      type="text"
+                      className="outline-none bg-transparent text-sm w-full border-none focus:border-none focus:ring-0"
+                      placeholder="Enter Property Address"
+                      value={search}
+                      onChange={(e) => {
+                        setSearch(e.target.value);
+                        setShowSuggestions(true);
+                      }}
+                      onFocus={() => setShowSuggestions(true)}
+                      onBlur={() =>
+                        setTimeout(() => setShowSuggestions(false), 150)
+                      }
+                      autoComplete="off"
+                    />
+                    {isLoading && (
+                      <span className="ml-2 text-xs text-gray-400">
+                        Loading...
+                      </span>
+                    )}
+                  </div>
+
+                  {showSuggestions && suggestions.length > 0 && (
+                    <div className="absolute left-0 top-10 w-full bg-white border border-gray-200 rounded-lg shadow-lg z-20 max-h-60 overflow-auto">
+                      {suggestions.map((suggestion: any, index: number) => (
                         <div
-                          key={i}
-                          className="flex items-center justify-center p-2 rounded-full cursor-pointer hover:shadow-lg border border-gray-200"
+                          key={suggestion.place_id || index}
+                          className="p-3 hover:bg-gray-100 cursor-pointer border-b border-gray-200 last:border-b-0"
+                          onClick={() => handleSuggestionClick(suggestion)}
                         >
-                          <Image
-                            src={filter.img}
-                            width={17}
-                            height={17}
-                            alt="svg"
-                            className="w-[17px] object-contain flex-shrink-0"
-                          />
+                          <div>
+                            <div className="font-medium text-gray-900">
+                              {suggestion.structured_formatting.main_text}
+                            </div>
+                            <div className="text-sm text-gray-500">
+                              {suggestion.structured_formatting.secondary_text}
+                            </div>
+                          </div>
                         </div>
                       ))}
                     </div>
-                  </div>
+                  )}
                 </div>
-                <div className="overflow-hidden h-fit ">
+
+                {/* Location error message */}
+                {locationError && (
+                  <div className="px-4 pb-2">
+                    <span className="text-xs text-red-500">
+                      {locationError}
+                    </span>
+                  </div>
+                )}
+
+                <div className="w-full  rounded-lg overflow-hidden">
                   <PropertyLocationMap
                     ref={mapRef}
-                    selectedLocation={memoizedSelectedLocation}
+                    selectedLocation={selectedLocation}
                     onLocationSelect={handleMapLocationSelect}
                   />
                 </div>
@@ -936,107 +704,49 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
             </div>
 
             {/* Property Overview Section */}
-            <div ref={overviewRef} className="  ">
-              <div className=" ">
+            <div ref={overviewRef} className="">
+              <div className="">
                 <h2 className="text-[16px] font-bold text-[#1C231F]">
                   Property Overview
                 </h2>
               </div>
-              <div className="p-6 bg-white rounded-lg shadow-sm mt-4">
-                <div className="grid grid-cols-2 gap-2 mb-2">
-                  <div className="grid gap-1 h-fit">
-                    <GlobalTextInput
-                      label={
-                        <span>
-                          Acres<span className="text-red-500">*</span>
-                        </span>
-                      }
-                      type="number"
-                      placeholder=""
-                      {...register("acres")}
-                      error={errors.acres?.message}
-                    />
-                    <GlobalSelect
-                      label={
-                        <span>
-                          Property Type<span className="text-red-500">*</span>
-                        </span>
-                      }
-                      {...register("property_type")}
-                      error={errors.property_type?.message}
-                    >
-                      <option value="">Select property type</option>
-                      {propertyTypes.map((type) => (
-                        <option key={type.value} value={type.value}>
-                          {type.label}
-                        </option>
-                      ))}
-                    </GlobalSelect>
-                    <GlobalSelect
-                      label="Languages Spoken at Property"
-                      {...register("languages")}
-                      error={errors.languages?.message}
-                    >
-                      <option value="">Select language</option>
-                      {languages.map((language) => (
-                        <option key={language.value} value={language.value}>
-                          {language.label}
-                        </option>
-                      ))}
-                    </GlobalSelect>
+              <div className="p-6 bg-white rounded-lg shadow-sm mt-4 ">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                  <GlobalTextInput
+                    label="Property Name"
+                    type="text"
+                    placeholder=""
+                    {...register("property_name")}
+                    error={errors.property_name?.message}
+                  />
 
-                    <div className="-mt-1">
-                      <GlobalTextArea
-                        label="Short Description"
-                        {...register("short_description")}
-                        error={errors.short_description?.message}
-                        rows={4}
-                      />
-                    </div>
-                  </div>
-                  <div className="grid gap-1 h-fit">
-                    <GlobalTextInput
-                      label={
-                        <span>
-                          Property Name<span className="text-red-500">*</span>
-                        </span>
-                      }
-                      type="text"
-                      placeholder=""
-                      {...register("property_name")}
-                      error={errors.property_name?.message}
-                    />
-                    <GlobalTextInput
-                      label="Website"
-                      type="url"
-                      {...register("website_url")}
-                      error={errors.website_url?.message}
-                    />
-
-                    <GlobalTextArea
-                      label="Property Rules"
-                      {...register("property_rules")}
-                      error={errors.property_rules?.message}
-                      rows={3}
-                    />
-                  </div>
+                  <LanguageMultiSelect
+                    label="Languages Spoken at Property"
+                    value={formData.languages}
+                    onChange={(value) => setValue("languages", value)}
+                    error={errors.languages?.message}
+                    languages={languages}
+                  />
                 </div>
+                <GlobalTextArea
+                  label="Short Description"
+                  {...register("short_description")}
+                  error={errors.short_description?.message}
+                  rows={3}
+                />
               </div>
             </div>
 
             {/* Property Images/Videos Section */}
             <div ref={imagesRef} className="">
-              <div className=" ">
+              <div className="">
                 <h2 className="text-[16px] font-bold text-[#1C231F]">
                   Property Images/Videos
                 </h2>
               </div>
-              <div className="p-6 bg-white rounded-lg shadow-sm mt-4">
+              <div className="p-6 bg-white rounded-lg shadow-sm mt-4 text-center">
                 {/* Upload Images Section */}
                 <div className="mb-8">
-                  <label className="block text-[14px] font-medium  text-[#1C231F] mb-4">
-                    Upload images
-                  </label>
                   <div className="grid grid-cols-5 gap-4 mb-3">
                     {/* Display uploaded images */}
                     {uploadedImages.map((file, index) => (
@@ -1047,7 +757,6 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
                             alt={`Upload ${index + 1}`}
                             className="w-full h-full object-cover"
                           />
-
                           <button
                             onClick={() => removeImage(index)}
                             className="absolute z-10 -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600"
@@ -1058,6 +767,7 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
                       </div>
                     ))}
 
+                    {/* Upload image button */}
                     <div className="aspect-square p-4 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-gray-400 transition-colors">
                       <input
                         type="file"
@@ -1078,76 +788,74 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
                           +
                         </span>
                         <span className="text-[#464444] text-[14px] text-xs">
-                          Upload image
+                          Upload Image
                         </span>
                       </label>
                     </div>
                   </div>
+                  {/* Image validation error */}
+                  {(errors.images?.message || imageError) && (
+                    <div className="text-red-500 text-xs mt-1">
+                      {typeof errors.images?.message === "string"
+                        ? errors.images.message
+                        : imageError}
+                    </div>
+                  )}
                 </div>
 
                 {/* Upload Video Section */}
                 <div className="mb-8">
-                  <label className="block text-[14px] font-medium  text-[#1C231F] mb-4">
-                    Upload optimal short video
-                  </label>
-                  <div className="grid grid-cols-5 gap-4">
+                  <div className="flex gap-4">
                     {/* Video preview or placeholder */}
-                    {uploadedVideos.length > 0 &&
-                      uploadedVideos.map((file, index) => (
-                        <div key={index} className="relative group">
-                          <div className="aspect-video bg-gray-100 rounded-lg overflow-hidden border border-gray-200">
-                            <video
-                              src={URL.createObjectURL(file)}
-                              className="w-full h-full object-cover"
-                              controls
-                            />
-                            <button
-                              onClick={() => removeVideo(index)}
-                              className="absolute z-10 -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600"
-                              type="button"
-                              aria-label="Remove video"
-                            >
-                              ×
-                            </button>
-                          </div>
-                          <div className="mt-2 text-xs text-gray-500 truncate">
-                            {file.name}
-                          </div>
+                    {uploadedVideo ? (
+                      <div className="relative group">
+                        <div className="aspect-video bg-gray-100 rounded-lg overflow-hidden border border-gray-200 w-48">
+                          <video
+                            src={URL.createObjectURL(uploadedVideo)}
+                            className="w-full h-full object-cover"
+                            controls
+                          />
+                          <button
+                            onClick={removeVideo}
+                            className="absolute z-10 -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600"
+                          >
+                            ×
+                          </button>
                         </div>
-                      ))}
-
-                    {/* Video upload button */}
-                    <div className="aspect-video border-2 p-4 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-gray-400 transition-colors">
-                      <input
-                        type="file"
-                        accept="video/*"
-                        onChange={(e) => {
-                          const files = Array.from(e.target.files || []);
-                          handleFileUpload(files, "video");
-                        }}
-                        className="hidden"
-                        id="video-upload"
-                      />
-                      <label
-                        htmlFor="video-upload"
-                        className="cursor-pointer flex flex-col items-center"
-                      >
-                        <span className="text-[#464444] text-4xl font-bold mb-1">
-                          +
-                        </span>
-                        <span className="text-[#464444] text-[14px] text-xs">
-                          Upload Mp4
-                        </span>
-                      </label>
-                    </div>
+                        <div className="mt-2 text-xs text-gray-500 truncate">
+                          {uploadedVideo.name}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="aspect-video border-2 p-4 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-gray-400 transition-colors w-48">
+                        <input
+                          type="file"
+                          accept="video/*"
+                          onChange={(e) => {
+                            const files = Array.from(e.target.files || []);
+                            handleFileUpload(files, "video");
+                          }}
+                          className="hidden"
+                          id="video-upload"
+                        />
+                        <label
+                          htmlFor="video-upload"
+                          className="cursor-pointer flex flex-col items-center"
+                        >
+                          <span className="text-[#464444] text-4xl font-bold mb-1">
+                            +
+                          </span>
+                          <span className="text-[#464444] text-[14px] text-xs">
+                            Upload File
+                          </span>
+                        </label>
+                      </div>
+                    )}
                   </div>
                 </div>
 
                 {/* Choose Cover Image Section */}
-                <div>
-                  <label className="block text-[14px] font-medium  text-[#1C231F] mb-4">
-                    Choose a cover image
-                  </label>
+                <div className="mb-8">
                   <div className="max-w-xs">
                     {coverImage ? (
                       <div className="relative group">
@@ -1169,13 +877,12 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
                         </div>
                       </div>
                     ) : (
-                      <div className="aspect-video border-2 p-4 h-fit w-fit border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-gray-400 transition-colors">
+                      <div className="aspect-video border-2 p-4 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-gray-400 transition-colors">
                         <input
                           type="file"
                           accept="image/*"
                           onChange={(e) => {
                             const files = Array.from(e.target.files || []);
-                            // Only allow one cover image to be selected
                             if (files.length > 0 && !coverImage) {
                               setCoverImage(files[0]);
                             }
@@ -1197,256 +904,51 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
                       </div>
                     )}
                   </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Insurance Section */}
-            <div ref={insuranceRef} className="">
-              <div className=" ">
-                <h2 className="text-[16px] font-bold text-[#1C231F]">
-                  Insurance
-                </h2>
-              </div>
-              <div className="p-6 bg-white rounded-lg shadow-sm mt-4">
-                <div className="text-[12px] font-bold mb-4">
-                  You are not currently covered under the HighTribe Insurance
-                  Policy
-                </div>
-
-                {/* Enrollment period - full width */}
-                <div className="mb-4">
-                  <GlobalTextInput
-                    label="Enrollment period"
-                    type="number"
-                    {...register("enrollment_period")}
-                    error={errors.enrollment_period?.message}
-                  />
-                </div>
-
-                {/* Two columns for covered/not covered */}
-                <div className="grid grid-cols-2 gap-4">
-                  <GlobalSelect
-                    label="Examples of what is typically covered"
-                    {...register("typically_covered")}
-                    error={errors.typically_covered?.message}
-                  >
-                    <option value="">Select an example</option>
-                    <option value="property_damage">Property damage</option>
-                    <option value="liability">Liability</option>
-                    <option value="theft">Theft</option>
-                    <option value="fire">Fire</option>
-                  </GlobalSelect>
-                  <GlobalSelect
-                    label="Examples of what is not covered"
-                    {...register("not_covered")}
-                    error={errors.not_covered?.message}
-                  >
-                    <option value="">Select an example</option>
-                    <option value="wear_tear">Normal wear and tear</option>
-                    <option value="intentional_damage">
-                      Intentional damage
-                    </option>
-                    <option value="pets">Pet damage</option>
-                    <option value="acts_of_god">Acts of God</option>
-                  </GlobalSelect>
-                </div>
-              </div>
-            </div>
-
-            {/* Payouts and Taxes Section */}
-            <div ref={payoutsRef} className="">
-              <div className=" ">
-                <h2 className="text-[16px] font-bold text-[#1C231F]">
-                  Payouts and Taxes<span className="text-red-500">*</span>
-                </h2>
-              </div>
-              <div className="p-6 bg-white rounded-lg shadow-sm mt-4">
-                {/* Payout Methods Section */}
-                <div className="mb-8">
-                  <div className="text-[12px] font-bold mb-4">
-                    The user should be able to select their payout/checkout
-                    method
-                  </div>
-                  <div className="space-y-3">
-                    {[
-                      { value: "stripe", label: "Stripe" },
-                      { value: "credit_cards", label: "Credit/Debit Cards" },
-                      { value: "paypal", label: "PayPal" },
-                      { value: "payoneer", label: "Payoneer" },
-                      { value: "venmo", label: "Venmo" },
-                      { value: "bank_transfer", label: "Bank Transfer" },
-                      { value: "other", label: "More methods TBD" },
-                    ].map((method) => (
-                      <label
-                        key={method.value}
-                        className="flex items-center gap-3 text-sm cursor-pointer"
-                      >
-                        <input
-                          type="radio"
-                          value={method.value}
-                          {...register("payout_method")}
-                          className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500 focus:ring-2"
-                        />
-                        <span className="text-[#1C231F]">{method.label}</span>
-                      </label>
-                    ))}
-                  </div>
-                  {errors.payout_method && (
+                  {/* Cover image validation error */}
+                  {(errors.cover_image?.message || coverImageError) && (
                     <div className="text-red-500 text-xs mt-1">
-                      {errors.payout_method.message}
+                      {typeof errors.cover_image?.message === "string"
+                        ? errors.cover_image.message
+                        : coverImageError}
                     </div>
                   )}
                 </div>
 
-                {/* Taxes Section */}
-                <div className="mb-8">
-                  <div className="text-[12px] font-bold mb-4">
-                    The user should be able to set up taxes (required). Display
-                    the following content
-                  </div>
-
-                  {/* Tax Subject Question */}
-                  <div className="mb-4">
-                    <div className="flex flex-col gap-2">
-                      <label className="flex items-center gap-2 text-sm cursor-pointer">
-                        <input
-                          type="radio"
-                          value="no"
-                          {...register("is_tax_applicable")}
-                          className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500 focus:ring-2"
-                        />
-                        <span className="text-[#1C231F]">
-                          Is your property subject to local stay or occupancy
-                          tax?
-                        </span>
-                      </label>
-                      <label className="flex items-center gap-2 text-sm cursor-pointer">
-                        <input
-                          type="radio"
-                          value="yes"
-                          {...register("is_tax_applicable")}
-                          className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500 focus:ring-2"
-                        />
-                        <span className="text-[#1C231F]">Yes</span>
-                      </label>
-                    </div>
-                    {errors.is_tax_applicable && (
-                      <div className="text-red-500 text-xs mt-1">
-                        {errors.is_tax_applicable.message}
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="space-y-4">
-                    <div>
-                      <div className="text-[12px] font-bold mb-3">
-                        If yes, how should it be collected?
-                      </div>
-                      <div className="space-y-3">
-                        {[
-                          {
-                            value: "included_in_rate",
-                            label: "Included in nightly rate",
-                          },
-                          {
-                            value: "collected_at_checkin",
-                            label: "Collected separately at check-in",
-                          },
-                          {
-                            value: "collected_by_hightribe",
-                            label: "Collected by HighTribe at checkout",
-                          },
-                        ].map((option) => (
-                          <label
-                            key={option.value}
-                            className="flex items-center gap-3 text-sm cursor-pointer"
-                          >
-                            <input
-                              type="radio"
-                              value={option.value}
-                              {...register("tax_collection_method")}
-                              className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500 focus:ring-2"
-                            />
-                            <span className="text-[#1C231F]">
-                              {option.label}
-                            </span>
-                          </label>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Tax Name and Rate */}
-                    <div className="grid grid-cols-2 gap-4">
-                      <GlobalTextInput
-                        label="Tax Name"
-                        type="text"
-                        {...register("tax_name")}
-                        error={errors.tax_name?.message}
-                      />
-                      <GlobalTextInput
-                        label="Tax Rate"
-                        //   type="text"
-                        type="number"
-                        max="100"
-                        min="0"
-                        step="0.01"
-                        {...register("tax_rate")}
-                        error={errors.tax_rate?.message}
-                      />
-                    </div>
-
-                    {/* Additional Notes */}
-                    <GlobalTextArea
-                      label="Additional Notes"
-                      placeholder="Notes"
-                      {...register("tax_notes")}
-                      error={errors.tax_notes?.message}
-                      rows={3}
+                {/* Add 360 Video Section */}
+                <div>
+                  <label className="block text-[14px] md:text-[16px] text-left font-medium text-[#1C231F] mb-1">
+                    Add 360 video
+                  </label>
+                  <div className="max-w-md">
+                    <input
+                      type="url"
+                      placeholder="URL link"
+                      value={videoUrl}
+                      onChange={(e) => setVideoUrl(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                   </div>
                 </div>
-
-                {/* Terms and Conditions */}
-                <div className="flex items-start gap-3">
-                  <input
-                    type="checkbox"
-                    id="terms"
-                    {...register("agreed_to_terms")}
-                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 focus:ring-2 mt-0.5"
-                  />
-                  <label
-                    htmlFor="terms"
-                    className="text-sm text-[#1C231F] select-none cursor-pointer"
-                  >
-                    Terms and Conditions of HighTribe for Property Listing
-                  </label>
-                </div>
-                {errors.agreed_to_terms && (
-                  <div className="text-red-500 text-xs mt-1">
-                    {errors.agreed_to_terms.message}
-                  </div>
-                )}
               </div>
             </div>
 
-            {/* Submit Button */}
+            {/* Submit Buttons */}
             <div className="flex justify-end pt-4 gap-4">
               <button
                 type="button"
-                className="px-8 py-3 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg font-medium transition-colors text-sm shadow-sm"
+                className="px-8 py-3 bg-white border border-blue-600 text-blue-600 rounded-lg font-medium transition-colors text-sm shadow-sm"
                 onClick={() => {
-                  /* handle exit logic */
+                  /* handle save as draft logic */
                 }}
               >
-                Exit
+                Save as draft
               </button>
               <button
                 type="submit"
                 className="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors text-sm shadow-sm"
                 disabled={isSubmitting}
               >
-                {isSubmitting ? "Saving..." : "Save & Next"}
+                {isSubmitting ? "Saving..." : "Add"}
               </button>
             </div>
           </form>

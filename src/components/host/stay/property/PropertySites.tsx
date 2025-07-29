@@ -85,7 +85,7 @@ export default function PropertySites({
           </button>
         </div>
         {/* Site creation form */}
-        <SitesForm onBack={handleBackToSites} />
+        
       </div>
     );
   }

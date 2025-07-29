@@ -66,6 +66,14 @@ export interface FormData {
   otherFacilities: string;
   otherSafety: string;
   parkingVehicles: string;
+  paidParkingVehicles: string;
+  
+  // Site Pricing and Capacity properties
+  siteSize: string;
+  otherBedType: string;
+  minStayDuration: string;
+  maxStayDuration: string;
+  refundDays: string;
 }
 
 export interface SelectedLocation {

@@ -67,8 +67,16 @@ const initialState: SiteFormState = {
     otherFacilities: "",
     otherSafety: "",
     parkingVehicles: "",
+    paidParkingVehicles: "",
     accommodation_type: "",
     house_sharing: [],
+
+    // Site Pricing and Capacity properties
+    siteSize: "",
+    otherBedType: "",
+    minStayDuration: "",
+    maxStayDuration: "",
+    refundDays: "",
   },
   selectedLocation: {
     coords: null,

@@ -1,4 +1,4 @@
-const GOOGLE_API_KEY = 'AIzaSyBp5MLzQRWKHDrnyNRWJkByjh14RRyC2pg';
+const GOOGLE_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_LOCATION_API_KEY;
 
 export interface GooglePlace {
   place_id: string;
@@ -28,10 +28,11 @@ export async function fetchGooglePlaceSuggestions(
   try {
     const params = new URLSearchParams({
       input,
-      key: GOOGLE_API_KEY,
+      key: GOOGLE_API_KEY || '',
       types: 'establishment|geocode',
     });
 
+    // Only add location and radius if location is provided
     if (location) {
       params.append('location', `${location.lat},${location.lng}`);
       params.append('radius', '500000');
@@ -55,7 +56,7 @@ export async function getGooglePlaceDetails(placeId: string): Promise<GooglePlac
   try {
     const params = new URLSearchParams({
       place_id: placeId,
-      key: GOOGLE_API_KEY,
+      key: GOOGLE_API_KEY || '',
       fields: 'place_id,formatted_address,geometry,name',
     });
 
