@@ -7,7 +7,7 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="lg:flex  min-h-screen bg-[#fbfbfb]">
+    <div className="lg:flex bg-[#fbfbfb]">
       {/* Desktop Sidebar - sticky on lg+ */}
       <div className="hidden lg:block">
         <div className="sticky top-16 h-[calc(100vh-80px)] overflow-hidden">

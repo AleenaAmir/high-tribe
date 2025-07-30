@@ -74,8 +74,8 @@ export const HostCard = ({
 
   return (
     <Link href={link ? link : "#"}>
-      <div className="w-[315px] h-[294px] bg-white border-2 border-white hover:border-[#107CFC4A] rounded-[15px] p-2">
-        <div className="w-[297px] h-[210px] relative">
+      <div className="w-[295px] h-[274px] bg-white border-2 border-white hover:border-[#107CFC4A] rounded-[15px] p-2">
+        <div className="w-[277px] h-[190px] relative">
           <Image
             src={img}
             alt={head}

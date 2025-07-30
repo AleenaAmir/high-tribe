@@ -18,7 +18,10 @@ import {
 } from "@/lib/googlePlaces";
 import LocationSmall from "@/components/dashboard/svgs/LocationSmall";
 
-interface PropertyFormProps {}
+interface PropertyFormProps {
+  propertyId?: string | null;
+  isEditMode?: boolean;
+}
 
 // Simplified Zod schema for property form validation
 const propertyFormSchema = z.object({
@@ -197,7 +200,10 @@ const LanguageMultiSelect: React.FC<LanguageMultiSelectProps> = ({
   );
 };
 
-const PropertyForm: React.FC<PropertyFormProps> = () => {
+const PropertyForm: React.FC<PropertyFormProps> = ({
+  propertyId,
+  isEditMode = false,
+}) => {
   const [search, setSearch] = useState("");
   const [suggestions, setSuggestions] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -216,6 +222,11 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
   const [videoUrl, setVideoUrl] = useState("");
   const [imageError, setImageError] = useState("");
   const [coverImageError, setCoverImageError] = useState("");
+  const [existingProperty, setExistingProperty] = useState<any>(null);
+  const [isLoadingProperty, setIsLoadingProperty] = useState(false);
+  const [existingImages, setExistingImages] = useState<any[]>([]);
+  const [existingCoverImage, setExistingCoverImage] = useState<any>(null);
+  const [existingVideo, setExistingVideo] = useState<any>(null);
   const router = useRouter();
 
   // React Hook Form setup
@@ -242,26 +253,119 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
     },
   });
 
+  // Fetch property data when in edit mode
+  useEffect(() => {
+    console.log("useEffect triggered:", { isEditMode, propertyId });
+    if (isEditMode && propertyId) {
+      fetchPropertyData();
+    }
+  }, [isEditMode, propertyId]);
+
+  const fetchPropertyData = async () => {
+    if (!propertyId) return;
+
+    setIsLoadingProperty(true);
+    try {
+      const token =
+        typeof window !== "undefined"
+          ? localStorage.getItem("token") || ""
+          : "";
+      const response = await fetch(
+        `https://api.hightribe.com/api/properties/${propertyId}`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            Accept: "application/json",
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch property data");
+      }
+
+      const responseData = await response.json();
+      console.log("API Response:", responseData);
+
+      // Extract the actual property data from the response
+      const propertyData = responseData.data || responseData;
+      setExistingProperty(propertyData);
+
+      // Pre-populate form with existing data
+      console.log("Setting form values:", {
+        location_address: propertyData.location_address,
+        property_name: propertyData.property_name,
+        languages: propertyData.languages,
+        short_description: propertyData.short_description,
+      });
+
+      setValue("location_address", propertyData.location_address || "");
+      setValue("location_lat", propertyData.location_lat?.toString() || "");
+      setValue("location_lng", propertyData.location_lng?.toString() || "");
+      setValue("property_name", propertyData.property_name || "");
+      setValue("languages", propertyData.languages || "");
+      setValue("short_description", propertyData.short_description || "");
+
+      // Set location for map
+      if (propertyData.location_lat && propertyData.location_lng) {
+        setSelectedLocation({
+          coords: [
+            parseFloat(propertyData.location_lng),
+            parseFloat(propertyData.location_lat),
+          ],
+          name: propertyData.location_address || "",
+        });
+        setSearch(propertyData.location_address || "");
+      }
+
+      // Set existing images
+      if (propertyData.media && propertyData.media.length > 0) {
+        setExistingImages(propertyData.media);
+      }
+
+      // Set existing cover image
+      if (propertyData.cover_image) {
+        setExistingCoverImage(propertyData.cover_image);
+      }
+
+      // Set existing video
+      if (propertyData.video_url) {
+        setExistingVideo(propertyData.video_url);
+        setVideoUrl(propertyData.video_url);
+      }
+    } catch (error) {
+      console.error("Error fetching property data:", error);
+      toast.error("Failed to load property data");
+    } finally {
+      setIsLoadingProperty(false);
+    }
+  };
+
   // Watch form values for real-time updates
   const formData = watch();
 
   // Update form values when images change
   useEffect(() => {
-    setValue("images", uploadedImages);
-    if (uploadedImages.length > 0) {
+    // Combine uploaded images with existing images that haven't been removed
+    const allImages = [...uploadedImages, ...existingImages];
+    setValue("images", allImages);
+    if (allImages.length > 0) {
       clearErrors("images");
       setImageError("");
     }
-  }, [uploadedImages, setValue, clearErrors]);
+  }, [uploadedImages, existingImages, setValue, clearErrors]);
 
   // Update form values when cover image changes
   useEffect(() => {
-    setValue("cover_image", coverImage);
-    if (coverImage) {
+    // Use uploaded cover image or existing cover image
+    const finalCoverImage = coverImage || existingCoverImage;
+    setValue("cover_image", finalCoverImage);
+    if (finalCoverImage) {
       clearErrors("cover_image");
       setCoverImageError("");
     }
-  }, [coverImage, setValue, clearErrors]);
+  }, [coverImage, existingCoverImage, setValue, clearErrors]);
 
   // Clear languages error when at least one language is selected
   useEffect(() => {
@@ -341,6 +445,17 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
     }
 
     if (section.id === "images") {
+      // In edit mode, allow completion if there are existing images/videos/cover or new uploads
+      if (isEditMode) {
+        const hasImages =
+          uploadedImages.length > 0 || existingImages.length > 0;
+        const hasCoverImage =
+          coverImage !== null || existingCoverImage !== null;
+        const hasVideo = uploadedVideo !== null || existingVideo !== null;
+
+        // Section is complete if we have images AND cover image (video is optional)
+        return hasImages && hasCoverImage;
+      }
       return uploadedImages.length > 0 && coverImage !== null;
     }
 
@@ -498,13 +613,17 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
     }
 
     // Validate images and cover image before submission
-    if (uploadedImages.length === 0) {
+    // Check if we have either uploaded images OR existing images from API
+    const hasImages = uploadedImages.length > 0 || existingImages.length > 0;
+    if (!hasImages) {
       setError("images", { message: "At least one image is required" });
       setImageError("At least one image is required");
       return;
     }
 
-    if (!coverImage) {
+    // Check if we have either uploaded cover image OR existing cover image from API
+    const hasCoverImage = coverImage !== null || existingCoverImage !== null;
+    if (!hasCoverImage) {
       setError("cover_image", { message: "Cover image is required" });
       setCoverImageError("Cover image is required");
       return;
@@ -531,7 +650,7 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
       });
     }
 
-    // Append video if uploaded
+    // Append uploaded video
     if (uploadedVideo) {
       form.append("video", uploadedVideo);
     }
@@ -541,13 +660,38 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
       form.append("cover_image", coverImage);
     }
 
+    // For edit mode, if no new files are uploaded, we need to indicate that existing media should be kept
+    if (isEditMode) {
+      // If no new images uploaded but existing images exist, add a flag to keep them
+      if (uploadedImages.length === 0 && existingImages.length > 0) {
+        form.append("keep_existing_images", "true");
+      }
+
+      // If no new cover image uploaded but existing cover image exists, add a flag to keep it
+      if (!coverImage && existingCoverImage) {
+        form.append("keep_existing_cover_image", "true");
+      }
+
+      // If no new video uploaded but existing video exists, add a flag to keep it
+      if (!uploadedVideo && existingVideo) {
+        form.append("keep_existing_video", "true");
+      }
+    }
+
     // Append 360 video URL if provided
     if (videoUrl.trim()) {
       form.append("video_url", videoUrl);
     }
+    if (isEditMode) {
+      form.append("_method", "PUT");
+    }
 
     try {
-      const response = await fetch("https://api.hightribe.com/api/properties", {
+      const url = isEditMode
+        ? `https://api.hightribe.com/api/properties/${propertyId}`
+        : "https://api.hightribe.com/api/properties";
+
+      const response = await fetch(url, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -564,14 +708,30 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
       }
 
       const result = await response.json();
-      console.log("Property created successfully:", result);
-      toast.success("Property created successfully!");
+      console.log("Property saved successfully:", result);
+      toast.success(
+        isEditMode
+          ? "Property updated successfully!"
+          : "Property created successfully!"
+      );
       router.push("/host/stay?tab=property");
     } catch (error) {
       console.error("Network error:", error);
       toast.error("Something went wrong while submitting.");
     }
   };
+
+  // Show loading state while fetching property data
+  if (isEditMode && isLoadingProperty) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading property data...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -580,7 +740,7 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
         <div className="w-80 bg-white shadow-lg h-screen overflow-y-auto sticky top-16">
           <div className="p-6">
             <h1 className="text-2xl font-bold text-[#1C231F] mb-8">
-              Property Setup
+              {isEditMode ? "Edit Property" : "Property Setup"}
             </h1>
             <div className="space-y-3">
               {sections.map((section) => {
@@ -748,9 +908,45 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
                 {/* Upload Images Section */}
                 <div className="mb-8">
                   <div className="grid grid-cols-5 gap-4 mb-3">
+                    {/* Display existing images in edit mode */}
+                    {isEditMode &&
+                      existingImages.map((media: any, index: number) => (
+                        <div
+                          key={`existing-${index}`}
+                          className="relative group"
+                        >
+                          <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden border border-gray-200">
+                            <img
+                              src={
+                                media.file_path ||
+                                "https://via.placeholder.com/150?text=No+Image"
+                              }
+                              alt={`Existing ${index + 1}`}
+                              className="w-full h-full object-cover"
+                            />
+                            <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                              <span className="text-white text-xs">
+                                Existing
+                              </span>
+                            </div>
+                          </div>
+                          <button
+                            onClick={() => {
+                              // Remove existing image
+                              setExistingImages((prev) =>
+                                prev.filter((_, i) => i !== index)
+                              );
+                            }}
+                            className="absolute z-10 -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600"
+                          >
+                            ×
+                          </button>
+                        </div>
+                      ))}
+
                     {/* Display uploaded images */}
                     {uploadedImages.map((file, index) => (
-                      <div key={index} className="relative group">
+                      <div key={`uploaded-${index}`} className="relative group">
                         <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden border border-gray-200">
                           <img
                             src={URL.createObjectURL(file)}
@@ -801,22 +997,64 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
                         : imageError}
                     </div>
                   )}
+
+                  {/* Info message for existing images */}
+                  {isEditMode &&
+                    existingImages.length > 0 &&
+                    uploadedImages.length === 0 && (
+                      <div className="text-blue-600 text-xs mt-1">
+                        ✓ Using {existingImages.length} existing image
+                        {existingImages.length > 1 ? "s" : ""}
+                      </div>
+                    )}
                 </div>
 
                 {/* Upload Video Section */}
                 <div className="mb-8">
-                  <div className="flex gap-4">
-                    {/* Video preview or placeholder */}
+                  <label className="block text-[14px] md:text-[16px] text-left font-medium text-[#1C231F] mb-3">
+                    Upload Video
+                  </label>
+                  <div className="max-w-xs">
+                    {/* Display existing video in edit mode */}
+                    {isEditMode && existingVideo && !uploadedVideo && (
+                      <div className="relative group">
+                        <div className="aspect-video bg-gray-100 rounded-lg overflow-hidden border border-gray-200">
+                          <video
+                            src={existingVideo}
+                            controls
+                            className="w-full h-full object-cover"
+                          />
+                          <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                            <span className="text-white text-xs">
+                              Existing Video
+                            </span>
+                          </div>
+                        </div>
+                        <div className="mt-2 text-xs text-gray-500 truncate">
+                          Existing Video
+                        </div>
+                        <button
+                          onClick={() => {
+                            // Remove existing video
+                            setExistingVideo(null);
+                          }}
+                          className="absolute z-10 -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    )}
+
                     {uploadedVideo ? (
                       <div className="relative group">
-                        <div className="aspect-video bg-gray-100 rounded-lg overflow-hidden border border-gray-200 w-48">
+                        <div className="aspect-video bg-gray-100 rounded-lg overflow-hidden border border-gray-200">
                           <video
                             src={URL.createObjectURL(uploadedVideo)}
-                            className="w-full h-full object-cover"
                             controls
+                            className="w-full h-full object-cover"
                           />
                           <button
-                            onClick={removeVideo}
+                            onClick={() => setUploadedVideo(null)}
                             className="absolute z-10 -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600"
                           >
                             ×
@@ -827,13 +1065,15 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
                         </div>
                       </div>
                     ) : (
-                      <div className="aspect-video border-2 p-4 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-gray-400 transition-colors w-48">
+                      <div className="aspect-video border-2 p-4 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-gray-400 transition-colors">
                         <input
                           type="file"
                           accept="video/*"
                           onChange={(e) => {
                             const files = Array.from(e.target.files || []);
-                            handleFileUpload(files, "video");
+                            if (files.length > 0 && !uploadedVideo) {
+                              setUploadedVideo(files[0]);
+                            }
                           }}
                           className="hidden"
                           id="video-upload"
@@ -846,17 +1086,62 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
                             +
                           </span>
                           <span className="text-[#464444] text-[14px] text-xs">
-                            Upload File
+                            Upload Video
                           </span>
                         </label>
                       </div>
                     )}
                   </div>
+
+                  {/* Info message for existing video */}
+                  {isEditMode && existingVideo && !uploadedVideo && (
+                    <div className="text-blue-600 text-xs mt-1">
+                      ✓ Using existing video
+                    </div>
+                  )}
                 </div>
 
                 {/* Choose Cover Image Section */}
                 <div className="mb-8">
                   <div className="max-w-xs">
+                    {/* Existing cover image in edit mode */}
+                    {isEditMode && existingCoverImage && !coverImage && (
+                      <div className="relative group">
+                        <div className="aspect-video bg-gray-100 rounded-lg overflow-hidden border border-gray-200">
+                          <img
+                            src={
+                              typeof existingCoverImage === "string"
+                                ? existingCoverImage
+                                : existingCoverImage.file_path?.replace(
+                                    /\\/g,
+                                    ""
+                                  ) ||
+                                  "https://via.placeholder.com/150?text=No+Image"
+                            }
+                            alt="Existing cover image"
+                            className="w-full h-full object-cover"
+                          />
+                          <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                            <span className="text-white text-xs">
+                              Existing Cover
+                            </span>
+                          </div>
+                        </div>
+                        <div className="mt-2 text-xs text-gray-500 truncate">
+                          Existing Cover Image
+                        </div>
+                        <button
+                          onClick={() => {
+                            // Remove existing cover image
+                            setExistingCoverImage(null);
+                          }}
+                          className="absolute z-10 -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    )}
+
                     {coverImage ? (
                       <div className="relative group">
                         <div className="aspect-video bg-gray-100 rounded-lg overflow-hidden border border-gray-200">
@@ -912,6 +1197,13 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
                         : coverImageError}
                     </div>
                   )}
+
+                  {/* Info message for existing cover image */}
+                  {isEditMode && existingCoverImage && !coverImage && (
+                    <div className="text-blue-600 text-xs mt-1">
+                      ✓ Using existing cover image
+                    </div>
+                  )}
                 </div>
 
                 {/* Add 360 Video Section */}
@@ -948,7 +1240,7 @@ const PropertyForm: React.FC<PropertyFormProps> = () => {
                 className="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors text-sm shadow-sm"
                 disabled={isSubmitting}
               >
-                {isSubmitting ? "Saving..." : "Add"}
+                {isSubmitting ? "Saving..." : isEditMode ? "Edit" : "Add"}
               </button>
             </div>
           </form>

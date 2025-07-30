@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import GlobalTextInput from "@/components/global/GlobalTextInput";
 import GlobalTextArea from "@/components/global/GlobalTextArea";
 import GlobalMultiSelect from "@/components/global/GlobalMultiSelect";
@@ -8,10 +8,18 @@ import { useLocationAutocomplete } from "../newjourney/hooks";
 import { MapboxFeature } from "../newjourney/types";
 import VisibilitySelector from "../newjourney/VisibilitySelector";
 import LocationMap from "@/components/global/LocationMap";
-import { apiRequest } from "@/lib/api";
+import { apiRequest, apiFormDataWrapper } from "@/lib/api";
+import toast from "react-hot-toast";
 
 interface NewTipProps {
   onClose?: () => void;
+}
+
+interface User {
+  id: number;
+  name: string;
+  email?: string;
+  avatar?: string;
 }
 
 export default function NewTip({ onClose }: NewTipProps) {
@@ -28,17 +36,59 @@ export default function NewTip({ onClose }: NewTipProps) {
     name: string;
   }>({ coords: null, name: "" });
   const [media, setMedia] = useState<File[]>([]);
-  const [taggedFriends, setTaggedFriends] = useState<
-    { id: number; name: string; email?: string; avatar?: string }[]
-  >([]);
+  const [taggedFriends, setTaggedFriends] = useState<User[]>([]);
   const [friendSearchQuery, setFriendSearchQuery] = useState("");
   const [visibility, setVisibility] = useState<"public" | "tribe" | "private">(
     "public"
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Mock user suggestions for friend tagging
-  const [userSuggestions, setUserSuggestions] = useState<any[]>([]);
+  // Real user suggestions for friend tagging
+  const [userSuggestions, setUserSuggestions] = useState<User[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
+  const [loadingUsers, setLoadingUsers] = useState(false);
+
+  // Fetch real users on component mount
+  useEffect(() => {
+    const fetchUsers = async () => {
+      setLoadingUsers(true);
+      try {
+        const usersData = await apiRequest<any>("users", { method: "GET" });
+
+        // Handle users data structure
+        let users = [];
+        if (Array.isArray(usersData)) {
+          users = usersData;
+        } else if (usersData?.users && Array.isArray(usersData.users)) {
+          users = usersData.users;
+        } else if (
+          usersData &&
+          typeof usersData === "object" &&
+          usersData.data &&
+          Array.isArray(usersData.data)
+        ) {
+          users = usersData.data;
+        }
+
+        // Map users to expected structure
+        const mappedUsers = users.map((user: any) => ({
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          avatar: user.avatar,
+        }));
+
+        setUsers(mappedUsers);
+      } catch (error) {
+        console.error("Error fetching users:", error);
+        setUsers([]);
+      } finally {
+        setLoadingUsers(false);
+      }
+    };
+
+    fetchUsers();
+  }, []);
 
   // Debounced geocoding function
   const debouncedGeocode = useCallback(
@@ -128,61 +178,45 @@ export default function NewTip({ onClose }: NewTipProps) {
     }
   };
 
-  // Handle friend search
+  // Handle friend search with real users
   const handleFriendSearch = async (query: string) => {
     setFriendSearchQuery(query);
-    // Mock user suggestions - in real app, this would be an API call
-    const mockUsers = [
-      {
-        id: 1,
-        name: "John Doe",
-        email: "john@example.com",
-        avatar: "https://randomuser.me/api/portraits/men/1.jpg",
-      },
-      {
-        id: 2,
-        name: "Jane Smith",
-        email: "jane@example.com",
-        avatar: "https://randomuser.me/api/portraits/women/2.jpg",
-      },
-      {
-        id: 3,
-        name: "Mike Johnson",
-        email: "mike@example.com",
-        avatar: "https://randomuser.me/api/portraits/men/3.jpg",
-      },
-    ];
-    setUserSuggestions(
-      mockUsers.filter((user) =>
-        user.name.toLowerCase().includes(query.toLowerCase())
-      )
+    if (!query.trim()) {
+      setUserSuggestions([]);
+      return;
+    }
+
+    // Filter real users based on search query
+    const filteredUsers = users.filter(
+      (user) =>
+        user.name?.toLowerCase().includes(query.toLowerCase()) ||
+        user.email?.toLowerCase().includes(query.toLowerCase())
     );
+    setUserSuggestions(filteredUsers);
   };
 
   // Form submission
   const handleSubmit = async () => {
     if (!title.trim() || !tip.trim() || !location.trim()) {
-      alert("Please fill in all required fields");
+      toast.error("Please fill in all required fields");
       return;
     }
 
     setIsSubmitting(true);
 
     try {
-      // Create FormData with the same structure as journeys
+      // Create FormData with the structure matching the Postman image
       const formData = new FormData();
 
-      // Add basic tip data
-      formData.append("title", title.trim());
-      formData.append("description", tip.trim());
-      formData.append("location_name", location);
+      // Add basic tip data matching the travel-tips endpoint structure
+      formData.append("location", location);
       if (selectedLocation.coords) {
         formData.append("latitude", selectedLocation.coords[1].toString());
         formData.append("longitude", selectedLocation.coords[0].toString());
       }
+      formData.append("title", title.trim());
+      formData.append("description", tip.trim());
       formData.append("privacy", visibility);
-      formData.append("type", "tip");
-      formData.append("status", "published");
 
       // Add tagged users
       if (taggedFriends.length > 0) {
@@ -196,13 +230,10 @@ export default function NewTip({ onClose }: NewTipProps) {
         formData.append(`media[${index}]`, file);
       });
 
-      // API call using the same endpoint as journeys
-      await apiRequest(
-        "posts",
-        {
-          method: "POST",
-          body: formData,
-        },
+      // API call using the new FormData wrapper
+      await apiFormDataWrapper(
+        "travel-tips",
+        formData,
         "Travel Tip created successfully!"
       );
 
@@ -219,7 +250,7 @@ export default function NewTip({ onClose }: NewTipProps) {
       onClose?.();
     } catch (error) {
       console.error("Error creating travel tip:", error);
-      alert("Failed to create travel tip. Please try again.");
+      toast.error("Failed to create travel tip. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -313,6 +344,7 @@ export default function NewTip({ onClose }: NewTipProps) {
                 suggestions={userSuggestions}
                 onSearch={handleFriendSearch}
                 maxSelections={10}
+                loading={loadingUsers}
               />
 
               {/* Visibility Selector */}

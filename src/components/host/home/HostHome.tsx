@@ -44,7 +44,7 @@ export default function HostHome() {
   const [userName, setUserName] = useState<string>("Guest");
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       const name = localStorage.getItem("name");
       if (name) {
         setUserName(name);
@@ -54,7 +54,7 @@ export default function HostHome() {
 
   return (
     <div className="">
-      <div className="bg-white p-3 md:px-6 md:py-3 lg:px-8 lg:py-4">
+      <div className="bg-white p-3 md:px-6 md:py-3 lg:px-8 lg:pt-4 lg:pb-0">
         <h3 className="text-[16px] font-bold text-[#1C231F] lg:text-[20px] capitalize">
           Hello {userName}
         </h3>
@@ -64,7 +64,7 @@ export default function HostHome() {
           the Mission,
         </p>
       </div>
-      <div className="flex items-center gap-4 flex-wrap p-3 md:px-6 md:py-3 lg:px-8 lg:py-4">
+      <div className="flex items-center gap-4 flex-wrap p-3 md:px-6 md:py-3 lg:px-8 lg:pt-4 lg:pb-0">
         {data.map((item) => (
           <HostCard key={item.head} {...item} />
         ))}
