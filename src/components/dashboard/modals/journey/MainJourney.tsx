@@ -54,12 +54,12 @@ const MainJourney = ({
               src={
                 "https://res.cloudinary.com/dtfzklzek/image/upload/v1751667876/journey_transportation_adventure_travel_traveling_bus_icon_260842_1_z3sdj3.svg"
               }
-              alt="Existing journey"
+              alt="My journey"
               width={96}
               height={96}
               className="w-[56px] object-contain md:w-[96px]"
             />
-            <span className="text-[12px] md:text-[16px]">Existing Journey</span>
+            <span className="text-[12px] md:text-[16px]">My Journey</span>
           </button>
         </div>
       </GlobalModal>

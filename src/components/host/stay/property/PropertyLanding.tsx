@@ -89,25 +89,8 @@ const PropertyCardSkeleton = () => (
       </div>
     </div>
 
-    <div className="flex flex-col justify-between items-end gap-1 p-2">
-      {/* Status skeleton */}
-      <div className="flex items-center space-x-1 border rounded-full px-2 py-1">
-        <LoadingSkeleton type="text" lines={1} width="w-12" height="h-3" />
-      </div>
-
-      {/* Chat Icon skeleton */}
-      <div className="w-6 h-6 flex items-center justify-center">
-        <LoadingSkeleton type="custom" width="w-4" height="h-4" rounded="sm" />
-      </div>
-
-      {/* Dropdown skeleton */}
-      <div className="w-4 h-4">
-        <LoadingSkeleton type="custom" width="w-4" height="h-4" rounded="sm" />
-      </div>
-    </div>
-
     {/* Right side - Status strip */}
-    <div className="w-8 flex flex-col items-center justify-between py-4 bg-blue-500 rounded-r-[20px]"></div>
+    <div className="w-8 flex flex-col items-center justify-between py-4 bg-gray-200 rounded-r-[20px]"></div>
   </div>
 );
 
