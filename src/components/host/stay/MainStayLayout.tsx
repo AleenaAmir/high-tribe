@@ -7,6 +7,7 @@ import StatsMain from "./stats/StatsMain";
 import PropertyForm from "./property/PropertyFormUpdated";
 import SitesForm from "./sites/SitesForm";
 import BookingsMain from "./bookings/BookingsMain";
+import SitesFormUpdated from "./sites/SitesFormUpdated";
 
 const stayTabs = [
   "stats",
@@ -157,7 +158,7 @@ export default function MainStayLayout() {
         )}
       {propertyTab !== "true" &&
         propertyTab !== "edit" &&
-        siteTab === "true" && <SitesForm onBack={handleBackToSites} />}
+        siteTab === "true" && <SitesFormUpdated />}
     </div>
   );
 }
