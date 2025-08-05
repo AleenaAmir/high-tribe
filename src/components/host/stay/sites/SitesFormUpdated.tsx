@@ -193,18 +193,16 @@ const SitesFormUpdated: React.FC = () => {
               <button
                 key={section.id}
                 onClick={() => scrollToSection(section.id)}
-                className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-colors ${
-                  section.isCompleted
-                    ? "bg-white text-gray-900"
-                    : "bg-white text-gray-900 hover:bg-gray-50"
-                }`}
+                className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-colors ${section.isCompleted
+                  ? "bg-white text-gray-900"
+                  : "bg-white text-gray-900 hover:bg-gray-50"
+                  }`}
               >
                 <div
-                  className={`w-6 h-6 rounded-full flex items-center justify-center ${
-                    section.isCompleted
-                      ? "bg-[#1179FA] text-white"
-                      : "bg-gray-200"
-                  }`}
+                  className={`w-6 h-6 rounded-full flex items-center justify-center ${section.isCompleted
+                    ? "bg-[#1179FA] text-white"
+                    : "bg-gray-200"
+                    }`}
                 >
                   {section.isCompleted && <span className="text-xs">✓</span>}
                 </div>
@@ -218,7 +216,7 @@ const SitesFormUpdated: React.FC = () => {
         <div className="flex-1 p-6">
           <form
             onSubmit={handleSubmit(onSubmit)}
-            className="max-w-[940px] mx-auto space-y-8"
+            className="max-w-[1200px] mx-auto space-y-8"
           >
             {/* Site Overview Section */}
             <div ref={overviewRef}>
@@ -297,14 +295,14 @@ const SitesFormUpdated: React.FC = () => {
                 type="button"
                 onClick={handleSaveDraft}
                 disabled={isSubmitting}
-                className="px-8 py-3 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg font-medium transition-colors text-sm shadow-sm disabled:opacity-50"
+                className="px-8 py-3 bg-gray-200 w-[158px] mt-2 h-[35px] font-[500] text-[14px] hover:bg-gray-300 text-gray-700 rounded-lg  transition-colors text-sm shadow-sm disabled:opacity-50"
               >
                 Save as draft
               </button>
               <button
                 type="submit"
                 disabled={isSubmitting || !allSectionsCompleted}
-                className={`px-8 py-3 rounded-lg font-medium transition-colors text-sm shadow-sm bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-50`}
+                className={`px-8 py-3 w-[158px] mt-2 h-[35px] font-[500] text-[14px] rounded-lg  transition-colors text-sm shadow-sm bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-50`}
               >
                 {isSubmitting ? "Publishing..." : "Review & Publish"}
               </button>

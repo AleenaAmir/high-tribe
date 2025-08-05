@@ -190,10 +190,10 @@ const SitesFormContent: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
         <SitesFormSidebar sections={sections} />
 
         {/* Main Content */}
-        <div className="flex-1 p-6">
+        <div className="flex-1 p-2">
           <form
             onSubmit={handleSubmit}
-            className="max-w-[940px] mx-auto space-y-8"
+            className="max-w-[1040px] mx-auto space-y-8"
           >
             {/* Site Location Section */}
             <SiteLocationSection sectionRef={locationRef} />
@@ -223,7 +223,7 @@ const SitesFormContent: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
             <div ref={reviewRef} className="flex justify-end pt-4 gap-4">
               <button
                 type="button"
-                className="px-8 py-3 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg font-medium transition-colors text-sm shadow-sm"
+                className="px-8 py-3 w-[158px] mt-2 h-[35px] font-[500] text-[14px] bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg  transition-colors text-sm shadow-sm"
                 onClick={handleExit}
               >
                 Save as draft
@@ -231,9 +231,9 @@ const SitesFormContent: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
               <button
                 onClick={handleSubmit}
                 type="submit"
-                className="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors text-sm shadow-sm"
+                className="px-8 w-[158px] mt-2 h-[35px] font-[500] text-[14px] py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg  transition-colors text-sm shadow-sm"
               >
-                Review & Published
+                Review & Published 12
               </button>
             </div>
           </form>

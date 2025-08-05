@@ -104,11 +104,10 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
             key={option}
             type="button"
             onClick={() => handleToggle(option)}
-            className={`px-3 py-2 rounded-full border cursor-pointer text-[12px] font-semibold transition-all ${
-              selected.includes(option)
+            className={`px-3 py-2 rounded-full border cursor-pointer text-[12px] font-semibold transition-all ${selected.includes(option)
                 ? "bg-[#237AFC] border-[#237AFC] text-white"
                 : "bg-white text-[#131313]  border-black"
-            }`}
+              }`}
           >
             {option}
           </button>
@@ -116,11 +115,10 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
         <button
           type="button"
           onClick={() => handleToggle("Other")}
-          className={`px-3 py-2 rounded-full border cursor-pointer text-[12px] font-semibold transition-all ${
-            isOtherSelected
+          className={`px-3 py-2 rounded-full border cursor-pointer text-[12px] font-semibold transition-all ${isOtherSelected
               ? "bg-[#237AFC] border-[#237AFC] text-white"
               : "bg-white text-[#131313] border-black"
-          }`}
+            }`}
         >
           + {otherValue || "Other"}
         </button>
@@ -298,11 +296,10 @@ export default function SiteAmenitiesAndFacilities({
                       option.value as "yes_on_leash" | "no"
                     )
                   }
-                  className={`px-3 py-2 rounded-full border cursor-pointer text-[12px] font-semibold transition-all ${
-                    watchedPetPolicy === option.value
+                  className={`px-3 py-2 rounded-full border cursor-pointer text-[12px] font-semibold transition-all ${watchedPetPolicy === option.value
                       ? "bg-[#237AFC] border-[#237AFC] text-white"
                       : "bg-white text-[#131313] border-black"
-                  }`}
+                    }`}
                 >
                   {option.label}
                 </button>
@@ -321,7 +318,7 @@ export default function SiteAmenitiesAndFacilities({
               type="button"
               onClick={handleSaveClick}
               disabled={isSubmitting}
-              className="bg-[#237AFC] text-white px-4 md:px-10 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="bg-[#237AFC] w-[158px] mt-2 h-[35px] font-[500] text-[14px] text-white px-4 md:px-10 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               {isSubmitting ? "Saving..." : "Save"}
             </button>

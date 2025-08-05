@@ -114,9 +114,8 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
         <button
           type="button"
           onClick={() => setIsOpen(!isOpen)}
-          className={`w-full h-[40px] border rounded-lg px-5 py-2 text-[12px] text-left flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all ${
-            error ? "border-red-400" : "border-[#848484]"
-          }`}
+          className={`w-full h-[40px] border rounded-lg px-5 py-2 text-[12px] text-left flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all ${error ? "border-red-400" : "border-[#848484]"
+            }`}
         >
           <div className="flex items-center gap-2">
             {selectedOption && (
@@ -150,11 +149,10 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
                   onChange(option.value);
                   setIsOpen(false);
                 }}
-                className={`w-full px-4 py-2 text-left text-[12px] flex items-center gap-2 hover:bg-gray-50 transition-colors ${
-                  option.value === value
-                    ? "bg-blue-50 text-blue-600"
-                    : "text-[#1C231F]"
-                }`}
+                className={`w-full px-4 py-2 text-left text-[12px] flex items-center gap-2 hover:bg-gray-50 transition-colors ${option.value === value
+                  ? "bg-blue-50 text-blue-600"
+                  : "text-[#1C231F]"
+                  }`}
               >
                 <AccommodationIcon type={option.icon} className="w-4 h-4" />
                 {option.label}
@@ -179,20 +177,29 @@ const siteOverviewSchema = z.object({
 type SiteOverviewFormData = z.infer<typeof siteOverviewSchema>;
 
 // Accommodation type options with icons
+// const accommodationOptions = [
+//   {  icon: "house" },
+//   { value: "apartment", label: "Apartment", icon: "apartment" },
+//   { value: "hotel", label: "Hotel", icon: "hotel" },
+//   { value: "barn", label: "Barn", icon: "barn" },
+//   {
+//     value: "bed & breakfast",
+//     label: "Bed & breakfast",
+//     icon: "bed & breakfast",
+//   },
+//   { value: "boat", label: "Boat", icon: "boat" },
+//   { value: "cabin", label: "Cabin", icon: "cabin" },
+//   { value: "camper/rv", label: "Camper/RV", icon: "camper/rv" },
+//   { value: "castle", label: "Castle", icon: "castle" },
+// ];
 const accommodationOptions = [
-  { value: "house", label: "House", icon: "house" },
-  { value: "apartment", label: "Apartment", icon: "apartment" },
-  { value: "hotel", label: "Hotel", icon: "hotel" },
-  { value: "barn", label: "Barn", icon: "barn" },
-  {
-    value: "bed & breakfast",
-    label: "Bed & breakfast",
-    icon: "bed & breakfast",
-  },
-  { value: "boat", label: "Boat", icon: "boat" },
-  { value: "cabin", label: "Cabin", icon: "cabin" },
-  { value: "camper/rv", label: "Camper/RV", icon: "camper/rv" },
-  { value: "castle", label: "Castle", icon: "castle" },
+
+  { value: "camping_glamping", label: "Camping/Glamping", icon: "house" },
+  { value: "lodging_room_cabin", label: "Lodging/Room/Cabin", icon: "apartment" },
+  { value: "rv", label: "RV", icon: "boat" },
+  { value: "non_traditional_couch_air_mattress", label: "Non-traditional Couch/Air Mattress", icon: "cabin" },
+  { value: "co_living_hostel", label: "Co-living/Hostel", icon: "castle" }
+
 ];
 
 export default function SiteOverViewForm({
@@ -279,7 +286,7 @@ export default function SiteOverViewForm({
 
   return (
     <div>
-      <h4 className="text-[14px] md:text-[16px] text-[#1C231F] font-semibold">
+      <h4 className="text-[16px] md:text-[16px] leading-[16px] text-[#1C231F] font-[600]">
         Site Overview
       </h4>
       <div className="mt-4">
@@ -290,7 +297,7 @@ export default function SiteOverViewForm({
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-2">
             <GlobalTextInput
               label={
-                <span>
+                <span className="text-[12px] text-[#000000] leading-[16px] font-[500]">
                   Site Name<span className="text-red-500">*</span>
                 </span>
               }
@@ -300,7 +307,7 @@ export default function SiteOverViewForm({
 
             <CustomSelect
               label={
-                <span>
+                <span className="text-[12px]  text-[#000000] leading-[16px] font-[500]">
                   Select Accommodation type
                   <span className="text-red-500">*</span>
                 </span>
@@ -314,7 +321,7 @@ export default function SiteOverViewForm({
 
           <GlobalTextArea
             label={
-              <span>
+              <span className="text-[12px]  text-[#000000] leading-[16px] font-[500]">
                 Site Description<span className="text-red-500">*</span>
               </span>
             }
@@ -328,7 +335,7 @@ export default function SiteOverViewForm({
               type="button"
               onClick={handleSaveClick}
               disabled={isSubmitting}
-              className="bg-[#237AFC] text-white px-4 md:px-10 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="bg-[#237AFC] w-[158px] mt-2 h-[35px] font-[500] text-[14px] text-white px-4 md:px-10 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               {isSubmitting ? "Saving..." : "Save"}
             </button>

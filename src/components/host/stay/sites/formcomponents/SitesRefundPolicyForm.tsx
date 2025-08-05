@@ -44,28 +44,28 @@ export default function SitesRefundPolicyForm({
   const refundType = watch("refundType");
 
   const onSubmit = async (data: RefundPolicyFormData) => {
-    try {
-      const formData = new FormData();
-      formData.append("refundType", data.refundType);
-      if (data.refundDays) {
-        formData.append("refundDays", data.refundDays.toString());
-      }
+    // try {
+    //   const formData = new FormData();
+    //   formData.append("refundType", data.refundType);
+    //   if (data.refundDays) {
+    //     formData.append("refundDays", data.refundDays.toString());
+    //   }
 
-      // You can replace this endpoint with your actual API endpoint
-      const response = await apiFormDataWrapper<{
-        success: boolean;
-        message: string;
-      }>(
-        "/api/sites/refund-policy",
-        formData,
-        "Refund policy saved successfully!"
-      );
+    //   // You can replace this endpoint with your actual API endpoint
+    //   const response = await apiFormDataWrapper<{
+    //     success: boolean;
+    //     message: string;
+    //   }>(
+    //     "/api/sites/refund-policy",
+    //     formData,
+    //     "Refund policy saved successfully!"
+    //   );
 
-      console.log("Form submitted successfully:", response);
-    } catch (error) {
-      console.error("Error submitting form:", error);
-      // Error handling is already done by apiFormDataWrapper
-    }
+    //   console.log("Form submitted successfully:", response);
+    // } catch (error) {
+    //   console.error("Error submitting form:", error);
+    //   // Error handling is already done by apiFormDataWrapper
+    // }
   };
 
   return (
@@ -127,7 +127,7 @@ export default function SitesRefundPolicyForm({
             <button
               type="submit"
               disabled={isSubmitting}
-              className="bg-[#237AFC] text-white px-6 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="bg-[#237AFC] w-[158px] mt-2 h-[35px] font-[500] text-[14px] text-white px-4 md:px-10 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               {isSubmitting ? "Saving..." : "Save"}
             </button>

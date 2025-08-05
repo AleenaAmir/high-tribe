@@ -271,9 +271,8 @@ const SitesBookingSettingsForm = ({
 
           {/* Calendar */}
           <div
-            className={`mb-6 max-w-[541px] mx-auto ${
-              !ownerBlock ? "opacity-50 pointer-events-none" : ""
-            }`}
+            className={`mb-6 max-w-[541px] mx-auto ${!ownerBlock ? "opacity-50 pointer-events-none" : ""
+              }`}
           >
             <div className="flex items-center justify-between mb-4">
               <button
@@ -315,11 +314,11 @@ const SitesBookingSettingsForm = ({
                 const isStartDate =
                   dateRange.from &&
                   day.date.toDateString() ===
-                    new Date(dateRange.from).toDateString();
+                  new Date(dateRange.from).toDateString();
                 const isEndDate =
                   dateRange.to &&
                   day.date.toDateString() ===
-                    new Date(dateRange.to).toDateString();
+                  new Date(dateRange.to).toDateString();
                 const isSelected = isDateSelected(day.date);
 
                 return (
@@ -331,10 +330,9 @@ const SitesBookingSettingsForm = ({
                     className={`
                       p-2 text-sm transition-colors
                       ${day.isCurrentMonth ? "text-gray-900" : "text-gray-400"}
-                      ${
-                        isSelected
-                          ? "bg-black text-white"
-                          : isInRange
+                      ${isSelected
+                        ? "bg-black text-white"
+                        : isInRange
                           ? "bg-black text-white"
                           : "hover:bg-gray-100"
                       }
@@ -392,7 +390,7 @@ const SitesBookingSettingsForm = ({
               type="button"
               onClick={handleSaveClick}
               disabled={isSubmitting}
-              className="bg-[#237AFC] text-white px-6 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="bg-[#237AFC] w-[158px] mt-2 h-[35px] font-[500] text-[14px] text-white px-4 md:px-10 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               {isSubmitting ? "Saving..." : "Save"}
             </button>

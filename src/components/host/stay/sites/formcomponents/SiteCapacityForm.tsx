@@ -6,15 +6,15 @@ import { z } from "zod";
 import GlobalTextArea from "@/components/global/GlobalTextArea";
 import GlobalTextInput from "@/components/global/GlobalTextInput";
 import { apiFormDataWrapper } from "@/lib/api";
+import { toast } from "react-hot-toast";
 
 // Zod validation schema
 const siteCapacitySchema = z.object({
-  siteSize: z.number().min(1, "Site size must be at least 1"),
-  typeOfBed: z.string().min(1, "Type of bed is required"),
-  capacityDescription: z
-    .string()
-    .min(10, "Capacity description must be at least 10 characters"),
+  siteSize: z.number().min(1, "Site size is required"), // changed to string
+  typeOfBed: z.string().min(1, "Total beds is required"), // changed label & usage
+  capacityDescription: z.string().min(10, "Capacity description must be at least 10 characters"),
 });
+
 
 type SiteCapacityFormData = z.infer<typeof siteCapacitySchema>;
 
@@ -43,30 +43,34 @@ export default function SiteCapacityForm({
   const onSubmit = async (data: SiteCapacityFormData) => {
     try {
       const formData = new FormData();
-      formData.append("siteSize", data.siteSize.toString());
-      formData.append("typeOfBed", data.typeOfBed);
-      formData.append("capacityDescription", data.capacityDescription);
+      formData.append("site_size", "30x20 ft"); // e.g., "30x20 ft"
+      formData.append("total_beds", data.typeOfBed.toString()); // e.g., "5"
       formData.append("site_id", siteId);
+      formData.append("guest_capacity_min", "2");
+      formData.append("guest_capacity_max", "10");
+      formData.append("hookup_type", "pull_thru");
+      formData.append("amperes", "30");
+      formData.append("max_length", "50");
+      formData.append("max_width", "20");
+      formData.append("turning_radius", "30");
+      formData.append("driveway_surface_other", "gravel");
 
-      // You can replace this endpoint with your actual API endpoint
-      const response = await apiFormDataWrapper<{
-        success: boolean;
-        message: string;
-      }>(
+      const response = await apiFormDataWrapper(
         `properties/${propertyId}/sites/capacity`,
         formData,
         "Site capacity saved successfully!"
-      );
-
-      console.log("Form submitted successfully:", response);
-
-      // Mark section as completed
-      if (onSuccess) {
-        onSuccess();
+      ) as Response;
+      debugger;
+      //@ts-ignore
+      if (response.message == "Capacity details saved successfully") {
+        toast.success("Site capacity saved successfully!");
+      } else {
+        toast.error("Failed to save site capacity");
       }
+
+      if (onSuccess) onSuccess();
     } catch (error) {
       console.error("Error submitting form:", error);
-      // Error handling is already done by apiFormDataWrapper
     }
   };
 
@@ -125,7 +129,7 @@ export default function SiteCapacityForm({
               type="button"
               onClick={handleSaveClick}
               disabled={isSubmitting}
-              className="bg-[#237AFC] text-white px-4 md:px-10 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="bg-[#237AFC] w-[158px] mt-2 h-[35px] font-[500] text-[14px] text-white px-4 md:px-10 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               {isSubmitting ? "Saving..." : "Save"}
             </button>

@@ -11,6 +11,13 @@ import { useRouter } from "next/navigation";
 interface SiteOverviewSectionProps {
   sectionRef: React.RefObject<HTMLDivElement | null>;
 }
+const accomodationTypes = [
+  { value: "camping_glamping", label: "Camping/Glamping" },
+  { value: "lodging_room_cabin", label: "Lodging/Room/Cabin" },
+  { value: "rv", label: "RV" },
+  { value: "non_traditional_couch_air_mattress", label: "Non-traditional Couch/Air Mattress" },
+  { value: "co_living_hostel", label: "Co-living/Hostel" }
+];
 
 const SiteOverviewSection: React.FC<SiteOverviewSectionProps> = ({
   sectionRef,
@@ -223,19 +230,7 @@ const SiteOverviewSection: React.FC<SiteOverviewSectionProps> = ({
                 error={state.errors?.accommodation_type}
               >
                 <option value=""></option>
-                {[
-                  {
-                    value: "stand_alone_cabin",
-                    label: "Stand-alone Cabin/Studio",
-                  },
-                  { value: "apartment", label: "Apartment" },
-                  { value: "entire_house", label: "Entire House" },
-                  { value: "room_in_house", label: "A room in a house" },
-                  { value: "glamp", label: "Glamp" },
-                  { value: "campsite", label: "Campsite" },
-                  { value: "co_living_hostel", label: "Co-living/Hostel" },
-                  { value: "rv", label: "RV" },
-                ].map((option) => (
+                {accomodationTypes.map((option) => (
                   <option key={option.value} value={option.value}>
                     {option.label}
                   </option>
@@ -318,12 +313,12 @@ const SiteOverviewSection: React.FC<SiteOverviewSectionProps> = ({
                         onChange={(e) => {
                           const updated = e.target.checked
                             ? [
-                                ...(state.formData.house_sharing || []),
-                                option.value,
-                              ]
+                              ...(state.formData.house_sharing || []),
+                              option.value,
+                            ]
                             : (state.formData.house_sharing || []).filter(
-                                (v) => v !== option.value
-                              );
+                              (v) => v !== option.value
+                            );
                           handleInputChange("house_sharing", updated);
                         }}
                         className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"

@@ -263,7 +263,7 @@ export default function SitesImagesSection({
             <label className="block text-[14px] md:text-[16px] text-left font-medium text-[#1C231F] mb-3">
               Upload Images
             </label>
-            <div className="grid grid-cols-5 gap-4 mb-3">
+            <div className="grid grid-cols-5 gap-4 mb-3 max-w-[541px]">
               {/* Display existing images in edit mode */}
               {isEditMode &&
                 existingImages.map((media: any, index: number) => (
@@ -299,7 +299,7 @@ export default function SitesImagesSection({
               {/* Display uploaded images */}
               {uploadedImages.map((file, index) => (
                 <div key={`uploaded-${index}`} className="relative group">
-                  <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden border border-gray-200">
+                  <div className="aspect-square max-w-[106px] max-h-[106px] bg-gray-100 rounded-lg overflow-hidden border border-gray-200">
                     <img
                       src={URL.createObjectURL(file)}
                       alt={`Upload ${index + 1}`}
@@ -317,7 +317,7 @@ export default function SitesImagesSection({
               ))}
 
               {/* Upload image button */}
-              <div className="aspect-square p-4 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-gray-400 transition-colors">
+              <div className="aspect-square max-w-[106px] max-h-[106px] p-4 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-gray-400 transition-colors">
                 <input
                   type="file"
                   accept="image/*"
@@ -331,12 +331,12 @@ export default function SitesImagesSection({
                 />
                 <label
                   htmlFor="image-upload"
-                  className="cursor-pointer flex flex-col items-center"
+                  className="cursor-pointer flex flex-col items-center justify-center"
                 >
-                  <span className="text-[#464444] text-4xl font-bold mb-1">
+                  <span className="text-[#464444] text-2xl font-bold mb-1">
                     +
                   </span>
-                  <span className="text-[#464444] text-[14px] text-xs">
+                  <span className="text-[#464444] text-[10px] text-xs">
                     Upload Image
                   </span>
                 </label>
@@ -367,7 +367,7 @@ export default function SitesImagesSection({
             <label className="block text-[14px] md:text-[16px] text-left font-medium text-[#1C231F] mb-3">
               Upload Video
             </label>
-            <div className="max-w-xs">
+            <div className="max-w-[106px]">
               {/* Display existing video in edit mode */}
               {isEditMode && existingVideo && !uploadedVideo && (
                 <div className="relative group">
@@ -435,10 +435,10 @@ export default function SitesImagesSection({
                     htmlFor="video-upload"
                     className="cursor-pointer flex flex-col items-center"
                   >
-                    <span className="text-[#464444] text-4xl font-bold mb-1">
+                    <span className="text-[#464444] text-2xl font-bold mb-1">
                       +
                     </span>
-                    <span className="text-[#464444] text-[14px] text-xs">
+                    <span className="text-[#464444] text-[10px] text-xs">
                       Upload Video
                     </span>
                   </label>
@@ -469,7 +469,7 @@ export default function SitesImagesSection({
                         typeof existingCoverImage === "string"
                           ? existingCoverImage
                           : existingCoverImage.file_path?.replace(/\\/g, "") ||
-                            "https://via.placeholder.com/150?text=No+Image"
+                          "https://via.placeholder.com/150?text=No+Image"
                       }
                       alt="Existing cover image"
                       className="w-full h-full object-cover"
@@ -496,7 +496,7 @@ export default function SitesImagesSection({
 
               {coverImage ? (
                 <div className="relative group">
-                  <div className="aspect-video bg-gray-100 rounded-lg overflow-hidden border border-gray-200">
+                  <div className="aspect-video max-w-[180px]  bg-gray-100 rounded-lg overflow-hidden border border-gray-200">
                     <img
                       src={URL.createObjectURL(coverImage)}
                       alt="Cover image"
@@ -515,7 +515,7 @@ export default function SitesImagesSection({
                   </div>
                 </div>
               ) : (
-                <div className="aspect-video border-2 p-4 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-gray-400 transition-colors">
+                <div className="aspect-video max-w-[180px] border-2 p-4 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-gray-400 transition-colors">
                   <input
                     type="file"
                     accept="image/*"
@@ -532,10 +532,10 @@ export default function SitesImagesSection({
                     htmlFor="cover-upload"
                     className="cursor-pointer flex flex-col items-center"
                   >
-                    <span className="text-[#464444] text-4xl font-bold mb-1">
+                    <span className="text-[#464444] text-2xl font-bold mb-1">
                       +
                     </span>
-                    <span className="text-[#464444] text-[14px] text-xs">
+                    <span className="text-[#464444] text-[10px] text-xs">
                       Upload cover
                     </span>
                   </label>
@@ -581,7 +581,7 @@ export default function SitesImagesSection({
               type="button"
               onClick={handleSaveClick}
               disabled={isSubmitting}
-              className="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors text-sm shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+              className="bg-[#237AFC] w-[158px] mt-2 h-[35px] font-[500] text-[14px] text-white px-4 md:px-10 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               {isSubmitting ? "Saving..." : "Save"}
             </button>
