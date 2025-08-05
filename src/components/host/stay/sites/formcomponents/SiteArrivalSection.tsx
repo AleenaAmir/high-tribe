@@ -19,11 +19,15 @@ const arrivalSectionSchema = z.object({
 
 type ArrivalSectionFormData = z.infer<typeof arrivalSectionSchema>;
 
-const SiteArrivalSection = ({}) => {
-  const searchParams = useSearchParams();
-  const propertyId = searchParams ? searchParams.get("propertyId") : null;
-  const siteId = searchParams ? searchParams.get("siteId") : null;
-
+const SiteArrivalSection = ({
+  propertyId,
+  siteId,
+  onSuccess,
+}: {
+  propertyId: string;
+  siteId: string;
+  onSuccess?: () => void;
+}) => {
   const {
     register,
     handleSubmit,
@@ -40,25 +44,46 @@ const SiteArrivalSection = ({}) => {
   const onSubmit = async (data: ArrivalSectionFormData) => {
     try {
       const formData = new FormData();
-      formData.append("site_id", siteId || "");
+
+      // Add site_id
+      if (siteId) {
+        formData.append("site_id", siteId);
+      }
+
+      // Add check_in_time (mapped from checkInTime)
       formData.append("check_in_time", data.checkInTime);
+
+      // Add check_out_time (mapped from checkOutTime)
       formData.append("check_out_time", data.checkOutTime);
+
+      // Add arrival_instructions (mapped from arrivalInstructions)
       formData.append("arrival_instructions", data.arrivalInstructions);
 
       const response = await apiFormDataWrapper<{
         success: boolean;
         message: string;
       }>(
-        `/properties/${propertyId}/sites/arrival-instructions`,
+        `properties/${propertyId}/sites/arrival-instructions`,
         formData,
         "Arrival instructions saved successfully!"
       );
 
       console.log("Form submitted successfully:", response);
+
+      // Mark section as completed
+      if (onSuccess) {
+        onSuccess();
+      }
     } catch (error) {
       console.error("Error submitting form:", error);
       // Error handling is already done by apiFormDataWrapper
     }
+  };
+
+  const handleSaveClick = async () => {
+    // Trigger form validation and submission
+    const isValid = await handleSubmit(onSubmit)();
+    return isValid;
   };
 
   return (
@@ -68,7 +93,7 @@ const SiteArrivalSection = ({}) => {
           Arrival Instructions
         </h4>
       </div>
-      <form onSubmit={handleSubmit(onSubmit)} className="mt-4">
+      <div className="mt-4">
         <div className="p-6 bg-white rounded-lg shadow-sm">
           <p className="text-[#1C231F] font-bold text-[12px] md:text-[14px] mb-4">
             Arrival Instructions should include the following content
@@ -112,7 +137,8 @@ const SiteArrivalSection = ({}) => {
           {/* Save Button */}
           <div className="flex justify-end mt-8">
             <button
-              type="submit"
+              type="button"
+              onClick={handleSaveClick}
               disabled={isSubmitting}
               className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors text-sm shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
             >
@@ -120,7 +146,7 @@ const SiteArrivalSection = ({}) => {
             </button>
           </div>
         </div>
-      </form>
+      </div>
     </div>
   );
 };

@@ -5,25 +5,26 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { apiFormDataWrapper } from "@/lib/api";
 import { toast } from "react-hot-toast";
+import { useSearchParams } from "next/navigation";
 
 // Zod validation schema
 const amenitiesSchema = z.object({
-  guestFavorites: z
+  amenities: z.array(z.string()).min(1, "Please select at least one amenity"),
+  facilities: z.array(z.string()).min(1, "Please select at least one facility"),
+  safety_items: z
     .array(z.string())
-    .min(1, "Please select at least one guest favorite"),
-  standoutAmenities: z
-    .array(z.string())
-    .min(1, "Please select at least one standout amenity"),
-  safetyItems: z.array(z.string()).optional(),
-  petPolicy: z.enum(["yes", "no"]).optional(),
-  guestFavoritesOther: z.string().optional(),
-  standoutAmenitiesOther: z.string().optional(),
+    .min(1, "Please select at least one safety item"),
+  pet_policy: z.enum(["yes_on_leash", "no"], {
+    required_error: "Please select a pet policy",
+  }),
+  amenitiesOther: z.string().optional(),
+  facilitiesOther: z.string().optional(),
 });
 
 type AmenitiesFormData = z.infer<typeof amenitiesSchema>;
 
 // Amenity options
-const guestFavoritesOptions = [
+const amenitiesOptions = [
   "Wi-Fi",
   "TV",
   "Kitchen",
@@ -34,8 +35,9 @@ const guestFavoritesOptions = [
   "Dedicated Workplace",
 ];
 
-const standoutAmenitiesOptions = [
-  "Pool",
+const facilitiesOptions = [
+  "Shared Pool",
+  "Fire Pit or Barbecue",
   "Hot tub",
   "Patio",
   "BBQ grill",
@@ -52,13 +54,11 @@ const standoutAmenitiesOptions = [
 ];
 
 const safetyItemsOptions = [
-  "Smoke alarm",
-  "First aid kit",
+  "Smoke Alarm",
+  "First Aid Kit",
   "Fire extinguisher",
   "Carbon monoxide alarm",
 ];
-
-const petPolicyOptions = ["Yes", "No"];
 
 // Multi-select component for amenities
 interface MultiSelectProps {
@@ -122,7 +122,7 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
               : "bg-white text-[#131313] border-black"
           }`}
         >
-          + Other
+          + {otherValue || "Other"}
         </button>
       </div>
       {isOtherSelected && onOtherChange && (
@@ -141,56 +141,15 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
   );
 };
 
-// Radio group component for pet policy
-interface RadioGroupProps {
-  label: string;
-  options: { value: string; label: string }[];
-  selected: string;
-  onChange: (value: string) => void;
-  error?: string;
-  required?: boolean;
-}
-
-const RadioGroup: React.FC<RadioGroupProps> = ({
-  label,
-  options,
-  selected,
-  onChange,
-  error,
-  required = false,
-}) => {
-  return (
-    <div className="mb-6">
-      <label className="text-[12px] md:text-[14px] text-[#1C231F] font-bold mb-3 block">
-        {label}
-        {required && <span className="text-red-500">*</span>}
-      </label>
-      <div className="flex gap-4">
-        {options.map((option) => (
-          <label
-            key={option.value}
-            className="flex items-center gap-2 cursor-pointer"
-          >
-            <input
-              type="radio"
-              name={label}
-              value={option.value}
-              checked={selected === option.value}
-              onChange={(e) => onChange(e.target.value)}
-              className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
-            />
-            <span className="text-[12px] text-[#1C231F] font-medium">
-              {option.label}
-            </span>
-          </label>
-        ))}
-      </div>
-      {error && <p className="text-red-500 text-xs mt-1">{error}</p>}
-    </div>
-  );
-};
-
-export default function SiteAmenitiesAndFacilities() {
+export default function SiteAmenitiesAndFacilities({
+  propertyId,
+  siteId,
+  onSuccess,
+}: {
+  propertyId: string;
+  siteId: string;
+  onSuccess?: () => void;
+}) {
   const {
     handleSubmit,
     formState: { errors, isSubmitting },
@@ -199,70 +158,84 @@ export default function SiteAmenitiesAndFacilities() {
   } = useForm<AmenitiesFormData>({
     resolver: zodResolver(amenitiesSchema),
     defaultValues: {
-      guestFavorites: [],
-      standoutAmenities: [],
-      safetyItems: [],
-      petPolicy: undefined,
-      guestFavoritesOther: "",
-      standoutAmenitiesOther: "",
+      amenities: [],
+      facilities: [],
+      safety_items: [],
+      pet_policy: undefined,
+      amenitiesOther: "",
+      facilitiesOther: "",
     },
   });
 
-  const watchedGuestFavorites = watch("guestFavorites");
-  const watchedStandoutAmenities = watch("standoutAmenities");
-  const watchedSafetyItems = watch("safetyItems");
-  const watchedPetPolicy = watch("petPolicy");
-  const watchedGuestFavoritesOther = watch("guestFavoritesOther");
-  const watchedStandoutAmenitiesOther = watch("standoutAmenitiesOther");
+  const watchedAmenities = watch("amenities");
+  const watchedFacilities = watch("facilities");
+  const watchedSafetyItems = watch("safety_items");
+  const watchedPetPolicy = watch("pet_policy");
+  const watchedAmenitiesOther = watch("amenitiesOther");
+  const watchedFacilitiesOther = watch("facilitiesOther");
 
   const onSubmit = async (data: AmenitiesFormData) => {
     try {
       const formData = new FormData();
 
-      // Append arrays as multiple entries
-      data.guestFavorites.forEach((item) => {
-        formData.append("guestFavorites[]", item);
+      // Add site_id
+      if (siteId) {
+        formData.append("site_id", siteId);
+      }
+
+      // Append amenities array - filter out "Other" and add the actual value
+      const amenitiesToSend = data.amenities.filter((item) => item !== "Other");
+      if (data.amenitiesOther) {
+        amenitiesToSend.push(data.amenitiesOther);
+      }
+      amenitiesToSend.forEach((item) => {
+        formData.append("amenities[]", item);
       });
 
-      if (data.standoutAmenities) {
-        data.standoutAmenities.forEach((item) => {
-          formData.append("standoutAmenities[]", item);
-        });
+      // Append facilities array - filter out "Other" and add the actual value
+      const facilitiesToSend = data.facilities.filter(
+        (item) => item !== "Other"
+      );
+      if (data.facilitiesOther) {
+        facilitiesToSend.push(data.facilitiesOther);
       }
+      facilitiesToSend.forEach((item) => {
+        formData.append("facilities[]", item);
+      });
 
-      if (data.safetyItems) {
-        data.safetyItems.forEach((item) => {
-          formData.append("safetyItems[]", item);
-        });
-      }
+      // Append safety items array
+      data.safety_items.forEach((item) => {
+        formData.append("safety_items[]", item);
+      });
 
-      if (data.petPolicy) {
-        formData.append("petPolicy", data.petPolicy);
-      }
+      // Append pet policy
+      formData.append("pet_policy", data.pet_policy);
 
-      if (data.guestFavoritesOther) {
-        formData.append("guestFavoritesOther", data.guestFavoritesOther);
-      }
-
-      if (data.standoutAmenitiesOther) {
-        formData.append("standoutAmenitiesOther", data.standoutAmenitiesOther);
-      }
-
-      // You can replace this endpoint with your actual API endpoint
       const response = await apiFormDataWrapper<{
         success: boolean;
         message: string;
       }>(
-        "/api/sites/amenities",
+        `properties/${propertyId}/sites/amenities`,
         formData,
         "Site amenities saved successfully!"
       );
 
       console.log("Form submitted successfully:", response);
+
+      // Mark section as completed
+      if (onSuccess) {
+        onSuccess();
+      }
     } catch (error) {
       console.error("Error submitting form:", error);
       // Error handling is already done by apiFormDataWrapper
     }
+  };
+
+  const handleSaveClick = async () => {
+    // Trigger form validation and submission
+    const isValid = await handleSubmit(onSubmit)();
+    return isValid;
   };
 
   return (
@@ -270,30 +243,30 @@ export default function SiteAmenitiesAndFacilities() {
       <h4 className="text-[14px] md:text-[16px] text-[#1C231F] font-semibold">
         Site Amenities and Facilities
       </h4>
-      <form onSubmit={handleSubmit(onSubmit)} className="mt-4">
+      <div className="mt-4">
         <div className="border border-[#E1E1E1] bg-white p-2 md:p-4 rounded-[7px]">
-          {/* Guest Favorites Section */}
+          {/* Amenities Section */}
           <MultiSelect
             label="Tell us about guest favourites?"
-            options={guestFavoritesOptions}
-            selected={watchedGuestFavorites}
-            onChange={(selected) => setValue("guestFavorites", selected)}
-            error={errors.guestFavorites?.message}
+            options={amenitiesOptions}
+            selected={watchedAmenities}
+            onChange={(selected) => setValue("amenities", selected)}
+            error={errors.amenities?.message}
             required={true}
-            otherValue={watchedGuestFavoritesOther}
-            onOtherChange={(value) => setValue("guestFavoritesOther", value)}
+            otherValue={watchedAmenitiesOther}
+            onOtherChange={(value) => setValue("amenitiesOther", value)}
           />
 
-          {/* Standout Amenities Section */}
+          {/* Facilities Section */}
           <MultiSelect
             label="Do you have any standout amenities for your guests?"
-            options={standoutAmenitiesOptions}
-            selected={watchedStandoutAmenities || []}
-            onChange={(selected) => setValue("standoutAmenities", selected)}
-            error={errors.standoutAmenities?.message}
+            options={facilitiesOptions}
+            selected={watchedFacilities || []}
+            onChange={(selected) => setValue("facilities", selected)}
+            error={errors.facilities?.message}
             required={true}
-            otherValue={watchedStandoutAmenitiesOther}
-            onOtherChange={(value) => setValue("standoutAmenitiesOther", value)}
+            otherValue={watchedFacilitiesOther}
+            onOtherChange={(value) => setValue("facilitiesOther", value)}
           />
 
           {/* Safety Items Section */}
@@ -301,8 +274,9 @@ export default function SiteAmenitiesAndFacilities() {
             label="Do you have any of these safety items?"
             options={safetyItemsOptions}
             selected={watchedSafetyItems || []}
-            onChange={(selected) => setValue("safetyItems", selected)}
-            error={errors.safetyItems?.message}
+            onChange={(selected) => setValue("safety_items", selected)}
+            error={errors.safety_items?.message}
+            required={true}
           />
 
           {/* Pet Policy Section */}
@@ -311,34 +285,41 @@ export default function SiteAmenitiesAndFacilities() {
               Do you allow pet?
             </label>
             <div className="flex flex-wrap gap-2">
-              {["Yes", "No"].map((option) => (
+              {[
+                { value: "yes_on_leash", label: "Yes, on leash" },
+                { value: "no", label: "No" },
+              ].map((option) => (
                 <button
-                  key={option}
+                  key={option.value}
                   type="button"
                   onClick={() =>
-                    setValue("petPolicy", option.toLowerCase() as "yes" | "no")
+                    setValue(
+                      "pet_policy",
+                      option.value as "yes_on_leash" | "no"
+                    )
                   }
                   className={`px-3 py-2 rounded-full border cursor-pointer text-[12px] font-semibold transition-all ${
-                    watchedPetPolicy === option.toLowerCase()
+                    watchedPetPolicy === option.value
                       ? "bg-[#237AFC] border-[#237AFC] text-white"
                       : "bg-white text-[#131313] border-black"
                   }`}
                 >
-                  {option}
+                  {option.label}
                 </button>
               ))}
             </div>
-            {errors.petPolicy?.message && (
+            {errors.pet_policy?.message && (
               <p className="text-red-500 text-xs mt-1">
-                {errors.petPolicy.message}
+                {errors.pet_policy.message}
               </p>
             )}
           </div>
 
-          {/* Submit Button */}
+          {/* Save Button */}
           <div className="flex justify-end mt-6">
             <button
-              type="submit"
+              type="button"
+              onClick={handleSaveClick}
               disabled={isSubmitting}
               className="bg-[#237AFC] text-white px-4 md:px-10 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
@@ -346,7 +327,7 @@ export default function SiteAmenitiesAndFacilities() {
             </button>
           </div>
         </div>
-      </form>
+      </div>
     </div>
   );
 }

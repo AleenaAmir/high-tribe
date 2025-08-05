@@ -7,7 +7,7 @@ import GlobalTextArea from "@/components/global/GlobalTextArea";
 import GlobalTextInput from "@/components/global/GlobalTextInput";
 import { apiFormDataWrapper } from "@/lib/api";
 import { toast } from "react-hot-toast";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 
 // Accommodation type icons
 const AccommodationIcon = ({
@@ -170,11 +170,10 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
 
 // Zod validation schema
 const siteOverviewSchema = z.object({
-  siteName: z.string().min(1, "Site name is required"),
-  accommodationType: z.string().min(1, "Accommodation type is required"),
-  siteDescription: z
-    .string()
-    .min(10, "Site description must be at least 10 characters"),
+  site_name: z.string().min(1, "Site name is required"),
+  accommodation_type: z.string().min(1, "Accommodation type is required"),
+  site_description: z.string().min(1, "Site description is required"),
+  high_lights: z.array(z.string()).optional(),
 });
 
 type SiteOverviewFormData = z.infer<typeof siteOverviewSchema>;
@@ -196,9 +195,15 @@ const accommodationOptions = [
   { value: "castle", label: "Castle", icon: "castle" },
 ];
 
-export default function SiteOverViewForm() {
+export default function SiteOverViewForm({
+  propertyId,
+  onSuccess,
+}: {
+  propertyId: string;
+  onSuccess?: () => void;
+}) {
+  const router = useRouter();
   const searchParams = useSearchParams();
-  const propertyId = searchParams ? searchParams.get("propertyId") : null;
 
   const {
     register,
@@ -209,36 +214,67 @@ export default function SiteOverViewForm() {
   } = useForm<SiteOverviewFormData>({
     resolver: zodResolver(siteOverviewSchema),
     defaultValues: {
-      siteName: "",
-      accommodationType: "",
-      siteDescription: "",
+      site_name: "",
+      accommodation_type: "",
+      site_description: "",
     },
   });
 
-  const selectedAccommodationType = watch("accommodationType");
+  const selectedAccommodationType = watch("accommodation_type");
 
   const onSubmit = async (data: SiteOverviewFormData) => {
     try {
       const formData = new FormData();
-      formData.append("siteName", data.siteName);
-      formData.append("accommodationType", data.accommodationType);
-      formData.append("siteDescription", data.siteDescription);
+      formData.append("site_name", data.site_name);
+      formData.append("accommodation_type", data.accommodation_type);
+      formData.append("site_description", data.site_description);
+
+      // Add highlights if provided
+      formData.append("high_lights[]", "stylish");
 
       // You can replace this endpoint with your actual API endpoint
       const response = await apiFormDataWrapper<{
         success: boolean;
         message: string;
+        data?: {
+          id: number;
+          property_id: number;
+          site_name: string;
+          site_description: string;
+          accommodation_type: string;
+          high_lights: string[];
+        };
       }>(
-        `/properties/${propertyId}/sites/overview`,
+        `properties/${propertyId}/sites/overview`,
         formData,
         "Site overview saved successfully!"
       );
 
       console.log("Form submitted successfully:", response);
+
+      // If the response contains a site ID, update the URL with it
+      if (response.data?.id) {
+        const currentParams = new URLSearchParams(searchParams.toString());
+        currentParams.set("siteId", response.data.id.toString());
+
+        // Update the URL without refreshing the page
+        router.replace(`?${currentParams.toString()}`);
+      }
+
+      // Mark section as completed
+      if (onSuccess) {
+        onSuccess();
+      }
     } catch (error) {
       console.error("Error submitting form:", error);
       // Error handling is already done by apiFormDataWrapper
     }
+  };
+
+  const handleSaveClick = async () => {
+    // Trigger form validation and submission
+    const isValid = await handleSubmit(onSubmit)();
+    return isValid;
   };
 
   return (
@@ -246,7 +282,7 @@ export default function SiteOverViewForm() {
       <h4 className="text-[14px] md:text-[16px] text-[#1C231F] font-semibold">
         Site Overview
       </h4>
-      <form onSubmit={handleSubmit(onSubmit)} className="mt-4">
+      <div className="mt-4">
         <div className="border border-[#E1E1E1] bg-white p-2 md:p-4 rounded-[7px]">
           <p className="text-[12px] md:text-[14px] text-[#1C231F] font-bold">
             What kind of accommodation does this site offer?
@@ -258,8 +294,8 @@ export default function SiteOverViewForm() {
                   Site Name<span className="text-red-500">*</span>
                 </span>
               }
-              {...register("siteName")}
-              error={errors.siteName?.message}
+              {...register("site_name")}
+              error={errors.site_name?.message}
             />
 
             <CustomSelect
@@ -270,9 +306,9 @@ export default function SiteOverViewForm() {
                 </span>
               }
               value={selectedAccommodationType}
-              onChange={(value) => setValue("accommodationType", value)}
+              onChange={(value) => setValue("accommodation_type", value)}
               options={accommodationOptions}
-              error={errors.accommodationType?.message}
+              error={errors.accommodation_type?.message}
             />
           </div>
 
@@ -282,14 +318,15 @@ export default function SiteOverViewForm() {
                 Site Description<span className="text-red-500">*</span>
               </span>
             }
-            {...register("siteDescription")}
-            error={errors.siteDescription?.message}
+            {...register("site_description")}
+            error={errors.site_description?.message}
           />
 
-          {/* Submit Button */}
+          {/* Save Button */}
           <div className="mt-4 flex justify-end">
             <button
-              type="submit"
+              type="button"
+              onClick={handleSaveClick}
               disabled={isSubmitting}
               className="bg-[#237AFC] text-white px-4 md:px-10 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
@@ -297,7 +334,7 @@ export default function SiteOverViewForm() {
             </button>
           </div>
         </div>
-      </form>
+      </div>
     </div>
   );
 }

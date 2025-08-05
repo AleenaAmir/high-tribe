@@ -19,7 +19,15 @@ const refundPolicySchema = z.object({
 
 type RefundPolicyFormData = z.infer<typeof refundPolicySchema>;
 
-export default function SitesRefundPolicyForm() {
+export default function SitesRefundPolicyForm({
+  propertyId,
+  siteId,
+  onSuccess,
+}: {
+  propertyId: string;
+  siteId: string;
+  onSuccess?: () => void;
+}) {
   const {
     register,
     handleSubmit,

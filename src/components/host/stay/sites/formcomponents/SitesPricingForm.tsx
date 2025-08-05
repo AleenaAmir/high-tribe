@@ -16,40 +16,77 @@ interface Currency {
 }
 
 // Zod validation schema
-const sitePricingSchema = z.object({
-  hostingType: z.string().min(1, "Hosting type is required"),
-  currency: z.string().min(1, "Currency is required"),
-  price: z.number().min(1, "Price is required"),
-  discountType: z.enum(["percentage", "fixed"]),
-  discountName: z.string().optional(),
-  discountAmount: z
-    .number()
-    .min(0, "Discount amount must be positive")
-    .optional(),
-  startDate: z.string().optional(),
-  expirationDate: z.string().optional(),
-  promoCode: z.string().optional(),
-  discountPrice: z
-    .number()
-    .min(0, "Discount price must be positive")
-    .optional(),
-  exchangeService: z.string().min(1, "Please select at least one service"),
-  otherService: z.string().optional(),
-  exchangeDescription: z
-    .string()
-    .max(1000, "Description must be less than 1000 characters")
-    .optional(),
-  artistService: z.string().min(1, "Please select at least one service"),
-  otherArtistService: z.string().optional(),
-  artistDescription: z
-    .string()
-    .max(1000, "Description must be less than 1000 characters")
-    .optional(),
-});
+const sitePricingSchema = z
+  .object({
+    hostingType: z.string().min(1, "Hosting type is required"),
+    currency: z.string().optional(),
+    price: z.number().optional(),
+    discountType: z.enum(["percentage", "fixed"]),
+    discountName: z.string().optional(),
+    discountAmount: z
+      .number()
+      .min(0, "Discount amount must be positive")
+      .optional(),
+    startDate: z.string().optional(),
+    expirationDate: z.string().optional(),
+    promoCode: z.string().optional(),
+    discountPrice: z
+      .number()
+      .min(0, "Discount price must be positive")
+      .optional(),
+    exchangeService: z.string().optional(),
+    otherService: z.string().optional(),
+    exchangeDescription: z
+      .string()
+      .max(1000, "Description must be less than 1000 characters")
+      .optional(),
+    artistService: z.string().optional(),
+    otherArtistService: z.string().optional(),
+    artistDescription: z
+      .string()
+      .max(1000, "Description must be less than 1000 characters")
+      .optional(),
+  })
+  .refine(
+    (data) => {
+      // If hosting type is "paid", currency and price are required
+      if (data.hostingType === "paid") {
+        return (
+          data.currency &&
+          data.currency.length > 0 &&
+          data.price &&
+          data.price > 0
+        );
+      }
+      // If hosting type is "exchange", exchangeService is required
+      if (data.hostingType === "exchange") {
+        return data.exchangeService && data.exchangeService.length > 0;
+      }
+      // If hosting type is "artist", artistService is required
+      if (data.hostingType === "artist") {
+        return data.artistService && data.artistService.length > 0;
+      }
+      // For "free" hosting type, no additional validation needed
+      return true;
+    },
+    {
+      message:
+        "Please fill in all required fields for the selected hosting type",
+      path: ["hostingType"],
+    }
+  );
 
 type SitePricingFormData = z.infer<typeof sitePricingSchema>;
 
-export default function SitesPricingForm() {
+export default function SitesPricingForm({
+  propertyId,
+  siteId,
+  onSuccess,
+}: {
+  propertyId: string;
+  siteId: string;
+  onSuccess?: () => void;
+}) {
   const [currencies, setCurrencies] = useState<Currency[]>([]);
   const [loadingCurrencies, setLoadingCurrencies] = useState(true);
 
@@ -133,40 +170,74 @@ export default function SitesPricingForm() {
   const onSubmit = async (data: SitePricingFormData) => {
     try {
       const formData = new FormData();
-      formData.append("hostingType", data.hostingType);
-      formData.append("currency", data.currency);
-      formData.append("price", data.price.toString());
-      formData.append("discountType", data.discountType);
-      if (data.discountName) formData.append("discountName", data.discountName);
-      if (data.discountAmount)
-        formData.append("discountAmount", data.discountAmount.toString());
-      if (data.startDate) formData.append("startDate", data.startDate);
-      if (data.expirationDate)
-        formData.append("expirationDate", data.expirationDate);
-      if (data.promoCode) formData.append("promoCode", data.promoCode);
-      if (data.exchangeService)
-        formData.append("exchangeService", data.exchangeService);
-      if (data.otherService) formData.append("otherService", data.otherService);
-      if (data.exchangeDescription)
-        formData.append("exchangeDescription", data.exchangeDescription);
-      if (data.artistService)
-        formData.append("artistService", data.artistService);
-      if (data.otherArtistService)
-        formData.append("otherArtistService", data.otherArtistService);
-      if (data.artistDescription)
-        formData.append("artistDescription", data.artistDescription);
 
-      // You can replace this endpoint with your actual API endpoint
+      // Add site_id
+      if (siteId) {
+        formData.append("site_id", siteId);
+      }
+
+      // Add hosting_type (mapped from hostingType)
+      formData.append("hosting_type", data.hostingType);
+
+      // Add hosting_description (using a default value or description field)
+      formData.append("hosting_description", "test"); // You can make this dynamic if needed
+
+      // Add currency (only if it exists)
+      if (data.currency) {
+        formData.append("currency", data.currency);
+      }
+
+      // Add base_price (mapped from price, only if it exists)
+      if (data.price) {
+        formData.append("base_price", data.price.toString());
+      }
+
+      // Add discount_type
+      formData.append("discount_type", data.discountType);
+
+      // Add amount (mapped from discountAmount)
+      if (data.discountAmount) {
+        formData.append("amount", data.discountAmount.toString());
+      }
+
+      // Add discount_name (mapped from discountName)
+      if (data.discountName) {
+        formData.append("discount_name", data.discountName);
+      }
+
+      // Add discount_code (mapped from promoCode)
+      if (data.promoCode) {
+        formData.append("discount_code", data.promoCode);
+      }
+
+      // Add description (empty for now as per API image)
+      formData.append("description", "");
+
       const response = await apiFormDataWrapper<{
         success: boolean;
         message: string;
-      }>("/api/sites/pricing", formData, "Site pricing saved successfully!");
+      }>(
+        `properties/${propertyId}/sites/pricing`,
+        formData,
+        "Site pricing saved successfully!"
+      );
 
       console.log("Form submitted successfully:", response);
+
+      // Mark section as completed
+      if (onSuccess) {
+        onSuccess();
+      }
     } catch (error) {
       console.error("Error submitting form:", error);
       // Error handling is already done by apiFormDataWrapper
     }
+  };
+
+  const handleSaveClick = async () => {
+    // Trigger form validation and submission
+    const isValid = await handleSubmit(onSubmit)();
+    return isValid;
   };
 
   const discountType = watch("discountType");
@@ -178,7 +249,7 @@ export default function SitesPricingForm() {
       <h4 className="text-[14px] md:text-[16px] text-[#1C231F] font-semibold">
         Site Pricing
       </h4>
-      <form onSubmit={handleSubmit(onSubmit)} className="mt-4">
+      <div className="mt-4">
         <div className="border border-[#E1E1E1] bg-white p-2 md:p-4 rounded-[7px]">
           <p className="text-[12px] md:text-[14px] text-[#1C231F] font-bold">
             Pricing
@@ -485,7 +556,8 @@ export default function SitesPricingForm() {
           {/* Submit Button */}
           <div className="mt-4 flex justify-end">
             <button
-              type="submit"
+              type="button"
+              onClick={handleSaveClick}
               disabled={isSubmitting}
               className="bg-[#237AFC] text-white px-4 md:px-10 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
@@ -493,7 +565,7 @@ export default function SitesPricingForm() {
             </button>
           </div>
         </div>
-      </form>
+      </div>
     </div>
   );
 }

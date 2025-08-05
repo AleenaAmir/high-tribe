@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -16,9 +16,24 @@ const bookingSettingsSchema = z.object({
 
 type BookingSettingsFormData = z.infer<typeof bookingSettingsSchema>;
 
-const SitesBookingSettingsForm = () => {
+const SitesBookingSettingsForm = ({
+  propertyId,
+  siteId,
+  onSuccess,
+}: {
+  propertyId: string;
+  siteId: string;
+  onSuccess?: () => void;
+}) => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDates, setSelectedDates] = useState<string[]>([]);
+  const [dateRange, setDateRange] = useState<{
+    from: string | null;
+    to: string | null;
+  }>({
+    from: null,
+    to: null,
+  });
 
   const {
     register,
@@ -29,13 +44,18 @@ const SitesBookingSettingsForm = () => {
   } = useForm<BookingSettingsFormData>({
     resolver: zodResolver(bookingSettingsSchema),
     defaultValues: {
-      ownerBlock: true,
+      ownerBlock: false,
       bookingType: "request",
       selectedDates: [],
     },
   });
 
   const ownerBlock = watch("ownerBlock");
+
+  // Update form value when selectedDates changes
+  useEffect(() => {
+    setValue("selectedDates", selectedDates);
+  }, [selectedDates, setValue]);
 
   // Calendar navigation
   const goToPreviousMonth = () => {
@@ -91,45 +111,127 @@ const SitesBookingSettingsForm = () => {
     return days;
   };
 
-  // Handle date selection
+  // Handle date selection for range
   const handleDateClick = (date: Date) => {
-    const dateString = date.toISOString().split("T")[0];
-    if (selectedDates.includes(dateString)) {
-      setSelectedDates(selectedDates.filter((d) => d !== dateString));
+    // Create date string in local timezone to avoid timezone issues
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    const dateString = `${year}-${month}-${day}`;
+
+    if (!dateRange.from) {
+      // First date selection - set as from date
+      setDateRange({ from: dateString, to: null });
+      setSelectedDates([dateString]);
+    } else if (!dateRange.to) {
+      // Second date selection - set as to date
+      const fromDate = new Date(dateRange.from + "T00:00:00");
+      const toDate = new Date(dateString + "T00:00:00");
+
+      if (toDate < fromDate) {
+        // If to date is before from date, swap them
+        setDateRange({ from: dateString, to: dateRange.from });
+        setSelectedDates(generateDateRange(dateString, dateRange.from));
+      } else {
+        setDateRange({ from: dateRange.from, to: dateString });
+        setSelectedDates(generateDateRange(dateRange.from, dateString));
+      }
     } else {
-      setSelectedDates([...selectedDates, dateString]);
+      // Reset selection
+      setDateRange({ from: dateString, to: null });
+      setSelectedDates([dateString]);
     }
-    setValue("selectedDates", selectedDates);
+  };
+
+  // Generate date range between two dates
+  const generateDateRange = (fromDate: string, toDate: string) => {
+    const dates = [];
+    const current = new Date(fromDate + "T00:00:00");
+    const end = new Date(toDate + "T00:00:00");
+
+    while (current <= end) {
+      const year = current.getFullYear();
+      const month = String(current.getMonth() + 1).padStart(2, "0");
+      const day = String(current.getDate()).padStart(2, "0");
+      dates.push(`${year}-${month}-${day}`);
+      current.setDate(current.getDate() + 1);
+    }
+
+    return dates;
   };
 
   // Check if date is selected
   const isDateSelected = (date: Date) => {
-    const dateString = date.toISOString().split("T")[0];
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    const dateString = `${year}-${month}-${day}`;
     return selectedDates.includes(dateString);
+  };
+
+  // Check if date is in range
+  const isDateInRange = (date: Date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    const dateString = `${year}-${month}-${day}`;
+
+    if (!dateRange.from || !dateRange.to) return false;
+
+    const currentDate = new Date(dateString + "T00:00:00");
+    const fromDate = new Date(dateRange.from + "T00:00:00");
+    const toDate = new Date(dateRange.to + "T00:00:00");
+
+    return currentDate >= fromDate && currentDate <= toDate;
   };
 
   const onSubmit = async (data: BookingSettingsFormData) => {
     try {
       const formData = new FormData();
-      formData.append("ownerBlock", data.ownerBlock.toString());
-      formData.append("bookingType", data.bookingType);
-      if (data.selectedDates) {
-        formData.append("selectedDates", JSON.stringify(data.selectedDates));
+
+      // Add site_id
+      if (siteId) {
+        formData.append("site_id", siteId);
+      }
+
+      // Add owner_block (mapped from ownerBlock)
+      formData.append("owner_block", data.ownerBlock.toString());
+
+      // Add booking_type (mapped from bookingType)
+      formData.append("booking_type", data.bookingType);
+
+      // Add selected_dates if any dates are selected
+      if (data.selectedDates && data.selectedDates.length > 0) {
+        data.selectedDates.forEach((date) => {
+          formData.append("selected_dates[]", date);
+        });
       }
 
       const response = await apiFormDataWrapper<{
         success: boolean;
         message: string;
       }>(
-        "/api/sites/booking-settings",
+        `properties/${propertyId}/sites/availability`,
         formData,
         "Booking settings saved successfully!"
       );
 
       console.log("Form submitted successfully:", response);
+
+      // Mark section as completed
+      if (onSuccess) {
+        onSuccess();
+      }
     } catch (error) {
       console.error("Error submitting form:", error);
+      // Error handling is already done by apiFormDataWrapper
     }
+  };
+
+  const handleSaveClick = async () => {
+    // Trigger form validation and submission
+    const isValid = await handleSubmit(onSubmit)();
+    return isValid;
   };
 
   const days = getDaysInMonth(currentDate);
@@ -153,7 +255,7 @@ const SitesBookingSettingsForm = () => {
       <h4 className="text-[14px] md:text-[16px] text-[#1C231F] font-semibold">
         Booking Settings
       </h4>
-      <form onSubmit={handleSubmit(onSubmit)} className="mt-4">
+      <div className="mt-4">
         <div className="border border-[#E1E1E1] bg-white p-2 md:p-4 rounded-[7px]">
           {/* Owner Block Checkbox */}
           <div className="mb-6">
@@ -168,12 +270,17 @@ const SitesBookingSettingsForm = () => {
           </div>
 
           {/* Calendar */}
-          <div className="mb-6 max-w-[541px] mx-auto">
+          <div
+            className={`mb-6 max-w-[541px] mx-auto ${
+              !ownerBlock ? "opacity-50 pointer-events-none" : ""
+            }`}
+          >
             <div className="flex items-center justify-between mb-4">
               <button
                 type="button"
                 onClick={goToPreviousMonth}
                 className="text-gray-500 hover:text-gray-700"
+                disabled={!ownerBlock}
               >
                 &lt;
               </button>
@@ -184,6 +291,7 @@ const SitesBookingSettingsForm = () => {
                 type="button"
                 onClick={goToNextMonth}
                 className="text-gray-500 hover:text-gray-700"
+                disabled={!ownerBlock}
               >
                 &gt;
               </button>
@@ -202,24 +310,43 @@ const SitesBookingSettingsForm = () => {
               ))}
 
               {/* Calendar days */}
-              {days.map((day, index) => (
-                <button
-                  key={index}
-                  type="button"
-                  onClick={() => handleDateClick(day.date)}
-                  className={`
-                    p-2 text-sm rounded-md transition-colors
-                    ${day.isCurrentMonth ? "text-gray-900" : "text-gray-400"}
-                    ${
-                      isDateSelected(day.date)
-                        ? "bg-black text-white"
-                        : "hover:bg-gray-100"
-                    }
-                  `}
-                >
-                  {day.date.getDate()}
-                </button>
-              ))}
+              {days.map((day, index) => {
+                const isInRange = isDateInRange(day.date);
+                const isStartDate =
+                  dateRange.from &&
+                  day.date.toDateString() ===
+                    new Date(dateRange.from).toDateString();
+                const isEndDate =
+                  dateRange.to &&
+                  day.date.toDateString() ===
+                    new Date(dateRange.to).toDateString();
+                const isSelected = isDateSelected(day.date);
+
+                return (
+                  <button
+                    key={index}
+                    type="button"
+                    onClick={() => handleDateClick(day.date)}
+                    disabled={!ownerBlock}
+                    className={`
+                      p-2 text-sm transition-colors
+                      ${day.isCurrentMonth ? "text-gray-900" : "text-gray-400"}
+                      ${
+                        isSelected
+                          ? "bg-black text-white"
+                          : isInRange
+                          ? "bg-black text-white"
+                          : "hover:bg-gray-100"
+                      }
+                      ${isStartDate && isInRange ? "rounded-l-full" : ""}
+                      ${isEndDate && isInRange ? "rounded-r-full" : ""}
+                      ${!ownerBlock ? "cursor-not-allowed" : "cursor-pointer"}
+                    `}
+                  >
+                    {day.date.getDate()}
+                  </button>
+                );
+              })}
             </div>
           </div>
 
@@ -262,7 +389,8 @@ const SitesBookingSettingsForm = () => {
           {/* Submit Button */}
           <div className="flex justify-end">
             <button
-              type="submit"
+              type="button"
+              onClick={handleSaveClick}
               disabled={isSubmitting}
               className="bg-[#237AFC] text-white px-6 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
@@ -270,7 +398,7 @@ const SitesBookingSettingsForm = () => {
             </button>
           </div>
         </div>
-      </form>
+      </div>
     </div>
   );
 };

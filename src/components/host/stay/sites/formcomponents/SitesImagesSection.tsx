@@ -4,25 +4,30 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "react-hot-toast";
+import { apiFormDataWrapper } from "@/lib/api";
 
 // Zod validation schema for site images
 const siteImagesSchema = z.object({
-  images: z.array(z.any()).min(1, "At least one image is required"),
+  media_images: z.array(z.any()).min(1, "At least one image is required"),
   cover_image: z.any().refine((val) => val !== null, "Cover image is required"),
-  video: z.any().optional(),
+  media_video: z.any().optional(),
   video_url: z.string().optional(),
 });
 
 type SiteImagesFormData = z.infer<typeof siteImagesSchema>;
 
 interface SitesImagesSectionProps {
+  propertyId: string;
   siteId?: string | null;
   isEditMode?: boolean;
+  onSuccess?: () => void;
 }
 
 export default function SitesImagesSection({
+  propertyId,
   siteId,
   isEditMode = false,
+  onSuccess,
 }: SitesImagesSectionProps) {
   const [uploadedImages, setUploadedImages] = useState<File[]>([]);
   const [uploadedVideo, setUploadedVideo] = useState<File | null>(null);
@@ -48,9 +53,9 @@ export default function SitesImagesSection({
     resolver: zodResolver(siteImagesSchema),
     mode: "onTouched",
     defaultValues: {
-      images: [],
+      media_images: [],
       cover_image: null,
-      video: null,
+      media_video: null,
       video_url: "",
     },
   });
@@ -120,9 +125,9 @@ export default function SitesImagesSection({
   // Update form values when images change
   useEffect(() => {
     const allImages = [...uploadedImages, ...existingImages];
-    setValue("images", allImages);
+    setValue("media_images", allImages);
     if (allImages.length > 0) {
-      clearErrors("images");
+      clearErrors("media_images");
       setImageError("");
     }
   }, [uploadedImages, existingImages, setValue, clearErrors]);
@@ -163,7 +168,7 @@ export default function SitesImagesSection({
     // Validate images and cover image before submission
     const hasImages = uploadedImages.length > 0 || existingImages.length > 0;
     if (!hasImages) {
-      setError("images", { message: "At least one image is required" });
+      setError("media_images", { message: "At least one image is required" });
       setImageError("At least one image is required");
       return;
     }
@@ -175,88 +180,62 @@ export default function SitesImagesSection({
       return;
     }
 
-    const token =
-      typeof window !== "undefined" ? localStorage.getItem("token") || "" : "";
-
-    // Construct FormData for file and text fields
-    const form = new FormData();
-
-    // Append uploaded images
-    if (uploadedImages.length > 0) {
-      uploadedImages.forEach((file) => {
-        form.append("media[]", file);
-      });
-    }
-
-    // Append uploaded video
-    if (uploadedVideo) {
-      form.append("video", uploadedVideo);
-    }
-
-    // Append cover image if selected
-    if (coverImage) {
-      form.append("cover_image", coverImage);
-    }
-
-    // For edit mode, if no new files are uploaded, we need to indicate that existing media should be kept
-    if (isEditMode) {
-      // If no new images uploaded but existing images exist, add a flag to keep them
-      if (uploadedImages.length === 0 && existingImages.length > 0) {
-        form.append("keep_existing_images", "true");
-      }
-
-      // If no new cover image uploaded but existing cover image exists, add a flag to keep it
-      if (!coverImage && existingCoverImage) {
-        form.append("keep_existing_cover_image", "true");
-      }
-
-      // If no new video uploaded but existing video exists, add a flag to keep it
-      if (!uploadedVideo && existingVideo) {
-        form.append("keep_existing_video", "true");
-      }
-    }
-
-    // Append 360 video URL if provided
-    if (videoUrl.trim()) {
-      form.append("video_url", videoUrl);
-    }
-
-    if (isEditMode) {
-      form.append("_method", "PUT");
-    }
-
     try {
-      const url = isEditMode
-        ? `https://api.hightribe.com/api/sites/${siteId}`
-        : "https://api.hightribe.com/api/sites";
+      // Construct FormData for file and text fields
+      const formData = new FormData();
 
-      const response = await fetch(url, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          Accept: "application/json",
-        },
-        body: form,
-      });
-
-      if (!response.ok) {
-        const errorData = await response.text();
-        console.error("Server response:", errorData);
-        toast.error(`Server Error: ${response.status}`);
-        return;
+      // Add site_id
+      if (siteId) {
+        formData.append("site_id", siteId);
       }
 
-      const result = await response.json();
-      console.log("Site images saved successfully:", result);
-      toast.success(
-        isEditMode
-          ? "Site images updated successfully!"
-          : "Site images created successfully!"
+      // Append uploaded images as media_images[]
+      if (uploadedImages.length > 0) {
+        uploadedImages.forEach((file) => {
+          formData.append("media_images[]", file);
+        });
+      }
+
+      // Append uploaded video as media_video[]
+      if (uploadedVideo) {
+        formData.append("media_video[]", uploadedVideo);
+      }
+
+      // Append cover image
+      if (coverImage) {
+        formData.append("cover_image", coverImage);
+      }
+
+      // Append video URL if provided
+      if (videoUrl.trim()) {
+        formData.append("video_url", videoUrl);
+      }
+
+      const response = await apiFormDataWrapper<{
+        success: boolean;
+        message: string;
+      }>(
+        `properties/${propertyId}/sites/media`,
+        formData,
+        "Site media saved successfully!"
       );
+
+      console.log("Site images saved successfully:", response);
+
+      // Mark section as completed
+      if (onSuccess) {
+        onSuccess();
+      }
     } catch (error) {
       console.error("Network error:", error);
       toast.error("Something went wrong while submitting.");
     }
+  };
+
+  const handleSaveClick = async () => {
+    // Trigger form validation and submission
+    const isValid = await handleSubmit(onSubmit)();
+    return isValid;
   };
 
   // Show loading state while fetching site data
@@ -277,7 +256,7 @@ export default function SitesImagesSection({
         Site Images/Videos
       </h4>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+      <div className="space-y-6">
         <div className="p-2 md:p-4 bg-white rounded-lg shadow-sm">
           {/* Upload Images Section */}
           <div className="mb-8">
@@ -364,10 +343,10 @@ export default function SitesImagesSection({
               </div>
             </div>
             {/* Image validation error */}
-            {(errors.images?.message || imageError) && (
+            {(errors.media_images?.message || imageError) && (
               <div className="text-red-500 text-xs mt-1">
-                {typeof errors.images?.message === "string"
-                  ? errors.images.message
+                {typeof errors.media_images?.message === "string"
+                  ? errors.media_images.message
                   : imageError}
               </div>
             )}
@@ -595,18 +574,20 @@ export default function SitesImagesSection({
               />
             </div>
           </div>
-          {/* Submit Buttons */}
+
+          {/* Save Button */}
           <div className="flex justify-end pt-4 gap-4">
             <button
-              type="submit"
-              className="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors text-sm shadow-sm"
+              type="button"
+              onClick={handleSaveClick}
               disabled={isSubmitting}
+              className="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors text-sm shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isSubmitting ? "Saving..." : isEditMode ? "Update" : "Save"}
+              {isSubmitting ? "Saving..." : "Save"}
             </button>
           </div>
         </div>
-      </form>
+      </div>
     </div>
   );
 }

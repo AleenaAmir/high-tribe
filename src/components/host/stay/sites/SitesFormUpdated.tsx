@@ -123,18 +123,23 @@ const SitesFormUpdated: React.FC = () => {
   const onSubmit = async (data: SitesFormData) => {
     try {
       const formData = new FormData();
-      formData.append("site_id", siteId || "");
-      formData.append("publish_status", "scheduled");
 
-      const now = new Date();
-      const futureDate = new Date(now.getTime() + 5 * 60 * 1000); // 5 minutes from now
-      formData.append("scheduled_publish_at", futureDate.toISOString());
+      // Add site_id
+      if (siteId) {
+        formData.append("site_id", siteId);
+      }
+
+      // Add publish_status
+      formData.append("publish_status", "draft");
+
+      // Note: scheduled_publish_at is optional and not included in this request
+      // as shown in the API image where it's unchecked
 
       const response = await apiFormDataWrapper<{
         success: boolean;
         message: string;
       }>(
-        `/properties/${propertyId}/sites/review-publish`,
+        `properties/${propertyId}/sites/review-publish`,
         formData,
         "Site published successfully!"
       );
@@ -148,14 +153,20 @@ const SitesFormUpdated: React.FC = () => {
   const handleSaveDraft = async () => {
     try {
       const formData = new FormData();
-      formData.append("site_id", siteId || "");
+
+      // Add site_id
+      if (siteId) {
+        formData.append("site_id", siteId);
+      }
+
+      // Add publish_status
       formData.append("publish_status", "draft");
 
       const response = await apiFormDataWrapper<{
         success: boolean;
         message: string;
       }>(
-        `/properties/${propertyId}/sites/review-publish`,
+        `properties/${propertyId}/sites/review-publish`,
         formData,
         "Site saved as draft!"
       );
@@ -165,6 +176,9 @@ const SitesFormUpdated: React.FC = () => {
       console.error("Error saving draft:", error);
     }
   };
+
+  // Check if all sections are completed
+  const allSectionsCompleted = completedSections.size === sections.length;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -208,42 +222,73 @@ const SitesFormUpdated: React.FC = () => {
           >
             {/* Site Overview Section */}
             <div ref={overviewRef}>
-              <SiteOverViewForm />
+              <SiteOverViewForm
+                propertyId={propertyId || ""}
+                onSuccess={() => markSectionComplete("overview")}
+              />
             </div>
 
             {/* Site Amenities Section */}
             <div ref={amenitiesRef}>
-              <SiteAmenitiesAndFacilities />
+              <SiteAmenitiesAndFacilities
+                propertyId={propertyId || ""}
+                siteId={siteId || ""}
+                onSuccess={() => markSectionComplete("amenities")}
+              />
             </div>
 
             {/* Site Images Section */}
             <div ref={imagesRef}>
-              <SitesImagesSection />
+              <SitesImagesSection
+                propertyId={propertyId || ""}
+                siteId={siteId || ""}
+                onSuccess={() => markSectionComplete("images")}
+              />
             </div>
 
             {/* Site Capacity Section */}
             <div ref={capacityRef}>
-              <SiteCapacityForm />
+              <SiteCapacityForm
+                propertyId={propertyId || ""}
+                siteId={siteId || ""}
+                onSuccess={() => markSectionComplete("capacity")}
+              />
             </div>
 
             {/* Site Pricing Section */}
             <div ref={pricingRef}>
-              <SitesPricingForm />
+              <SitesPricingForm
+                propertyId={propertyId || ""}
+                siteId={siteId || ""}
+                onSuccess={() => markSectionComplete("pricing")}
+              />
             </div>
 
             {/* Booking Settings Section */}
             <div ref={bookingRef}>
-              <SitesBookingSettingsForm />
+              <SitesBookingSettingsForm
+                propertyId={propertyId || ""}
+                siteId={siteId || ""}
+                onSuccess={() => markSectionComplete("booking")}
+              />
             </div>
 
             {/* Refund Policy Section */}
             <div ref={refundRef}>
-              <SitesRefundPolicyForm />
+              <SitesRefundPolicyForm
+                propertyId={propertyId || ""}
+                siteId={siteId || ""}
+                onSuccess={() => markSectionComplete("refund")}
+              />
             </div>
 
             {/* Arrival Instructions Section */}
             <div ref={arrivalRef}>
-              <SiteArrivalSection />
+              <SiteArrivalSection
+                propertyId={propertyId || ""}
+                siteId={siteId || ""}
+                onSuccess={() => markSectionComplete("arrival")}
+              />
             </div>
 
             {/* Submit Buttons */}
@@ -258,12 +303,17 @@ const SitesFormUpdated: React.FC = () => {
               </button>
               <button
                 type="submit"
-                disabled={isSubmitting}
-                className="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors text-sm shadow-sm disabled:opacity-50"
+                disabled={isSubmitting || !allSectionsCompleted}
+                className={`px-8 py-3 rounded-lg font-medium transition-colors text-sm shadow-sm bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-50`}
               >
                 {isSubmitting ? "Publishing..." : "Review & Publish"}
               </button>
             </div>
+            {!allSectionsCompleted && (
+              <div className="text-center text-sm text-gray-500 mt-2">
+                Complete all sections to enable publishing
+              </div>
+            )}
           </form>
         </div>
       </div>
