@@ -4,8 +4,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { apiFormDataWrapper } from "@/lib/api";
-import { toast } from "react-hot-toast";
-import { useSearchParams } from "next/navigation";
+
 
 // Zod validation schema
 const amenitiesSchema = z.object({
@@ -61,6 +60,8 @@ const safetyItemsOptions = [
 ];
 
 // Multi-select component for amenities
+
+
 interface MultiSelectProps {
   label: string;
   options: string[];
@@ -68,8 +69,9 @@ interface MultiSelectProps {
   onChange: (selected: string[]) => void;
   error?: string;
   required?: boolean;
-  otherValue?: string;
-  onOtherChange?: (value: string) => void;
+  customValues?: string[];
+  onCustomAdd?: (value: string) => void;
+  onCustomRemove?: (value: string) => void;
 }
 
 const MultiSelect: React.FC<MultiSelectProps> = ({
@@ -79,14 +81,32 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
   onChange,
   error,
   required = false,
-  otherValue,
-  onOtherChange,
+  customValues = [],
+  onCustomAdd,
+  onCustomRemove,
 }) => {
+  const [otherInput, setOtherInput] = useState("");
+
   const handleToggle = (option: string) => {
     if (selected.includes(option)) {
       onChange(selected.filter((item) => item !== option));
     } else {
       onChange([...selected, option]);
+    }
+  };
+
+  const handleOtherKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter" && otherInput.trim()) {
+      e.preventDefault();
+      const value = otherInput.trim();
+      if (onCustomAdd && !customValues.includes(value)) {
+        onCustomAdd(value);
+        setOtherInput("");
+        // Ensure "Other" remains selected after adding a custom value
+        if (!selected.includes("Other")) {
+          onChange([...selected, "Other"]);
+        }
+      }
     }
   };
 
@@ -98,46 +118,78 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
         {label}
         {required && <span className="text-red-500">*</span>}
       </label>
-      <div className="flex flex-wrap gap-2">
+
+      {/* Pills and Options */}
+      <div className="flex flex-wrap gap-3">
+        {/* 🟢 Custom Values (pills) - shown first */}
+        {customValues.map((item) => (
+          <div
+            key={item}
+            className="bg-[#237AFC] text-white text-[13px] font-semibold px-3 py-1 rounded-full flex items-center gap-2"
+            onClick={(e) => {
+              e.stopPropagation();
+              onCustomRemove?.(item);
+              // If this was the last custom value, unselect "Other"
+              if (customValues.length === 1 && selected.includes("Other")) {
+                onChange(selected.filter((item) => item !== "Other"));
+              }
+            }}
+          >
+            {item}
+
+          </div>
+        ))}
+
+        {/* 🟡 Standard Options */}
         {options.map((option) => (
           <button
             key={option}
             type="button"
             onClick={() => handleToggle(option)}
-            className={`px-3 py-2 rounded-full border cursor-pointer text-[12px] font-semibold transition-all ${selected.includes(option)
-                ? "bg-[#237AFC] border-[#237AFC] text-white"
-                : "bg-white text-[#131313]  border-black"
+            className={`px-5 py-2 rounded-full border cursor-pointer text-[13px] font-semibold transition-all ${selected.includes(option)
+              ? "bg-[#237AFC] border-[#237AFC] text-white"
+              : "bg-white text-[#131313] border-black"
               }`}
           >
             {option}
           </button>
         ))}
+
+        {/* 🔵 "+ Other" Button */}
         <button
           type="button"
           onClick={() => handleToggle("Other")}
-          className={`px-3 py-2 rounded-full border cursor-pointer text-[12px] font-semibold transition-all ${isOtherSelected
-              ? "bg-[#237AFC] border-[#237AFC] text-white"
-              : "bg-white text-[#131313] border-black"
+          className={`px-5 py-2 rounded-full border cursor-pointer text-[13px] font-semibold transition-all ${isOtherSelected
+            ? "bg-[#237AFC] border-[#237AFC] text-white"
+            : "bg-white text-[#131313] border-black"
             }`}
         >
-          + {otherValue || "Other"}
+          + {otherInput || "Other"}
         </button>
       </div>
-      {isOtherSelected && onOtherChange && (
-        <div className="mt-3">
+
+      {/* 🔧 Input Box for Adding Custom Pills */}
+      {isOtherSelected && (
+        <div className="mt-3 w-full">
           <input
             type="text"
-            placeholder="Enter other amenity..."
-            value={otherValue || ""}
-            onChange={(e) => onOtherChange(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-[12px] focus:outline-none focus:ring-2 focus:ring-[#237AFC] focus:border-transparent"
+            placeholder="Enter other item and press Enter"
+            value={otherInput}
+            onChange={(e) => setOtherInput(e.target.value)}
+            onKeyDown={handleOtherKeyDown}
+            className="w-2xl px-2 py-2 border border-gray-300 rounded-lg text-[13px] focus:outline-none focus:ring-2 focus:ring-[#237AFC] focus:border-transparent"
           />
         </div>
       )}
+
+      {/* 🔴 Validation Error */}
       {error && <p className="text-red-500 text-xs mt-1">{error}</p>}
     </div>
   );
 };
+
+
+
 
 export default function SiteAmenitiesAndFacilities({
   propertyId,
@@ -148,6 +200,9 @@ export default function SiteAmenitiesAndFacilities({
   siteId: string;
   onSuccess?: () => void;
 }) {
+  const [customAmenities, setCustomAmenities] = useState<string[]>([]);
+  const [customFacilities, setCustomFacilities] = useState<string[]>([]);
+  const [customSafetyItems, setCustomSafetyItems] = useState<string[]>([]);
   const {
     handleSubmit,
     formState: { errors, isSubmitting },
@@ -169,44 +224,44 @@ export default function SiteAmenitiesAndFacilities({
   const watchedFacilities = watch("facilities");
   const watchedSafetyItems = watch("safety_items");
   const watchedPetPolicy = watch("pet_policy");
-  const watchedAmenitiesOther = watch("amenitiesOther");
-  const watchedFacilitiesOther = watch("facilitiesOther");
+
 
   const onSubmit = async (data: AmenitiesFormData) => {
     try {
       const formData = new FormData();
 
-      // Add site_id
       if (siteId) {
         formData.append("site_id", siteId);
       }
 
-      // Append amenities array - filter out "Other" and add the actual value
-      const amenitiesToSend = data.amenities.filter((item) => item !== "Other");
-      if (data.amenitiesOther) {
-        amenitiesToSend.push(data.amenitiesOther);
-      }
+      // ✅ Include custom amenities
+      const amenitiesToSend = [
+        ...data.amenities.filter((item) => item !== "Other"),
+        ...customAmenities,
+      ];
       amenitiesToSend.forEach((item) => {
         formData.append("amenities[]", item);
       });
 
-      // Append facilities array - filter out "Other" and add the actual value
-      const facilitiesToSend = data.facilities.filter(
-        (item) => item !== "Other"
-      );
-      if (data.facilitiesOther) {
-        facilitiesToSend.push(data.facilitiesOther);
-      }
+      // ✅ Include custom facilities
+      const facilitiesToSend = [
+        ...data.facilities.filter((item) => item !== "Other"),
+        ...customFacilities,
+      ];
       facilitiesToSend.forEach((item) => {
         formData.append("facilities[]", item);
       });
 
-      // Append safety items array
-      data.safety_items.forEach((item) => {
+      // ✅ Include custom safety items
+      const safetyItemsToSend = [
+        ...data.safety_items.filter((item) => item !== "Other"),
+        ...customSafetyItems,
+      ];
+      safetyItemsToSend.forEach((item) => {
         formData.append("safety_items[]", item);
       });
 
-      // Append pet policy
+      // Pet policy
       formData.append("pet_policy", data.pet_policy);
 
       const response = await apiFormDataWrapper<{
@@ -220,15 +275,14 @@ export default function SiteAmenitiesAndFacilities({
 
       console.log("Form submitted successfully:", response);
 
-      // Mark section as completed
       if (onSuccess) {
         onSuccess();
       }
     } catch (error) {
       console.error("Error submitting form:", error);
-      // Error handling is already done by apiFormDataWrapper
     }
   };
+
 
   const handleSaveClick = async () => {
     // Trigger form validation and submission
@@ -251,8 +305,11 @@ export default function SiteAmenitiesAndFacilities({
             onChange={(selected) => setValue("amenities", selected)}
             error={errors.amenities?.message}
             required={true}
-            otherValue={watchedAmenitiesOther}
-            onOtherChange={(value) => setValue("amenitiesOther", value)}
+            customValues={customAmenities}
+            onCustomAdd={(val) => setCustomAmenities([...customAmenities, val])}
+            onCustomRemove={(val) =>
+              setCustomAmenities(customAmenities.filter((v) => v !== val))
+            }
           />
 
           {/* Facilities Section */}
@@ -263,8 +320,11 @@ export default function SiteAmenitiesAndFacilities({
             onChange={(selected) => setValue("facilities", selected)}
             error={errors.facilities?.message}
             required={true}
-            otherValue={watchedFacilitiesOther}
-            onOtherChange={(value) => setValue("facilitiesOther", value)}
+            customValues={customFacilities}
+            onCustomAdd={(val) => setCustomFacilities([...customFacilities, val])}
+            onCustomRemove={(val) =>
+              setCustomFacilities(customFacilities.filter((v) => v !== val))
+            }
           />
 
           {/* Safety Items Section */}
@@ -275,6 +335,11 @@ export default function SiteAmenitiesAndFacilities({
             onChange={(selected) => setValue("safety_items", selected)}
             error={errors.safety_items?.message}
             required={true}
+            customValues={customSafetyItems}
+            onCustomAdd={(val) => setCustomSafetyItems([...customSafetyItems, val])}
+            onCustomRemove={(val) =>
+              setCustomSafetyItems(customSafetyItems.filter((v) => v !== val))
+            }
           />
 
           {/* Pet Policy Section */}
@@ -282,7 +347,7 @@ export default function SiteAmenitiesAndFacilities({
             <label className="text-[12px] md:text-[14px] text-[#1C231F] font-bold mb-3 block">
               Do you allow pet?
             </label>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-3">
               {[
                 { value: "yes_on_leash", label: "Yes, on leash" },
                 { value: "no", label: "No" },
@@ -296,9 +361,9 @@ export default function SiteAmenitiesAndFacilities({
                       option.value as "yes_on_leash" | "no"
                     )
                   }
-                  className={`px-3 py-2 rounded-full border cursor-pointer text-[12px] font-semibold transition-all ${watchedPetPolicy === option.value
-                      ? "bg-[#237AFC] border-[#237AFC] text-white"
-                      : "bg-white text-[#131313] border-black"
+                  className={`px-8 py-2 rounded-full border cursor-pointer text-[13px] font-semibold transition-all ${watchedPetPolicy === option.value
+                    ? "bg-[#237AFC] border-[#237AFC] text-white"
+                    : "bg-white text-[#131313] border-black"
                     }`}
                 >
                   {option.label}

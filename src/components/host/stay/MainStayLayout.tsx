@@ -8,6 +8,7 @@ import PropertyForm from "./property/PropertyFormUpdated";
 import SitesForm from "./sites/SitesForm";
 import BookingsMain from "./bookings/BookingsMain";
 import SitesFormUpdated from "./sites/SitesFormUpdated";
+import SitesPreview from "./sites/SitesPreview";
 
 const stayTabs = [
   "stats",
@@ -23,6 +24,7 @@ export default function MainStayLayout() {
   const currentTab = searchParams.get("tab") || "stats";
   const propertyTab = searchParams.get("property") || "false";
   const siteTab = searchParams.get("showSiteForm") || "false";
+ 
   const propertyId = searchParams.get("propertyId");
   const router = useRouter();
 
@@ -159,6 +161,7 @@ export default function MainStayLayout() {
       {propertyTab !== "true" &&
         propertyTab !== "edit" &&
         siteTab === "true" && <SitesFormUpdated />}
+
     </div>
   );
 }
