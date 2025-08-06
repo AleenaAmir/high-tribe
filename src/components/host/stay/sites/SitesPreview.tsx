@@ -3,25 +3,6 @@ import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 import React, { useEffect, useState } from "react";
 
-const guestFavorites = [
-  "Wi-Fi",
-  "TV",
-  "Kitchen",
-  "Washer",
-  "Free parking on premises",
-];
-const amenitiesGuest = [
-  "Pool",
-  "Hot tub",
-  "BBQ grill",
-  "Fire pit",
-  "Indoor fireplace",
-  "Piano",
-  "Exercise equipment",
-  "Lake access",
-  "Beach access",
-];
-
 const peopleSvg = (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -76,25 +57,46 @@ export default function SitesPreview() {
 
   useEffect(() => {
     const fetchSiteData = async () => {
+      // Only fetch from API if we have propertyId and siteId
       if (!propertyId || !siteId) {
-        setError("Property ID and Site ID are required");
         setLoading(false);
+        setError("Missing propertyId or siteId");
         return;
       }
 
       try {
         setLoading(true);
         setError(null);
+
+        console.log("Fetching site data for:", { propertyId, siteId });
+
+        // Add additional validation for API request
+        if (
+          !propertyId.toString().match(/^\d+$/) ||
+          !siteId.toString().match(/^\d+$/)
+        ) {
+          throw new Error("Invalid propertyId or siteId format");
+        }
+
         const data = await apiRequest<any>(
           `properties/${propertyId}/sites/${siteId}`,
           {
             method: "GET",
           }
         );
-        setSiteData(data.data);
+
+        console.log("API Response:", data);
+
+        // Handle both possible response structures
+        const siteData = data.data || data;
+        setSiteData(siteData);
+
+        if (!siteData) {
+          setError("No site data received from API");
+        }
       } catch (err: any) {
-        setError(err.message || "Failed to fetch site data");
         console.error("Error fetching site data:", err);
+        setError(err.message || "Failed to fetch site data");
       } finally {
         setLoading(false);
       }
@@ -103,7 +105,104 @@ export default function SitesPreview() {
     fetchSiteData();
   }, [propertyId, siteId]);
 
-  console.log(siteData);
+  // Debug logging
+  console.log("Site data state:", siteData);
+
+  // Helper function to get images from media array
+  const getImages = () => {
+    if (!siteData?.media || siteData.media.length === 0) {
+      // Fallback images if no media
+      return [
+        "https://res.cloudinary.com/dtfzklzek/image/upload/v1754434728/Rectangle_5118_1_zrjm8u.png",
+        "https://res.cloudinary.com/dtfzklzek/image/upload/v1754434630/Rectangle_5119_an98lg.png",
+        "https://res.cloudinary.com/dtfzklzek/image/upload/v1754434630/Rectangle_5121_il34vh.png",
+        "https://res.cloudinary.com/dtfzklzek/image/upload/v1754434630/Rectangle_5123_w359vo.png",
+        "https://res.cloudinary.com/dtfzklzek/image/upload/v1754434629/Rectangle_5120_dpnrc1.png",
+      ];
+    }
+    return siteData.media.map(
+      (item: any) => `https://api.hightribe.com/${item.file_path}`
+    );
+  };
+
+  const images = getImages();
+
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="p-4 md:p-6 lg:p-8 max-w-[1092px] mx-auto">
+        <div className="animate-pulse">
+          {/* Loading skeleton for title */}
+          <div className="h-8 bg-gray-200 rounded mb-4 w-1/3"></div>
+          <div className="h-6 bg-gray-200 rounded mb-2 w-1/4"></div>
+          <div className="h-6 bg-gray-200 rounded mb-4 w-2/3"></div>
+
+          {/* Loading skeleton for image grid */}
+          <div className="grid grid-cols-9 grid-rows-3 gap-1 mt-4 max-h-[388px]">
+            <div className="row-span-3 col-span-3">
+              <div className="w-full h-full bg-gray-200 rounded-[7px]"></div>
+            </div>
+            <div className="row-span-3 col-span-4">
+              <div className="w-full h-full bg-gray-200 rounded-[7px]"></div>
+            </div>
+            <div className="row-span-1 col-span-2">
+              <div className="w-full h-full bg-gray-200 rounded-[7px]"></div>
+            </div>
+            <div className="row-span-1 col-span-2">
+              <div className="w-full h-full bg-gray-200 rounded-[7px]"></div>
+            </div>
+            <div className="row-span-1 col-span-2">
+              <div className="w-full h-full bg-gray-200 rounded-[7px]"></div>
+            </div>
+          </div>
+
+          {/* Loading skeleton for content */}
+          <div className="grid grid-cols-1 lg:grid-cols-10 gap-4 mt-4">
+            <div className="lg:col-span-7">
+              <div className="h-8 bg-gray-200 rounded mb-4 w-1/2"></div>
+              <div className="border border-[#E3E3E3] rounded-[10px] bg-white p-4">
+                <div className="space-y-4">
+                  <div className="h-4 bg-gray-200 rounded w-1/3"></div>
+                  <div className="flex flex-wrap gap-2">
+                    {[1, 2, 3, 4].map((i) => (
+                      <div
+                        key={i}
+                        className="h-8 bg-gray-200 rounded-full w-20"
+                      ></div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="lg:col-span-3">
+              <div className="h-64 bg-gray-200 rounded mb-4"></div>
+              <div className="h-32 bg-gray-200 rounded"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <div className="p-4 md:p-6 lg:p-8 max-w-[1092px] mx-auto">
+        <div className="text-center py-12">
+          <div className="text-red-500 text-lg font-semibold mb-2">
+            Error Loading Site Data
+          </div>
+          <div className="text-gray-600 mb-4">{error}</div>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-4 md:p-6 lg:p-8 max-w-[1092px] mx-auto">
@@ -114,13 +213,14 @@ export default function SitesPreview() {
         {siteData?.accommodation_type || "Lodging / Room/Cabin"}
       </p>
       <p className="text-[#1C231F] text-[14px] md:text-[16px] font-medium max-w-[730px] mt-2">
-        {siteData?.description ||
+        {siteData?.site_description ||
           "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled"}
       </p>
       <div className="grid grid-cols-9 grid-rows-3 gap-1 mt-4 max-h-[388px]">
         <div className="row-span-3 col-span-3">
           <Image
             src={
+              images[0] ||
               "https://res.cloudinary.com/dtfzklzek/image/upload/v1754434728/Rectangle_5118_1_zrjm8u.png"
             }
             alt="Image"
@@ -132,6 +232,7 @@ export default function SitesPreview() {
         <div className="row-span-3 col-span-4">
           <Image
             src={
+              images[1] ||
               "https://res.cloudinary.com/dtfzklzek/image/upload/v1754434630/Rectangle_5119_an98lg.png"
             }
             alt="Image"
@@ -143,6 +244,7 @@ export default function SitesPreview() {
         <div className="row-span-1 col-span-2">
           <Image
             src={
+              images[2] ||
               "https://res.cloudinary.com/dtfzklzek/image/upload/v1754434630/Rectangle_5121_il34vh.png"
             }
             alt="Image"
@@ -154,6 +256,7 @@ export default function SitesPreview() {
         <div className="row-span-1 col-span-2">
           <Image
             src={
+              images[3] ||
               "https://res.cloudinary.com/dtfzklzek/image/upload/v1754434630/Rectangle_5123_w359vo.png"
             }
             alt="Image"
@@ -165,6 +268,7 @@ export default function SitesPreview() {
         <div className="row-span-1 col-span-2">
           <Image
             src={
+              images[4] ||
               "https://res.cloudinary.com/dtfzklzek/image/upload/v1754434629/Rectangle_5120_dpnrc1.png"
             }
             alt="Image"
@@ -186,14 +290,20 @@ export default function SitesPreview() {
                   Tell us about guest favorites?
                 </p>
                 <div className="mt-2 flex items-center gap-2 flex-wrap">
-                  {guestFavorites.map((item, i) => (
-                    <div
-                      key={i}
-                      className="px-3 py-2 rounded-full cursor-pointer text-[12px] font-semibold bg-[#EDEBEB] border border-[#DFDFDF]"
-                    >
-                      {item}
+                  {siteData?.amenities?.amenities?.map(
+                    (item: string, i: number) => (
+                      <div
+                        key={i}
+                        className="px-3 py-2 rounded-full cursor-pointer text-[12px] font-semibold bg-[#EDEBEB] border border-[#DFDFDF]"
+                      >
+                        {item}
+                      </div>
+                    )
+                  ) || (
+                    <div className="px-3 py-2 rounded-full cursor-pointer text-[12px] font-semibold bg-[#EDEBEB] border border-[#DFDFDF]">
+                      No amenities selected
                     </div>
-                  ))}
+                  )}
                 </div>
               </div>
               <div className="mt-4 border-b border-black/25 pb-2 md:pb-4">
@@ -201,14 +311,20 @@ export default function SitesPreview() {
                   Do you have any standout amenities for your guests?
                 </p>
                 <div className="mt-2 flex items-center gap-2 flex-wrap">
-                  {amenitiesGuest.map((item, i) => (
-                    <div
-                      key={i}
-                      className="px-3 py-2 rounded-full cursor-pointer text-[12px] font-semibold bg-[#EDEBEB] border border-[#DFDFDF]"
-                    >
-                      {item}
+                  {siteData?.amenities?.facilities?.map(
+                    (item: string, i: number) => (
+                      <div
+                        key={i}
+                        className="px-3 py-2 rounded-full cursor-pointer text-[12px] font-semibold bg-[#EDEBEB] border border-[#DFDFDF]"
+                      >
+                        {item}
+                      </div>
+                    )
+                  ) || (
+                    <div className="px-3 py-2 rounded-full cursor-pointer text-[12px] font-semibold bg-[#EDEBEB] border border-[#DFDFDF]">
+                      No facilities selected
                     </div>
-                  ))}
+                  )}
                 </div>
               </div>
               <div className="mt-4 border-b border-black/25 pb-2 md:pb-4">
@@ -216,29 +332,34 @@ export default function SitesPreview() {
                   Do you have any of these safety items?
                 </p>
                 <div className="mt-2 flex items-center gap-2 flex-wrap">
-                  {["Smoke alarm", "Carbon monoxide alarm"].map((item, i) => (
-                    <div
-                      key={i}
-                      className="px-3 py-2 rounded-full cursor-pointer text-[12px] font-semibold bg-[#EDEBEB] border border-[#DFDFDF]"
-                    >
-                      {item}
+                  {siteData?.amenities?.safety_items?.map(
+                    (item: string, i: number) => (
+                      <div
+                        key={i}
+                        className="px-3 py-2 rounded-full cursor-pointer text-[12px] font-semibold bg-[#EDEBEB] border border-[#DFDFDF]"
+                      >
+                        {item}
+                      </div>
+                    )
+                  ) || (
+                    <div className="px-3 py-2 rounded-full cursor-pointer text-[12px] font-semibold bg-[#EDEBEB] border border-[#DFDFDF]">
+                      No safety items selected
                     </div>
-                  ))}
+                  )}
                 </div>
               </div>
               <div className="mt-4 border-b border-black/25 pb-2 md:pb-4">
                 <p className="text-[#1C231F] text-[12px] md:text-[14px] font-semibold">
-                  Do you allow pet?”
+                  Do you allow pet?
                 </p>
                 <div className="mt-2 flex items-center gap-2 flex-wrap">
-                  {["No"].map((item, i) => (
-                    <div
-                      key={i}
-                      className="px-3 py-2 rounded-full cursor-pointer text-[12px] font-semibold bg-[#EDEBEB] border border-[#DFDFDF]"
-                    >
-                      {item}
-                    </div>
-                  ))}
+                  <div className="px-3 py-2 rounded-full cursor-pointer text-[12px] font-semibold bg-[#EDEBEB] border border-[#DFDFDF]">
+                    {siteData?.amenities?.pet_policy === "yes_on_leash"
+                      ? "Yes, on leash"
+                      : siteData?.amenities?.pet_policy === "no"
+                      ? "No"
+                      : "Not specified"}
+                  </div>
                 </div>
               </div>
             </div>
@@ -255,47 +376,59 @@ export default function SitesPreview() {
                 </p>
                 <div className="flex items-center gap-2">
                   {peopleSvg}{" "}
-                  <p className="text-[12px] md:text-[15px]">6 people</p>
+                  <p className="text-[12px] md:text-[15px]">
+                    {siteData?.capacity?.guest_capacity_max ||
+                      siteData?.capacity?.total_beds ||
+                      "Not specified"}{" "}
+                    people
+                  </p>
                 </div>
               </div>
               <div>
                 <p className="text-[16px] md:text-[20px] font-semibold">
-                  Type of Bed
+                  Site Size
                 </p>
                 <div className="flex items-center gap-2">
                   {bedIcon}{" "}
-                  <p className="text-[12px] md:text-[15px]">kind size </p>
+                  <p className="text-[12px] md:text-[15px]">
+                    {siteData?.capacity?.site_size || "Not specified"}
+                  </p>
                 </div>
               </div>
             </div>
           </div>
           <div className="mt-4 border-b border-black/25 pb-2 md:pb-4">
             <h3 className="text-[#1C231F] text-[18px] md:text-[28px] font-bold">
-              Booking lock Date
+              Booking Settings
             </h3>
             <div className="bg-[#66A2FD] text-white rounded-[10px] p-4 mt-4 max-w-[500px]">
               <div className="border-l border-white pl-2">
                 <p className="text-[10px] md:text-[12px]">
-                  10:00 AM - 10:15 AM
+                  Booking Type:{" "}
+                  {siteData?.booking_setting?.booking_type || "Not specified"}
                 </p>
                 <p className="text-[14px] md:text-[16px]">
-                  23 April 2025 - 27 April 2025
+                  Notice Period:{" "}
+                  {siteData?.booking_setting?.notice_period || "Not specified"}
                 </p>
               </div>
             </div>
           </div>
           <div className="mt-4 border-b border-black/25 pb-2 md:pb-4">
             <h3 className="text-[#1C231F] text-[18px] md:text-[28px] font-bold">
-              Refund policy
+              Pricing
             </h3>
             <p className="text-[12px] md:text-[14px]">
-              After your property is published, you can only update your policy
-              to make it more flexible for your guests.
+              Hosting Type: {siteData?.pricing?.hosting_type || "Not specified"}
             </p>
             <p className="text-[14px] md:text-[16px] mt-4">
-              Refundable{" "}
-              <span className="text-[#E62A2D] font-bold">15 days prior</span>
+              Service: {siteData?.pricing?.service || "Not specified"}
             </p>
+            {siteData?.pricing?.hosting_description && (
+              <p className="text-[12px] md:text-[14px] mt-2">
+                Description: {siteData.pricing.hosting_description}
+              </p>
+            )}
           </div>
           <div className="mt-4 border-b border-black/25 pb-2 md:pb-4">
             <h3 className="text-[#1C231F] text-[18px] md:text-[28px] font-bold">
@@ -305,16 +438,26 @@ export default function SitesPreview() {
               <div className="rounded-l-[10px] p-4  ">
                 <p className="text-[10px] md:text-[12px]">Check-in Time</p>
                 <p className="text-[18px] md:text-[24px] font-bold leading-6">
-                  10:15am
+                  {siteData?.arrival_detail?.check_in_time || "Not specified"}
                 </p>
               </div>
               <div className="rounded-r-[10px] p-4 border-l border-[#D3D3D3]">
                 <p className="text-[10px] md:text-[12px]">Check-out Time</p>
                 <p className="text-[18px] md:text-[24px] font-bold leading-6">
-                  05:15am
+                  {siteData?.arrival_detail?.check_out_time || "Not specified"}
                 </p>
               </div>
             </div>
+            {siteData?.arrival_detail?.arrival_instructions && (
+              <div className="mt-4">
+                <p className="text-[12px] md:text-[14px] font-semibold">
+                  Arrival Instructions:
+                </p>
+                <p className="text-[12px] md:text-[14px] mt-1">
+                  {siteData.arrival_detail.arrival_instructions}
+                </p>
+              </div>
+            )}
           </div>
         </div>
         <div className="lg:col-span-3">
@@ -329,20 +472,28 @@ export default function SitesPreview() {
           />
           <div className="bg-gradient-to-r from-[#237AFC] to-[#154996] mt-4 rounded-[7px] p-4 text-center text-white md:p-6">
             <p className="text-[14px] md:text-[16px] font-medium">
-              Paid stay Hosting
+              {siteData?.pricing?.hosting_type === "exchange"
+                ? "Exchange Hosting"
+                : siteData?.pricing?.hosting_type === "paid"
+                ? "Paid stay Hosting"
+                : "Hosting"}
             </p>
             <p className="text-[25px] md:text-[48px] font-semibold leading-12 mt-1">
-              $250
+              {siteData?.pricing?.base_price
+                ? `$${siteData.pricing.base_price}`
+                : "Contact Host"}
             </p>
-            <p className="text-[14px] md:text-[16px] font-medium">Per Person</p>
+            <p className="text-[14px] md:text-[16px] font-medium">
+              {siteData?.pricing?.currency || "Per Person"}
+            </p>
             <div className="flex items-center justify-evenly w-full gap-2 mt-2">
               <div className="text-[14px] md:text-[16px]">
-                <p className="font-bold">Start Date</p>
-                <p>12/03/2025</p>
+                <p className="font-bold">Service</p>
+                <p>{siteData?.pricing?.service || "Not specified"}</p>
               </div>
               <div className="text-[14px] md:text-[16px]">
-                <p className="font-bold">End Date</p>
-                <p>12/06/2025</p>
+                <p className="font-bold">Status</p>
+                <p>{siteData?.publish_status || "Not specified"}</p>
               </div>
             </div>
           </div>

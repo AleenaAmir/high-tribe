@@ -1,9 +1,9 @@
 "use client";
-import React, { useRef } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { apiFormDataWrapper } from "@/lib/api";
+import { apiFormDataWrapper, apiRequest } from "@/lib/api";
 import { useSearchParams } from "next/navigation";
 import { toast } from "react-hot-toast";
 
@@ -17,6 +17,73 @@ import SitesBookingSettingsForm from "./formcomponents/SitesBookingSettingsForm"
 import SitesRefundPolicyForm from "./formcomponents/SitesRefundPolicyForm";
 import SiteArrivalSection from "./formcomponents/SiteArrivalSection";
 import SitesPreview from "./SitesPreview";
+
+// Safe URL utility function
+const createSafeUrl = (
+  baseUrl: string,
+  searchParams: URLSearchParams
+): string | null => {
+  try {
+    // Validate base URL
+    if (!baseUrl || baseUrl === "about:blank") {
+      return null;
+    }
+
+    // Ensure we have a valid URL format
+    if (!baseUrl.startsWith("http") && !baseUrl.startsWith("/")) {
+      return null;
+    }
+
+    const url = new URL(baseUrl);
+    // Copy search params
+    searchParams.forEach((value, key) => {
+      url.searchParams.set(key, value);
+    });
+
+    return url.toString();
+  } catch (error) {
+    console.warn("Failed to create safe URL:", error);
+    return null;
+  }
+};
+
+// Helper function to safely update URL parameters
+const safelyUpdateUrl = (paramName: string, paramValue: string) => {
+  if (typeof window === "undefined") return;
+
+  try {
+    // Check if we have a valid href
+    if (!window.location.href || window.location.href === "about:blank") {
+      throw new Error("Invalid window.location.href");
+    }
+
+    // Additional validation for URL construction
+    if (
+      !window.location.href.startsWith("http") &&
+      !window.location.href.startsWith("/")
+    ) {
+      throw new Error("Invalid URL format");
+    }
+
+    const url = new URL(window.location.href);
+    url.searchParams.set(paramName, paramValue);
+    window.history.replaceState({}, "", url.toString());
+  } catch (error) {
+    console.warn("Failed to update URL:", error);
+    // Fallback: manually construct URL
+    try {
+      const currentUrl = window.location.pathname + window.location.search;
+      const separator = currentUrl.includes("?") ? "&" : "?";
+      const newUrl = currentUrl + separator + `${paramName}=${paramValue}`;
+      window.history.replaceState({}, "", newUrl);
+    } catch (fallbackError) {
+      console.error(
+        "Failed to update URL with fallback method:",
+        fallbackError
+      );
+    }
+  }
+};
 
 // Zod validation schema for the main form
 const sitesFormSchema = z.object({
@@ -36,7 +103,52 @@ const SitesFormUpdated: React.FC<{ siteEdit?: string }> = ({ siteEdit }) => {
   const searchParams = useSearchParams();
   const propertyId = searchParams ? searchParams.get("propertyId") : null;
   const siteId = searchParams ? searchParams.get("siteId") : null;
-  const sitePreview = searchParams.get("sitepriview") || "false";
+  const sitePreview = searchParams ? searchParams.get("sitepriview") : "false";
+
+  // Add state for site data and loading
+  const [siteData, setSiteData] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
+
+  // Fetch site data when siteEdit is true
+  useEffect(() => {
+    const fetchSiteData = async () => {
+      if (siteEdit === "true" && propertyId && siteId) {
+        try {
+          setLoading(true);
+          const data = await apiRequest<any>(
+            `properties/${propertyId}/sites/${siteId}`,
+            {
+              method: "GET",
+            }
+          );
+
+          const siteData = data.data || data;
+          setSiteData(siteData);
+
+          // Mark all sections as completed for edit mode
+          setCompletedSections(
+            new Set([
+              "overview",
+              "amenities",
+              "images",
+              "capacity",
+              "pricing",
+              "booking",
+              "refund",
+              "arrival",
+            ])
+          );
+        } catch (error) {
+          console.error("Error fetching site data:", error);
+          toast.error("Failed to fetch site data");
+        } finally {
+          setLoading(false);
+        }
+      }
+    };
+
+    fetchSiteData();
+  }, [siteEdit, propertyId, siteId]);
 
   // Section refs
   const overviewRef = useRef<HTMLDivElement>(null);
@@ -60,6 +172,7 @@ const SitesFormUpdated: React.FC<{ siteEdit?: string }> = ({ siteEdit }) => {
   const [completedSections, setCompletedSections] = React.useState<Set<string>>(
     new Set()
   );
+  const [sitePreviewData, setSitePreviewData] = useState(null);
 
   const sections: Section[] = [
     {
@@ -139,7 +252,7 @@ const SitesFormUpdated: React.FC<{ siteEdit?: string }> = ({ siteEdit }) => {
       }
 
       // Add publish_status
-      formData.append("publish_status", "draft");
+      formData.append("publish_status", "published");
 
       // Note: scheduled_publish_at is optional and not included in this request
       // as shown in the API image where it's unchecked
@@ -147,6 +260,7 @@ const SitesFormUpdated: React.FC<{ siteEdit?: string }> = ({ siteEdit }) => {
       const response = await apiFormDataWrapper<{
         success: boolean;
         message: string;
+        data: any;
       }>(
         `properties/${propertyId}/sites/review-publish`,
         formData,
@@ -155,11 +269,11 @@ const SitesFormUpdated: React.FC<{ siteEdit?: string }> = ({ siteEdit }) => {
 
       console.log("Form submitted successfully:", response);
       markSectionComplete("publish");
+      setSitePreviewData(response.data);
+      console.log("--------------data----------", sitePreviewData);
       // Set the search param 'sitepriview' to true
       if (typeof window !== "undefined") {
-        const url = new URL(window.location.href);
-        url.searchParams.set("sitepriview", "true");
-        window.history.replaceState({}, "", url.toString());
+        safelyUpdateUrl("sitepriview", "true");
       }
     } catch (error) {
       console.error("Error submitting form:", error);
@@ -193,8 +307,52 @@ const SitesFormUpdated: React.FC<{ siteEdit?: string }> = ({ siteEdit }) => {
     }
   };
 
-  // Check if all sections are completed
-  const allSectionsCompleted = completedSections.size === sections.length;
+  // Check if all sections are completed (excluding publish section)
+  const allSectionsCompleted = completedSections.size === sections.length - 1;
+
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <div className="flex">
+          {/* Left Sidebar */}
+          <div className="w-80 bg-white shadow-sm border-r border-gray-200 p-6 sticky top-32 h-screen">
+            <h2 className="text-xl font-semibold text-gray-900 mb-6">
+              Site Setup
+            </h2>
+            <div className="space-y-2">
+              {sections.map((section) => (
+                <div
+                  key={section.id}
+                  className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left bg-gray-100 animate-pulse"
+                >
+                  <div className="w-6 h-6 rounded-full bg-gray-200"></div>
+                  <div className="h-4 bg-gray-200 rounded w-24"></div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Main Content */}
+          <div className="flex-1 p-6">
+            <div className="max-w-[1200px] mx-auto space-y-8">
+              <div className="animate-pulse">
+                <div className="h-6 bg-gray-200 rounded w-1/4 mb-4"></div>
+                <div className="border border-gray-200 bg-white p-4 rounded-lg">
+                  <div className="space-y-4">
+                    <div className="h-4 bg-gray-200 rounded w-1/3"></div>
+                    <div className="h-10 bg-gray-200 rounded"></div>
+                    <div className="h-10 bg-gray-200 rounded"></div>
+                    <div className="h-20 bg-gray-200 rounded"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -233,7 +391,9 @@ const SitesFormUpdated: React.FC<{ siteEdit?: string }> = ({ siteEdit }) => {
         {/* Main Content */}
 
         {sitePreview === "true" ? (
-          <SitesPreview />
+          <div className="max-w-[1200px] mx-auto">
+            <SitesPreview />
+          </div>
         ) : (
           <div className="flex-1 p-6">
             <form
@@ -245,6 +405,8 @@ const SitesFormUpdated: React.FC<{ siteEdit?: string }> = ({ siteEdit }) => {
                 <SiteOverViewForm
                   propertyId={propertyId || ""}
                   onSuccess={() => markSectionComplete("overview")}
+                  siteData={siteData}
+                  isEditMode={siteEdit === "true"}
                 />
               </div>
 
@@ -254,6 +416,8 @@ const SitesFormUpdated: React.FC<{ siteEdit?: string }> = ({ siteEdit }) => {
                   propertyId={propertyId || ""}
                   siteId={siteId || ""}
                   onSuccess={() => markSectionComplete("amenities")}
+                  siteData={siteData}
+                  isEditMode={siteEdit === "true"}
                 />
               </div>
 
@@ -263,6 +427,8 @@ const SitesFormUpdated: React.FC<{ siteEdit?: string }> = ({ siteEdit }) => {
                   propertyId={propertyId || ""}
                   siteId={siteId || ""}
                   onSuccess={() => markSectionComplete("images")}
+                  siteData={siteData}
+                  isEditMode={siteEdit === "true"}
                 />
               </div>
 
@@ -272,6 +438,8 @@ const SitesFormUpdated: React.FC<{ siteEdit?: string }> = ({ siteEdit }) => {
                   propertyId={propertyId || ""}
                   siteId={siteId || ""}
                   onSuccess={() => markSectionComplete("capacity")}
+                  siteData={siteData}
+                  isEditMode={siteEdit === "true"}
                 />
               </div>
 
@@ -281,6 +449,8 @@ const SitesFormUpdated: React.FC<{ siteEdit?: string }> = ({ siteEdit }) => {
                   propertyId={propertyId || ""}
                   siteId={siteId || ""}
                   onSuccess={() => markSectionComplete("pricing")}
+                  siteData={siteData}
+                  isEditMode={siteEdit === "true"}
                 />
               </div>
 
@@ -290,6 +460,8 @@ const SitesFormUpdated: React.FC<{ siteEdit?: string }> = ({ siteEdit }) => {
                   propertyId={propertyId || ""}
                   siteId={siteId || ""}
                   onSuccess={() => markSectionComplete("booking")}
+                  siteData={siteData}
+                  isEditMode={siteEdit === "true"}
                 />
               </div>
 
@@ -299,6 +471,8 @@ const SitesFormUpdated: React.FC<{ siteEdit?: string }> = ({ siteEdit }) => {
                   propertyId={propertyId || ""}
                   siteId={siteId || ""}
                   onSuccess={() => markSectionComplete("refund")}
+                  siteData={siteData}
+                  isEditMode={siteEdit === "true"}
                 />
               </div>
 
@@ -308,6 +482,8 @@ const SitesFormUpdated: React.FC<{ siteEdit?: string }> = ({ siteEdit }) => {
                   propertyId={propertyId || ""}
                   siteId={siteId || ""}
                   onSuccess={() => markSectionComplete("arrival")}
+                  siteData={siteData}
+                  isEditMode={siteEdit === "true"}
                 />
               </div>
 

@@ -3,6 +3,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import SitesForm from "../sites/SitesForm";
 import { apiRequest } from "@/lib/api";
 import Dropdown from "@/components/global/dropdown";
+import GlobalModal from "@/components/global/GlobalModal";
+import toast from "react-hot-toast";
 
 interface PropertySitesProps {
   propertyId: number;
@@ -17,6 +19,7 @@ export default function PropertySites({
   const searchParams = useSearchParams();
   const showSiteForm = searchParams.get("showSiteForm") === "true";
 
+  const [deleteModal, setDeleteModal] = useState(false);
   const [sites, setSites] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -58,6 +61,20 @@ export default function PropertySites({
     const params = new URLSearchParams(searchParams.toString());
     params.delete("showSiteForm");
     router.push(`?${params.toString()}`);
+  };
+
+  const handleDeleteSite = async (siteId: number) => {
+    try {
+      await apiRequest(`properties/${propertyId}/sites/${siteId}`, {
+        method: "DELETE",
+      });
+      // Remove the deleted property from the state
+      setSites(sites.filter((site) => site.id !== siteId));
+      toast.error("Site deleted successfully");
+    } catch (error) {
+      console.error("Failed to delete property:", error);
+      // You might want to show a toast notification here
+    }
   };
 
   if (showSiteForm) {
@@ -249,7 +266,7 @@ export default function PropertySites({
                       </button>
                       <button
                         onClick={() => {
-                          () => {};
+                          setDeleteModal(true);
                         }}
                         className="block w-full text-left p-2 bg-white rounded-[5px] hover:bg-red-200 hover:text-red-500 cursor-pointer"
                       >
@@ -257,6 +274,34 @@ export default function PropertySites({
                       </button>
                     </div>
                   </Dropdown>
+                  <GlobalModal
+                    isOpen={deleteModal}
+                    onClose={() => setDeleteModal(false)}
+                  >
+                    <div className="text-center">
+                      <h2 className="text-lg font-bold">Delete Site</h2>
+                      <p className="text-sm text-gray-500">
+                        Are you sure you want to delete this site?
+                      </p>
+                    </div>
+                    <div className="flex items-center justify-center mt-4 gap-2">
+                      <button
+                        onClick={() => {
+                          handleDeleteSite(site.id);
+                          setDeleteModal(false);
+                        }}
+                        className="bg-red-500 text-white px-4 py-2 rounded-md"
+                      >
+                        Delete
+                      </button>
+                      <button
+                        onClick={() => setDeleteModal(false)}
+                        className="bg-gray-500 text-white px-4 py-2 rounded-md"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </GlobalModal>
                 </div>
               </div>
             </div>

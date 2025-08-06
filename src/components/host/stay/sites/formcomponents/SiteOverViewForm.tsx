@@ -114,8 +114,9 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
         <button
           type="button"
           onClick={() => setIsOpen(!isOpen)}
-          className={`w-full h-[40px] border rounded-lg px-5 py-2 text-[12px] text-left flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all ${error ? "border-red-400" : "border-[#848484]"
-            }`}
+          className={`w-full h-[40px] border rounded-lg px-5 py-2 text-[12px] text-left flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all ${
+            error ? "border-red-400" : "border-[#848484]"
+          }`}
         >
           <div className="flex items-center gap-2">
             {selectedOption && (
@@ -149,10 +150,11 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
                   onChange(option.value);
                   setIsOpen(false);
                 }}
-                className={`w-full px-4 py-2 text-left text-[12px] flex items-center gap-2 hover:bg-gray-50 transition-colors ${option.value === value
-                  ? "bg-blue-50 text-blue-600"
-                  : "text-[#1C231F]"
-                  }`}
+                className={`w-full px-4 py-2 text-left text-[12px] flex items-center gap-2 hover:bg-gray-50 transition-colors ${
+                  option.value === value
+                    ? "bg-blue-50 text-blue-600"
+                    : "text-[#1C231F]"
+                }`}
               >
                 <AccommodationIcon type={option.icon} className="w-4 h-4" />
                 {option.label}
@@ -193,21 +195,31 @@ type SiteOverviewFormData = z.infer<typeof siteOverviewSchema>;
 //   { value: "castle", label: "Castle", icon: "castle" },
 // ];
 const accommodationOptions = [
-
   { value: "camping_glamping", label: "Camping/Glamping", icon: "house" },
-  { value: "lodging_room_cabin", label: "Lodging/Room/Cabin", icon: "apartment" },
+  {
+    value: "lodging_room_cabin",
+    label: "Lodging/Room/Cabin",
+    icon: "apartment",
+  },
   { value: "rv", label: "RV", icon: "boat" },
-  { value: "non_traditional_couch_air_mattress", label: "Non-traditional Couch/Air Mattress", icon: "cabin" },
-  { value: "co_living_hostel", label: "Co-living/Hostel", icon: "castle" }
-
+  {
+    value: "non_traditional_couch_air_mattress",
+    label: "Non-traditional Couch/Air Mattress",
+    icon: "cabin",
+  },
+  { value: "co_living_hostel", label: "Co-living/Hostel", icon: "castle" },
 ];
 
 export default function SiteOverViewForm({
   propertyId,
   onSuccess,
+  siteData,
+  isEditMode,
 }: {
   propertyId: string;
   onSuccess?: () => void;
+  siteData?: any;
+  isEditMode?: boolean;
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -218,6 +230,7 @@ export default function SiteOverViewForm({
     formState: { errors, isSubmitting },
     watch,
     setValue,
+    reset,
   } = useForm<SiteOverviewFormData>({
     resolver: zodResolver(siteOverviewSchema),
     defaultValues: {
@@ -226,6 +239,17 @@ export default function SiteOverViewForm({
       site_description: "",
     },
   });
+
+  // Populate form data when siteData is available in edit mode
+  useEffect(() => {
+    if (isEditMode && siteData) {
+      reset({
+        site_name: siteData.site_name || "",
+        accommodation_type: siteData.accommodation_type || "",
+        site_description: siteData.site_description || "",
+      });
+    }
+  }, [siteData, isEditMode, reset]);
 
   const selectedAccommodationType = watch("accommodation_type");
 
@@ -238,6 +262,11 @@ export default function SiteOverViewForm({
 
       // Add highlights if provided
       formData.append("high_lights[]", "stylish");
+
+      // Add site_id for edit mode
+      if (isEditMode && siteData?.id) {
+        formData.append("site_id", siteData.id.toString());
+      }
 
       // You can replace this endpoint with your actual API endpoint
       const response = await apiFormDataWrapper<{
@@ -254,7 +283,9 @@ export default function SiteOverViewForm({
       }>(
         `properties/${propertyId}/sites/overview`,
         formData,
-        "Site overview saved successfully!"
+        isEditMode
+          ? "Site overview updated successfully!"
+          : "Site overview saved successfully!"
       );
 
       console.log("Form submitted successfully:", response);
@@ -337,7 +368,7 @@ export default function SiteOverViewForm({
               disabled={isSubmitting}
               className="bg-[#237AFC] w-[158px] mt-2 h-[35px] font-[500] text-[14px] text-white px-4 md:px-10 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
-              {isSubmitting ? "Saving..." : "Save"}
+              {isSubmitting ? "Saving..." : isEditMode ? "Update" : "Save"}
             </button>
           </div>
         </div>

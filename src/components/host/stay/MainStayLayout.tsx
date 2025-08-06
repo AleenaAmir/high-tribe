@@ -173,7 +173,9 @@ export default function MainStayLayout() {
         propertyTab !== "edit" &&
         siteEditTab !== "true" &&
         siteTab === "true" && <SitesFormUpdated />}
-      {siteEditTab === "true" && siteId && (
+      {
+        
+      siteEditTab === "true" && siteId && (
         <SitesFormUpdated siteEdit={siteEditTab} />
       )}
     </div>

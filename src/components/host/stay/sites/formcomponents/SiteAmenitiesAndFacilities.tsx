@@ -1,10 +1,9 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { apiFormDataWrapper } from "@/lib/api";
-
 
 // Zod validation schema
 const amenitiesSchema = z.object({
@@ -60,7 +59,6 @@ const safetyItemsOptions = [
 ];
 
 // Multi-select component for amenities
-
 
 interface MultiSelectProps {
   label: string;
@@ -136,7 +134,6 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
             }}
           >
             {item}
-
           </div>
         ))}
 
@@ -146,10 +143,11 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
             key={option}
             type="button"
             onClick={() => handleToggle(option)}
-            className={`px-5 py-2 rounded-full border cursor-pointer text-[13px] font-semibold transition-all ${selected.includes(option)
-              ? "bg-[#237AFC] border-[#237AFC] text-white"
-              : "bg-white text-[#131313] border-black"
-              }`}
+            className={`px-5 py-2 rounded-full border cursor-pointer text-[13px] font-semibold transition-all ${
+              selected.includes(option)
+                ? "bg-[#237AFC] border-[#237AFC] text-white"
+                : "bg-white text-[#131313] border-black"
+            }`}
           >
             {option}
           </button>
@@ -159,10 +157,11 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
         <button
           type="button"
           onClick={() => handleToggle("Other")}
-          className={`px-5 py-2 rounded-full border cursor-pointer text-[13px] font-semibold transition-all ${isOtherSelected
-            ? "bg-[#237AFC] border-[#237AFC] text-white"
-            : "bg-white text-[#131313] border-black"
-            }`}
+          className={`px-5 py-2 rounded-full border cursor-pointer text-[13px] font-semibold transition-all ${
+            isOtherSelected
+              ? "bg-[#237AFC] border-[#237AFC] text-white"
+              : "bg-white text-[#131313] border-black"
+          }`}
         >
           + {otherInput || "Other"}
         </button>
@@ -188,17 +187,18 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
   );
 };
 
-
-
-
 export default function SiteAmenitiesAndFacilities({
   propertyId,
   siteId,
   onSuccess,
+  siteData,
+  isEditMode,
 }: {
   propertyId: string;
   siteId: string;
   onSuccess?: () => void;
+  siteData?: any;
+  isEditMode?: boolean;
 }) {
   const [customAmenities, setCustomAmenities] = useState<string[]>([]);
   const [customFacilities, setCustomFacilities] = useState<string[]>([]);
@@ -208,6 +208,7 @@ export default function SiteAmenitiesAndFacilities({
     formState: { errors, isSubmitting },
     watch,
     setValue,
+    reset,
   } = useForm<AmenitiesFormData>({
     resolver: zodResolver(amenitiesSchema),
     defaultValues: {
@@ -220,11 +221,24 @@ export default function SiteAmenitiesAndFacilities({
     },
   });
 
+  // Populate form data when siteData is available in edit mode
+  useEffect(() => {
+    if (isEditMode && siteData?.amenities) {
+      reset({
+        amenities: siteData.amenities.amenities || [],
+        facilities: siteData.amenities.facilities || [],
+        safety_items: siteData.amenities.safety_items || [],
+        pet_policy: siteData.amenities.pet_policy,
+        amenitiesOther: "",
+        facilitiesOther: "",
+      });
+    }
+  }, [siteData, isEditMode, reset]);
+
   const watchedAmenities = watch("amenities");
   const watchedFacilities = watch("facilities");
   const watchedSafetyItems = watch("safety_items");
   const watchedPetPolicy = watch("pet_policy");
-
 
   const onSubmit = async (data: AmenitiesFormData) => {
     try {
@@ -232,6 +246,11 @@ export default function SiteAmenitiesAndFacilities({
 
       if (siteId) {
         formData.append("site_id", siteId);
+      }
+
+      // Add site_id for edit mode
+      if (isEditMode && siteData?.id) {
+        formData.append("site_id", siteData.id.toString());
       }
 
       // ✅ Include custom amenities
@@ -270,7 +289,9 @@ export default function SiteAmenitiesAndFacilities({
       }>(
         `properties/${propertyId}/sites/amenities`,
         formData,
-        "Site amenities saved successfully!"
+        isEditMode
+          ? "Site amenities updated successfully!"
+          : "Site amenities saved successfully!"
       );
 
       console.log("Form submitted successfully:", response);
@@ -282,7 +303,6 @@ export default function SiteAmenitiesAndFacilities({
       console.error("Error submitting form:", error);
     }
   };
-
 
   const handleSaveClick = async () => {
     // Trigger form validation and submission
@@ -321,7 +341,9 @@ export default function SiteAmenitiesAndFacilities({
             error={errors.facilities?.message}
             required={true}
             customValues={customFacilities}
-            onCustomAdd={(val) => setCustomFacilities([...customFacilities, val])}
+            onCustomAdd={(val) =>
+              setCustomFacilities([...customFacilities, val])
+            }
             onCustomRemove={(val) =>
               setCustomFacilities(customFacilities.filter((v) => v !== val))
             }
@@ -336,7 +358,9 @@ export default function SiteAmenitiesAndFacilities({
             error={errors.safety_items?.message}
             required={true}
             customValues={customSafetyItems}
-            onCustomAdd={(val) => setCustomSafetyItems([...customSafetyItems, val])}
+            onCustomAdd={(val) =>
+              setCustomSafetyItems([...customSafetyItems, val])
+            }
             onCustomRemove={(val) =>
               setCustomSafetyItems(customSafetyItems.filter((v) => v !== val))
             }
@@ -361,10 +385,11 @@ export default function SiteAmenitiesAndFacilities({
                       option.value as "yes_on_leash" | "no"
                     )
                   }
-                  className={`px-8 py-2 rounded-full border cursor-pointer text-[13px] font-semibold transition-all ${watchedPetPolicy === option.value
-                    ? "bg-[#237AFC] border-[#237AFC] text-white"
-                    : "bg-white text-[#131313] border-black"
-                    }`}
+                  className={`px-8 py-2 rounded-full border cursor-pointer text-[13px] font-semibold transition-all ${
+                    watchedPetPolicy === option.value
+                      ? "bg-[#237AFC] border-[#237AFC] text-white"
+                      : "bg-white text-[#131313] border-black"
+                  }`}
                 >
                   {option.label}
                 </button>
@@ -385,7 +410,7 @@ export default function SiteAmenitiesAndFacilities({
               disabled={isSubmitting}
               className="bg-[#237AFC] w-[158px] mt-2 h-[35px] font-[500] text-[14px] text-white px-4 md:px-10 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
-              {isSubmitting ? "Saving..." : "Save"}
+              {isSubmitting ? "Saving..." : isEditMode ? "Update" : "Save"}
             </button>
           </div>
         </div>

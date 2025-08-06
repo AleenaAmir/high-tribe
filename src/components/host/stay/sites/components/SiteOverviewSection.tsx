@@ -1,12 +1,40 @@
 "use client";
-import React from "react";
+import React, { useState } from "react";
 import GlobalTextInput from "../../../../global/GlobalTextInput";
 import GlobalSelect from "../../../../global/GlobalSelect";
 import GlobalTextArea from "../../../../global/GlobalTextArea";
 import { useSitesForm } from "../contexts/SitesFormContext";
 import { toast } from "react-hot-toast";
-import { useSearchParams } from "next/navigation";
-import { useRouter } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
+
+// Helper function to safely update URL parameters
+const safelyUpdateUrl = (
+  router: any,
+  paramName: string,
+  paramValue: string
+) => {
+  if (typeof window === "undefined") return;
+
+  try {
+    const url = new URL(window.location.href);
+    url.searchParams.set(paramName, paramValue);
+    router.push(url.toString(), { scroll: false });
+  } catch (error) {
+    console.warn("Failed to update URL:", error);
+    // Fallback: manually construct URL
+    try {
+      const currentParams = new URLSearchParams(window.location.search);
+      currentParams.set(paramName, paramValue);
+      const newUrl = window.location.pathname + "?" + currentParams.toString();
+      router.push(newUrl, { scroll: false });
+    } catch (fallbackError) {
+      console.error(
+        "Failed to update URL with fallback method:",
+        fallbackError
+      );
+    }
+  }
+};
 
 interface SiteOverviewSectionProps {
   sectionRef: React.RefObject<HTMLDivElement | null>;
@@ -15,8 +43,11 @@ const accomodationTypes = [
   { value: "camping_glamping", label: "Camping/Glamping" },
   { value: "lodging_room_cabin", label: "Lodging/Room/Cabin" },
   { value: "rv", label: "RV" },
-  { value: "non_traditional_couch_air_mattress", label: "Non-traditional Couch/Air Mattress" },
-  { value: "co_living_hostel", label: "Co-living/Hostel" }
+  {
+    value: "non_traditional_couch_air_mattress",
+    label: "Non-traditional Couch/Air Mattress",
+  },
+  { value: "co_living_hostel", label: "Co-living/Hostel" },
 ];
 
 const SiteOverviewSection: React.FC<SiteOverviewSectionProps> = ({
@@ -174,9 +205,7 @@ const SiteOverviewSection: React.FC<SiteOverviewSectionProps> = ({
         const siteId = data.data?.id;
         if (siteId) {
           console.log(`Site ID: ${siteId}`);
-          const updatedUrl = new URL(window.location.href);
-          updatedUrl.searchParams.set("siteId", siteId);
-          router.push(updatedUrl.toString(), { scroll: false });
+          safelyUpdateUrl(router, "siteId", siteId);
         }
 
         // Save section data to context
@@ -313,12 +342,12 @@ const SiteOverviewSection: React.FC<SiteOverviewSectionProps> = ({
                         onChange={(e) => {
                           const updated = e.target.checked
                             ? [
-                              ...(state.formData.house_sharing || []),
-                              option.value,
-                            ]
+                                ...(state.formData.house_sharing || []),
+                                option.value,
+                              ]
                             : (state.formData.house_sharing || []).filter(
-                              (v) => v !== option.value
-                            );
+                                (v) => v !== option.value
+                              );
                           handleInputChange("house_sharing", updated);
                         }}
                         className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"

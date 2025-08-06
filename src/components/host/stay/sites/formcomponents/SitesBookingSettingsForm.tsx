@@ -20,10 +20,14 @@ const SitesBookingSettingsForm = ({
   propertyId,
   siteId,
   onSuccess,
+  siteData,
+  isEditMode,
 }: {
   propertyId: string;
   siteId: string;
   onSuccess?: () => void;
+  siteData?: any;
+  isEditMode?: boolean;
 }) => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDates, setSelectedDates] = useState<string[]>([]);
@@ -40,6 +44,7 @@ const SitesBookingSettingsForm = ({
     handleSubmit,
     watch,
     setValue,
+    reset,
     formState: { errors, isSubmitting },
   } = useForm<BookingSettingsFormData>({
     resolver: zodResolver(bookingSettingsSchema),
@@ -49,6 +54,23 @@ const SitesBookingSettingsForm = ({
       selectedDates: [],
     },
   });
+
+  // Populate form data when siteData is available in edit mode
+  useEffect(() => {
+    if (isEditMode && siteData?.booking_setting) {
+      reset({
+        ownerBlock: siteData.booking_setting.owner_block || false,
+        bookingType: siteData.booking_setting.booking_type || "request",
+        selectedDates: siteData.booking_setting.selected_dates || [],
+      });
+     
+
+      // Set selected dates if available
+      if (siteData.booking_setting.selected_dates) {
+        setSelectedDates(siteData.booking_setting.selected_dates);
+      }
+    }
+  }, [siteData, isEditMode, reset]);
 
   const ownerBlock = watch("ownerBlock");
 
@@ -194,6 +216,11 @@ const SitesBookingSettingsForm = ({
         formData.append("site_id", siteId);
       }
 
+      // Add site_id for edit mode
+      if (isEditMode && siteData?.id) {
+        formData.append("site_id", siteData.id.toString());
+      }
+
       // Add owner_block (mapped from ownerBlock)
       formData.append("owner_block", data.ownerBlock.toString());
 
@@ -213,7 +240,9 @@ const SitesBookingSettingsForm = ({
       }>(
         `properties/${propertyId}/sites/availability`,
         formData,
-        "Booking settings saved successfully!"
+        isEditMode
+          ? "Booking settings updated successfully!"
+          : "Booking settings saved successfully!"
       );
 
       console.log("Form submitted successfully:", response);
@@ -271,8 +300,9 @@ const SitesBookingSettingsForm = ({
 
           {/* Calendar */}
           <div
-            className={`mb-6 max-w-[541px] mx-auto ${!ownerBlock ? "opacity-50 pointer-events-none" : ""
-              }`}
+            className={`mb-6 max-w-[541px] mx-auto ${
+              !ownerBlock ? "opacity-50 pointer-events-none" : ""
+            }`}
           >
             <div className="flex items-center justify-between mb-4">
               <button
@@ -314,11 +344,11 @@ const SitesBookingSettingsForm = ({
                 const isStartDate =
                   dateRange.from &&
                   day.date.toDateString() ===
-                  new Date(dateRange.from).toDateString();
+                    new Date(dateRange.from).toDateString();
                 const isEndDate =
                   dateRange.to &&
                   day.date.toDateString() ===
-                  new Date(dateRange.to).toDateString();
+                    new Date(dateRange.to).toDateString();
                 const isSelected = isDateSelected(day.date);
 
                 return (
@@ -330,9 +360,10 @@ const SitesBookingSettingsForm = ({
                     className={`
                       p-2 text-sm transition-colors
                       ${day.isCurrentMonth ? "text-gray-900" : "text-gray-400"}
-                      ${isSelected
-                        ? "bg-black text-white"
-                        : isInRange
+                      ${
+                        isSelected
+                          ? "bg-black text-white"
+                          : isInRange
                           ? "bg-black text-white"
                           : "hover:bg-gray-100"
                       }
@@ -392,7 +423,7 @@ const SitesBookingSettingsForm = ({
               disabled={isSubmitting}
               className="bg-[#237AFC] w-[158px] mt-2 h-[35px] font-[500] text-[14px] text-white px-4 md:px-10 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
-              {isSubmitting ? "Saving..." : "Save"}
+              {isSubmitting ? "Saving..." : isEditMode ? "Update" : "Save"}
             </button>
           </div>
         </div>

@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -12,9 +12,7 @@ import { apiFormDataWrapper } from "@/lib/api";
 const arrivalSectionSchema = z.object({
   checkInTime: z.string().min(1, "Check-in time is required"),
   checkOutTime: z.string().min(1, "Check-out time is required"),
-  arrivalInstructions: z
-    .string()
-    .min(10, "Arrival instructions must be at least 10 characters"),
+  arrivalInstructions: z.string().min(1, "Arrival instructions is required"),
 });
 
 type ArrivalSectionFormData = z.infer<typeof arrivalSectionSchema>;
@@ -23,14 +21,19 @@ const SiteArrivalSection = ({
   propertyId,
   siteId,
   onSuccess,
+  siteData,
+  isEditMode,
 }: {
   propertyId: string;
   siteId: string;
   onSuccess?: () => void;
+  siteData?: any;
+  isEditMode?: boolean;
 }) => {
   const {
     register,
     handleSubmit,
+    reset,
     formState: { errors, isSubmitting },
   } = useForm<ArrivalSectionFormData>({
     resolver: zodResolver(arrivalSectionSchema),
@@ -41,6 +44,17 @@ const SiteArrivalSection = ({
     },
   });
 
+  // Populate form data when siteData is available in edit mode
+  useEffect(() => {
+    if (isEditMode && siteData?.arrival_detail) {
+      reset({
+        checkInTime: siteData.arrival_detail.check_in_time || "",
+        checkOutTime: siteData.arrival_detail.check_out_time || "",
+        arrivalInstructions: siteData.arrival_detail.arrival_instructions || "",
+      });
+    }
+  }, [siteData, isEditMode, reset]);
+
   const onSubmit = async (data: ArrivalSectionFormData) => {
     try {
       const formData = new FormData();
@@ -48,6 +62,11 @@ const SiteArrivalSection = ({
       // Add site_id
       if (siteId) {
         formData.append("site_id", siteId);
+      }
+
+      // Add site_id for edit mode
+      if (isEditMode && siteData?.id) {
+        formData.append("site_id", siteData.id.toString());
       }
 
       // Add check_in_time (mapped from checkInTime)
@@ -65,7 +84,9 @@ const SiteArrivalSection = ({
       }>(
         `properties/${propertyId}/sites/arrival-instructions`,
         formData,
-        "Arrival instructions saved successfully!"
+        isEditMode
+          ? "Arrival instructions updated successfully!"
+          : "Arrival instructions saved successfully!"
       );
 
       console.log("Form submitted successfully:", response);
@@ -142,7 +163,7 @@ const SiteArrivalSection = ({
               disabled={isSubmitting}
               className="bg-[#237AFC] w-[158px] mt-2 h-[35px] font-[500] text-[14px] text-white px-4 md:px-10 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
-              {isSubmitting ? "Saving..." : "Save"}
+              {isSubmitting ? "Saving..." : isEditMode ? "Update" : "Save"}
             </button>
           </div>
         </div>

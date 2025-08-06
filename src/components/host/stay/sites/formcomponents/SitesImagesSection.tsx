@@ -21,6 +21,7 @@ interface SitesImagesSectionProps {
   siteId?: string | null;
   isEditMode?: boolean;
   onSuccess?: () => void;
+  siteData?: any;
 }
 
 export default function SitesImagesSection({
@@ -28,6 +29,7 @@ export default function SitesImagesSection({
   siteId,
   isEditMode = false,
   onSuccess,
+  siteData,
 }: SitesImagesSectionProps) {
   const [uploadedImages, setUploadedImages] = useState<File[]>([]);
   const [uploadedVideo, setUploadedVideo] = useState<File | null>(null);
@@ -38,7 +40,6 @@ export default function SitesImagesSection({
   const [existingImages, setExistingImages] = useState<any[]>([]);
   const [existingCoverImage, setExistingCoverImage] = useState<any>(null);
   const [existingVideo, setExistingVideo] = useState<any>(null);
-  const [isLoadingSite, setIsLoadingSite] = useState(false);
 
   // React Hook Form setup
   const {
@@ -60,42 +61,9 @@ export default function SitesImagesSection({
     },
   });
 
-  // Fetch site data when in edit mode
+  // Populate form data when siteData is available in edit mode
   useEffect(() => {
-    if (isEditMode && siteId) {
-      fetchSiteData();
-    }
-  }, [isEditMode, siteId]);
-
-  const fetchSiteData = async () => {
-    if (!siteId) return;
-
-    setIsLoadingSite(true);
-    try {
-      const token =
-        typeof window !== "undefined"
-          ? localStorage.getItem("token") || ""
-          : "";
-      const response = await fetch(
-        `https://api.hightribe.com/api/sites/${siteId}`,
-        {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            Accept: "application/json",
-          },
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch site data");
-      }
-
-      const responseData = await response.json();
-      console.log("API Response:", responseData);
-
-      const siteData = responseData.data || responseData;
-
+    if (isEditMode && siteData) {
       // Set existing images
       if (siteData.media && siteData.media.length > 0) {
         setExistingImages(siteData.media);
@@ -111,13 +79,8 @@ export default function SitesImagesSection({
         setExistingVideo(siteData.video_url);
         setVideoUrl(siteData.video_url);
       }
-    } catch (error) {
-      console.error("Error fetching site data:", error);
-      toast.error("Failed to load site data");
-    } finally {
-      setIsLoadingSite(false);
     }
-  };
+  }, [siteData, isEditMode]);
 
   // Watch form values for real-time updates
   const formData = watch();
@@ -189,6 +152,11 @@ export default function SitesImagesSection({
         formData.append("site_id", siteId);
       }
 
+      // Add site_id for edit mode
+      if (isEditMode && siteData?.id) {
+        formData.append("site_id", siteData.id.toString());
+      }
+
       // Append uploaded images as media_images[]
       if (uploadedImages.length > 0) {
         uploadedImages.forEach((file) => {
@@ -217,7 +185,9 @@ export default function SitesImagesSection({
       }>(
         `properties/${propertyId}/sites/media`,
         formData,
-        "Site media saved successfully!"
+        isEditMode
+          ? "Site media updated successfully!"
+          : "Site media saved successfully!"
       );
 
       console.log("Site images saved successfully:", response);
@@ -237,18 +207,6 @@ export default function SitesImagesSection({
     const isValid = await handleSubmit(onSubmit)();
     return isValid;
   };
-
-  // Show loading state while fetching site data
-  if (isEditMode && isLoadingSite) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading site data...</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div>
@@ -459,7 +417,7 @@ export default function SitesImagesSection({
             <label className="block text-[14px] md:text-[16px] text-left font-medium text-[#1C231F] mb-3">
               Cover Image
             </label>
-            <div className="max-w-xs">
+            <div className="max-w-[180px]">
               {/* Existing cover image in edit mode */}
               {isEditMode && existingCoverImage && !coverImage && (
                 <div className="relative group">
@@ -469,7 +427,7 @@ export default function SitesImagesSection({
                         typeof existingCoverImage === "string"
                           ? existingCoverImage
                           : existingCoverImage.file_path?.replace(/\\/g, "") ||
-                          "https://via.placeholder.com/150?text=No+Image"
+                            "https://via.placeholder.com/150?text=No+Image"
                       }
                       alt="Existing cover image"
                       className="w-full h-full object-cover"
@@ -583,7 +541,7 @@ export default function SitesImagesSection({
               disabled={isSubmitting}
               className="bg-[#237AFC] w-[158px] mt-2 h-[35px] font-[500] text-[14px] text-white px-4 md:px-10 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
-              {isSubmitting ? "Saving..." : "Save"}
+              {isSubmitting ? "Saving..." : isEditMode ? "Update" : "Save"}
             </button>
           </div>
         </div>

@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -35,15 +35,20 @@ export default function SitesRefundPolicyForm({
   propertyId,
   siteId,
   onSuccess,
+  siteData,
+  isEditMode,
 }: {
   propertyId: string;
   siteId: string;
   onSuccess?: () => void;
+  siteData?: any;
+  isEditMode?: boolean;
 }) {
   const {
     register,
     handleSubmit,
     watch,
+    reset,
     formState: { errors, isSubmitting },
   } = useForm<RefundPolicyFormData>({
     resolver: zodResolver(refundPolicySchema),
@@ -53,15 +58,32 @@ export default function SitesRefundPolicyForm({
     },
   });
 
+  // Populate form data when siteData is available in edit mode
+  useEffect(() => {
+    if (isEditMode && siteData?.refund_policy) {
+      reset({
+        refundType: siteData.refund_policy.type || "refundable",
+        refundDays: siteData.refund_policy.refundable_until_days || 1,
+      });
+    }
+  }, [siteData, isEditMode, reset]);
+
   const refundType = watch("refundType");
 
   const onSubmit = async (data: RefundPolicyFormData) => {
-    debugger;
     try {
       const formData = new FormData();
-      formData.append("refundType", data.refundType);
+
+      formData.append("site_id", siteId);
+
+      // Add site_id for edit mode
+      if (isEditMode && siteData?.id) {
+        formData.append("site_id", siteData.id.toString());
+      }
+
+      formData.append("type", data.refundType);
       if (data.refundDays) {
-        formData.append("refundDays", data.refundDays.toString());
+        formData.append("refundable_until_days", data.refundDays.toString());
       }
 
       // You can replace this endpoint with your actual API endpoint
@@ -69,12 +91,15 @@ export default function SitesRefundPolicyForm({
         success: boolean;
         message: string;
       }>(
-        `/api/sites/${siteId}/refund-policy`,
+        `properties/${propertyId}/sites/refund-policy`,
         formData,
-        "Refund policy saved successfully!"
+        isEditMode
+          ? "Refund policy updated successfully!"
+          : "Refund policy saved successfully!"
       );
 
       console.log("Form submitted successfully:", response);
+      onSuccess?.();
     } catch (error) {
       console.error("Error submitting form:", error);
       // Error handling is already done by apiFormDataWrapper
@@ -141,12 +166,11 @@ export default function SitesRefundPolicyForm({
               type="submit"
               disabled={isSubmitting}
               onClick={() => {
-                debugger;
                 handleSubmit(onSubmit)();
               }}
               className="bg-[#237AFC] w-[158px] mt-2 h-[35px] font-[500] text-[14px] text-white px-4 md:px-10 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
-              {isSubmitting ? "Saving..." : "Save"}
+              {isSubmitting ? "Saving..." : isEditMode ? "Update" : "Save"}
             </button>
           </div>
         </div>

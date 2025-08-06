@@ -85,10 +85,14 @@ export default function SitesPricingForm({
   propertyId,
   siteId,
   onSuccess,
+  siteData,
+  isEditMode,
 }: {
   propertyId: string;
   siteId: string;
   onSuccess?: () => void;
+  siteData?: any;
+  isEditMode?: boolean;
 }) {
   const [currencies, setCurrencies] = useState<Currency[]>([]);
   const [loadingCurrencies, setLoadingCurrencies] = useState(true);
@@ -120,6 +124,31 @@ export default function SitesPricingForm({
       artistDescription: "",
     },
   });
+
+  // Populate form data when siteData is available in edit mode
+  useEffect(() => {
+    if (isEditMode && siteData?.pricing) {
+      reset({
+        hostingType: siteData.pricing.hosting_type || "",
+        currency: siteData.pricing.currency || "",
+        price: siteData.pricing.base_price || 0,
+        discountType: siteData.pricing.discount_type || "",
+        discountName: siteData.pricing.discount_name || "",
+        discountAmount: siteData.pricing.amount || 0,
+        startDate: siteData.pricing.start_date || "",
+        expirationDate: siteData.pricing.end_date || "",
+        promoCode: siteData.pricing.discount_code || "",
+        discountPrice: siteData.pricing.discount_price || 0,
+        exchangeService: siteData.pricing.service || "",
+        otherService: "",
+        exchangeDescription: siteData.pricing.hosting_description || "",
+        artistService: siteData.pricing.service || "",
+        otherArtistService: "",
+        artistDescription: siteData.pricing.hosting_description || "",
+      });
+    }
+  }, [siteData, isEditMode, reset]);
+
   const currentHostingType = watch("hostingType");
 
   useEffect(() => {
@@ -144,7 +173,6 @@ export default function SitesPricingForm({
       });
     }
   }, [currentHostingType, reset]);
-
 
   // Fetch currencies from open-source API
   useEffect(() => {
@@ -197,7 +225,6 @@ export default function SitesPricingForm({
   }, []);
 
   const onSubmit = async (data: SitePricingFormData) => {
-    debugger;
     try {
       const formData = new FormData();
 
@@ -206,24 +233,28 @@ export default function SitesPricingForm({
         formData.append("site_id", siteId);
       }
 
+      // Add site_id for edit mode
+      if (isEditMode && siteData?.id) {
+        formData.append("site_id", siteData.id.toString());
+      }
+
       // Add hosting_type (mapped from hostingType)
       formData.append("hosting_type", data.hostingType);
       if (data.exchangeService) {
-        formData.append("exchange_service", data.exchangeService);
+        formData.append("service", data.exchangeService);
       }
       if (data.artistService && data.artistService.length > 0) {
-        formData.append("artist_service", data.artistService);
+        formData.append("service", data.artistService);
       }
 
       if (data.exchangeDescription) {
-        formData.append("exchange_description", data.exchangeDescription);
+        formData.append("hosting_description", data.exchangeDescription);
       }
       if (data.artistDescription) {
-        formData.append("artist_description", data.artistDescription);
+        formData.append("hosting_description", data.artistDescription);
       }
 
       // Add hosting_description (using a default value or description field)
-
 
       // Add currency (only if it exists)
       if (data.currency) {
@@ -270,7 +301,9 @@ export default function SitesPricingForm({
       }>(
         `properties/${propertyId}/sites/pricing`,
         formData,
-        "Site pricing saved successfully!"
+        isEditMode
+          ? "Site pricing updated successfully!"
+          : "Site pricing saved successfully!"
       );
 
       console.log("Form submitted successfully:", response);
@@ -346,7 +379,7 @@ export default function SitesPricingForm({
                     ) : (
                       currencies.map((currency) => (
                         <option key={currency.code} value={currency.code}>
-                          {currency.symbol} {currency.code} - {currency.name}
+                          {currency.code} - {currency.name}
                         </option>
                       ))
                     )}
@@ -612,7 +645,7 @@ export default function SitesPricingForm({
               disabled={isSubmitting}
               className="bg-[#237AFC] w-[158px] mt-2 h-[35px] font-[500] text-[14px] text-white px-4 md:px-10 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
-              {isSubmitting ? "Saving..." : "Save"}
+              {isSubmitting ? "Saving..." : isEditMode ? "Update" : "Save"}
             </button>
           </div>
         </div>
