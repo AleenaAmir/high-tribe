@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import SitesForm from "../sites/SitesForm";
 import { apiRequest } from "@/lib/api";
+import Dropdown from "@/components/global/dropdown";
 
 interface PropertySitesProps {
   propertyId: number;
@@ -31,8 +32,8 @@ export default function PropertySites({
             Array.isArray(data?.data)
               ? data.data
               : data?.data
-                ? [data.data]
-                : []
+              ? [data.data]
+              : []
           );
         }
       })
@@ -85,7 +86,6 @@ export default function PropertySites({
           </button>
         </div>
         {/* Site creation form */}
-
       </div>
     );
   }
@@ -147,9 +147,9 @@ export default function PropertySites({
         {sites.map((site, index) => (
           <div
             key={site.id || index}
-            className="bg-white border border-gray-200 rounded-[20px] hover:shadow-md transition-shadow relative"
+            className="bg-white border border-gray-200 rounded-[20px] hover:shadow-md transition-shadow relative flex justify-between gap-4"
           >
-            <div className="flex items-start flex-1 p-3">
+            <div className="flex items-start p-3">
               <div className="w-16 h-16 my-auto rounded-lg overflow-hidden flex-shrink-0 mr-3">
                 <img
                   src={
@@ -168,6 +168,96 @@ export default function PropertySites({
                 <p className="text-xs text-gray-500 mb-1 line-clamp-1">
                   {site.site_description || "No Description"}
                 </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 justify-end">
+              <div className="p-5 border-x h-full border-[#EBEBEB] flex items-center justify-center text-[16px] font-bold text-[#000]">
+                $125
+              </div>
+              <div className="p-3 flex items-end gap-2 justify-between min-w-[120px] max-w-[150px] w-full h-full">
+                <p
+                  className={`text-[9px] ${
+                    site?.publish_status === "published"
+                      ? "text-[#1179FA] underline"
+                      : "text-[#FF0000]"
+                  }`}
+                >
+                  {site?.publish_status}
+                </p>
+                <div className="flex flex-col justify-between items-end gap-1 p-2">
+                  <div
+                    className={`flex items-center space-x-1 border rounded-full px-2 py-0.5 border-blue-600`}
+                  >
+                    <span className="text-[9px] font-medium">Active</span>
+                    <svg
+                      className="w-3 h-3"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M19 9l-7 7-7-7"
+                      />
+                    </svg>
+                  </div>
+
+                  <div className="w-6 h-6 flex items-center justify-center">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="18"
+                      height="17"
+                      fill="none"
+                      viewBox="0 0 18 17"
+                    >
+                      <path
+                        fill="#000"
+                        d="M.692 16.615a.6.6 0 0 1-.263-.055.69.69 0 0 1-.429-.637V3.31A3.385 3.385 0 0 1 3.462 0h11.077A3.385 3.385 0 0 1 18 3.31v6.535a3.386 3.386 0 0 1-3.461 3.309H4.438l-3.254 3.26a.7.7 0 0 1-.492.201m2.77-15.23A2.01 2.01 0 0 0 1.385 3.31v10.945l2.277-2.285a.7.7 0 0 1 .492-.2h10.385a2.01 2.01 0 0 0 2.076-1.925V3.31a2.007 2.007 0 0 0-2.076-1.925z"
+                      ></path>
+                      <path
+                        fill="#000"
+                        d="M9 7.616A1.038 1.038 0 1 0 9 5.54a1.038 1.038 0 0 0 0 2.077M12.808 7.616a1.039 1.039 0 1 0 0-2.077 1.039 1.039 0 0 0 0 2.077M5.193 7.616a1.038 1.038 0 1 0 0-2.076 1.038 1.038 0 0 0 0 2.076"
+                      ></path>
+                    </svg>
+                  </div>
+                  <Dropdown
+                    button={
+                      <svg
+                        className="w-4 h-4 mr-1"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
+                      </svg>
+                    }
+                  >
+                    <div className="min-w-[150px] w-full border border-[#848484] rounded-[5px]">
+                      <button
+                        onClick={() => {
+                          const params = new URLSearchParams(
+                            searchParams.toString()
+                          );
+                          params.set("siteEdit", "true");
+                          params.set("siteId", site.id.toString());
+                          router.push(`?${params.toString()}`);
+                        }}
+                        className="block w-full text-left p-2 bg-white rounded-[5px] hover:bg-[#f8f8f8] cursor-pointer"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => {
+                          () => {};
+                        }}
+                        className="block w-full text-left p-2 bg-white rounded-[5px] hover:bg-red-200 hover:text-red-500 cursor-pointer"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </Dropdown>
+                </div>
               </div>
             </div>
           </div>

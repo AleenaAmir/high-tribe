@@ -35,7 +35,7 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: "https",
-        hostname: "high-tribe-backend.hiconsolutions.com",
+        hostname: "api.hightribe.com",
         port: "",
         pathname: "/**",
       },

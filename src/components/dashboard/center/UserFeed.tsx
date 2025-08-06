@@ -15,13 +15,20 @@ interface ApiUser {
   email: string;
   date_of_birth: string;
   phone: string;
+  type?: number;
 }
 
 interface ApiMedia {
   id: number;
-  post_stop_id: number;
-  type: "photo" | "video";
-  url: string;
+  post_stop_id?: number;
+  travel_tip_id?: number;
+  travel_advisory_id?: number;
+  foot_print_id?: number;
+  type?: "photo" | "video";
+  media_type?: "image" | "video";
+  url?: string;
+  file_path?: string;
+  duration?: number | null;
   created_at: string;
   updated_at: string;
 }
@@ -46,35 +53,72 @@ interface ApiStop {
   media: ApiMedia[];
 }
 
+// Generic API Post interface to handle different post types
 interface ApiPost {
   id: number;
+  user_id?: number;
   user: ApiUser;
   title: string;
-  description: string;
-  start_location_name: string;
-  start_lat: string;
-  start_lng: string;
-  end_location_name: string;
-  end_lat: string;
-  end_lng: string;
+  description?: string;
+  story?: string;
+  content?: string;
+  location?: string;
+  location_name?: string;
+  latitude?: string;
+  longitude?: string;
+  lat?: string;
+  lng?: string;
+  start_location_name?: string;
+  start_lat?: string;
+  start_lng?: string;
+  end_location_name?: string;
+  end_lat?: string;
+  end_lng?: string;
   privacy: string;
-  planning_mode: string;
-  date_mode: string;
-  start_date: string;
-  end_date: string;
-  month: string | null;
-  days_count: number | null;
+  planning_mode?: string;
+  date_mode?: string;
+  start_date?: string;
+  end_date?: string;
+  expires_on?: string;
+  is_resolved?: boolean;
+  resolved_at?: string | null;
+  month?: string | null;
+  days_count?: number | null;
   type: string;
-  specify_other: string | null;
-  stops: ApiStop[];
+  specify_other?: string | null;
+  stops?: ApiStop[];
   tagged_users: ApiUser[];
+  media: ApiMedia[];
+  tags?: Array<{
+    id: number;
+    foot_print_id: number;
+    tag: string;
+    created_at: string;
+    updated_at: string;
+  }>;
+  friends?: Array<{
+    id: number;
+    foot_print_id: number;
+    friend_user_id: number;
+    created_at: string;
+    updated_at: string;
+  }>;
   created_at: string;
   updated_at: string;
 }
 
 // Pagination response type
 interface PaginatedResponse {
-  data?: ApiPost[];
+  data?: {
+    data?: ApiPost[];
+    posts?: ApiPost[];
+    pagination?: {
+      total: number;
+      page: number;
+      limit: number;
+      totalPages: number;
+    };
+  };
   posts?: ApiPost[];
   pagination?: {
     total: number;
@@ -239,35 +283,21 @@ const formatDateRange = (startDate: string, endDate: string): string => {
 
 // Transform API data to Post format
 const transformApiPostToPost = (apiPost: ApiPost): Post => {
-  // Create journey head with tagged users
-  const taggedUsersHtml = apiPost.tagged_users
-    .filter((user) => user.id !== apiPost.user.id) // Exclude the post author
-    .map((user) => `<span class='text-[#247BFE]'>${user.name}</span>`)
-    .join(" and ");
+  // Handle different post types
+  const postType = apiPost.type;
 
-  const journeyHead = taggedUsersHtml
-    ? `<p>Trip to ${apiPost.end_location_name} with ${taggedUsersHtml}</p>`
-    : `<p>Trip to ${apiPost.end_location_name}</p>`;
+  console.log(`Transforming post ${apiPost.id} of type: ${postType}`);
 
-  // Calculate total distance
-  const directDistance = calculateDistance(
-    apiPost.start_lat,
-    apiPost.start_lng,
-    apiPost.end_lat,
-    apiPost.end_lng
-  );
-
-  // Collect all media from stops (both photos and videos)
-  const allMedia = apiPost.stops.flatMap((stop) =>
-    stop.media.map((media) => ({
-      type: media.type === "photo" ? "image" : ("video" as "image" | "video"),
-      url: `https://high-tribe-backend.hiconsolutions.com${media.url}`,
-    }))
-  );
-
-  // Limit media to 5 items and track additional items
-  const displayMedia = allMedia.slice(0, 5);
-  const additionalMediaCount = Math.max(0, allMedia.length - 5);
+  // Transform media from different post types
+  const transformMedia = (media: ApiMedia[]) => {
+    return media.map((item) => ({
+      type:
+        item.type === "photo" || item.media_type === "image"
+          ? "image"
+          : ("video" as "image" | "video"),
+      url: `https://api.hightribe.com/${item.url || item.file_path || ""}`,
+    }));
+  };
 
   // Create participants from tagged users (with placeholder avatars)
   const participants = apiPost.tagged_users.map((user, index) => ({
@@ -276,9 +306,14 @@ const transformApiPostToPost = (apiPost: ApiPost): Post => {
     }/${50 + index}.jpg`,
   }));
 
-  return {
+  // Transform media
+  const allMedia = transformMedia(apiPost.media);
+  const displayMedia = allMedia.slice(0, 5);
+  const additionalMediaCount = Math.max(0, allMedia.length - 5);
+
+  // Base post object
+  const basePost: Post = {
     id: apiPost.id.toString(),
-    journeyHead,
     user: {
       name: apiPost.user.name,
       avatarUrl: `https://randomuser.me/api/portraits/${
@@ -286,27 +321,91 @@ const transformApiPostToPost = (apiPost: ApiPost): Post => {
       }/${30 + (apiPost.user.id % 20)}.jpg`,
     },
     timestamp: formatTimestamp(apiPost.created_at),
-    location: `${apiPost.start_location_name} to ${apiPost.end_location_name}`,
-    content: apiPost.description,
-    journeyContent: {
-      travelDetails: {
-        locationDistance: directDistance,
-        distanceCovered: directDistance, // Could be calculated from stops if needed
-        date: formatDateRange(apiPost.start_date, apiPost.end_date),
-        mapView:
-          "https://res.cloudinary.com/dtfzklzek/image/upload/v1751659619/Post-Img_8_hjbtrh.png", // Placeholder map
-      },
-      media: displayMedia,
-      allMedia: allMedia, // Store all media for modal
-      additionalMediaCount: additionalMediaCount,
-    },
-    // media: allMedia.length > 0 ? allMedia : undefined,
-    love: Math.floor((apiPost.id * 7) % 500) + 50, // Deterministic based on post ID
-    likes: Math.floor((apiPost.id * 13) % 300) + 50, // Deterministic based on post ID
-    comments: Math.floor((apiPost.id * 3) % 20) + 1, // Deterministic based on post ID
-    shares: Math.floor((apiPost.id * 5) % 10) + 1, // Deterministic based on post ID
+    location: apiPost.location || apiPost.location_name || "Unknown location",
+    content: apiPost.description || apiPost.story || apiPost.content || "",
+    media: allMedia.length > 0 ? allMedia : undefined,
     participants,
+    love: Math.floor((apiPost.id * 7) % 500) + 50,
+    likes: Math.floor((apiPost.id * 13) % 300) + 50,
+    comments: Math.floor((apiPost.id * 3) % 20) + 1,
+    shares: Math.floor((apiPost.id * 5) % 10) + 1,
   };
+
+  // Handle different post types
+  switch (postType) {
+    case "travel_tip":
+      console.log(`Creating travel tip post for ${apiPost.id}`);
+      return {
+        ...basePost,
+        tags: apiPost.tags?.map((tag) => `🏷️ ${tag.tag}`) || [],
+      };
+
+    case "travel_advisory":
+      console.log(`Creating travel advisory post for ${apiPost.id}`);
+      return {
+        ...basePost,
+        isTravelAdvisory: true,
+        travelAdvisoryHead: apiPost.title,
+        tags: apiPost.is_resolved ? ["✅ Resolved"] : ["⚠️ Active"],
+      };
+
+    case "footprint":
+      console.log(`Creating footprint post for ${apiPost.id}`);
+      return {
+        ...basePost,
+        tags: apiPost.tags?.map((tag) => `📍 ${tag.tag}`) || [],
+      };
+
+    default:
+      console.log(
+        `Creating default post for ${apiPost.id} with type: ${postType}`
+      );
+      // Handle journey posts (original logic)
+      if (
+        apiPost.stops &&
+        apiPost.start_location_name &&
+        apiPost.end_location_name
+      ) {
+        const taggedUsersHtml = apiPost.tagged_users
+          .filter((user) => user.id !== apiPost.user.id)
+          .map((user) => `<span class='text-[#247BFE]'>${user.name}</span>`)
+          .join(" and ");
+
+        const journeyHead = taggedUsersHtml
+          ? `<p>Trip to ${apiPost.end_location_name} with ${taggedUsersHtml}</p>`
+          : `<p>Trip to ${apiPost.end_location_name}</p>`;
+
+        const directDistance = calculateDistance(
+          apiPost.start_lat || "0",
+          apiPost.start_lng || "0",
+          apiPost.end_lat || "0",
+          apiPost.end_lng || "0"
+        );
+
+        return {
+          ...basePost,
+          journeyHead,
+          journeyContent: {
+            travelDetails: {
+              locationDistance: directDistance,
+              distanceCovered: directDistance,
+              date:
+                apiPost.start_date && apiPost.end_date
+                  ? formatDateRange(apiPost.start_date, apiPost.end_date)
+                  : "Unknown dates",
+              mapView:
+                "https://res.cloudinary.com/dtfzklzek/image/upload/v1751659619/Post-Img_8_hjbtrh.png",
+            },
+            media: displayMedia,
+            allMedia: allMedia,
+            additionalMediaCount: additionalMediaCount,
+          },
+        };
+      }
+
+      // Default fallback
+      return basePost;
+  }
 };
 
 const UserFeed = () => {
@@ -344,19 +443,49 @@ const UserFeed = () => {
 
         let response;
         try {
-          // Try with pagination parameters first
+          // Try different API endpoints
+          console.log("Trying API call with pagination...");
           response = await apiRequest<PaginatedResponse>(
-            `posts?${queryParams}`,
+            `posts/all?${queryParams}`,
             {
               method: "get",
             }
           );
+          console.log("API call successful with pagination");
         } catch (error) {
-          // If pagination fails, try without parameters (fallback)
-          console.log("Pagination failed, trying without parameters");
-          response = await apiRequest<PaginatedResponse>("posts", {
-            method: "get",
-          });
+          console.log("First endpoint failed, trying without pagination...");
+          try {
+            response = await apiRequest<PaginatedResponse>("posts", {
+              method: "get",
+            });
+            console.log("API call successful without pagination");
+          } catch (fallbackError) {
+            console.log(
+              "Second endpoint failed, trying alternative endpoints..."
+            );
+            try {
+              // Try alternative endpoints
+              response = await apiRequest<PaginatedResponse>("posts/all", {
+                method: "get",
+              });
+              console.log("API call successful with posts/all");
+            } catch (thirdError) {
+              try {
+                response = await apiRequest<PaginatedResponse>("feed", {
+                  method: "get",
+                });
+                console.log("API call successful with feed");
+              } catch (fourthError) {
+                console.error("All API calls failed:", {
+                  first: error,
+                  second: fallbackError,
+                  third: thirdError,
+                  fourth: fourthError,
+                });
+                throw fourthError;
+              }
+            }
+          }
         }
 
         console.log("API Response:", response);
@@ -365,47 +494,91 @@ const UserFeed = () => {
         let postsData: ApiPost[] = [];
         let paginationInfo = null;
 
-        if (response?.data && Array.isArray(response.data)) {
+        console.log("Raw API response:", response);
+
+        if (response?.data?.data && Array.isArray(response.data.data)) {
+          postsData = response.data.data;
+          console.log("Found data in response.data.data:", postsData);
+          paginationInfo = response.data.pagination;
+        } else if (
+          response?.data?.posts &&
+          Array.isArray(response.data.posts)
+        ) {
+          postsData = response.data.posts;
+          console.log("Found data in response.data.posts:", postsData);
+          paginationInfo = response.data.pagination;
+        } else if (response?.data && Array.isArray(response.data)) {
           postsData = response.data;
+          console.log("Found data in response.data:", postsData);
           paginationInfo = response.pagination;
         } else if (Array.isArray(response)) {
           // If response is directly an array
           postsData = response;
+          console.log("Found data as direct array:", postsData);
         } else if (response?.posts && Array.isArray(response.posts)) {
           // If response has posts property
           postsData = response.posts;
+          console.log("Found data in response.posts:", postsData);
+        } else {
+          console.log("No valid data structure found in response");
         }
 
         console.log(`Found ${postsData.length} posts on page ${pageNum}`);
 
         if (postsData.length > 0) {
+          console.log("Raw posts data:", postsData);
+
           // Transform API posts to match Post interface
-          const transformedPosts = postsData.map(transformApiPostToPost);
+          const transformedPosts: Post[] = postsData
+            .map((post, index) => {
+              try {
+                console.log(`Transforming post ${index}:`, post);
+                const transformed = transformApiPostToPost(post);
+                console.log(`Transformed post ${index}:`, transformed);
+                return transformed;
+              } catch (error) {
+                console.error(`Error transforming post ${index}:`, error);
+                return null;
+              }
+            })
+            .filter((post): post is Post => post !== null);
 
-          if (isInitial) {
-            // Remove duplicates from initial posts as well
-            const uniquePosts = transformedPosts.filter(
-              (post, index, self) =>
-                index === self.findIndex((p) => p.id === post.id)
-            );
-            setPosts(uniquePosts);
-            console.log(
-              `Set initial posts: ${uniquePosts.length} (filtered from ${transformedPosts.length})`
-            );
-          } else {
-            setPosts((prev) => {
-              // Filter out duplicates based on post ID
-              const existingIds = new Set(prev.map((post) => post.id));
-              const uniqueNewPosts = transformedPosts.filter(
-                (post) => !existingIds.has(post.id)
+          console.log("Transformed posts:", transformedPosts);
+
+          if (transformedPosts.length > 0) {
+            if (isInitial) {
+              // Remove duplicates from initial posts as well
+              const uniquePosts = transformedPosts.filter(
+                (post, index, self) =>
+                  post && index === self.findIndex((p) => p && p.id === post.id)
               );
-
-              const newPosts = [...prev, ...uniqueNewPosts];
+              setPosts(uniquePosts);
               console.log(
-                `Added ${uniqueNewPosts.length} unique posts, total: ${newPosts.length}`
+                `Set initial posts: ${uniquePosts.length} (filtered from ${transformedPosts.length})`
               );
-              return newPosts;
-            });
+            } else {
+              setPosts((prev) => {
+                // Filter out duplicates based on post ID
+                const existingIds = new Set(prev.map((post) => post.id));
+                const uniqueNewPosts = transformedPosts.filter(
+                  (post) => post && !existingIds.has(post.id)
+                );
+
+                const newPosts = [...prev, ...uniqueNewPosts];
+                console.log(
+                  `Added ${uniqueNewPosts.length} unique posts, total: ${newPosts.length}`
+                );
+                return newPosts;
+              });
+            }
+          } else {
+            console.log(
+              "No posts were successfully transformed, using fallback"
+            );
+            if (isInitial) {
+              setPosts(fallbackPosts);
+              setHasMore(false);
+            }
           }
 
           // Update pagination info

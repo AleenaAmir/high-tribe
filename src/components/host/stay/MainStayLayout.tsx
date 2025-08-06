@@ -24,7 +24,8 @@ export default function MainStayLayout() {
   const currentTab = searchParams.get("tab") || "stats";
   const propertyTab = searchParams.get("property") || "false";
   const siteTab = searchParams.get("showSiteForm") || "false";
- 
+  const siteEditTab = searchParams.get("siteEdit") || "false";
+  const siteId = searchParams.get("siteId");
   const propertyId = searchParams.get("propertyId");
   const router = useRouter();
 
@@ -46,7 +47,8 @@ export default function MainStayLayout() {
         <div className="flex items-center gap-4">
           {(propertyTab === "true" ||
             propertyTab === "edit" ||
-            siteTab === "true") && (
+            siteTab === "true" ||
+            siteEditTab === "true") && (
             <button
               type="button"
               className="flex items-center gap-2 cursor-pointer"
@@ -74,6 +76,7 @@ export default function MainStayLayout() {
         </div>
         {propertyTab !== "true" &&
           propertyTab !== "edit" &&
+          siteEditTab !== "true" &&
           siteTab !== "true" && (
             <button
               type="button"
@@ -96,6 +99,7 @@ export default function MainStayLayout() {
 
       {propertyTab !== "true" &&
         propertyTab !== "edit" &&
+        siteEditTab !== "true" &&
         siteTab !== "true" && (
           <div className="mt-1 flex items-center gap-2 md:gap-4 px-3 pt-2 md:px-4 md:pt-3 lg:px-6 lg:pt-4 bg-white">
             {stayTabs.map((tab) => (
@@ -118,6 +122,7 @@ export default function MainStayLayout() {
       {currentTab === "stats" &&
         propertyTab !== "true" &&
         propertyTab !== "edit" &&
+        siteEditTab !== "true" &&
         siteTab !== "true" && (
           <div>
             <StatsMain />
@@ -126,6 +131,7 @@ export default function MainStayLayout() {
       {currentTab === "booking" &&
         propertyTab !== "true" &&
         propertyTab !== "edit" &&
+        siteEditTab !== "true" &&
         siteTab !== "true" && (
           <div>
             <BookingsMain />
@@ -134,6 +140,7 @@ export default function MainStayLayout() {
       {currentTab === "property" &&
         propertyTab !== "true" &&
         propertyTab !== "edit" &&
+        siteEditTab !== "true" &&
         siteTab !== "true" && (
           <div className="p-3 md:px-4 md:py-3 lg:px-6 lg:py-4">
             <PropertyMain />
@@ -142,16 +149,20 @@ export default function MainStayLayout() {
       {currentTab === "calendar" &&
         propertyTab !== "true" &&
         propertyTab !== "edit" &&
+        siteEditTab !== "true" &&
         siteTab !== "true" && <div>Calendar</div>}
       {currentTab === "inbox" &&
         propertyTab !== "true" &&
         propertyTab !== "edit" &&
+        siteEditTab !== "true" &&
         siteTab !== "true" && <div>Inbox</div>}
       {currentTab === "notifications" &&
         propertyTab !== "true" &&
         propertyTab !== "edit" &&
+        siteEditTab !== "true" &&
         siteTab !== "true" && <div>Notifications</div>}
       {(propertyTab === "true" || propertyTab === "edit") &&
+        siteEditTab !== "true" &&
         siteTab !== "true" && (
           <PropertyForm
             propertyId={propertyId}
@@ -160,8 +171,11 @@ export default function MainStayLayout() {
         )}
       {propertyTab !== "true" &&
         propertyTab !== "edit" &&
+        siteEditTab !== "true" &&
         siteTab === "true" && <SitesFormUpdated />}
-
+      {siteEditTab === "true" && siteId && (
+        <SitesFormUpdated siteEdit={siteEditTab} />
+      )}
     </div>
   );
 }

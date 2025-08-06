@@ -32,7 +32,7 @@ interface Section {
   isCompleted: boolean;
 }
 
-const SitesFormUpdated: React.FC = () => {
+const SitesFormUpdated: React.FC<{ siteEdit?: string }> = ({ siteEdit }) => {
   const searchParams = useSearchParams();
   const propertyId = searchParams ? searchParams.get("propertyId") : null;
   const siteId = searchParams ? searchParams.get("siteId") : null;
@@ -238,7 +238,7 @@ const SitesFormUpdated: React.FC = () => {
           <div className="flex-1 p-6">
             <form
               onSubmit={handleSubmit(onSubmit)}
-              className="max-w-[940px] mx-auto space-y-8"
+              className="max-w-[1200px] mx-auto space-y-8"
             >
               {/* Site Overview Section */}
               <div ref={overviewRef}>

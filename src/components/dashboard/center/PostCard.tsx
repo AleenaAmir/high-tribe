@@ -411,7 +411,7 @@ export const PostCard = ({ post }: { post: Post }) => {
   return (
     <div className="bg-white rounded-lg shadow-md my-4 overflow-hidden">
       {/* Trip Board Header */}
-      {post.isTripBoard && (
+      {/* {post.isTripBoard && (
         <div className="bg-gradient-to-r from-[#257CFF] to-[#0F62DE] p-4 flex justify-between items-center text-white">
           <h3 className="font-bold text-lg">Trip Board</h3>
           <div className="flex gap-2">
@@ -423,7 +423,7 @@ export const PostCard = ({ post }: { post: Post }) => {
             </button>
           </div>
         </div>
-      )}
+      )} */}
 
       <div className="p-6">
         {/* Post Header */}
@@ -637,7 +637,7 @@ export const PostCard = ({ post }: { post: Post }) => {
             </div>
           )}
 
-          {post.isTripBoard && post.tripDetails?.tags && (
+          {/* {post.isTripBoard && post.tripDetails?.tags && (
             <div className="flex flex-wrap gap-2 mt-3">
               {post.tripDetails.tags.map((tag) => (
                 <span
@@ -649,7 +649,7 @@ export const PostCard = ({ post }: { post: Post }) => {
                 </span>
               ))}
             </div>
-          )}
+          )} */}
 
           {post.media && (
             <MediaGrid media={post.media} onMediaClick={handleMediaClick} />
@@ -713,7 +713,7 @@ export const PostCard = ({ post }: { post: Post }) => {
           </div>
 
           {/* Comment Section - Hidden for Trip Board */}
-          {!post.isTripBoard && (
+          {/* {!post.isTripBoard && (
             <>
               <div className="border-t border-gray-100 my-4"></div>
               <div className="flex items-center gap-3">
@@ -727,7 +727,7 @@ export const PostCard = ({ post }: { post: Post }) => {
                 </div>
               </div>
             </>
-          )}
+          )} */}
         </div>
       </div>
 
