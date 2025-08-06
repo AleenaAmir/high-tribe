@@ -393,4 +393,3 @@ export default function SiteAmenitiesAndFacilities({
     </div>
   );
 }
-
