@@ -7,15 +7,27 @@ import { z } from "zod";
 import { apiFormDataWrapper } from "@/lib/api";
 
 // Zod validation schema
-const refundPolicySchema = z.object({
-  refundType: z.enum(["refundable", "non_refundable"], {
-    required_error: "Please select a refund policy type",
-  }),
-  refundDays: z
-    .number()
-    .min(1, "Please enter a valid number of days")
-    .optional(),
-});
+const refundPolicySchema = z
+  .object({
+    refundType: z.enum(["refundable", "non_refundable"], {
+      required_error: "Please select a refund policy type",
+    }),
+    refundDays: z
+      .number({ invalid_type_error: "Please enter number of days" })
+      .optional(),
+  })
+  .refine(
+    (data) => {
+      if (data.refundType === "refundable") {
+        return typeof data.refundDays === "number" && data.refundDays >= 1;
+      }
+      return true; // valid if non_refundable
+    },
+    {
+      path: ["refundDays"],
+      message: "Please enter a valid number of days",
+    }
+  );
 
 type RefundPolicyFormData = z.infer<typeof refundPolicySchema>;
 
@@ -44,28 +56,29 @@ export default function SitesRefundPolicyForm({
   const refundType = watch("refundType");
 
   const onSubmit = async (data: RefundPolicyFormData) => {
-    // try {
-    //   const formData = new FormData();
-    //   formData.append("refundType", data.refundType);
-    //   if (data.refundDays) {
-    //     formData.append("refundDays", data.refundDays.toString());
-    //   }
+    debugger;
+    try {
+      const formData = new FormData();
+      formData.append("refundType", data.refundType);
+      if (data.refundDays) {
+        formData.append("refundDays", data.refundDays.toString());
+      }
 
-    //   // You can replace this endpoint with your actual API endpoint
-    //   const response = await apiFormDataWrapper<{
-    //     success: boolean;
-    //     message: string;
-    //   }>(
-    //     "/api/sites/refund-policy",
-    //     formData,
-    //     "Refund policy saved successfully!"
-    //   );
+      // You can replace this endpoint with your actual API endpoint
+      const response = await apiFormDataWrapper<{
+        success: boolean;
+        message: string;
+      }>(
+        `/api/sites/${siteId}/refund-policy`,
+        formData,
+        "Refund policy saved successfully!"
+      );
 
-    //   console.log("Form submitted successfully:", response);
-    // } catch (error) {
-    //   console.error("Error submitting form:", error);
-    //   // Error handling is already done by apiFormDataWrapper
-    // }
+      console.log("Form submitted successfully:", response);
+    } catch (error) {
+      console.error("Error submitting form:", error);
+      // Error handling is already done by apiFormDataWrapper
+    }
   };
 
   return (
@@ -127,6 +140,10 @@ export default function SitesRefundPolicyForm({
             <button
               type="submit"
               disabled={isSubmitting}
+              onClick={() => {
+                debugger;
+                handleSubmit(onSubmit)();
+              }}
               className="bg-[#237AFC] w-[158px] mt-2 h-[35px] font-[500] text-[14px] text-white px-4 md:px-10 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               {isSubmitting ? "Saving..." : "Save"}

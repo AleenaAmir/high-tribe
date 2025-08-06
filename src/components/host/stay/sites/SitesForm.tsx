@@ -233,7 +233,7 @@ const SitesFormContent: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
                 type="submit"
                 className="px-8 w-[158px] mt-2 h-[35px] font-[500] text-[14px] py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg  transition-colors text-sm shadow-sm"
               >
-                Review & Published 12
+                Review & Published
               </button>
             </div>
           </form>

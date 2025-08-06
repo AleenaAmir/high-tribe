@@ -46,14 +46,14 @@ export default function SiteCapacityForm({
       formData.append("site_size", "30x20 ft"); // e.g., "30x20 ft"
       formData.append("total_beds", data.typeOfBed.toString()); // e.g., "5"
       formData.append("site_id", siteId);
-      formData.append("guest_capacity_min", "2");
-      formData.append("guest_capacity_max", "10");
-      formData.append("hookup_type", "pull_thru");
-      formData.append("amperes", "30");
-      formData.append("max_length", "50");
-      formData.append("max_width", "20");
-      formData.append("turning_radius", "30");
-      formData.append("driveway_surface_other", "gravel");
+      // formData.append("guest_capacity_min", "2");
+      // formData.append("guest_capacity_max", "10");
+      // formData.append("hookup_type", "pull_thru");
+      // formData.append("amperes", "30");
+      // formData.append("max_length", "50");
+      // formData.append("max_width", "20");
+      // formData.append("turning_radius", "30");
+      // formData.append("driveway_surface_other", "gravel");
 
       const response = await apiFormDataWrapper(
         `properties/${propertyId}/sites/capacity`,

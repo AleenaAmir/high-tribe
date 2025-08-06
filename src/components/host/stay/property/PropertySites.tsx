@@ -31,8 +31,8 @@ export default function PropertySites({
             Array.isArray(data?.data)
               ? data.data
               : data?.data
-              ? [data.data]
-              : []
+                ? [data.data]
+                : []
           );
         }
       })
@@ -85,7 +85,7 @@ export default function PropertySites({
           </button>
         </div>
         {/* Site creation form */}
-        
+
       </div>
     );
   }
@@ -162,13 +162,11 @@ export default function PropertySites({
               </div>
               <div className="flex-1 min-w-0">
                 <h4 className="text-sm font-semibold text-gray-900 mb-1 line-clamp-1">
-                  {site.name || "No Name"}
+                  {site.site_name || "No Name"}
                 </h4>
-                <p className="text-xs font-semibold text-gray-600 mb-1">
-                  {site.city || "No City"}
-                </p>
+
                 <p className="text-xs text-gray-500 mb-1 line-clamp-1">
-                  {site.description || "No Description"}
+                  {site.site_description || "No Description"}
                 </p>
               </div>
             </div>

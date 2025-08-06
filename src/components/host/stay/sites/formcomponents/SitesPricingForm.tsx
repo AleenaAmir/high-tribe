@@ -21,7 +21,10 @@ const sitePricingSchema = z
     hostingType: z.string().min(1, "Hosting type is required"),
     currency: z.string().optional(),
     price: z.number().optional(),
-    discountType: z.enum(["percentage", "fixed"]),
+    discountType: z
+      .union([z.literal("percentage"), z.literal("fixed"), z.literal("")])
+      .optional(),
+
     discountName: z.string().optional(),
     discountAmount: z
       .number()
@@ -94,6 +97,7 @@ export default function SitesPricingForm({
     register,
     handleSubmit,
     watch,
+    reset,
     formState: { errors, isSubmitting },
   } = useForm<SitePricingFormData>({
     resolver: zodResolver(sitePricingSchema),
@@ -101,7 +105,7 @@ export default function SitesPricingForm({
       hostingType: "",
       currency: "",
       price: 0,
-      discountType: "percentage",
+      discountType: "",
       discountName: "",
       discountAmount: 0,
       startDate: "",
@@ -116,6 +120,31 @@ export default function SitesPricingForm({
       artistDescription: "",
     },
   });
+  const currentHostingType = watch("hostingType");
+
+  useEffect(() => {
+    if (currentHostingType) {
+      reset({
+        hostingType: currentHostingType, // Keep selected type
+        currency: "",
+        price: 0,
+        discountType: "",
+        discountName: "",
+        discountAmount: 0,
+        startDate: "",
+        expirationDate: "",
+        promoCode: "",
+        discountPrice: 0,
+        exchangeService: "",
+        otherService: "",
+        exchangeDescription: "",
+        artistService: "",
+        otherArtistService: "",
+        artistDescription: "",
+      });
+    }
+  }, [currentHostingType, reset]);
+
 
   // Fetch currencies from open-source API
   useEffect(() => {
@@ -168,6 +197,7 @@ export default function SitesPricingForm({
   }, []);
 
   const onSubmit = async (data: SitePricingFormData) => {
+    debugger;
     try {
       const formData = new FormData();
 
@@ -178,9 +208,22 @@ export default function SitesPricingForm({
 
       // Add hosting_type (mapped from hostingType)
       formData.append("hosting_type", data.hostingType);
+      if (data.exchangeService) {
+        formData.append("exchange_service", data.exchangeService);
+      }
+      if (data.artistService && data.artistService.length > 0) {
+        formData.append("artist_service", data.artistService);
+      }
+
+      if (data.exchangeDescription) {
+        formData.append("exchange_description", data.exchangeDescription);
+      }
+      if (data.artistDescription) {
+        formData.append("artist_description", data.artistDescription);
+      }
 
       // Add hosting_description (using a default value or description field)
-      formData.append("hosting_description", "test"); // You can make this dynamic if needed
+
 
       // Add currency (only if it exists)
       if (data.currency) {
@@ -193,7 +236,9 @@ export default function SitesPricingForm({
       }
 
       // Add discount_type
-      formData.append("discount_type", data.discountType);
+      if (data.discountType && data.hostingType === "paid") {
+        formData.append("discount_type", data.discountType);
+      }
 
       // Add amount (mapped from discountAmount)
       if (data.discountAmount) {
@@ -203,6 +248,12 @@ export default function SitesPricingForm({
       // Add discount_name (mapped from discountName)
       if (data.discountName) {
         formData.append("discount_name", data.discountName);
+      }
+      if (data.startDate) {
+        formData.append("start_date", data.startDate);
+      }
+      if (data.expirationDate) {
+        formData.append("end_date", data.expirationDate);
       }
 
       // Add discount_code (mapped from promoCode)
