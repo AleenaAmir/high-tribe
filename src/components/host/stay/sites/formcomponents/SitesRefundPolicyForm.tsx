@@ -5,6 +5,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 
 import { apiFormDataWrapper } from "@/lib/api";
+import GlobalInputStepper from "@/components/global/GlobalInputStepper";
+import GlobalSelect from "@/components/global/GlobalSelect";
 
 // Zod validation schema
 const refundPolicySchema = z
@@ -49,12 +51,13 @@ export default function SitesRefundPolicyForm({
     handleSubmit,
     watch,
     reset,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<RefundPolicyFormData>({
     resolver: zodResolver(refundPolicySchema),
     defaultValues: {
       refundType: "refundable",
-      refundDays: 1,
+      refundDays: 0,
     },
   });
 
@@ -116,7 +119,7 @@ export default function SitesRefundPolicyForm({
           <p className="text-[16px] md:text-[20px] text-[#1C231F] font-bold mb-2">
             Set your refund policy
           </p>
-          <p className="text-[12px] md:text-[14px] text-gray-600 mb-6">
+          <p className="text-[12px] md:text-[14px] text-black font-medium mb-6">
             After your property is published, you can only update your policy to
             make it more flexible for your guests.
           </p>
@@ -132,12 +135,19 @@ export default function SitesRefundPolicyForm({
               />
               <span className="text-sm text-gray-700">Refundable</span>
               {refundType === "refundable" && (
-                <div className="ml-1">
-                  <input
+                <div className="ml-1 ">
+                  {/* <input
                     placeholder="Enter a day"
                     type="number"
                     {...register("refundDays", { valueAsNumber: true })}
                     className="w-[200px] rounded-full border border-[#848484] px-2 py-1 text-sm"
+                  /> */}
+                  <GlobalInputStepper
+                    placeholder="Enter a day"
+                    value={watch("refundDays") || 0}
+                    onChange={(value) => setValue("refundDays", value)}
+                    max={31}
+                    min={1}
                   />
                 </div>
               )}
@@ -158,6 +168,26 @@ export default function SitesRefundPolicyForm({
                 {errors.refundType.message}
               </p>
             )}
+
+            <label
+              htmlFor=""
+              className="text-[12px] md:text-[14px] text-black font-bold mb-2"
+            >
+              How far ahead can guests reserve your property?
+            </label>
+            <div className="w-full md:max-w-[70%] lg:max-w-[50%]">
+              <GlobalSelect
+                label={
+                  <span>
+                    Select*<span className="text-red-500">*</span>
+                  </span>
+                }
+              >
+                <option value="anytime">Anytime</option>
+                <option value="1_day_in_advance">1 day in advance</option>
+                <option value="2_days_in_advance">2 days in advance</option>
+              </GlobalSelect>
+            </div>
           </div>
 
           {/* Submit Button */}

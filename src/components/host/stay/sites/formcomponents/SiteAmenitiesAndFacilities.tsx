@@ -17,6 +17,12 @@ const amenitiesSchema = z.object({
   }),
   amenitiesOther: z.string().optional(),
   facilitiesOther: z.string().optional(),
+  bathroom_options: z.array(z.string()).optional(),
+  accept_booking_with_children: z
+    .enum(["yes", "no"], {
+      required_error: "Please select a children policy",
+    })
+    .optional(),
 });
 
 type AmenitiesFormData = z.infer<typeof amenitiesSchema>;
@@ -49,6 +55,13 @@ const facilitiesOptions = [
   "Beach access",
   "Ski-in/Ski-out",
   "Outdoor shower",
+];
+
+const bathroom_options = [
+  "Shared Non-ensuite Bathroom",
+  "Private Non-ensuite Bathroom",
+  "Private Ensuite Bathroom",
+  "Shared Ensuite Bathroom",
 ];
 
 const safetyItemsOptions = [
@@ -193,16 +206,21 @@ export default function SiteAmenitiesAndFacilities({
   onSuccess,
   siteData,
   isEditMode,
+  accommodationType,
 }: {
   propertyId: string;
   siteId: string;
   onSuccess?: () => void;
   siteData?: any;
   isEditMode?: boolean;
+  accommodationType?: string | null;
 }) {
   const [customAmenities, setCustomAmenities] = useState<string[]>([]);
   const [customFacilities, setCustomFacilities] = useState<string[]>([]);
   const [customSafetyItems, setCustomSafetyItems] = useState<string[]>([]);
+  const [custombathroom_options, setCustombathroom_options] = useState<
+    string[]
+  >([]);
   const {
     handleSubmit,
     formState: { errors, isSubmitting },
@@ -218,6 +236,8 @@ export default function SiteAmenitiesAndFacilities({
       pet_policy: undefined,
       amenitiesOther: "",
       facilitiesOther: "",
+      bathroom_options: [],
+      accept_booking_with_children: undefined,
     },
   });
 
@@ -231,6 +251,7 @@ export default function SiteAmenitiesAndFacilities({
         pet_policy: siteData.amenities.pet_policy,
         amenitiesOther: "",
         facilitiesOther: "",
+        bathroom_options: siteData.amenities.bathroom_options || [],
       });
     }
   }, [siteData, isEditMode, reset]);
@@ -239,7 +260,8 @@ export default function SiteAmenitiesAndFacilities({
   const watchedFacilities = watch("facilities");
   const watchedSafetyItems = watch("safety_items");
   const watchedPetPolicy = watch("pet_policy");
-
+  const watchedbathroom_options = watch("bathroom_options");
+  const watchedChildrenPolicy = watch("accept_booking_with_children");
   const onSubmit = async (data: AmenitiesFormData) => {
     try {
       const formData = new FormData();
@@ -280,8 +302,23 @@ export default function SiteAmenitiesAndFacilities({
         formData.append("safety_items[]", item);
       });
 
+      // ✅ Include custom bathroom options
+      if (data.bathroom_options) {
+        data.bathroom_options.forEach((item) => {
+          formData.append("bathroom_options[]", item);
+        });
+      }
+
       // Pet policy
       formData.append("pet_policy", data.pet_policy);
+
+      // Children policy
+      if (data.accept_booking_with_children) {
+        formData.append(
+          "accept_booking_with_children",
+          data.accept_booking_with_children === "yes" ? "1" : "0"
+        );
+      }
 
       const response = await apiFormDataWrapper<{
         success: boolean;
@@ -349,6 +386,26 @@ export default function SiteAmenitiesAndFacilities({
             }
           />
 
+          {(accommodationType === "camping_glamping" ||
+            accommodationType === "co_living_hostel") && (
+            <MultiSelect
+              label="Bathroom options"
+              options={bathroom_options}
+              selected={watchedbathroom_options || []}
+              onChange={(selected) => setValue("bathroom_options", selected)}
+              error={errors.bathroom_options?.message}
+              customValues={custombathroom_options}
+              onCustomAdd={(val) =>
+                setCustombathroom_options([...custombathroom_options, val])
+              }
+              onCustomRemove={(val) =>
+                setCustombathroom_options(
+                  custombathroom_options.filter((v) => v !== val)
+                )
+              }
+            />
+          )}
+
           {/* Safety Items Section */}
           <MultiSelect
             label="Do you have any of these safety items?"
@@ -402,13 +459,55 @@ export default function SiteAmenitiesAndFacilities({
             )}
           </div>
 
+          {(accommodationType === "camping_glamping" ||
+            accommodationType === "co_living_hostel") && (
+            <div className="mb-6">
+              <label className="text-[12px] md:text-[14px] text-[#1C231F] font-bold mb-3 block">
+                Do you accept bookings that include children?
+              </label>
+              <div className="flex flex-wrap gap-3">
+                {[
+                  { value: "yes", label: "Yes" },
+                  { value: "no", label: "No" },
+                ].map((option) => (
+                  <button
+                    key={option.value}
+                    type="button"
+                    onClick={() =>
+                      setValue(
+                        "accept_booking_with_children",
+                        option.value as "yes" | "no"
+                      )
+                    }
+                    className={`px-8 py-2 rounded-full border cursor-pointer text-[13px] font-semibold transition-all ${
+                      watchedChildrenPolicy === option.value
+                        ? "bg-[#237AFC] border-[#237AFC] text-white"
+                        : "bg-white text-[#131313] border-black"
+                    }`}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+              {errors.accept_booking_with_children?.message && (
+                <p className="text-red-500 text-xs mt-1">
+                  {errors.accept_booking_with_children.message}
+                </p>
+              )}
+            </div>
+          )}
+
           {/* Save Button */}
           <div className="flex justify-end mt-6">
             <button
               type="button"
               onClick={handleSaveClick}
-              disabled={isSubmitting}
-              className="bg-[#237AFC] w-[158px] mt-2 h-[35px] font-[500] text-[14px] text-white px-4 md:px-10 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              disabled={
+                isSubmitting ||
+                !watchedAmenities.length ||
+                !watchedFacilities.length
+              }
+              className="bg-[#237AFC] disabled:bg-[#BABBBC] w-[158px] mt-2 h-[35px] font-[500] text-[14px] text-white px-4 md:px-10 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               {isSubmitting ? "Saving..." : isEditMode ? "Update" : "Save"}
             </button>

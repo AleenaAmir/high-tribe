@@ -45,15 +45,44 @@ export default function MainStayLayout() {
     <div>
       <div className="flex justify-between items-center gap-4 p-3 md:px-4 md:py-3 lg:px-6 lg:py-4 bg-white h-fit sticky top-14 z-40">
         <div className="flex items-center gap-4">
-          {(propertyTab === "true" ||
-            propertyTab === "edit" ||
-            siteTab === "true" ||
-            siteEditTab === "true") && (
+          {(propertyTab === "true" || propertyTab === "edit") && (
             <button
               type="button"
               className="flex items-center gap-2 cursor-pointer"
               onClick={() => {
                 router.push("/host/stay?tab=property");
+              }}
+            >
+              <svg
+                className={`w-4 h-4 transition-transform duration-300 rotate-180`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 5l7 7-7 7"
+                />
+              </svg>
+              <p className="text-[14px] md:text-[16px] font-bold">Back</p>
+            </button>
+          )}
+          {(siteTab === "true" || siteEditTab === "true") && (
+            <button
+              type="button"
+              className="flex items-center gap-2 cursor-pointer"
+              onClick={() => {
+                const params = new URLSearchParams(window.location.search);
+                params.delete("showSiteForm");
+                params.delete("siteEdit");
+                params.delete("siteId");
+                window.history.replaceState(
+                  {},
+                  "",
+                  `${window.location.pathname}?${params.toString()}`
+                );
               }}
             >
               <svg
@@ -173,9 +202,7 @@ export default function MainStayLayout() {
         propertyTab !== "edit" &&
         siteEditTab !== "true" &&
         siteTab === "true" && <SitesFormUpdated />}
-      {
-        
-      siteEditTab === "true" && siteId && (
+      {siteEditTab === "true" && siteId && (
         <SitesFormUpdated siteEdit={siteEditTab} />
       )}
     </div>

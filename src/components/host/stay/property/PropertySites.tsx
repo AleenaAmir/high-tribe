@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import SitesForm from "../sites/SitesForm";
 import { apiRequest } from "@/lib/api";
 import Dropdown from "@/components/global/dropdown";
 import GlobalModal from "@/components/global/GlobalModal";
@@ -164,9 +163,9 @@ export default function PropertySites({
         {sites.map((site, index) => (
           <div
             key={site.id || index}
-            className="bg-white border border-gray-200 rounded-[20px] hover:shadow-md transition-shadow relative flex justify-between gap-4"
+            className="bg-white border max-h-[100px] border-gray-200 rounded-[20px] hover:shadow-md transition-shadow relative flex justify-between gap-4"
           >
-            <div className="flex items-start p-3">
+            <div className="flex items-start p-2">
               <div className="w-16 h-16 my-auto rounded-lg overflow-hidden flex-shrink-0 mr-3">
                 <img
                   src={
@@ -177,12 +176,12 @@ export default function PropertySites({
                   className="w-full h-full object-cover"
                 />
               </div>
-              <div className="flex-1 min-w-0">
-                <h4 className="text-sm font-semibold text-gray-900 mb-1 line-clamp-1">
+              <div className="">
+                <h4 className="text-[16px] font-[600] mb-1 line-clamp-1">
                   {site.site_name || "No Name"}
                 </h4>
 
-                <p className="text-xs text-gray-500 mb-1 line-clamp-1">
+                <p className="text-[14px] font-medium text-black mb-1 line-clamp-1">
                   {site.site_description || "No Description"}
                 </p>
               </div>
@@ -191,11 +190,11 @@ export default function PropertySites({
               <div className="p-5 border-x h-full border-[#EBEBEB] flex items-center justify-center text-[16px] font-bold text-[#000]">
                 $125
               </div>
-              <div className="p-3 flex items-end gap-2 justify-between min-w-[120px] max-w-[150px] w-full h-full">
+              <div className="p-3 flex items-end gap-2 justify-between min-w-[150px] max-w-[150px] w-full h-full">
                 <p
-                  className={`text-[9px] ${
+                  className={`text-[9px] md:text-[12px] font-bold hover:underline ${
                     site?.publish_status === "published"
-                      ? "text-[#1179FA] underline"
+                      ? "text-[#1179FA]"
                       : "text-[#FF0000]"
                   }`}
                 >

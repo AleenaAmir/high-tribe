@@ -38,7 +38,7 @@ const GlobalRadioGroup: React.FC<GlobalRadioGroupProps> = ({
             className={`flex items-center gap-2 cursor-pointer text-[12px] ${
               value === option.value
                 ? "font-semibold text-blue-600"
-                : "text-gray-700"
+                : "text-[#1C231F]"
             }`}
           >
             <input

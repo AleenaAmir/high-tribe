@@ -295,7 +295,7 @@ const transformApiPostToPost = (apiPost: ApiPost): Post => {
         item.type === "photo" || item.media_type === "image"
           ? "image"
           : ("video" as "image" | "video"),
-      url: `https://api.hightribe.com/${item.url || item.file_path || ""}`,
+      url: `${item.url || item.file_path || ""}`,
     }));
   };
 

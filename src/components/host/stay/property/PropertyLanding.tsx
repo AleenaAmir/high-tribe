@@ -268,13 +268,13 @@ export default function PropertyLanding() {
               />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-gray-900">
+              <h2 className="text-lg font-bold">
                 {selectedProperty?.property_name || "No Name"}
               </h2>
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-black">
                 {selectedProperty?.location_address || "No City"}
               </p>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-black">
                 {selectedProperty?.short_description || "No Description"}
               </p>
             </div>

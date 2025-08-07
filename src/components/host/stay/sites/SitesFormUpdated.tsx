@@ -17,6 +17,7 @@ import SitesBookingSettingsForm from "./formcomponents/SitesBookingSettingsForm"
 import SitesRefundPolicyForm from "./formcomponents/SitesRefundPolicyForm";
 import SiteArrivalSection from "./formcomponents/SiteArrivalSection";
 import SitesPreview from "./SitesPreview";
+import SitesPolicyForm from "./formcomponents/SitesPolicyForm";
 
 // Safe URL utility function
 const createSafeUrl = (
@@ -158,6 +159,7 @@ const SitesFormUpdated: React.FC<{ siteEdit?: string }> = ({ siteEdit }) => {
   const pricingRef = useRef<HTMLDivElement>(null);
   const bookingRef = useRef<HTMLDivElement>(null);
   const refundRef = useRef<HTMLDivElement>(null);
+  const policiesRef = useRef<HTMLDivElement>(null);
   const arrivalRef = useRef<HTMLDivElement>(null);
   const publishRef = useRef<HTMLDivElement>(null);
 
@@ -173,6 +175,9 @@ const SitesFormUpdated: React.FC<{ siteEdit?: string }> = ({ siteEdit }) => {
     new Set()
   );
   const [sitePreviewData, setSitePreviewData] = useState(null);
+  const [accommodationType, setAccommodationType] = useState<string | null>(
+    null
+  );
 
   const sections: Section[] = [
     {
@@ -216,6 +221,12 @@ const SitesFormUpdated: React.FC<{ siteEdit?: string }> = ({ siteEdit }) => {
       title: "Refund Policy",
       ref: refundRef,
       isCompleted: completedSections.has("refund"),
+    },
+    {
+      id: "policies",
+      title: "Policies",
+      ref: policiesRef,
+      isCompleted: completedSections.has("policies"),
     },
     {
       id: "arrival",
@@ -407,6 +418,7 @@ const SitesFormUpdated: React.FC<{ siteEdit?: string }> = ({ siteEdit }) => {
                   onSuccess={() => markSectionComplete("overview")}
                   siteData={siteData}
                   isEditMode={siteEdit === "true"}
+                  setAccommodationType={setAccommodationType}
                 />
               </div>
 
@@ -418,6 +430,7 @@ const SitesFormUpdated: React.FC<{ siteEdit?: string }> = ({ siteEdit }) => {
                   onSuccess={() => markSectionComplete("amenities")}
                   siteData={siteData}
                   isEditMode={siteEdit === "true"}
+                  accommodationType={accommodationType || null}
                 />
               </div>
 
@@ -440,6 +453,7 @@ const SitesFormUpdated: React.FC<{ siteEdit?: string }> = ({ siteEdit }) => {
                   onSuccess={() => markSectionComplete("capacity")}
                   siteData={siteData}
                   isEditMode={siteEdit === "true"}
+                  accommodationType={accommodationType || null}
                 />
               </div>
 
@@ -471,6 +485,17 @@ const SitesFormUpdated: React.FC<{ siteEdit?: string }> = ({ siteEdit }) => {
                   propertyId={propertyId || ""}
                   siteId={siteId || ""}
                   onSuccess={() => markSectionComplete("refund")}
+                  siteData={siteData}
+                  isEditMode={siteEdit === "true"}
+                />
+              </div>
+
+              {/* Policies Section */}
+              <div ref={policiesRef}>
+                <SitesPolicyForm
+                  propertyId={propertyId || ""}
+                  siteId={siteId || ""}
+                  onSuccess={() => markSectionComplete("policies")}
                   siteData={siteData}
                   isEditMode={siteEdit === "true"}
                 />

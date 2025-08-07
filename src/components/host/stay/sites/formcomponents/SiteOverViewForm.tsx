@@ -8,6 +8,8 @@ import GlobalTextInput from "@/components/global/GlobalTextInput";
 import { apiFormDataWrapper } from "@/lib/api";
 import { toast } from "react-hot-toast";
 import { useSearchParams, useRouter } from "next/navigation";
+import GlobalRadioGroup from "@/components/global/GlobalRadioGroup";
+import GlobalSelect from "@/components/global/GlobalSelect";
 
 // Accommodation type icons
 const AccommodationIcon = ({
@@ -215,11 +217,13 @@ export default function SiteOverViewForm({
   onSuccess,
   siteData,
   isEditMode,
+  setAccommodationType,
 }: {
   propertyId: string;
   onSuccess?: () => void;
   siteData?: any;
   isEditMode?: boolean;
+  setAccommodationType?: (type: string) => void;
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -237,6 +241,7 @@ export default function SiteOverViewForm({
       site_name: "",
       accommodation_type: "",
       site_description: "",
+      high_lights: [],
     },
   });
 
@@ -260,8 +265,14 @@ export default function SiteOverViewForm({
       formData.append("accommodation_type", data.accommodation_type);
       formData.append("site_description", data.site_description);
 
-      // Add highlights if provided
-      formData.append("high_lights[]", "stylish");
+      // Add highlights if provided (now as single value)
+      if (data.high_lights && data.high_lights.length > 0) {
+        data.high_lights.forEach((highlight, index) => {
+          formData.append(`high_lights[${index}]`, highlight);
+        });
+      } else {
+        formData.append("high_lights[0]", "peaceful");
+      }
 
       // Add site_id for edit mode
       if (isEditMode && siteData?.id) {
@@ -292,11 +303,14 @@ export default function SiteOverViewForm({
 
       // If the response contains a site ID, update the URL with it
       if (response.data?.id) {
+        setAccommodationType?.(response.data.accommodation_type);
         const currentParams = new URLSearchParams(searchParams.toString());
         currentParams.set("siteId", response.data.id.toString());
 
         // Update the URL without refreshing the page
-        router.replace(`?${currentParams.toString()}`);
+        router.replace(`?${currentParams.toString()}`, {
+          scroll: false,
+        });
       }
 
       // Mark section as completed
@@ -359,6 +373,102 @@ export default function SiteOverViewForm({
             {...register("site_description")}
             error={errors.site_description?.message}
           />
+          <div className="mt-4">
+            {(watch("accommodation_type") === "camping_glamping" ||
+              watch("accommodation_type") === "camp" ||
+              watch("accommodation_type") === "glamp") && (
+              <div>
+                <label
+                  htmlFor="high_lights"
+                  className="text-[14px] text-[#1C231F] leading-[14px] font-bold"
+                >
+                  Accommodation Type
+                </label>
+
+                <div className="flex items-center gap-2 mt-2">
+                  <div
+                    onClick={() => setValue("high_lights", ["camp"])}
+                    className={`py-2 px-6 text-[12px] text-[#1C231F] font-[600] border rounded-[5px] cursor-pointer ${
+                      watch("high_lights")?.includes("camp") ||
+                      watch("high_lights")?.includes("tent_available_onsite") ||
+                      watch("high_lights")?.includes("tent_available_on_site")
+                        ? "bg-[#237AFC] text-white border-[237AFC]"
+                        : "border-[#848484]"
+                    }`}
+                  >
+                    Camp
+                  </div>
+                  <div
+                    onClick={() => setValue("high_lights", ["glamp"])}
+                    className={`py-2 px-6 text-[12px] text-[#1C231F] font-[600] border rounded-[5px] cursor-pointer ${
+                      watch("high_lights")?.includes("glamp")
+                        ? "bg-[#237AFC] text-white border-[#237AFC]"
+                        : "border-[#848484]"
+                    }`}
+                  >
+                    Glamp
+                  </div>
+                </div>
+                {(watch("high_lights")?.includes("camp") ||
+                  watch("high_lights")?.includes("tent_available_onsite") ||
+                  watch("high_lights")?.includes("tent_available_on_site")) && (
+                  <div className="w-full md:w-[70%] lg:w-[50%] mt-2">
+                    <GlobalRadioGroup
+                      options={[
+                        {
+                          label: "Pitch your own tent",
+                          value: "tent_available_onsite",
+                        },
+                        {
+                          label: "Tent available on site",
+                          value: "tent_available_on_site",
+                        },
+                      ]}
+                      value={watch("high_lights")?.[0] || ""}
+                      onChange={(value) => setValue("high_lights", [value])}
+                      name="high_lights"
+                      error={errors.high_lights?.message}
+                    />
+                  </div>
+                )}
+              </div>
+            )}
+            {watch("accommodation_type") === "co_living_hostel" && (
+              <div>
+                <div className="flex items-center gap-2">
+                  <div
+                    onClick={() => setValue("high_lights", ["private_rooms"])}
+                    className={`py-2 px-6 text-[12px] text-[#1C231F] font-[600] border rounded-[5px] cursor-pointer ${
+                      watch("high_lights")?.includes("private_rooms")
+                        ? "bg-[#237AFC] text-white border-[237AFC]"
+                        : "border-[#848484]"
+                    }`}
+                  >
+                    Private Rooms
+                  </div>
+                  <div
+                    onClick={() => setValue("high_lights", ["dorm_beds"])}
+                    className={`py-2 px-6 text-[12px] text-[#1C231F] font-[600] border rounded-[5px] cursor-pointer ${
+                      watch("high_lights")?.includes("dorm_beds")
+                        ? "bg-[#237AFC] text-white border-[#237AFC]"
+                        : "border-[#848484]"
+                    }`}
+                  >
+                    Dorm Beds
+                  </div>
+                </div>
+                {watch("high_lights")?.includes("dorm_beds") && (
+                  <div className="w-full md:w-[70%] lg:w-[50%]">
+                    <GlobalSelect label={"Select"}>
+                      <option value="male">Male Community Dorm</option>
+                      <option value="female">Female Community Dorm</option>
+                      <option value="mixed">Bed Mixed Community Dorm</option>
+                    </GlobalSelect>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
 
           {/* Save Button */}
           <div className="mt-4 flex justify-end">

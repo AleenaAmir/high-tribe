@@ -120,9 +120,7 @@ export default function SitesPreview() {
         "https://res.cloudinary.com/dtfzklzek/image/upload/v1754434629/Rectangle_5120_dpnrc1.png",
       ];
     }
-    return siteData.media.map(
-      (item: any) => `https://api.hightribe.com/${item.file_path}`
-    );
+    return siteData.media.map((item: any) => `${item.file_path}`);
   };
 
   const images = getImages();
