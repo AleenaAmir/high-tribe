@@ -174,7 +174,7 @@ const SitesFormUpdated: React.FC<{ siteEdit?: string }> = ({ siteEdit }) => {
   const [completedSections, setCompletedSections] = React.useState<Set<string>>(
     new Set()
   );
-  const [sitePreviewData, setSitePreviewData] = useState(null);
+
   const [accommodationType, setAccommodationType] = useState<string | null>(
     null
   );
@@ -222,12 +222,7 @@ const SitesFormUpdated: React.FC<{ siteEdit?: string }> = ({ siteEdit }) => {
       ref: refundRef,
       isCompleted: completedSections.has("refund"),
     },
-    {
-      id: "policies",
-      title: "Policies",
-      ref: policiesRef,
-      isCompleted: completedSections.has("policies"),
-    },
+
     {
       id: "arrival",
       title: "Arrival Instructions",
@@ -280,8 +275,7 @@ const SitesFormUpdated: React.FC<{ siteEdit?: string }> = ({ siteEdit }) => {
 
       console.log("Form submitted successfully:", response);
       markSectionComplete("publish");
-      setSitePreviewData(response.data);
-      console.log("--------------data----------", sitePreviewData);
+
       // Set the search param 'sitepriview' to true
       if (typeof window !== "undefined") {
         safelyUpdateUrl("sitepriview", "true");
@@ -487,19 +481,22 @@ const SitesFormUpdated: React.FC<{ siteEdit?: string }> = ({ siteEdit }) => {
                   onSuccess={() => markSectionComplete("refund")}
                   siteData={siteData}
                   isEditMode={siteEdit === "true"}
+                  accommodationType={accommodationType || null}
                 />
               </div>
 
               {/* Policies Section */}
-              <div ref={policiesRef}>
-                <SitesPolicyForm
-                  propertyId={propertyId || ""}
-                  siteId={siteId || ""}
-                  onSuccess={() => markSectionComplete("policies")}
-                  siteData={siteData}
-                  isEditMode={siteEdit === "true"}
-                />
-              </div>
+              {accommodationType !== "lodging_room_cabin" && (
+                <div ref={policiesRef}>
+                  <SitesPolicyForm
+                    propertyId={propertyId || ""}
+                    siteId={siteId || ""}
+                    // onSuccess={() => markSectionComplete("policies")}
+                    siteData={siteData}
+                    isEditMode={siteEdit === "true"}
+                  />
+                </div>
+              )}
 
               {/* Arrival Instructions Section */}
               <div ref={arrivalRef}>

@@ -39,12 +39,14 @@ export default function SitesRefundPolicyForm({
   onSuccess,
   siteData,
   isEditMode,
+  accommodationType,
 }: {
   propertyId: string;
   siteId: string;
   onSuccess?: () => void;
   siteData?: any;
   isEditMode?: boolean;
+  accommodationType?: string | null;
 }) {
   const {
     register,
@@ -169,25 +171,29 @@ export default function SitesRefundPolicyForm({
               </p>
             )}
 
-            <label
-              htmlFor=""
-              className="text-[12px] md:text-[14px] text-black font-bold mb-2"
-            >
-              How far ahead can guests reserve your property?
-            </label>
-            <div className="w-full md:max-w-[70%] lg:max-w-[50%]">
-              <GlobalSelect
-                label={
-                  <span>
-                    Select*<span className="text-red-500">*</span>
-                  </span>
-                }
-              >
-                <option value="anytime">Anytime</option>
-                <option value="1_day_in_advance">1 day in advance</option>
-                <option value="2_days_in_advance">2 days in advance</option>
-              </GlobalSelect>
-            </div>
+            {accommodationType !== "lodging_room_cabin" && (
+              <div>
+                <label
+                  htmlFor=""
+                  className="text-[12px] md:text-[14px] text-black font-bold mb-2"
+                >
+                  How far ahead can guests reserve your property?
+                </label>
+                <div className="w-full md:max-w-[70%] lg:max-w-[50%]">
+                  <GlobalSelect
+                    label={
+                      <span>
+                        Select*<span className="text-red-500">*</span>
+                      </span>
+                    }
+                  >
+                    <option value="anytime">Anytime</option>
+                    <option value="1_day_in_advance">1 day in advance</option>
+                    <option value="2_days_in_advance">2 days in advance</option>
+                  </GlobalSelect>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Submit Button */}
