@@ -4,6 +4,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { apiFormDataWrapper } from "@/lib/api";
+import GlobalSelect from "@/components/global/GlobalSelect";
 
 // Zod validation schema
 const amenitiesSchema = z.object({
@@ -83,6 +84,7 @@ interface MultiSelectProps {
   customValues?: string[];
   onCustomAdd?: (value: string) => void;
   onCustomRemove?: (value: string) => void;
+  isOther?: boolean;
 }
 
 const MultiSelect: React.FC<MultiSelectProps> = ({
@@ -95,6 +97,7 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
   customValues = [],
   onCustomAdd,
   onCustomRemove,
+  isOther = false,
 }) => {
   const [otherInput, setOtherInput] = useState("");
 
@@ -167,17 +170,19 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
         ))}
 
         {/* 🔵 "+ Other" Button */}
-        <button
-          type="button"
-          onClick={() => handleToggle("Other")}
-          className={`px-5 py-2 rounded-full border cursor-pointer text-[13px] font-semibold transition-all ${
-            isOtherSelected
-              ? "bg-[#237AFC] border-[#237AFC] text-white"
-              : "bg-white text-[#131313] border-black"
-          }`}
-        >
-          + {otherInput || "Other"}
-        </button>
+        {isOther && (
+          <button
+            type="button"
+            onClick={() => handleToggle("Other")}
+            className={`px-5 py-2 rounded-full border cursor-pointer text-[13px] font-semibold transition-all ${
+              isOtherSelected
+                ? "bg-[#237AFC] border-[#237AFC] text-white"
+                : "bg-white text-[#131313] border-black"
+            }`}
+          >
+            + {otherInput || "Other"}
+          </button>
+        )}
       </div>
 
       {/* 🔧 Input Box for Adding Custom Pills */}
@@ -360,6 +365,7 @@ export default function SiteAmenitiesAndFacilities({
             options={amenitiesOptions}
             selected={watchedAmenities}
             onChange={(selected) => setValue("amenities", selected)}
+            isOther={true}
             error={errors.amenities?.message}
             required={true}
             customValues={customAmenities}
@@ -375,6 +381,7 @@ export default function SiteAmenitiesAndFacilities({
             options={facilitiesOptions}
             selected={watchedFacilities || []}
             onChange={(selected) => setValue("facilities", selected)}
+            isOther={true}
             error={errors.facilities?.message}
             required={true}
             customValues={customFacilities}
@@ -387,7 +394,9 @@ export default function SiteAmenitiesAndFacilities({
           />
 
           {(accommodationType === "camping_glamping" ||
-            accommodationType === "co_living_hostel") && (
+            accommodationType === "co_living_hostel" ||
+            accommodationType === "rv" ||
+            accommodationType === "in_kind_stay") && (
             <MultiSelect
               label="Bathroom options"
               options={bathroom_options}
@@ -460,7 +469,9 @@ export default function SiteAmenitiesAndFacilities({
           </div>
 
           {(accommodationType === "camping_glamping" ||
-            accommodationType === "co_living_hostel") && (
+            accommodationType === "co_living_hostel" ||
+            accommodationType === "rv" ||
+            accommodationType === "in_kind_stay") && (
             <div className="mb-6">
               <label className="text-[12px] md:text-[14px] text-[#1C231F] font-bold mb-3 block">
                 Do you accept bookings that include children?
@@ -494,6 +505,117 @@ export default function SiteAmenitiesAndFacilities({
                   {errors.accept_booking_with_children.message}
                 </p>
               )}
+            </div>
+          )}
+
+          {accommodationType === "rv" && (
+            <div>
+              <label className="text-[12px] md:text-[14px] text-[#1C231F] font-bold mb-3 block">
+                What hookups are provided at this site?
+              </label>
+              <div className="flex flex-wrap gap-3">
+                <div className="max-w-[220px] w-full">
+                  <GlobalSelect label="Sewage hookup">
+                    <option value="yes">Yes</option>
+                    <option value="no">No</option>
+                  </GlobalSelect>
+                </div>
+                <div className="max-w-[220px] w-full">
+                  <GlobalSelect label="Television hookup">
+                    <option value="yes">Yes</option>
+                    <option value="no">No</option>
+                  </GlobalSelect>
+                </div>
+                <div className="max-w-[220px] w-full">
+                  <GlobalSelect label="Generators allowed">
+                    <option value="yes">Yes</option>
+                    <option value="no">No</option>
+                  </GlobalSelect>
+                </div>
+                <div className="max-w-[220px] w-full">
+                  <GlobalSelect label="Electricity hookup">
+                    <option value="yes">Yes</option>
+                    <option value="no">No</option>
+                  </GlobalSelect>
+                </div>
+                <div className="max-w-[220px] w-full">
+                  <GlobalSelect label="Water hookup">
+                    <option value="yes">Yes</option>
+                    <option value="no">No</option>
+                  </GlobalSelect>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {accommodationType === "in_kind_stay" && (
+            <div className="mt-4 bg-[#FFFFFF] border-[#BBBBBB] border border-dashed p-4 md:p-8 rounded-[7px] flex flex-col">
+              <p className="text-[12px] md:text-[14px] font-bold mb-4 text-[#1C231F]">
+                Sleeping Option
+              </p>
+              <div className="flex flex-wrap gap-3 md:gap-6 items-center">
+                <MultiSelect
+                  label="Offer a Bed"
+                  options={["Private Room", "Shared Room"]}
+                  selected={[]}
+                  onChange={() => {}}
+                  // required={true}
+                  customValues={[]}
+                  onCustomAdd={() => {}}
+                  onCustomRemove={() => {}}
+                />
+                <MultiSelect
+                  label="Offer a Couch"
+                  options={["Couch in the Living Room", "Sofa Cum Bed"]}
+                  selected={[]}
+                  onChange={() => {}}
+                  // required={true}
+                  customValues={[]}
+                  onCustomAdd={() => {}}
+                  onCustomRemove={() => {}}
+                />
+              </div>
+              <MultiSelect
+                label="Offer a Clean Floor"
+                options={[
+                  "Floor Space / Bring Your Gear",
+                  "Air Mattress / Extra Mattress",
+                  "Garage or Basement Room",
+                ]}
+                selected={[]}
+                onChange={() => {}}
+                // required={true}
+                customValues={[]}
+                onCustomAdd={() => {}}
+                onCustomRemove={() => {}}
+              />
+              <MultiSelect
+                label="Offer a Space Under Sky"
+                options={[
+                  "Tent Space / Backyard Stay",
+                  "Rooftop or Balcony Sleeping Spot",
+                  "Farm Stay or Rural Home",
+                ]}
+                selected={[]}
+                onChange={() => {}}
+                // required={true}
+                customValues={[]}
+                onCustomAdd={() => {}}
+                onCustomRemove={() => {}}
+              />
+              <MultiSelect
+                label="Offer an RV"
+                options={[
+                  "Parked van, camper, or converted vehicle",
+                  "Boat or Houseboat Stay",
+                ]}
+                selected={[]}
+                onChange={() => {}}
+                // required={true}
+                customValues={[]}
+                onCustomAdd={() => {}}
+                onCustomRemove={() => {}}
+              />
             </div>
           )}
 

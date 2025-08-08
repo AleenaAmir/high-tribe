@@ -210,6 +210,7 @@ const accommodationOptions = [
     icon: "cabin",
   },
   { value: "co_living_hostel", label: "Co-living/Hostel", icon: "castle" },
+  { value: "in_kind_stay", label: "In-Kind Stay", icon: "castle" },
 ];
 
 export default function SiteOverViewForm({
@@ -366,9 +367,15 @@ export default function SiteOverViewForm({
 
           <GlobalTextArea
             label={
-              <span className="text-[12px]  text-[#000000] leading-[16px] font-[500]">
-                Site Description<span className="text-red-500">*</span>
-              </span>
+              watch("accommodation_type") === "rv" ? (
+                <span className="text-[12px]  text-[#000000] leading-[16px] font-[500]">
+                  Describe the RV site<span className="text-red-500">*</span>
+                </span>
+              ) : (
+                <span className="text-[12px]  text-[#000000] leading-[16px] font-[500]">
+                  Site Description<span className="text-red-500">*</span>
+                </span>
+              )
             }
             {...register("site_description")}
             error={errors.site_description?.message}
@@ -466,6 +473,41 @@ export default function SiteOverViewForm({
                     </GlobalSelect>
                   </div>
                 )}
+              </div>
+            )}
+            {watch("accommodation_type") === "rv" && (
+              <div>
+                <label
+                  htmlFor="high_lights"
+                  className="text-[14px] text-[#1C231F] leading-[14px] font-bold"
+                >
+                  Do guests get a designated spot, or can they pick where to
+                  stay?
+                </label>
+                <div className="flex items-center gap-2 mt-3">
+                  <div
+                    onClick={() =>
+                      setValue("high_lights", ["non_designated_spot"])
+                    }
+                    className={`py-2 px-6 text-[12px] text-[#1C231F] font-[600] border rounded-[5px] cursor-pointer ${
+                      watch("high_lights")?.includes("non_designated_spot")
+                        ? "bg-[#237AFC] text-white border-[237AFC]"
+                        : "border-[#848484]"
+                    }`}
+                  >
+                    Non-Designated Spot
+                  </div>
+                  <div
+                    onClick={() => setValue("high_lights", ["designated_spot"])}
+                    className={`py-2 px-6 text-[12px] text-[#1C231F] font-[600] border rounded-[5px] cursor-pointer ${
+                      watch("high_lights")?.includes("designated_spot")
+                        ? "bg-[#237AFC] text-white border-[#237AFC]"
+                        : "border-[#848484]"
+                    }`}
+                  >
+                    Designated Spot
+                  </div>
+                </div>
               </div>
             )}
           </div>

@@ -217,7 +217,7 @@
 //   );
 // }
 "use client";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -227,6 +227,7 @@ import { apiFormDataWrapper } from "@/lib/api";
 import { toast } from "react-hot-toast";
 import GlobalInputStepper from "@/components/global/GlobalInputStepper";
 import GlobalSelect from "@/components/global/GlobalSelect";
+import GlobalRadioGroup from "@/components/global/GlobalRadioGroup";
 
 // Zod validation schema
 const siteCapacitySchema = z.object({
@@ -324,6 +325,8 @@ export default function SiteCapacityForm({
     const isValid = await handleSubmit(onSubmit)();
     return isValid;
   };
+
+  const [areaSizeType, setAreaSizeType] = useState<"Meters" | "Feets">("Feets");
 
   const getCapacityForm = () => {
     switch (accommodationType) {
@@ -507,6 +510,247 @@ export default function SiteCapacityForm({
             </div>
           </>
         );
+      case "rv":
+        return (
+          <div>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 p-2 md:p-4 border-b border-black">
+              <div>
+                <div>
+                  <label
+                    htmlFor=""
+                    className="text-[12px] md:text-[14px] text-[#1C231F] font-medium"
+                  >
+                    Does this site have level ground?
+                  </label>
+                  <GlobalRadioGroup
+                    options={[
+                      { label: "Yes", value: "yes" },
+                      { label: "No", value: "no" },
+                      {
+                        label: "RV requires levelling",
+                        value: "rv_requires_levelling",
+                      },
+                    ]}
+                    value={"yes"}
+                    onChange={() => {}}
+                    name="level_ground"
+                  />
+                </div>
+                <div className="mt-4">
+                  <label
+                    htmlFor=""
+                    className="text-[12px] md:text-[14px] text-[#1C231F] font-medium"
+                  >
+                    How do guests access this site?
+                  </label>
+                  <GlobalRadioGroup
+                    options={[
+                      { label: "Pull in", value: "pull_in" },
+                      { label: "Pull through", value: "pull_through" },
+                      {
+                        label: "Back in",
+                        value: "back_in",
+                      },
+                    ]}
+                    value={"back_in"}
+                    onChange={() => {}}
+                    name="level_ground"
+                  />
+                </div>
+                <div className="mt-4">
+                  <label
+                    htmlFor=""
+                    className="text-[12px] md:text-[14px] text-[#1C231F] font-medium"
+                  >
+                    Can this site accommodate RV Slidesouts?
+                  </label>
+                  <GlobalRadioGroup
+                    options={[
+                      { label: "Yes", value: "yes" },
+                      { label: "No", value: "no" },
+                    ]}
+                    value={""}
+                    onChange={() => {}}
+                    name="level_ground"
+                  />
+                </div>
+              </div>
+              <div>
+                <div>
+                  <label
+                    htmlFor=""
+                    className="text-[12px] md:text-[14px] text-[#1C231F] font-medium"
+                  >
+                    What type of ground surface is at this site?
+                  </label>
+                  <div className="flex flex-col gap-2">
+                    {[
+                      { label: "Concrete", value: "concrete" },
+                      { label: "Loose gravel", value: "loose_gravel" },
+                      { label: "Grass", value: "grass" },
+                      { label: "Dirt", value: "dirt" },
+                    ].map((item, i) => (
+                      <label
+                        className={`flex items-center gap-2 cursor-pointer text-[12px] md:text-[14px]`}
+                      >
+                        <input
+                          type="radio"
+                          className="accent-blue-600 w-4 h-4"
+                        />
+                        {item.label}
+                      </label>
+                    ))}
+                    <div className="flex items-center gap-2">
+                      <label
+                        className={`flex items-center gap-2 cursor-pointer text-[12px] md:text-[14px]`}
+                      >
+                        <input
+                          type="radio"
+                          className="accent-blue-600 w-4 h-4"
+                        />
+                        Other
+                      </label>
+                      <input
+                        type="text"
+                        className="border border-[#ADADAD6E] rounded outline-0 px-2"
+                      />
+                    </div>
+                  </div>
+                </div>
+                <div className="mt-4">
+                  <label
+                    htmlFor=""
+                    className="text-[12px] md:text-[14px] text-[#1C231F] font-medium"
+                  >
+                    What RV type does this site accommodate?
+                  </label>
+                  <div className="flex items-center gap-4 flex-wrap mt-2">
+                    {[
+                      { label: "Travel trailer", value: "travel_trailer" },
+                      { label: "Fifth wheel", value: "fifth_wheel" },
+                      { label: "Toy hauler", value: "toy_hauler" },
+                      { label: "Pop-up camper", value: "pop_up_camper" },
+                      { label: "Class A", value: "class_a" },
+                      { label: "Class B", value: "class_b" },
+                      { label: "Class C", value: "class_c" },
+                      { label: "Campervan", value: "campervan" },
+                      { label: "Car", value: "car" },
+                    ].map((item, i) => (
+                      <label
+                        className={`flex items-center gap-2 cursor-pointer text-[12px] md:text-[14px]`}
+                      >
+                        <input
+                          type="checkbox"
+                          className="accent-blue-600 w-4 h-4"
+                        />
+                        {item.label}
+                      </label>
+                    ))}
+                    <div className="flex items-center gap-2">
+                      <label
+                        className={`flex items-center gap-2 cursor-pointer text-[12px] md:text-[14px]`}
+                      >
+                        <input
+                          type="checkbox"
+                          className="accent-blue-600 w-4 h-4"
+                        />
+                        Other
+                      </label>
+                      <input
+                        type="text"
+                        className="border border-[#ADADAD6E] rounded outline-0 px-2"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 md:gap-6 p-2 md:p-4 ">
+              <div>
+                <label
+                  htmlFor=""
+                  className="text-[12px] md:text-[14px] text-[#1C231F] font-medium"
+                >
+                  What is the maximum RV length this site can accommodate?
+                </label>
+                <GlobalTextInput
+                  label="RV length"
+                  type="number"
+                  className="-mt-2"
+                />
+              </div>
+              <div>
+                <label
+                  htmlFor=""
+                  className="text-[12px] md:text-[14px] text-[#1C231F] font-medium"
+                >
+                  What is the maximum RV width this site can accommodate?
+                </label>
+                <GlobalTextInput
+                  label="RV Width"
+                  type="number"
+                  className="-mt-2"
+                />
+              </div>
+              <div>
+                <label
+                  htmlFor=""
+                  className="text-[12px] md:text-[14px] text-[#1C231F] font-medium"
+                >
+                  What are the Turning Radius / Clearance Warnings of this site?
+                </label>
+                <GlobalTextInput
+                  label="Turning Radius / Clearance Warnings"
+                  type="number"
+                  className="-mt-2"
+                />
+              </div>
+            </div>
+          </div>
+        );
+      case "in_kind_stay":
+        return (
+          <div>
+            <label className="text-[12px] md:text-[14px] text-[#1C231F] font-bold mb-3 block">
+              Area Size
+            </label>
+            <div className="">
+              <div className="flex items-center gap-2">
+                <div
+                  onClick={() => setAreaSizeType("Meters")}
+                  className={`py-2 px-6 text-[12px] text-[#1C231F] font-[600] border rounded-[5px] cursor-pointer ${
+                    areaSizeType === "Meters"
+                      ? "bg-[#237AFC] text-white border-[237AFC]"
+                      : "border-[#848484]"
+                  }`}
+                >
+                  Meters
+                </div>
+                <div
+                  onClick={() => setAreaSizeType("Feets")}
+                  className={`py-2 px-6 text-[12px] text-[#1C231F] font-[600] border rounded-[5px] cursor-pointer ${
+                    areaSizeType === "Feets"
+                      ? "bg-[#237AFC] text-white border-[#237AFC]"
+                      : "border-[#848484]"
+                  }`}
+                >
+                  Feets
+                </div>
+              </div>
+              <div className="mt-2 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+                <GlobalTextInput label={areaSizeType} type="number" />
+                <GlobalTextInput label="Enter length" type="number" />
+                <GlobalTextInput label="Enter width" type="number" />
+              </div>
+            </div>
+            <div className="mt-4">
+              <label className="text-[12px] md:text-[14px] text-[#1C231F] font-bold  block">
+                Tell us about guest favourites?
+              </label>
+              <GlobalTextArea label="Lodging Room/Cabin" className="" />
+            </div>
+          </div>
+        );
       default:
         return (
           <>
@@ -554,9 +798,9 @@ export default function SiteCapacityForm({
       </h4>
       <div className="mt-4">
         <div className="border border-[#E1E1E1] bg-white p-2 md:p-4 rounded-[7px]">
-          <p className="text-[12px] md:text-[14px] text-[#1C231F] font-bold">
+          {/* <p className="text-[12px] md:text-[14px] text-[#1C231F] font-bold">
             What is the capacity and details of this site?
-          </p>
+          </p> */}
 
           {getCapacityForm()}
 
