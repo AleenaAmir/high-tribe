@@ -17,6 +17,8 @@ const refundPolicySchema = z
     refundDays: z
       .number({ invalid_type_error: "Please enter number of days" })
       .optional(),
+    // Only used when accommodationType !== "lodging_room_cabin"
+    advanceReservationPeriod: z.string().regex(/^\d+$/).optional(),
   })
   .refine(
     (data) => {
@@ -60,6 +62,7 @@ export default function SitesRefundPolicyForm({
     defaultValues: {
       refundType: "refundable",
       refundDays: 0,
+      advanceReservationPeriod: "0",
     },
   });
 
@@ -69,6 +72,9 @@ export default function SitesRefundPolicyForm({
       reset({
         refundType: siteData.refund_policy.type || "refundable",
         refundDays: siteData.refund_policy.refundable_until_days || 1,
+        advanceReservationPeriod:
+          (siteData.refund_policy.advance_reservation_period?.toString?.() as string) ||
+          "0",
       });
     }
   }, [siteData, isEditMode, reset]);
@@ -89,6 +95,16 @@ export default function SitesRefundPolicyForm({
       formData.append("type", data.refundType);
       if (data.refundDays) {
         formData.append("refundable_until_days", data.refundDays.toString());
+      }
+      // Add advance reservation period for non lodging_room_cabin
+      if (
+        accommodationType !== "lodging_room_cabin" &&
+        data.advanceReservationPeriod
+      ) {
+        formData.append(
+          "advance_reservation_period",
+          data.advanceReservationPeriod
+        );
       }
 
       // You can replace this endpoint with your actual API endpoint
@@ -116,7 +132,7 @@ export default function SitesRefundPolicyForm({
       <h4 className="text-[14px] md:text-[16px] text-[#1C231F] font-semibold">
         Refund Policy
       </h4>
-      <form onSubmit={handleSubmit(onSubmit)} className="mt-4">
+      <div className="mt-4">
         <div className="border border-[#E1E1E1] bg-white p-2 md:p-4 rounded-[7px]">
           <p className="text-[16px] md:text-[20px] text-[#1C231F] font-bold mb-2">
             Set your refund policy
@@ -186,10 +202,11 @@ export default function SitesRefundPolicyForm({
                         Select*<span className="text-red-500">*</span>
                       </span>
                     }
+                    {...register("advanceReservationPeriod")}
                   >
-                    <option value="anytime">Anytime</option>
-                    <option value="1_day_in_advance">1 day in advance</option>
-                    <option value="2_days_in_advance">2 days in advance</option>
+                    <option value="0">Anytime</option>
+                    <option value="1">1 day in advance</option>
+                    <option value="2">2 days in advance</option>
                   </GlobalSelect>
                 </div>
               </div>
@@ -199,7 +216,7 @@ export default function SitesRefundPolicyForm({
           {/* Submit Button */}
           <div className="flex justify-end">
             <button
-              type="submit"
+              type="button"
               disabled={isSubmitting}
               onClick={() => {
                 handleSubmit(onSubmit)();
@@ -210,7 +227,7 @@ export default function SitesRefundPolicyForm({
             </button>
           </div>
         </div>
-      </form>
+      </div>
     </div>
   );
 }

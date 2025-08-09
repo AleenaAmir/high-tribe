@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -171,12 +171,65 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
 };
 
 // Zod validation schema
-const siteOverviewSchema = z.object({
-  site_name: z.string().min(1, "Site name is required"),
-  accommodation_type: z.string().min(1, "Accommodation type is required"),
-  site_description: z.string().min(1, "Site description is required"),
-  high_lights: z.array(z.string()).optional(),
-});
+const siteOverviewSchema = z
+  .object({
+    site_name: z.string().min(1, "Site name is required"),
+    accommodation_type: z.string().min(1, "Accommodation type is required"),
+    site_description: z.string().min(1, "Site description is required"),
+    high_lights: z.array(z.string()).optional(),
+    // New API fields (conditionally required by accommodation type)
+    camping_glamping_type: z.string().optional(),
+    camping_option: z.string().optional(),
+    campsite_type: z.string().optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.accommodation_type === "camping_glamping") {
+      if (!data.camping_glamping_type) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Select camp or glamp",
+          path: ["camping_glamping_type"],
+        });
+      }
+      if (
+        (data.camping_glamping_type === "camp" ||
+          data.camping_glamping_type === "glamp") &&
+        !data.camping_option
+      ) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Select a camping option",
+          path: ["camping_option"],
+        });
+      }
+    }
+
+    if (data.accommodation_type === "rv") {
+      if (!data.campsite_type) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Select campsite type",
+          path: ["campsite_type"],
+        });
+      }
+    }
+
+    if (data.accommodation_type === "co_living_hostel") {
+      const highlights = Array.isArray(data.high_lights)
+        ? data.high_lights
+        : [];
+      const hasSelection =
+        highlights.includes("private_rooms") ||
+        highlights.includes("dorm_beds");
+      if (!hasSelection) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Select Private Rooms or Dorm Beds",
+          path: ["high_lights"],
+        });
+      }
+    }
+  });
 
 type SiteOverviewFormData = z.infer<typeof siteOverviewSchema>;
 
@@ -196,7 +249,7 @@ type SiteOverviewFormData = z.infer<typeof siteOverviewSchema>;
 //   { value: "camper/rv", label: "Camper/RV", icon: "camper/rv" },
 //   { value: "castle", label: "Castle", icon: "castle" },
 // ];
-const accommodationOptions = [
+const defaultAccommodationOptions = [
   { value: "camping_glamping", label: "Camping/Glamping", icon: "house" },
   {
     value: "lodging_room_cabin",
@@ -210,7 +263,7 @@ const accommodationOptions = [
     icon: "cabin",
   },
   { value: "co_living_hostel", label: "Co-living/Hostel", icon: "castle" },
-  { value: "in_kind_stay", label: "In-Kind Stay", icon: "castle" },
+  { value: "king_stay", label: "In-Kind Stay", icon: "castle" },
 ];
 
 export default function SiteOverViewForm({
@@ -219,30 +272,81 @@ export default function SiteOverViewForm({
   siteData,
   isEditMode,
   setAccommodationType,
+  enums,
 }: {
   propertyId: string;
   onSuccess?: () => void;
   siteData?: any;
   isEditMode?: boolean;
   setAccommodationType?: (type: string) => void;
+  enums?: any;
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
+  // Build select options from enums when provided
+  const accommodationOptions = useMemo(() => {
+    if (!enums?.accommodation_types) return defaultAccommodationOptions;
+
+    const pickIcon = (value: string): string => {
+      if (value.includes("rv")) return "boat";
+      if (value.includes("hostel") || value.includes("co_living"))
+        return "castle";
+      if (
+        value.includes("lodging") ||
+        value.includes("room") ||
+        value.includes("cabin")
+      )
+        return "apartment";
+      if (
+        value.includes("non_traditional") ||
+        value.includes("couch") ||
+        value.includes("air_mattress")
+      )
+        return "cabin";
+      return "house";
+    };
+
+    const toLabel = (value: string): string =>
+      value
+        .split("_")
+        .map((w) => (w.length ? w[0].toUpperCase() + w.slice(1) : w))
+        .join(" ")
+        .replace("Rv", "RV");
+
+    return (enums.accommodation_types as string[]).map((value) => ({
+      value,
+      label: toLabel(value),
+      icon: pickIcon(value),
+    }));
+  }, [enums]);
+
+  const toLabel = (value: string): string =>
+    value
+      .split("_")
+      .map((w) => (w.length ? w[0].toUpperCase() + w.slice(1) : w))
+      .join(" ")
+      .replace("Rv", "RV");
+
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting },
+    formState: { errors, isSubmitting, isValid },
     watch,
     setValue,
     reset,
   } = useForm<SiteOverviewFormData>({
     resolver: zodResolver(siteOverviewSchema),
+    mode: "onChange",
+    reValidateMode: "onChange",
     defaultValues: {
       site_name: "",
       accommodation_type: "",
       site_description: "",
       high_lights: [],
+      camping_glamping_type: "",
+      camping_option: "",
+      campsite_type: "",
     },
   });
 
@@ -258,6 +362,24 @@ export default function SiteOverViewForm({
   }, [siteData, isEditMode, reset]);
 
   const selectedAccommodationType = watch("accommodation_type");
+  const selectedCampingGlampingType = watch("camping_glamping_type");
+  const selectedCampingOption = watch("camping_option");
+  const selectedCampsiteType = watch("campsite_type");
+
+  // Clear irrelevant fields so we do not submit stale data when type changes
+  useEffect(() => {
+    setValue("camping_glamping_type", "");
+    setValue("camping_option", "");
+    setValue("campsite_type", "");
+    setValue("high_lights", []);
+  }, [selectedAccommodationType, setValue]);
+
+  useEffect(() => {
+    if (selectedCampingGlampingType !== "camp") {
+      setValue("camping_option", "");
+      setValue("campsite_type", "");
+    }
+  }, [selectedCampingGlampingType, setValue]);
 
   const onSubmit = async (data: SiteOverviewFormData) => {
     try {
@@ -272,7 +394,26 @@ export default function SiteOverViewForm({
           formData.append(`high_lights[${index}]`, highlight);
         });
       } else {
-        formData.append("high_lights[0]", "peaceful");
+        // formData.append("high_lights[0]", "unique");
+      }
+
+      // Conditional fields by accommodation type
+      if (data.accommodation_type === "camping_glamping") {
+        if (data.camping_glamping_type) {
+          formData.append("camping_glamping_type", data.camping_glamping_type);
+        }
+        if (data.camping_option) {
+          formData.append("camping_option", data.camping_option);
+        }
+        // if (data.camping_glamping_type === "camp" && data.camping_option) {
+        // }
+        if (data.campsite_type) {
+          formData.append("campsite_type", data.campsite_type);
+        }
+      }
+
+      if (data.accommodation_type === "rv" && data.campsite_type) {
+        formData.append("campsite_type", data.campsite_type);
       }
 
       // Add site_id for edit mode
@@ -381,12 +522,10 @@ export default function SiteOverViewForm({
             error={errors.site_description?.message}
           />
           <div className="mt-4">
-            {(watch("accommodation_type") === "camping_glamping" ||
-              watch("accommodation_type") === "camp" ||
-              watch("accommodation_type") === "glamp") && (
+            {watch("accommodation_type") === "camping_glamping" && (
               <div>
                 <label
-                  htmlFor="high_lights"
+                  htmlFor="camping_glamping_type"
                   className="text-[14px] text-[#1C231F] leading-[14px] font-bold"
                 >
                   Accommodation Type
@@ -394,11 +533,12 @@ export default function SiteOverViewForm({
 
                 <div className="flex items-center gap-2 mt-2">
                   <div
-                    onClick={() => setValue("high_lights", ["camp"])}
+                    onClick={() => {
+                      setValue("camping_glamping_type", "camp");
+                      setValue("camping_option", "");
+                    }}
                     className={`py-2 px-6 text-[12px] text-[#1C231F] font-[600] border rounded-[5px] cursor-pointer ${
-                      watch("high_lights")?.includes("camp") ||
-                      watch("high_lights")?.includes("tent_available_onsite") ||
-                      watch("high_lights")?.includes("tent_available_on_site")
+                      selectedCampingGlampingType === "camp"
                         ? "bg-[#237AFC] text-white border-[237AFC]"
                         : "border-[#848484]"
                     }`}
@@ -406,9 +546,13 @@ export default function SiteOverViewForm({
                     Camp
                   </div>
                   <div
-                    onClick={() => setValue("high_lights", ["glamp"])}
+                    onClick={() => {
+                      setValue("camping_glamping_type", "glamp");
+                      setValue("camping_option", "");
+                      setValue("campsite_type", "");
+                    }}
                     className={`py-2 px-6 text-[12px] text-[#1C231F] font-[600] border rounded-[5px] cursor-pointer ${
-                      watch("high_lights")?.includes("glamp")
+                      selectedCampingGlampingType === "glamp"
                         ? "bg-[#237AFC] text-white border-[#237AFC]"
                         : "border-[#848484]"
                     }`}
@@ -416,28 +560,30 @@ export default function SiteOverViewForm({
                     Glamp
                   </div>
                 </div>
-                {(watch("high_lights")?.includes("camp") ||
-                  watch("high_lights")?.includes("tent_available_onsite") ||
-                  watch("high_lights")?.includes("tent_available_on_site")) && (
-                  <div className="w-full md:w-[70%] lg:w-[50%] mt-2">
-                    <GlobalRadioGroup
-                      options={[
-                        {
-                          label: "Pitch your own tent",
-                          value: "tent_available_onsite",
-                        },
-                        {
-                          label: "Tent available on site",
-                          value: "tent_available_on_site",
-                        },
-                      ]}
-                      value={watch("high_lights")?.[0] || ""}
-                      onChange={(value) => setValue("high_lights", [value])}
-                      name="high_lights"
-                      error={errors.high_lights?.message}
-                    />
-                  </div>
+                {errors.camping_glamping_type?.message && (
+                  <span className="text-xs text-red-500 mt-1 inline-block">
+                    {errors.camping_glamping_type.message}
+                  </span>
                 )}
+                {/* {selectedCampingGlampingType === "camp" && ( */}
+                <div className="w-full md:w-[70%] lg:w-[50%] mt-2">
+                  <GlobalRadioGroup
+                    options={(
+                      enums?.camping_options || [
+                        "pitch_own_tent",
+                        "tent_available_on_site",
+                      ]
+                    ).map((value: string) => ({
+                      value,
+                      label: toLabel(value),
+                    }))}
+                    value={selectedCampingOption || ""}
+                    onChange={(value) => setValue("camping_option", value)}
+                    name="camping_option"
+                    error={errors.camping_option?.message}
+                  />
+                </div>
+                {/* )} */}
               </div>
             )}
             {watch("accommodation_type") === "co_living_hostel" && (
@@ -464,6 +610,11 @@ export default function SiteOverViewForm({
                     Dorm Beds
                   </div>
                 </div>
+                {errors.high_lights?.message && (
+                  <span className="text-xs text-red-500 mt-1 inline-block">
+                    {String(errors.high_lights.message)}
+                  </span>
+                )}
                 {watch("high_lights")?.includes("dorm_beds") && (
                   <div className="w-full md:w-[70%] lg:w-[50%]">
                     <GlobalSelect label={"Select"}>
@@ -478,36 +629,38 @@ export default function SiteOverViewForm({
             {watch("accommodation_type") === "rv" && (
               <div>
                 <label
-                  htmlFor="high_lights"
+                  htmlFor="campsite_type"
                   className="text-[14px] text-[#1C231F] leading-[14px] font-bold"
                 >
                   Do guests get a designated spot, or can they pick where to
                   stay?
                 </label>
                 <div className="flex items-center gap-2 mt-3">
-                  <div
-                    onClick={() =>
-                      setValue("high_lights", ["non_designated_spot"])
-                    }
-                    className={`py-2 px-6 text-[12px] text-[#1C231F] font-[600] border rounded-[5px] cursor-pointer ${
-                      watch("high_lights")?.includes("non_designated_spot")
-                        ? "bg-[#237AFC] text-white border-[237AFC]"
-                        : "border-[#848484]"
-                    }`}
-                  >
-                    Non-Designated Spot
-                  </div>
-                  <div
-                    onClick={() => setValue("high_lights", ["designated_spot"])}
-                    className={`py-2 px-6 text-[12px] text-[#1C231F] font-[600] border rounded-[5px] cursor-pointer ${
-                      watch("high_lights")?.includes("designated_spot")
-                        ? "bg-[#237AFC] text-white border-[#237AFC]"
-                        : "border-[#848484]"
-                    }`}
-                  >
-                    Designated Spot
-                  </div>
+                  {(enums?.campsite_types || ["undefined", "defined"]).map(
+                    (value: string) => (
+                      <div
+                        key={value}
+                        onClick={() => setValue("campsite_type", value)}
+                        className={`py-2 px-6 text-[12px] text-[#1C231F] font-[600] border rounded-[5px] cursor-pointer ${
+                          selectedCampsiteType === value
+                            ? "bg-[#237AFC] text-white border-[#237AFC]"
+                            : "border-[#848484]"
+                        }`}
+                      >
+                        {value === "undefined"
+                          ? "Non-Designated Spot"
+                          : value === "defined"
+                          ? "Designated Spot"
+                          : toLabel(value)}
+                      </div>
+                    )
+                  )}
                 </div>
+                {errors.campsite_type?.message && (
+                  <span className="text-xs text-red-500 mt-1 inline-block">
+                    {errors.campsite_type.message}
+                  </span>
+                )}
               </div>
             )}
           </div>
@@ -517,8 +670,20 @@ export default function SiteOverViewForm({
             <button
               type="button"
               onClick={handleSaveClick}
-              disabled={isSubmitting}
-              className="bg-[#237AFC] w-[158px] mt-2 h-[35px] font-[500] text-[14px] text-white px-4 md:px-10 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              disabled={
+                isSubmitting ||
+                !watch("site_name") ||
+                !watch("accommodation_type") ||
+                !watch("site_description")
+              }
+              className={`w-[158px] mt-2 h-[35px] font-[500] text-[14px] text-white px-4 md:px-10 py-2 rounded-lg transition-colors ${
+                !watch("site_name") ||
+                !watch("accommodation_type") ||
+                !watch("site_description") ||
+                isSubmitting
+                  ? "bg-[#BABBBC] cursor-not-allowed"
+                  : "bg-[#237AFC] hover:bg-blue-700"
+              }`}
             >
               {isSubmitting ? "Saving..." : isEditMode ? "Update" : "Save"}
             </button>

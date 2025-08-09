@@ -106,12 +106,21 @@ const SitesFormUpdated: React.FC<{ siteEdit?: string }> = ({ siteEdit }) => {
   const siteId = searchParams ? searchParams.get("siteId") : null;
   const sitePreview = searchParams ? searchParams.get("sitepriview") : "false";
 
+  const [enums, setEnums] = useState<any>(null);
+
   // Add state for site data and loading
   const [siteData, setSiteData] = useState<any>(null);
   const [loading, setLoading] = useState(false);
 
   // Fetch site data when siteEdit is true
   useEffect(() => {
+    const fetchEnums = async () => {
+      const data = await apiRequest<any>(`properties/sites/enums`, {
+        method: "GET",
+      });
+      setEnums(data);
+    };
+    fetchEnums();
     const fetchSiteData = async () => {
       if (siteEdit === "true" && propertyId && siteId) {
         try {
@@ -413,6 +422,7 @@ const SitesFormUpdated: React.FC<{ siteEdit?: string }> = ({ siteEdit }) => {
                   siteData={siteData}
                   isEditMode={siteEdit === "true"}
                   setAccommodationType={setAccommodationType}
+                  enums={enums}
                 />
               </div>
 
@@ -425,6 +435,7 @@ const SitesFormUpdated: React.FC<{ siteEdit?: string }> = ({ siteEdit }) => {
                   siteData={siteData}
                   isEditMode={siteEdit === "true"}
                   accommodationType={accommodationType || null}
+                  enums={enums}
                 />
               </div>
 
@@ -448,6 +459,7 @@ const SitesFormUpdated: React.FC<{ siteEdit?: string }> = ({ siteEdit }) => {
                   siteData={siteData}
                   isEditMode={siteEdit === "true"}
                   accommodationType={accommodationType || null}
+                  // enums={enums}
                 />
               </div>
 

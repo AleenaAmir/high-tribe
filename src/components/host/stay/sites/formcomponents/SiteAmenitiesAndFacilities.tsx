@@ -13,7 +13,8 @@ const amenitiesSchema = z.object({
   safety_items: z
     .array(z.string())
     .min(1, "Please select at least one safety item"),
-  pet_policy: z.enum(["yes_on_leash", "no"], {
+  // Allow all pet policy enums per backend: yes_on_leash, yes_without_leash, yes, no
+  pet_policy: z.enum(["yes_on_leash", "yes_without_leash", "yes", "no"], {
     required_error: "Please select a pet policy",
   }),
   amenitiesOther: z.string().optional(),
@@ -24,6 +25,12 @@ const amenitiesSchema = z.object({
       required_error: "Please select a children policy",
     })
     .optional(),
+  // RV hookup fields (optional)
+  sewage_hookup: z.enum(["yes", "no"]).optional(),
+  television_hookup: z.enum(["yes", "no"]).optional(),
+  generators_allowed: z.enum(["yes", "no"]).optional(),
+  electricity_hookup: z.enum(["yes", "no"]).optional(),
+  water_hookup: z.enum(["yes", "no"]).optional(),
 });
 
 type AmenitiesFormData = z.infer<typeof amenitiesSchema>;
@@ -85,6 +92,8 @@ interface MultiSelectProps {
   onCustomAdd?: (value: string) => void;
   onCustomRemove?: (value: string) => void;
   isOther?: boolean;
+  // Optional formatter to render pretty labels while keeping enum values intact
+  formatLabel?: (value: string) => string;
 }
 
 const MultiSelect: React.FC<MultiSelectProps> = ({
@@ -98,6 +107,7 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
   onCustomAdd,
   onCustomRemove,
   isOther = false,
+  formatLabel,
 }) => {
   const [otherInput, setOtherInput] = useState("");
 
@@ -149,7 +159,7 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
               }
             }}
           >
-            {item}
+            {formatLabel ? formatLabel(item) : item}
           </div>
         ))}
 
@@ -165,7 +175,7 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
                 : "bg-white text-[#131313] border-black"
             }`}
           >
-            {option}
+            {formatLabel ? formatLabel(option) : option}
           </button>
         ))}
 
@@ -212,6 +222,7 @@ export default function SiteAmenitiesAndFacilities({
   siteData,
   isEditMode,
   accommodationType,
+  enums,
 }: {
   propertyId: string;
   siteId: string;
@@ -219,6 +230,7 @@ export default function SiteAmenitiesAndFacilities({
   siteData?: any;
   isEditMode?: boolean;
   accommodationType?: string | null;
+  enums?: any;
 }) {
   const [customAmenities, setCustomAmenities] = useState<string[]>([]);
   const [customFacilities, setCustomFacilities] = useState<string[]>([]);
@@ -226,12 +238,17 @@ export default function SiteAmenitiesAndFacilities({
   const [custombathroom_options, setCustombathroom_options] = useState<
     string[]
   >([]);
+  // Sleeping options selected per category when accommodation_type is king_stay
+  const [selectedSleepingByCategory, setSelectedSleepingByCategory] = useState<
+    Record<string, string[]>
+  >({});
   const {
     handleSubmit,
     formState: { errors, isSubmitting },
     watch,
     setValue,
     reset,
+    register,
   } = useForm<AmenitiesFormData>({
     resolver: zodResolver(amenitiesSchema),
     defaultValues: {
@@ -243,6 +260,11 @@ export default function SiteAmenitiesAndFacilities({
       facilitiesOther: "",
       bathroom_options: [],
       accept_booking_with_children: undefined,
+      sewage_hookup: undefined,
+      television_hookup: undefined,
+      generators_allowed: undefined,
+      electricity_hookup: undefined,
+      water_hookup: undefined,
     },
   });
 
@@ -267,6 +289,11 @@ export default function SiteAmenitiesAndFacilities({
   const watchedPetPolicy = watch("pet_policy");
   const watchedbathroom_options = watch("bathroom_options");
   const watchedChildrenPolicy = watch("accept_booking_with_children");
+  const watchedSewage = watch("sewage_hookup");
+  const watchedTelevision = watch("television_hookup");
+  const watchedGeneratorsAllowed = watch("generators_allowed");
+  const watchedElectricity = watch("electricity_hookup");
+  const watchedWater = watch("water_hookup");
   const onSubmit = async (data: AmenitiesFormData) => {
     try {
       const formData = new FormData();
@@ -322,6 +349,40 @@ export default function SiteAmenitiesAndFacilities({
         formData.append(
           "accept_booking_with_children",
           data.accept_booking_with_children === "yes" ? "1" : "0"
+        );
+      }
+
+      // RV hookup fields -> convert yes/no to 1/0 as per API
+      const yesNoTo01 = (v?: string) =>
+        v === "yes" ? "1" : v === "no" ? "0" : undefined;
+      const hookupFields: Array<keyof AmenitiesFormData> = [
+        "sewage_hookup",
+        "television_hookup",
+        "generators_allowed",
+        "electricity_hookup",
+        "water_hookup",
+      ];
+      hookupFields.forEach((field) => {
+        const value = yesNoTo01(data[field] as any);
+        if (typeof value !== "undefined") {
+          formData.append(field, value);
+        }
+      });
+
+      // Sleeping options for In-Kind Stay (king_stay)
+      if (accommodationType === "king_stay") {
+        let idx = 0;
+        Object.entries(selectedSleepingByCategory).forEach(
+          ([category, options]) => {
+            options.forEach((optionKey) => {
+              formData.append(`sleeping_options[${idx}][category]`, category);
+              formData.append(
+                `sleeping_options[${idx}][option_key]`,
+                optionKey
+              );
+              idx += 1;
+            });
+          }
         );
       }
 
@@ -396,7 +457,7 @@ export default function SiteAmenitiesAndFacilities({
           {(accommodationType === "camping_glamping" ||
             accommodationType === "co_living_hostel" ||
             accommodationType === "rv" ||
-            accommodationType === "in_kind_stay") && (
+            accommodationType === "king_stay") && (
             <MultiSelect
               label="Bathroom options"
               options={bathroom_options}
@@ -438,28 +499,45 @@ export default function SiteAmenitiesAndFacilities({
               Do you allow pet?
             </label>
             <div className="flex flex-wrap gap-3">
-              {[
-                { value: "yes_on_leash", label: "Yes, on leash" },
-                { value: "no", label: "No" },
-              ].map((option) => (
-                <button
-                  key={option.value}
-                  type="button"
-                  onClick={() =>
-                    setValue(
-                      "pet_policy",
-                      option.value as "yes_on_leash" | "no"
-                    )
-                  }
-                  className={`px-8 py-2 rounded-full border cursor-pointer text-[13px] font-semibold transition-all ${
-                    watchedPetPolicy === option.value
-                      ? "bg-[#237AFC] border-[#237AFC] text-white"
-                      : "bg-white text-[#131313] border-black"
-                  }`}
-                >
-                  {option.label}
-                </button>
-              ))}
+              {(
+                enums?.pet_policies || [
+                  "yes_on_leash",
+                  "yes_without_leash",
+                  "yes",
+                  "no",
+                ]
+              ).map((value: string) => {
+                const labelMap: Record<string, string> = {
+                  yes_on_leash: "Yes, on leash",
+                  yes_without_leash: "Yes, without leash",
+                  yes: "Yes",
+                  no: "No",
+                };
+                const label = labelMap[value] || value;
+                return (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() =>
+                      setValue(
+                        "pet_policy",
+                        value as
+                          | "yes_on_leash"
+                          | "yes_without_leash"
+                          | "yes"
+                          | "no"
+                      )
+                    }
+                    className={`px-8 py-2 rounded-full border cursor-pointer text-[13px] font-semibold transition-all ${
+                      watchedPetPolicy === value
+                        ? "bg-[#237AFC] border-[#237AFC] text-white"
+                        : "bg-white text-[#131313] border-black"
+                    }`}
+                  >
+                    {label}
+                  </button>
+                );
+              })}
             </div>
             {errors.pet_policy?.message && (
               <p className="text-red-500 text-xs mt-1">
@@ -471,7 +549,7 @@ export default function SiteAmenitiesAndFacilities({
           {(accommodationType === "camping_glamping" ||
             accommodationType === "co_living_hostel" ||
             accommodationType === "rv" ||
-            accommodationType === "in_kind_stay") && (
+            accommodationType === "king_stay") && (
             <div className="mb-6">
               <label className="text-[12px] md:text-[14px] text-[#1C231F] font-bold mb-3 block">
                 Do you accept bookings that include children?
@@ -515,31 +593,51 @@ export default function SiteAmenitiesAndFacilities({
               </label>
               <div className="flex flex-wrap gap-3">
                 <div className="max-w-[220px] w-full">
-                  <GlobalSelect label="Sewage hookup">
+                  <GlobalSelect
+                    label="Sewage hookup"
+                    {...(register("sewage_hookup") as any)}
+                  >
+                    <option value="">Select</option>
                     <option value="yes">Yes</option>
                     <option value="no">No</option>
                   </GlobalSelect>
                 </div>
                 <div className="max-w-[220px] w-full">
-                  <GlobalSelect label="Television hookup">
+                  <GlobalSelect
+                    label="Television hookup"
+                    {...(register("television_hookup") as any)}
+                  >
+                    <option value="">Select</option>
                     <option value="yes">Yes</option>
                     <option value="no">No</option>
                   </GlobalSelect>
                 </div>
                 <div className="max-w-[220px] w-full">
-                  <GlobalSelect label="Generators allowed">
+                  <GlobalSelect
+                    label="Generators allowed"
+                    {...(register("generators_allowed") as any)}
+                  >
+                    <option value="">Select</option>
                     <option value="yes">Yes</option>
                     <option value="no">No</option>
                   </GlobalSelect>
                 </div>
                 <div className="max-w-[220px] w-full">
-                  <GlobalSelect label="Electricity hookup">
+                  <GlobalSelect
+                    label="Electricity hookup"
+                    {...(register("electricity_hookup") as any)}
+                  >
+                    <option value="">Select</option>
                     <option value="yes">Yes</option>
                     <option value="no">No</option>
                   </GlobalSelect>
                 </div>
                 <div className="max-w-[220px] w-full">
-                  <GlobalSelect label="Water hookup">
+                  <GlobalSelect
+                    label="Water hookup"
+                    {...(register("water_hookup") as any)}
+                  >
+                    <option value="">Select</option>
                     <option value="yes">Yes</option>
                     <option value="no">No</option>
                   </GlobalSelect>
@@ -548,74 +646,45 @@ export default function SiteAmenitiesAndFacilities({
             </div>
           )}
 
-          {accommodationType === "in_kind_stay" && (
+          {accommodationType === "king_stay" && (
             <div className="mt-4 bg-[#FFFFFF] border-[#BBBBBB] border border-dashed p-4 md:p-8 rounded-[7px] flex flex-col">
               <p className="text-[12px] md:text-[14px] font-bold mb-4 text-[#1C231F]">
-                Sleeping Option
+                Sleeping Options
               </p>
-              <div className="flex flex-wrap gap-3 md:gap-6 items-center">
-                <MultiSelect
-                  label="Offer a Bed"
-                  options={["Private Room", "Shared Room"]}
-                  selected={[]}
-                  onChange={() => {}}
-                  // required={true}
-                  customValues={[]}
-                  onCustomAdd={() => {}}
-                  onCustomRemove={() => {}}
-                />
-                <MultiSelect
-                  label="Offer a Couch"
-                  options={["Couch in the Living Room", "Sofa Cum Bed"]}
-                  selected={[]}
-                  onChange={() => {}}
-                  // required={true}
-                  customValues={[]}
-                  onCustomAdd={() => {}}
-                  onCustomRemove={() => {}}
-                />
+              <div className="flex flex-col gap-4">
+                {(enums?.sleeping_options_categories || []).map(
+                  (category: string) => {
+                    const options: string[] = (enums?.sleeping_options?.[
+                      category
+                    ] || []) as string[];
+                    const toLabel = (str: string) =>
+                      str
+                        .split("_")
+                        .map((w) =>
+                          w.length ? w[0].toUpperCase() + w.slice(1) : w
+                        )
+                        .join(" ");
+                    return (
+                      <MultiSelect
+                        key={category}
+                        label={toLabel(category)}
+                        options={options}
+                        selected={selectedSleepingByCategory[category] || []}
+                        onChange={(selected) =>
+                          setSelectedSleepingByCategory((prev) => ({
+                            ...prev,
+                            [category]: selected,
+                          }))
+                        }
+                        customValues={[]}
+                        onCustomAdd={() => {}}
+                        onCustomRemove={() => {}}
+                        formatLabel={toLabel}
+                      />
+                    );
+                  }
+                )}
               </div>
-              <MultiSelect
-                label="Offer a Clean Floor"
-                options={[
-                  "Floor Space / Bring Your Gear",
-                  "Air Mattress / Extra Mattress",
-                  "Garage or Basement Room",
-                ]}
-                selected={[]}
-                onChange={() => {}}
-                // required={true}
-                customValues={[]}
-                onCustomAdd={() => {}}
-                onCustomRemove={() => {}}
-              />
-              <MultiSelect
-                label="Offer a Space Under Sky"
-                options={[
-                  "Tent Space / Backyard Stay",
-                  "Rooftop or Balcony Sleeping Spot",
-                  "Farm Stay or Rural Home",
-                ]}
-                selected={[]}
-                onChange={() => {}}
-                // required={true}
-                customValues={[]}
-                onCustomAdd={() => {}}
-                onCustomRemove={() => {}}
-              />
-              <MultiSelect
-                label="Offer an RV"
-                options={[
-                  "Parked van, camper, or converted vehicle",
-                  "Boat or Houseboat Stay",
-                ]}
-                selected={[]}
-                onChange={() => {}}
-                // required={true}
-                customValues={[]}
-                onCustomAdd={() => {}}
-                onCustomRemove={() => {}}
-              />
             </div>
           )}
 

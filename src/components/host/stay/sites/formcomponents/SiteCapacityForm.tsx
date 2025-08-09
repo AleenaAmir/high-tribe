@@ -708,7 +708,7 @@ export default function SiteCapacityForm({
             </div>
           </div>
         );
-      case "in_kind_stay":
+      case "king_size_bed":
         return (
           <div>
             <label className="text-[12px] md:text-[14px] text-[#1C231F] font-bold mb-3 block">
