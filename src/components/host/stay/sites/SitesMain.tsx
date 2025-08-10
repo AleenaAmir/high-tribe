@@ -1,7 +1,7 @@
 import React from "react";
 import { useSearchParams } from "next/navigation";
 import SitesLanding from "./SitesLanding";
-import SitesForm from "./SitesForm";
+// import SitesForm from "./SitesForm";
 
 export default function SitesMain() {
   const searchParams = useSearchParams();
@@ -30,7 +30,7 @@ export default function SitesMain() {
         </div>
       )}
 
-      {currentTab === "true" ? <SitesForm /> : <SitesLanding />}
+      {/* {currentTab === "true" ? <SitesForm /> : <SitesLanding />} */}
     </div>
   );
 }

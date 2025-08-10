@@ -5,10 +5,10 @@ import { useRouter, useSearchParams } from "next/navigation";
 import PropertyMain from "./property/PropertyMain";
 import StatsMain from "./stats/StatsMain";
 import PropertyForm from "./property/PropertyFormUpdated";
-import SitesForm from "./sites/SitesForm";
+
 import BookingsMain from "./bookings/BookingsMain";
 import SitesFormUpdated from "./sites/SitesFormUpdated";
-import SitesPreview from "./sites/SitesPreview";
+
 
 const stayTabs = [
   "stats",
