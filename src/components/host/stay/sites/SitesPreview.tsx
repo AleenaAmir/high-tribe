@@ -2,6 +2,7 @@ import { apiRequest } from "@/lib/api";
 import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 import React, { useEffect, useState } from "react";
+import SiteModalPreview from "./SiteModalPreview";
 
 const peopleSvg = (
   <svg
@@ -46,14 +47,19 @@ const bedIcon = (
     ></path>
   </svg>
 );
+interface SitePreviewProps {
+  onClose?: () => void;
+}
 
-export default function SitesPreview() {
+
+export default function SitesPreview({ onClose }: SitePreviewProps) {
   const searchParams = useSearchParams();
   const propertyId = searchParams ? searchParams.get("propertyId") : null;
   const siteId = searchParams ? searchParams.get("siteId") : null;
   const [siteData, setSiteData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
 
   useEffect(() => {
     const fetchSiteData = async () => {
@@ -105,6 +111,8 @@ export default function SitesPreview() {
     fetchSiteData();
   }, [propertyId, siteId]);
 
+
+
   // Debug logging
   console.log("Site data state:", siteData);
 
@@ -120,7 +128,9 @@ export default function SitesPreview() {
         "https://res.cloudinary.com/dtfzklzek/image/upload/v1754434629/Rectangle_5120_dpnrc1.png",
       ];
     }
-    return siteData.media.map((item: any) => `${item.file_path}`);
+    return siteData.media.map(
+      (item: any) => `${item.file_path}`
+    );
   };
 
   const images = getImages();
@@ -497,6 +507,16 @@ export default function SitesPreview() {
           </div>
         </div>
       </div>
+      <div className="flex items-center justify-end mt-6">
+
+       <button 
+         type="submit"  
+         className={`px-8 py-3 w-fit mt-2 h-fit font-[500] text-[14px] rounded-lg  transition-colors text-sm shadow-sm bg-[#3C83F6] hover:bg-blue-700 text-white disabled:opacity-50`}
+       >  
+         Publish
+       </button>
+      </div>
     </div>
+    
   );
 }

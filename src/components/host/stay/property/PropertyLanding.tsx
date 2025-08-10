@@ -216,6 +216,12 @@ export default function PropertyLanding() {
     }
   };
 
+  const [propertyId, setPropertyId] = useState<number | null>(null);
+
+  const handleDeleteModal = (propertyId: number) => {
+    setDeleteModal(true);
+    setPropertyId(propertyId);
+  };
   // Placeholder image for properties without media
   const defaultImage = "https://via.placeholder.com/150?text=No+Image";
 
@@ -279,11 +285,21 @@ export default function PropertyLanding() {
               </p>
             </div>
             <div className="ml-auto">
-              <span
-                className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800`}
+              <Dropdown
+                button={
+                  <span
+                    className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800`}
+                  >
+                    Active
+                  </span>
+                }
               >
-                Active
-              </span>
+                <div className="min-w-[150px] w-full border border-[#848484] rounded-[5px]">
+                  <button className="block w-full text-left p-2 bg-white rounded-[5px] hover:bg-[#f8f8f8] cursor-pointer">
+                    inactive
+                  </button>
+                </div>
+              </Dropdown>
             </div>
           </div>
         </div>
@@ -364,26 +380,36 @@ export default function PropertyLanding() {
             </div>
 
             <div className="flex flex-col justify-between items-end gap-1 p-2">
-              <div
-                className={`flex items-center space-x-1 border rounded-full px-2 py-1 border-blue-600`}
+              <Dropdown
+                button={
+                  <div
+                    className={`flex items-center space-x-1 border rounded-full px-2 py-1 border-blue-600`}
+                  >
+                    <span className="text-xs font-medium text-blue-600">
+                      Active
+                    </span>
+                    <svg
+                      className="w-3 h-3"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M19 9l-7 7-7-7"
+                      />
+                    </svg>
+                  </div>
+                }
               >
-                <span className="text-xs font-medium text-blue-600">
-                  Active
-                </span>
-                <svg
-                  className="w-3 h-3"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M19 9l-7 7-7-7"
-                  />
-                </svg>
-              </div>
+                <div className="min-w-[80px] w-full border border-[#848484] rounded-[5px]">
+                  <button className="block w-full text-left text-xs p-2 bg-white rounded-[5px] hover:bg-[#f8f8f8] cursor-pointer">
+                    inactive
+                  </button>
+                </div>
+              </Dropdown>
 
               {/* Chat Icon */}
               <div className="w-6 h-6 flex items-center justify-center">
@@ -433,8 +459,8 @@ export default function PropertyLanding() {
                   </button>
                   <button
                     onClick={() => {
-                      setDeleteModal(true);
-                      // handleDeleteProperty(item.id);
+                      // setDeleteModal(true);
+                      handleDeleteModal(item.id);
                     }}
                     className="block w-full text-left p-2 bg-white rounded-[5px] hover:bg-red-200 hover:text-red-500 cursor-pointer"
                   >
@@ -443,34 +469,6 @@ export default function PropertyLanding() {
                 </div>
               </Dropdown>
             </div>
-            <GlobalModal
-              isOpen={deleteModal}
-              onClose={() => setDeleteModal(false)}
-            >
-              <div className="text-center">
-                <h2 className="text-lg font-bold">Delete Property</h2>
-                <p className="text-sm text-gray-500">
-                  Are you sure you want to delete this property?
-                </p>
-              </div>
-              <div className="flex items-center justify-center mt-4 gap-2">
-                <button
-                  onClick={() => {
-                    handleDeleteProperty(item.id);
-                    setDeleteModal(false);
-                  }}
-                  className="bg-red-500 text-white px-4 py-2 rounded-md"
-                >
-                  Delete
-                </button>
-                <button
-                  onClick={() => setDeleteModal(false)}
-                  className="bg-gray-500 text-white px-4 py-2 rounded-md"
-                >
-                  Cancel
-                </button>
-              </div>
-            </GlobalModal>
 
             {/* Right side - Status strip and actions */}
             <div className="w-8 flex flex-col items-center justify-between py-4 bg-blue-500 rounded-r-[20px]"></div>
@@ -486,6 +484,32 @@ export default function PropertyLanding() {
           ))}
         </div>
       )}
+
+      <GlobalModal isOpen={deleteModal} onClose={() => setDeleteModal(false)}>
+        <div className="text-center">
+          <h2 className="text-lg font-bold">Delete Property</h2>
+          <p className="text-sm text-gray-500">
+            Are you sure you want to delete this property?
+          </p>
+        </div>
+        <div className="flex items-center justify-center mt-4 gap-2">
+          <button
+            onClick={() => {
+              handleDeleteProperty(propertyId as number);
+              setDeleteModal(false);
+            }}
+            className="bg-red-500 text-white px-4 py-2 rounded-md"
+          >
+            Delete
+          </button>
+          <button
+            onClick={() => setDeleteModal(false)}
+            className="bg-gray-500 text-white px-4 py-2 rounded-md"
+          >
+            Cancel
+          </button>
+        </div>
+      </GlobalModal>
 
       {/* Intersection observer target */}
       <div ref={loadingRef} className="h-4" />

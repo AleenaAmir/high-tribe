@@ -18,6 +18,8 @@ import SitesRefundPolicyForm from "./formcomponents/SitesRefundPolicyForm";
 import SiteArrivalSection from "./formcomponents/SiteArrivalSection";
 import SitesPreview from "./SitesPreview";
 import SitesPolicyForm from "./formcomponents/SitesPolicyForm";
+import Previewmodal from "./Previewmodal";
+import SiteModalPreview from "./SiteModalPreview";
 
 // Safe URL utility function
 const createSafeUrl = (
@@ -104,7 +106,7 @@ const SitesFormUpdated: React.FC<{ siteEdit?: string }> = ({ siteEdit }) => {
   const searchParams = useSearchParams();
   const propertyId = searchParams ? searchParams.get("propertyId") : null;
   const siteId = searchParams ? searchParams.get("siteId") : null;
-  const sitePreview = searchParams ? searchParams.get("sitepriview") : "false";
+  const sitePreview = searchParams ? searchParams.get("sitepreview") : "false";
 
   const [enums, setEnums] = useState<any>(null);
 
@@ -283,11 +285,20 @@ const SitesFormUpdated: React.FC<{ siteEdit?: string }> = ({ siteEdit }) => {
       );
 
       console.log("Form submitted successfully:", response);
-      markSectionComplete("publish");
-
-      // Set the search param 'sitepriview' to true
+      // After successful publish, remove "sitepreview" and any other temporary search params from the URL
       if (typeof window !== "undefined") {
-        safelyUpdateUrl("sitepriview", "true");
+        try {
+          const url = new URL(window.location.href);
+          // List of params to remove
+          const paramsToRemove = ["sitepreview", "siteId", "siteEdit"];
+          paramsToRemove.forEach((param) => url.searchParams.delete(param));
+          window.history.replaceState({}, "", url.toString());
+        } catch (error) {
+          console.warn(
+            "Failed to clean up search params after publish:",
+            error
+          );
+        }
       }
     } catch (error) {
       console.error("Error submitting form:", error);
@@ -404,149 +415,149 @@ const SitesFormUpdated: React.FC<{ siteEdit?: string }> = ({ siteEdit }) => {
 
         {/* Main Content */}
 
-        {sitePreview === "true" ? (
-          <div className="max-w-[1200px] mx-auto">
-            <SitesPreview />
-          </div>
-        ) : (
-          <div className="flex-1 p-6">
-            <form
-              onSubmit={handleSubmit(onSubmit)}
-              className="max-w-[1200px] mx-auto space-y-8"
-            >
-              {/* Site Overview Section */}
-              <div ref={overviewRef}>
-                <SiteOverViewForm
-                  propertyId={propertyId || ""}
-                  onSuccess={() => markSectionComplete("overview")}
-                  siteData={siteData}
-                  isEditMode={siteEdit === "true"}
-                  setAccommodationType={setAccommodationType}
-                  enums={enums}
-                />
-              </div>
+        <div className="flex-1 p-6">
+          <form
+            onSubmit={handleSubmit(onSubmit)}
+            className="max-w-[1200px] mx-auto space-y-8"
+          >
+            {/* Site Overview Section */}
+            <div ref={overviewRef}>
+              <SiteOverViewForm
+                propertyId={propertyId || ""}
+                onSuccess={() => markSectionComplete("overview")}
+                siteData={siteData}
+                isEditMode={siteEdit === "true"}
+                setAccommodationType={setAccommodationType}
+                enums={enums}
+              />
+            </div>
 
-              {/* Site Amenities Section */}
-              <div ref={amenitiesRef}>
-                <SiteAmenitiesAndFacilities
-                  propertyId={propertyId || ""}
-                  siteId={siteId || ""}
-                  onSuccess={() => markSectionComplete("amenities")}
-                  siteData={siteData}
-                  isEditMode={siteEdit === "true"}
-                  accommodationType={accommodationType || null}
-                  enums={enums}
-                />
-              </div>
+            {/* Site Amenities Section */}
+            <div ref={amenitiesRef}>
+              <SiteAmenitiesAndFacilities
+                propertyId={propertyId || ""}
+                siteId={siteId || ""}
+                onSuccess={() => markSectionComplete("amenities")}
+                siteData={siteData}
+                isEditMode={siteEdit === "true"}
+                accommodationType={accommodationType || null}
+                enums={enums}
+              />
+            </div>
 
-              {/* Site Images Section */}
-              <div ref={imagesRef}>
-                <SitesImagesSection
-                  propertyId={propertyId || ""}
-                  siteId={siteId || ""}
-                  onSuccess={() => markSectionComplete("images")}
-                  siteData={siteData}
-                  isEditMode={siteEdit === "true"}
-                />
-              </div>
+            {/* Site Images Section */}
+            <div ref={imagesRef}>
+              <SitesImagesSection
+                propertyId={propertyId || ""}
+                siteId={siteId || ""}
+                onSuccess={() => markSectionComplete("images")}
+                siteData={siteData}
+                isEditMode={siteEdit === "true"}
+              />
+            </div>
 
-              {/* Site Capacity Section */}
-              <div ref={capacityRef}>
-                <SiteCapacityForm
-                  propertyId={propertyId || ""}
-                  siteId={siteId || ""}
-                  onSuccess={() => markSectionComplete("capacity")}
-                  siteData={siteData}
-                  isEditMode={siteEdit === "true"}
-                  accommodationType={accommodationType || null}
-                  // enums={enums}
-                />
-              </div>
+            {/* Site Capacity Section */}
+            <div ref={capacityRef}>
+              <SiteCapacityForm
+                propertyId={propertyId || ""}
+                siteId={siteId || ""}
+                onSuccess={() => markSectionComplete("capacity")}
+                siteData={siteData}
+                isEditMode={siteEdit === "true"}
+                accommodationType={accommodationType || null}
+                // enums={enums}
+              />
+            </div>
 
-              {/* Site Pricing Section */}
-              <div ref={pricingRef}>
-                <SitesPricingForm
-                  propertyId={propertyId || ""}
-                  siteId={siteId || ""}
-                  onSuccess={() => markSectionComplete("pricing")}
-                  siteData={siteData}
-                  isEditMode={siteEdit === "true"}
-                />
-              </div>
+            {/* Site Pricing Section */}
+            <div ref={pricingRef}>
+              <SitesPricingForm
+                propertyId={propertyId || ""}
+                siteId={siteId || ""}
+                onSuccess={() => markSectionComplete("pricing")}
+                siteData={siteData}
+                isEditMode={siteEdit === "true"}
+              />
+            </div>
 
-              {/* Booking Settings Section */}
-              <div ref={bookingRef}>
-                <SitesBookingSettingsForm
-                  propertyId={propertyId || ""}
-                  siteId={siteId || ""}
-                  onSuccess={() => markSectionComplete("booking")}
-                  siteData={siteData}
-                  isEditMode={siteEdit === "true"}
-                />
-              </div>
+            {/* Booking Settings Section */}
+            <div ref={bookingRef}>
+              <SitesBookingSettingsForm
+                propertyId={propertyId || ""}
+                siteId={siteId || ""}
+                onSuccess={() => markSectionComplete("booking")}
+                siteData={siteData}
+                isEditMode={siteEdit === "true"}
+              />
+            </div>
 
-              {/* Refund Policy Section */}
-              <div ref={refundRef}>
-                <SitesRefundPolicyForm
-                  propertyId={propertyId || ""}
-                  siteId={siteId || ""}
-                  onSuccess={() => markSectionComplete("refund")}
-                  siteData={siteData}
-                  isEditMode={siteEdit === "true"}
-                  accommodationType={accommodationType || null}
-                />
-              </div>
+            {/* Refund Policy Section */}
+            <div ref={refundRef}>
+              <SitesRefundPolicyForm
+                propertyId={propertyId || ""}
+                siteId={siteId || ""}
+                onSuccess={() => markSectionComplete("refund")}
+                siteData={siteData}
+                isEditMode={siteEdit === "true"}
+                accommodationType={accommodationType || null}
+              />
+            </div>
 
-              {/* Policies Section */}
-              {accommodationType !== "lodging_room_cabin" && (
-                <div ref={policiesRef}>
-                  <SitesPolicyForm
-                    propertyId={propertyId || ""}
-                    siteId={siteId || ""}
-                    // onSuccess={() => markSectionComplete("policies")}
-                    siteData={siteData}
-                    isEditMode={siteEdit === "true"}
-                  />
-                </div>
-              )}
-
-              {/* Arrival Instructions Section */}
-              <div ref={arrivalRef}>
-                <SiteArrivalSection
+            {/* Policies Section */}
+            {accommodationType !== "lodging_room_cabin" && (
+              <div ref={policiesRef}>
+                <SitesPolicyForm
                   propertyId={propertyId || ""}
                   siteId={siteId || ""}
-                  onSuccess={() => markSectionComplete("arrival")}
+                  // onSuccess={() => markSectionComplete("policies")}
                   siteData={siteData}
                   isEditMode={siteEdit === "true"}
                 />
               </div>
+            )}
 
-              {/* Submit Buttons */}
-              <div className="flex justify-end pt-4 gap-4">
-                <button
-                  type="button"
-                  onClick={handleSaveDraft}
-                  disabled={isSubmitting}
-                  className="px-8 py-3 bg-gray-200 w-fit mt-2 h-fit font-[500] text-[14px] hover:bg-gray-300 text-gray-700 rounded-lg  transition-colors text-sm shadow-sm disabled:opacity-50"
-                >
-                  Save as draft
-                </button>
-                <button
-                  type="submit"
-                  disabled={isSubmitting || !allSectionsCompleted}
-                  className={`px-8 py-3 w-fit mt-2 h-fit font-[500] text-[14px] rounded-lg  transition-colors text-sm shadow-sm bg-[#3C83F6] hover:bg-blue-700 text-white disabled:opacity-50`}
-                >
-                  {isSubmitting ? "Publishing..." : "Review & Publish"}
-                </button>
+            {/* Arrival Instructions Section */}
+            <div ref={arrivalRef}>
+              <SiteArrivalSection
+                propertyId={propertyId || ""}
+                siteId={siteId || ""}
+                onSuccess={() => markSectionComplete("arrival")}
+                siteData={siteData}
+                isEditMode={siteEdit === "true"}
+              />
+            </div>
+
+            {/* Submit Buttons */}
+            <div className="flex justify-end pt-4 gap-4">
+              <button
+                type="button"
+                onClick={handleSaveDraft}
+                disabled={isSubmitting}
+                className="px-8 py-3 bg-gray-200 w-fit mt-2 h-fit font-[500] text-[14px] hover:bg-gray-300 text-gray-700 rounded-lg  transition-colors text-sm shadow-sm disabled:opacity-50"
+              >
+                Save as draft
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  safelyUpdateUrl("sitepreview", "true");
+                  markSectionComplete("publish");
+                  console.log("Setting sitePreview to true");
+                }}
+                disabled={isSubmitting || !allSectionsCompleted}
+                className={`px-8 py-3 w-fit mt-2 h-fit font-[500] text-[14px] rounded-lg  transition-colors text-sm shadow-sm bg-[#3C83F6] hover:bg-blue-700 text-white disabled:opacity-50`}
+              >
+                {isSubmitting ? "Publishing..." : "Review & Publish"}
+              </button>
+              <SiteModalPreview />
+            </div>
+            {!allSectionsCompleted && (
+              <div className="text-center text-sm text-gray-500 mt-2">
+                Complete all sections to enable publishing
               </div>
-              {!allSectionsCompleted && (
-                <div className="text-center text-sm text-gray-500 mt-2">
-                  Complete all sections to enable publishing
-                </div>
-              )}
-            </form>
-          </div>
-        )}
+            )}
+          </form>
+        </div>
       </div>
     </div>
   );

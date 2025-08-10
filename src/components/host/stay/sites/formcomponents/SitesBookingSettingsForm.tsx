@@ -49,7 +49,7 @@ const SitesBookingSettingsForm = ({
   } = useForm<BookingSettingsFormData>({
     resolver: zodResolver(bookingSettingsSchema),
     defaultValues: {
-      ownerBlock: false,
+      ownerBlock: true,
       bookingType: "request",
       selectedDates: [],
     },
@@ -59,11 +59,10 @@ const SitesBookingSettingsForm = ({
   useEffect(() => {
     if (isEditMode && siteData?.booking_setting) {
       reset({
-        ownerBlock: siteData.booking_setting.owner_block || false,
+        ownerBlock: siteData.booking_setting.owner_block || true,
         bookingType: siteData.booking_setting.booking_type || "request",
         selectedDates: siteData.booking_setting.selected_dates || [],
       });
-     
 
       // Set selected dates if available
       if (siteData.booking_setting.selected_dates) {
@@ -222,7 +221,7 @@ const SitesBookingSettingsForm = ({
       }
 
       // Add owner_block (mapped from ownerBlock)
-      formData.append("owner_block", data.ownerBlock.toString());
+      formData.append("owner_block", data.ownerBlock ? "1" : "0");
 
       // Add booking_type (mapped from bookingType)
       formData.append("booking_type", data.bookingType);
