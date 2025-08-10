@@ -38,7 +38,8 @@ const SitesBookingSettingsForm = ({
     from: null,
     to: null,
   });
-
+  const [dateError, setDateError] = useState<string>("");
+  const [dataSent, setDataSent] = useState(false);
   const {
     register,
     handleSubmit,
@@ -134,6 +135,18 @@ const SitesBookingSettingsForm = ({
 
   // Handle date selection for range
   const handleDateClick = (date: Date) => {
+    // Check if date is in the past
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    if (date < today) {
+      setDateError("Cannot select dates in the past");
+      setTimeout(() => setDateError(""), 3000);
+      return;
+    }
+
+    // Clear any previous errors
+    setDateError("");
+
     // Create date string in local timezone to avoid timezone issues
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -150,9 +163,11 @@ const SitesBookingSettingsForm = ({
       const toDate = new Date(dateString + "T00:00:00");
 
       if (toDate < fromDate) {
-        // If to date is before from date, swap them
-        setDateRange({ from: dateString, to: dateRange.from });
-        setSelectedDates(generateDateRange(dateString, dateRange.from));
+        // If to date is before from date, show error and don't update
+
+        setDateError("End date cannot be before start date");
+        setTimeout(() => setDateError(""), 3000);
+        return;
       } else {
         setDateRange({ from: dateRange.from, to: dateString });
         setSelectedDates(generateDateRange(dateRange.from, dateString));
@@ -208,6 +223,22 @@ const SitesBookingSettingsForm = ({
 
   const onSubmit = async (data: BookingSettingsFormData) => {
     try {
+      // Validate date range before submission
+      if (dateRange.from && dateRange.to) {
+        const fromDate = new Date(dateRange.from + "T00:00:00");
+        const toDate = new Date(dateRange.to + "T00:00:00");
+
+        if (toDate < fromDate) {
+          return;
+        }
+
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        if (fromDate < today) {
+          return;
+        }
+      }
+
       const formData = new FormData();
 
       // Add site_id
@@ -250,6 +281,7 @@ const SitesBookingSettingsForm = ({
       if (onSuccess) {
         onSuccess();
       }
+      setDataSent(true);
     } catch (error) {
       console.error("Error submitting form:", error);
       // Error handling is already done by apiFormDataWrapper
@@ -325,6 +357,14 @@ const SitesBookingSettingsForm = ({
               </button>
             </div>
 
+            {/* Selected date range display */}
+            {/* {dateRange.from && dateRange.to && (
+              <div className="mb-3 p-2 bg-blue-50 border border-blue-200 rounded text-blue-600 text-sm">
+                Selected: {new Date(dateRange.from).toLocaleDateString()} -{" "}
+                {new Date(dateRange.to).toLocaleDateString()}
+              </div>
+            )} */}
+
             {/* Calendar Grid */}
             <div className="grid grid-cols-7 ">
               {/* Day headers */}
@@ -350,12 +390,17 @@ const SitesBookingSettingsForm = ({
                     new Date(dateRange.to).toDateString();
                 const isSelected = isDateSelected(day.date);
 
+                // Check if date is in the past
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                const isPastDate = day.date < today;
+
                 return (
                   <button
                     key={index}
                     type="button"
                     onClick={() => handleDateClick(day.date)}
-                    disabled={!ownerBlock}
+                    disabled={!ownerBlock || isPastDate}
                     className={`
                       p-2 text-sm transition-colors
                       ${day.isCurrentMonth ? "text-gray-900" : "text-gray-400"}
@@ -368,7 +413,12 @@ const SitesBookingSettingsForm = ({
                       }
                       ${isStartDate && isInRange ? "rounded-l-full" : ""}
                       ${isEndDate && isInRange ? "rounded-r-full" : ""}
-                      ${!ownerBlock ? "cursor-not-allowed" : "cursor-pointer"}
+                      ${
+                        !ownerBlock || isPastDate
+                          ? "cursor-not-allowed opacity-50"
+                          : "cursor-pointer"
+                      }
+                      ${isPastDate ? "text-gray-300" : ""}
                     `}
                   >
                     {day.date.getDate()}
@@ -376,6 +426,12 @@ const SitesBookingSettingsForm = ({
                 );
               })}
             </div>
+            {/* Error message display */}
+            {dateError && (
+              <div className="mb-3 p-2 bg-red-50 border border-red-200 rounded text-red-600 text-sm">
+                {dateError}
+              </div>
+            )}
           </div>
 
           {/* Booking Type */}
@@ -389,8 +445,10 @@ const SitesBookingSettingsForm = ({
                   type="radio"
                   value="instant"
                   {...register("bookingType")}
-                  className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500"
+                  className="accent-[#275BD3] w-4 h-4"
+                  defaultChecked
                 />
+
                 <span className="text-sm text-gray-700">
                   Instant Booking (Book without host approval)
                 </span>
@@ -400,8 +458,9 @@ const SitesBookingSettingsForm = ({
                   type="radio"
                   value="request"
                   {...register("bookingType")}
-                  className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500"
+                  className="accent-[#275BD3] w-4 h-4"
                 />
+
                 <span className="text-sm text-gray-700">
                   Request to Book (Host approval needed)
                 </span>
@@ -420,9 +479,15 @@ const SitesBookingSettingsForm = ({
               type="button"
               onClick={handleSaveClick}
               disabled={isSubmitting}
-              className="bg-[#237AFC] w-[158px] mt-2 h-[35px] font-[500] text-[14px] text-white px-4 md:px-10 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className={` w-[158px] mt-2 h-[35px] font-[500] text-[14px] text-white px-4 md:px-10 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors ${
+                dataSent ? "bg-[#237AFC]" : "bg-[#BABBBC]"
+              }`}
             >
-              {isSubmitting ? "Saving..." : isEditMode ? "Update" : "Save"}
+              {dataSent
+                ? "Saved"
+                : isSubmitting
+                ? "Saving..."
+                : isEditMode ? "Update" : "Save"}
             </button>
           </div>
         </div>

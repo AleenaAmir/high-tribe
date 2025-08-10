@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -9,11 +9,22 @@ import { useSearchParams } from "next/navigation";
 import { apiFormDataWrapper } from "@/lib/api";
 
 // Zod validation schema
-const arrivalSectionSchema = z.object({
-  checkInTime: z.string().min(1, "Check-in time is required"),
-  checkOutTime: z.string().min(1, "Check-out time is required"),
-  arrivalInstructions: z.string().min(1, "Arrival instructions is required"),
-});
+const arrivalSectionSchema = z
+  .object({
+    checkInTime: z.string().min(1, "Check-in time is required"),
+    checkOutTime: z.string().min(1, "Check-out time is required"),
+    arrivalInstructions: z.string().min(1, "Arrival instructions is required"),
+  })
+  .refine(
+    (data) => {
+      const toMinutes = (t: string) => {
+        const [h, m] = t.split(":").map((v) => parseInt(v, 10));
+        return h * 60 + m;
+      };
+      return toMinutes(data.checkOutTime) > toMinutes(data.checkInTime);
+    },
+    { path: ["checkOutTime"], message: "Check-out must be after check-in" }
+  );
 
 type ArrivalSectionFormData = z.infer<typeof arrivalSectionSchema>;
 
@@ -30,6 +41,7 @@ const SiteArrivalSection = ({
   siteData?: any;
   isEditMode?: boolean;
 }) => {
+  const [dataSent, setDataSent] = useState(false);
   const {
     register,
     handleSubmit,
@@ -95,6 +107,7 @@ const SiteArrivalSection = ({
       if (onSuccess) {
         onSuccess();
       }
+      setDataSent(true);
     } catch (error) {
       console.error("Error submitting form:", error);
       // Error handling is already done by apiFormDataWrapper
@@ -161,9 +174,17 @@ const SiteArrivalSection = ({
               type="button"
               onClick={handleSaveClick}
               disabled={isSubmitting}
-              className="bg-[#237AFC] w-[158px] mt-2 h-[35px] font-[500] text-[14px] text-white px-4 md:px-10 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className={` w-[158px] mt-2 h-[35px] font-[500] text-[14px] text-white px-4 md:px-10 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors ${
+                dataSent ? "bg-[#237AFC]" : "bg-[#BABBBC]"
+              }`}
             >
-              {isSubmitting ? "Saving..." : isEditMode ? "Update" : "Save"}
+              {dataSent
+                ? "Saved"
+                : isSubmitting
+                ? "Saving..."
+                : isEditMode
+                ? "Update"
+                : "Save"}
             </button>
           </div>
         </div>

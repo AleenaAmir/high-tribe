@@ -47,7 +47,7 @@ const GlobalRadioGroup: React.FC<GlobalRadioGroupProps> = ({
               value={option.value}
               checked={value === option.value}
               onChange={() => onChange(option.value)}
-              className="accent-blue-600 w-4 h-4"
+              className="accent-[#275BD3] w-4 h-4"
             />
             {option.label}
           </label>

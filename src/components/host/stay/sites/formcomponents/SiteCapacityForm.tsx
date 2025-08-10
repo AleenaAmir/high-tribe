@@ -1,224 +1,6 @@
-// "use client";
-// import React, { useEffect } from "react";
-// import { useForm } from "react-hook-form";
-// import { zodResolver } from "@hookform/resolvers/zod";
-// import { z } from "zod";
-// import GlobalTextArea from "@/components/global/GlobalTextArea";
-// import GlobalTextInput from "@/components/global/GlobalTextInput";
-// import { apiFormDataWrapper } from "@/lib/api";
-// import { toast } from "react-hot-toast";
-// import GlobalSelect from "@/components/global/GlobalSelect";
-// import GlobalInputStepper from "@/components/global/GlobalInputStepper";
-
-// // Zod validation schema
-// const siteCapacitySchema = z.object({
-//   siteSize: z.string().min(1, "Site size is required"), // changed to string
-//   bed_types: z
-//     .string()
-//     .min(1, "Total beds is required")
-//     .regex(/^[1-9]\d*$/, "Total beds must be a positive integer"),
-//   capacityDescription: z.string().min(1, "Capacity description is required"),
-//   guest_capacity_max: z.number().min(1, "Capacity is required"),
-//   number_of_bathrooms: z.number().min(1, "Number of bathrooms is required"),
-// });
-
-// type SiteCapacityFormData = z.infer<typeof siteCapacitySchema>;
-
-// export default function SiteCapacityForm({
-//   propertyId,
-//   siteId,
-//   onSuccess,
-//   siteData,
-//   isEditMode,
-//   accommodationType,
-// }: {
-//   propertyId: string;
-//   siteId: string;
-//   onSuccess?: () => void;
-//   siteData?: any;
-//   isEditMode?: boolean;
-//   accommodationType?: string | null;
-// }) {
-//   const {
-//     register,
-//     handleSubmit,
-//     formState: { errors, isSubmitting },
-//     reset,
-//     watch,
-//     setValue,
-//   } = useForm<SiteCapacityFormData>({
-//     resolver: zodResolver(siteCapacitySchema),
-//     defaultValues: {
-//       siteSize: "",
-//       bed_types: "",
-//       capacityDescription: "",
-//     },
-//   });
-
-//   // Populate form data when siteData is available in edit mode
-//   useEffect(() => {
-//     if (isEditMode && siteData?.capacity) {
-//       reset({
-//         siteSize: siteData.capacity.site_size || 0,
-//         bed_types: siteData.capacity.total_beds?.toString() || "",
-//         capacityDescription: siteData.capacity.capacity_description || "",
-//       });
-//     }
-//   }, [siteData, isEditMode, reset]);
-
-//   const onSubmit = async (data: SiteCapacityFormData) => {
-//     try {
-//       const formData = new FormData();
-//       formData.append("site_size", "30x20 ft"); // e.g., "30x20 ft"
-//       formData.append("total_beds", data.bed_types.toString()); // e.g., "5"
-//       formData.append("site_id", siteId);
-
-//       // Add site_id for edit mode
-//       if (isEditMode && siteData?.id) {
-//         formData.append("site_id", siteData.id.toString());
-//       }
-
-//       const response = (await apiFormDataWrapper(
-//         `properties/${propertyId}/sites/capacity`,
-//         formData,
-//         isEditMode
-//           ? "Site capacity updated successfully!"
-//           : "Site capacity saved successfully!"
-//       )) as Response;
-
-//       //@ts-ignore
-//       if (response.message == "Capacity details saved successfully") {
-//         toast.success(
-//           isEditMode
-//             ? "Site capacity updated successfully!"
-//             : "Site capacity saved successfully!"
-//         );
-//       } else {
-//         toast.error("Failed to save site capacity");
-//       }
-
-//       if (onSuccess) onSuccess();
-//     } catch (error) {
-//       console.error("Error submitting form:", error);
-//     }
-//   };
-
-//   const handleSaveClick = async () => {
-//     // Trigger form validation and submission
-//     const isValid = await handleSubmit(onSubmit)();
-//     return isValid;
-//   };
-
-//   return (
-//     <div>
-//       <h4 className="text-[14px] md:text-[16px] text-[#1C231F] font-semibold">
-//         Site Capacity
-//       </h4>
-//       <div className="mt-4">
-//         <div className="border border-[#E1E1E1] bg-white p-2 md:p-4 rounded-[7px]">
-//           {accommodationType === "lodging_room_cabin" && (
-//             <>
-//               <div className="grid grid-cols-1 lg:grid-cols-2 gap-2">
-//                 <GlobalTextInput
-//                   label={
-//                     <span>
-//                       Maximum Occupancy<span className="text-red-500">*</span>
-//                     </span>
-//                   }
-//                   type="number"
-//                   {...register("guest_capacity_max", { valueAsNumber: true })}
-//                   error={errors.guest_capacity_max?.message}
-//                 />
-
-//                 <GlobalTextInput
-//                   label={
-//                     <span>
-//                       Type of Bed<span className="text-red-500">*</span>
-//                     </span>
-//                   }
-//                   {...register("bed_types")}
-//                   error={errors.bed_types?.message}
-//                 />
-//               </div>
-
-//               <GlobalTextArea
-//                 label={
-//                   <span>
-//                     Capacity Description<span className="text-red-500">*</span>
-//                   </span>
-//                 }
-//                 {...register("capacityDescription")}
-//                 error={errors.capacityDescription?.message}
-//               />
-//             </>
-//           )}
-
-//           {accommodationType === "co_living_hostel" && (
-//             <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 justify-end items-end">
-//               <GlobalTextInput
-//                 label={
-//                   <span>
-//                     Room Size<span className="text-red-500">*</span>
-//                   </span>
-//                 }
-//                 type="text"
-//                 {...register("siteSize")}
-//                 error={errors.siteSize?.message}
-//               />
-//               <GlobalSelect label={"Bed Types"} className="w-full">
-//                 <option value="">Select Bed Type</option>
-//                 <option value="single">Single Bed</option>
-//                 <option value="double">King Size</option>
-//                 <option value="queen">Queen Size</option>
-//                 <option value="king">Bunk Bed</option>
-//               </GlobalSelect>
-//               <GlobalTextInput
-//                 label={
-//                   <span>
-//                     Number of beds<span className="text-red-500">*</span>
-//                   </span>
-//                 }
-//                 type="number"
-//                 {...register("bed_types")}
-//                 error={errors.bed_types?.message}
-//               />
-//               <div className="flex items-baseline gap-2 w-full ">
-//                 <label
-//                   htmlFor="number_of_bathrooms"
-//                   className="text-[14px] text-[#1C231F] font-medium"
-//                 >
-//                   Number of Bathrooms
-//                 </label>
-//                 <GlobalInputStepper
-//                   placeholder="Enter a value"
-//                   value={watch("number_of_bathrooms") || 0}
-//                   onChange={(value) => setValue("number_of_bathrooms", value)}
-//                   max={10}
-//                   min={1}
-//                 />
-//               </div>
-//             </div>
-//           )}
-
-//           {/* Submit Button */}
-//           <div className="mt-4 flex justify-end">
-//             <button
-//               type="button"
-//               onClick={handleSaveClick}
-//               disabled={isSubmitting}
-//               className="bg-[#237AFC] w-[158px] mt-2 h-[35px] font-[500] text-[14px] text-white px-4 md:px-10 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-//             >
-//               {isSubmitting ? "Saving..." : isEditMode ? "Update" : "Save"}
-//             </button>
-//           </div>
-//         </div>
-//       </div>
-//     </div>
-//   );
-// }
 "use client";
 import React, { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import GlobalTextArea from "@/components/global/GlobalTextArea";
@@ -229,14 +11,38 @@ import GlobalInputStepper from "@/components/global/GlobalInputStepper";
 import GlobalSelect from "@/components/global/GlobalSelect";
 import GlobalRadioGroup from "@/components/global/GlobalRadioGroup";
 
-// Zod validation schema
+// Single comprehensive schema with all possible fields as optional
 const siteCapacitySchema = z.object({
-  siteSize: z.number().min(1, "Site size is required"), // changed to string
-  typeOfBed: z
-    .string()
-    .min(1, "Total beds is required")
-    .regex(/^[1-9]\d*$/, "Total beds must be a positive integer"),
-  capacityDescription: z.string().min(1, "Capacity description is required"),
+  site_id: z.string().min(1, "Site ID is required"),
+  // Lodging room cabin fields
+  maximum_occupancy: z.number().optional(),
+  type_of_bed: z.string().optional(),
+  capacity_description: z.string().optional(),
+  // Co-living hostel fields
+  room_size: z.string().optional(),
+  bed_type: z.string().optional(),
+  number_of_beds: z.number().optional(),
+  number_of_bathrooms: z.number().optional(),
+  // Camping glamping fields
+  sleeping_capacity: z.number().optional(),
+  // RV fields
+  level_ground: z.string().optional(),
+  access_method: z.string().optional(),
+  rv_slidesouts: z.string().optional(),
+  ground_surface: z.string().optional(),
+  ground_surface_other: z.string().optional(),
+  rv_types: z.array(z.string()).optional(),
+  rv_types_other: z.string().optional(),
+  max_rv_length: z.number().optional(),
+  max_rv_width: z.number().optional(),
+  turning_radius_warnings: z.string().optional(),
+  // King size bed fields
+  area_size_unit: z.enum(["Meters", "Feets"]).optional(),
+  area_length: z.number().optional(),
+  area_width: z.number().optional(),
+  guest_favourites: z.string().optional(),
+  // Default fields
+  site_size: z.number().optional(),
 });
 
 type SiteCapacityFormData = z.infer<typeof siteCapacitySchema>;
@@ -259,6 +65,7 @@ export default function SiteCapacityForm({
   const {
     register,
     handleSubmit,
+    control,
     formState: { errors, isSubmitting },
     reset,
     watch,
@@ -266,33 +73,247 @@ export default function SiteCapacityForm({
   } = useForm<SiteCapacityFormData>({
     resolver: zodResolver(siteCapacitySchema),
     defaultValues: {
-      siteSize: 0,
-      typeOfBed: "",
-      capacityDescription: "",
+      site_id: siteId,
+      ...getDefaultValuesForAccommodationType(accommodationType || null),
     },
   });
+
+  const [areaSizeType, setAreaSizeType] = useState<"Meters" | "Feets">("Feets");
+
+  // Get default values based on accommodation type
+  function getDefaultValuesForAccommodationType(
+    accommodationType: string | null
+  ) {
+    switch (accommodationType) {
+      case "lodging_room_cabin":
+        return {
+          maximum_occupancy: 0,
+          type_of_bed: "",
+          capacity_description: "",
+        };
+      case "co_living_hostel":
+        return {
+          room_size: "",
+          bed_type: "",
+          number_of_beds: 0,
+          number_of_bathrooms: 1,
+        };
+      case "camping_glamping":
+        return {
+          sleeping_capacity: 0,
+        };
+      case "rv":
+        return {
+          level_ground: "",
+          access_method: "",
+          rv_slidesouts: "",
+          ground_surface: "",
+          ground_surface_other: "",
+          rv_types: [],
+          rv_types_other: "",
+          max_rv_length: 0,
+          max_rv_width: 0,
+          turning_radius_warnings: "",
+        };
+      case "king_stay":
+        return {
+          area_size_unit: "Feets" as const,
+          area_length: 0,
+          area_width: 0,
+          guest_favourites: "",
+        };
+      default:
+        return {
+          site_size: 0,
+          type_of_bed: "",
+          capacity_description: "",
+        };
+    }
+  }
 
   // Populate form data when siteData is available in edit mode
   useEffect(() => {
     if (isEditMode && siteData?.capacity) {
-      reset({
-        siteSize: siteData.capacity.site_size || 0,
-        typeOfBed: siteData.capacity.total_beds?.toString() || "",
-        capacityDescription: siteData.capacity.capacity_description || "",
-      });
+      const defaultValues = getDefaultValuesForAccommodationType(
+        accommodationType || null
+      );
+
+      // Map backend data to form fields based on accommodation type
+      const mappedData = {
+        site_id: siteId,
+        ...defaultValues,
+        ...mapBackendDataToFormFields(
+          siteData.capacity,
+          accommodationType || null
+        ),
+      };
+
+      reset(mappedData);
     }
-  }, [siteData, isEditMode, reset]);
+  }, [siteData, isEditMode, reset, accommodationType, siteId]);
+
+  // Map backend data to form fields
+  function mapBackendDataToFormFields(
+    capacityData: any,
+    accommodationType: string | null
+  ) {
+    switch (accommodationType) {
+      case "lodging_room_cabin":
+        return {
+          maximum_occupancy: capacityData.maximum_occupancy || 0,
+          type_of_bed: capacityData.type_of_bed || "",
+          capacity_description: capacityData.capacity_description || "",
+        };
+      case "co_living_hostel":
+        return {
+          room_size: capacityData.room_size || "",
+          bed_type: capacityData.bed_type || "",
+          number_of_beds: capacityData.number_of_beds || 0,
+          number_of_bathrooms: capacityData.number_of_bathrooms || 1,
+        };
+      case "camping_glamping":
+        return {
+          sleeping_capacity: capacityData.sleeping_capacity || 0,
+        };
+      case "rv":
+        return {
+          level_ground: capacityData.level_ground || "",
+          access_method: capacityData.access_method || "",
+          rv_slidesouts: capacityData.rv_slidesouts || "",
+          ground_surface: capacityData.ground_surface || "",
+          ground_surface_other: capacityData.ground_surface_other || "",
+          rv_types: capacityData.rv_types || [],
+          rv_types_other: capacityData.rv_types_other || "",
+          max_rv_length: capacityData.max_rv_length || 0,
+          max_rv_width: capacityData.max_rv_width || 0,
+          turning_radius_warnings: capacityData.turning_radius_warnings || "",
+        };
+      case "king_stay":
+        return {
+          area_size_unit: capacityData.area_size_unit || "Feets",
+          area_length: capacityData.area_length || 0,
+          area_width: capacityData.area_width || 0,
+          guest_favourites: capacityData.guest_favourites || "",
+        };
+      default:
+        return {
+          site_size: capacityData.site_size || 0,
+          type_of_bed: capacityData.type_of_bed || "",
+          capacity_description: capacityData.capacity_description || "",
+        };
+    }
+  }
+
+  const [dataSent, setDataSent] = useState(false);
 
   const onSubmit = async (data: SiteCapacityFormData) => {
     try {
       const formData = new FormData();
-      formData.append("site_size", "30x20 ft"); // e.g., "30x20 ft"
-      formData.append("total_beds", data.typeOfBed.toString()); // e.g., "5"
-      formData.append("site_id", siteId);
 
-      // Add site_id for edit mode
-      if (isEditMode && siteData?.id) {
-        formData.append("site_id", siteData.id.toString());
+      // Always include site_id
+      formData.append("site_id", data.site_id);
+
+      // Add fields based on accommodation type
+      switch (accommodationType) {
+        case "lodging_room_cabin":
+          if (data.maximum_occupancy !== undefined) {
+            formData.append(
+              "maximum_occupancy",
+              data.maximum_occupancy.toString()
+            );
+          }
+          if (data.type_of_bed) {
+            formData.append("type_of_bed", data.type_of_bed);
+          }
+          if (data.capacity_description) {
+            formData.append("capacity_description", data.capacity_description);
+          }
+          break;
+        case "co_living_hostel":
+          if (data.room_size) {
+            formData.append("room_size", data.room_size);
+          }
+          if (data.bed_type) {
+            formData.append("bed_type", data.bed_type);
+          }
+          if (data.number_of_beds !== undefined) {
+            formData.append("number_of_beds", data.number_of_beds.toString());
+          }
+          if (data.number_of_bathrooms !== undefined) {
+            formData.append(
+              "number_of_bathrooms",
+              data.number_of_bathrooms.toString()
+            );
+          }
+          break;
+        case "camping_glamping":
+          if (data.sleeping_capacity !== undefined) {
+            formData.append(
+              "sleeping_capacity",
+              data.sleeping_capacity.toString()
+            );
+          }
+          break;
+        case "rv":
+          if (data.level_ground) {
+            formData.append("level_ground", data.level_ground);
+          }
+          if (data.access_method) {
+            formData.append("access_method", data.access_method);
+          }
+          if (data.rv_slidesouts) {
+            formData.append("rv_slidesouts", data.rv_slidesouts);
+          }
+          if (data.ground_surface) {
+            formData.append("ground_surface", data.ground_surface);
+          }
+          if (data.ground_surface_other) {
+            formData.append("ground_surface_other", data.ground_surface_other);
+          }
+          if (data.rv_types && data.rv_types.length > 0) {
+            formData.append("rv_types", JSON.stringify(data.rv_types));
+          }
+          if (data.rv_types_other) {
+            formData.append("rv_types_other", data.rv_types_other);
+          }
+          if (data.max_rv_length !== undefined) {
+            formData.append("max_rv_length", data.max_rv_length.toString());
+          }
+          if (data.max_rv_width !== undefined) {
+            formData.append("max_rv_width", data.max_rv_width.toString());
+          }
+          if (data.turning_radius_warnings) {
+            formData.append(
+              "turning_radius_warnings",
+              data.turning_radius_warnings
+            );
+          }
+          break;
+        case "king_stay":
+          if (data.area_size_unit) {
+            formData.append("area_size_unit", data.area_size_unit);
+          }
+          if (data.area_length !== undefined) {
+            formData.append("area_length", data.area_length.toString());
+          }
+          if (data.area_width !== undefined) {
+            formData.append("area_width", data.area_width.toString());
+          }
+          if (data.guest_favourites) {
+            formData.append("guest_favourites", data.guest_favourites);
+          }
+          break;
+        default:
+          if (data.site_size !== undefined) {
+            formData.append("site_size", data.site_size.toString());
+          }
+          if (data.type_of_bed) {
+            formData.append("type_of_bed", data.type_of_bed);
+          }
+          if (data.capacity_description) {
+            formData.append("capacity_description", data.capacity_description);
+          }
+          break;
       }
 
       const response = (await apiFormDataWrapper(
@@ -315,6 +336,7 @@ export default function SiteCapacityForm({
       }
 
       if (onSuccess) onSuccess();
+      setDataSent(true);
     } catch (error) {
       console.error("Error submitting form:", error);
     }
@@ -325,8 +347,6 @@ export default function SiteCapacityForm({
     const isValid = await handleSubmit(onSubmit)();
     return isValid;
   };
-
-  const [areaSizeType, setAreaSizeType] = useState<"Meters" | "Feets">("Feets");
 
   const getCapacityForm = () => {
     switch (accommodationType) {
@@ -341,8 +361,8 @@ export default function SiteCapacityForm({
                   </span>
                 }
                 type="number"
-                {...register("siteSize", { valueAsNumber: true })}
-                error={errors.siteSize?.message}
+                {...register("maximum_occupancy", { valueAsNumber: true })}
+                error={errors.maximum_occupancy?.message || undefined}
               />
 
               <GlobalTextInput
@@ -351,8 +371,8 @@ export default function SiteCapacityForm({
                     Type of Bed<span className="text-red-500">*</span>
                   </span>
                 }
-                {...register("typeOfBed")}
-                error={errors.typeOfBed?.message}
+                {...register("type_of_bed")}
+                error={errors.type_of_bed?.message || undefined}
               />
             </div>
 
@@ -362,8 +382,8 @@ export default function SiteCapacityForm({
                   Capacity Description<span className="text-red-500">*</span>
                 </span>
               }
-              {...register("capacityDescription")}
-              error={errors.capacityDescription?.message}
+              {...register("capacity_description")}
+              error={errors.capacity_description?.message || undefined}
             />
           </>
         );
@@ -379,16 +399,27 @@ export default function SiteCapacityForm({
                   </span>
                 }
                 type="text"
-                {...register("siteSize")}
-                error={errors.siteSize?.message}
+                {...register("room_size")}
+                error={errors.room_size?.message || undefined}
               />
-              <GlobalSelect label={"Bed Types"} className="w-full">
-                <option value="">Select Bed Type</option>
-                <option value="single">Single Bed</option>
-                <option value="double">King Size</option>
-                <option value="queen">Queen Size</option>
-                <option value="king">Bunk Bed</option>
-              </GlobalSelect>
+              <Controller
+                name="bed_type"
+                control={control}
+                render={({ field }) => (
+                  <GlobalSelect
+                    label={"Bed Types"}
+                    className="w-full"
+                    {...field}
+                    error={errors.bed_type?.message || undefined}
+                  >
+                    <option value="">Select Bed Type</option>
+                    <option value="single">Single Bed</option>
+                    <option value="double">King Size</option>
+                    <option value="queen">Queen Size</option>
+                    <option value="king">Bunk Bed</option>
+                  </GlobalSelect>
+                )}
+              />
               <GlobalTextInput
                 label={
                   <span>
@@ -396,8 +427,8 @@ export default function SiteCapacityForm({
                   </span>
                 }
                 type="number"
-                //  {...register("bed_types")}
-                //  error={errors.bed_types?.message}
+                {...register("number_of_beds", { valueAsNumber: true })}
+                error={errors.number_of_beds?.message || undefined}
               />
               <div className="flex items-baseline gap-2 w-full ">
                 <label
@@ -406,12 +437,18 @@ export default function SiteCapacityForm({
                 >
                   Number of Bathrooms
                 </label>
-                <GlobalInputStepper
-                  placeholder="Enter a value"
-                  value={0}
-                  onChange={() => {}}
-                  max={10}
-                  min={1}
+                <Controller
+                  name="number_of_bathrooms"
+                  control={control}
+                  render={({ field }) => (
+                    <GlobalInputStepper
+                      placeholder="Enter a value"
+                      value={field.value || 1}
+                      onChange={(value) => field.onChange(value)}
+                      max={10}
+                      min={1}
+                    />
+                  )}
                 />
               </div>
             </div>
@@ -421,92 +458,29 @@ export default function SiteCapacityForm({
         return (
           <>
             <div className="w-full md:max-w-[70%] lg:max-w-[50%]">
-              {/* <GlobalSelect
-                label={
-                  <span>
-                    Area Size<span className="text-red-500">*</span>
-                  </span>
-                }
-              >
-                <option value="">Select Area Size</option>
-                <option value="inches">Inches</option>
-                <option value="centimeters">Centimeters</option>
-                <option value="meters">Meters</option>
-                <option value="feets">Feets</option>
-              </GlobalSelect> */}
               <div className="mt-4">
                 <label
                   htmlFor="how_many_sites"
                   className="text-[#1C231F] text-[14px] font-medium"
                 >
-                  What’s the total sleeping capacity in terms of persons per
+                  What's the total sleeping capacity in terms of persons per
                   site?
                 </label>
                 <div className="mt-2">
-                  <GlobalInputStepper
-                    placeholder="Capacity"
-                    value={0}
-                    onChange={() => {}}
-                    className="max-w-[260px]"
+                  <Controller
+                    name="sleeping_capacity"
+                    control={control}
+                    render={({ field }) => (
+                      <GlobalInputStepper
+                        placeholder="Capacity"
+                        value={field.value || 0}
+                        onChange={(value) => field.onChange(value)}
+                        className="max-w-[260px]"
+                      />
+                    )}
                   />
                 </div>
               </div>
-              {/* <div className="mt-4">
-                <label
-                  htmlFor="how_many_sites"
-                  className="text-[#1C231F] text-[14px] font-medium"
-                >
-                  What’s the total sleeping capacity in terms of persons per
-                  site?
-                </label>
-                <div className="mt-2">
-                  <GlobalInputStepper
-                    placeholder="Capacity"
-                    value={0}
-                    onChange={() => {}}
-                    className="max-w-[260px]"
-                  />
-                </div>
-              </div>
-              <div className="mt-4">
-                <label
-                  htmlFor="how_many_sites"
-                  className="text-[#1C231F] text-[14px] font-medium"
-                >
-                  Could you tell us how many bathrooms are available?
-                </label>
-                <div className="mt-2">
-                  <GlobalInputStepper
-                    placeholder="Capacity"
-                    value={0}
-                    onChange={() => {}}
-                    className="max-w-[260px]"
-                  />
-                </div>
-              </div>
-              <div className="mt-4">
-                <label
-                  htmlFor="how_many_sites"
-                  className="text-[#1C231F] text-[14px] font-medium"
-                >
-                  Do guests get a designated spot, or can they pick where to
-                  stay?
-                </label>
-                <div className="mt-2 flex items-center gap-2">
-                  <div
-                    // onClick={() => setValue("", [""])}
-                    className={`py-2 px-6 text-[12px] text-black font-[600] border rounded-[5px] cursor-pointer border-[#848484]`}
-                  >
-                    Non-Designated camping
-                  </div>
-                  <div
-                    // onClick={() => setValue("", [""])}
-                    className={`py-2 px-6 text-[12px] text-black font-[600] border rounded-[5px] cursor-pointer border-[#848484]`}
-                  >
-                    Designated spot
-                  </div>
-                </div>
-              </div> */}
             </div>
           </>
         );
@@ -522,18 +496,24 @@ export default function SiteCapacityForm({
                   >
                     Does this site have level ground?
                   </label>
-                  <GlobalRadioGroup
-                    options={[
-                      { label: "Yes", value: "yes" },
-                      { label: "No", value: "no" },
-                      {
-                        label: "RV requires levelling",
-                        value: "rv_requires_levelling",
-                      },
-                    ]}
-                    value={"yes"}
-                    onChange={() => {}}
+                  <Controller
                     name="level_ground"
+                    control={control}
+                    render={({ field }) => (
+                      <GlobalRadioGroup
+                        options={[
+                          { label: "Yes", value: "yes" },
+                          { label: "No", value: "no" },
+                          {
+                            label: "RV requires levelling",
+                            value: "rv_requires_levelling",
+                          },
+                        ]}
+                        value={field.value || ""}
+                        onChange={field.onChange}
+                        name="level_ground"
+                      />
+                    )}
                   />
                 </div>
                 <div className="mt-4">
@@ -543,18 +523,24 @@ export default function SiteCapacityForm({
                   >
                     How do guests access this site?
                   </label>
-                  <GlobalRadioGroup
-                    options={[
-                      { label: "Pull in", value: "pull_in" },
-                      { label: "Pull through", value: "pull_through" },
-                      {
-                        label: "Back in",
-                        value: "back_in",
-                      },
-                    ]}
-                    value={"back_in"}
-                    onChange={() => {}}
-                    name="level_ground"
+                  <Controller
+                    name="access_method"
+                    control={control}
+                    render={({ field }) => (
+                      <GlobalRadioGroup
+                        options={[
+                          { label: "Pull in", value: "pull_in" },
+                          { label: "Pull through", value: "pull_through" },
+                          {
+                            label: "Back in",
+                            value: "back_in",
+                          },
+                        ]}
+                        value={field.value || ""}
+                        onChange={field.onChange}
+                        name="access_method"
+                      />
+                    )}
                   />
                 </div>
                 <div className="mt-4">
@@ -564,14 +550,20 @@ export default function SiteCapacityForm({
                   >
                     Can this site accommodate RV Slidesouts?
                   </label>
-                  <GlobalRadioGroup
-                    options={[
-                      { label: "Yes", value: "yes" },
-                      { label: "No", value: "no" },
-                    ]}
-                    value={""}
-                    onChange={() => {}}
-                    name="level_ground"
+                  <Controller
+                    name="rv_slidesouts"
+                    control={control}
+                    render={({ field }) => (
+                      <GlobalRadioGroup
+                        options={[
+                          { label: "Yes", value: "yes" },
+                          { label: "No", value: "no" },
+                        ]}
+                        value={field.value || ""}
+                        onChange={field.onChange}
+                        name="rv_slidesouts"
+                      />
+                    )}
                   />
                 </div>
               </div>
@@ -591,11 +583,14 @@ export default function SiteCapacityForm({
                       { label: "Dirt", value: "dirt" },
                     ].map((item, i) => (
                       <label
+                        key={i}
                         className={`flex items-center gap-2 cursor-pointer text-[12px] md:text-[14px]`}
                       >
                         <input
                           type="radio"
-                          className="accent-blue-600 w-4 h-4"
+                          className="accent-[#275BD3] w-4 h-4"
+                          {...register("ground_surface")}
+                          value={item.value}
                         />
                         {item.label}
                       </label>
@@ -606,13 +601,16 @@ export default function SiteCapacityForm({
                       >
                         <input
                           type="radio"
-                          className="accent-blue-600 w-4 h-4"
+                          className="accent-[#275BD3] w-4 h-4"
+                          {...register("ground_surface")}
+                          value="other"
                         />
                         Other
                       </label>
                       <input
                         type="text"
                         className="border border-[#ADADAD6E] rounded outline-0 px-2"
+                        {...register("ground_surface_other")}
                       />
                     </div>
                   </div>
@@ -637,11 +635,14 @@ export default function SiteCapacityForm({
                       { label: "Car", value: "car" },
                     ].map((item, i) => (
                       <label
+                        key={i}
                         className={`flex items-center gap-2 cursor-pointer text-[12px] md:text-[14px]`}
                       >
                         <input
                           type="checkbox"
-                          className="accent-blue-600 w-4 h-4"
+                          className="accent-[#275BD3] w-4 h-4"
+                          {...register("rv_types")}
+                          value={item.value}
                         />
                         {item.label}
                       </label>
@@ -652,13 +653,16 @@ export default function SiteCapacityForm({
                       >
                         <input
                           type="checkbox"
-                          className="accent-blue-600 w-4 h-4"
+                          className="accent-[#275BD3] w-4 h-4"
+                          {...register("rv_types")}
+                          value="other"
                         />
                         Other
                       </label>
                       <input
                         type="text"
                         className="border border-[#ADADAD6E] rounded outline-0 px-2"
+                        {...register("rv_types_other")}
                       />
                     </div>
                   </div>
@@ -677,6 +681,8 @@ export default function SiteCapacityForm({
                   label="RV length"
                   type="number"
                   className="-mt-2"
+                  {...register("max_rv_length", { valueAsNumber: true })}
+                  error={errors.max_rv_length?.message || undefined}
                 />
               </div>
               <div>
@@ -690,6 +696,8 @@ export default function SiteCapacityForm({
                   label="RV Width"
                   type="number"
                   className="-mt-2"
+                  {...register("max_rv_width", { valueAsNumber: true })}
+                  error={errors.max_rv_width?.message || undefined}
                 />
               </div>
               <div>
@@ -701,14 +709,16 @@ export default function SiteCapacityForm({
                 </label>
                 <GlobalTextInput
                   label="Turning Radius / Clearance Warnings"
-                  type="number"
+                  type="text"
                   className="-mt-2"
+                  {...register("turning_radius_warnings")}
+                  error={errors.turning_radius_warnings?.message || undefined}
                 />
               </div>
             </div>
           </div>
         );
-      case "king_size_bed":
+      case "king_stay":
         return (
           <div>
             <label className="text-[12px] md:text-[14px] text-[#1C231F] font-bold mb-3 block">
@@ -717,7 +727,10 @@ export default function SiteCapacityForm({
             <div className="">
               <div className="flex items-center gap-2">
                 <div
-                  onClick={() => setAreaSizeType("Meters")}
+                  onClick={() => {
+                    setAreaSizeType("Meters");
+                    setValue("area_size_unit", "Meters");
+                  }}
                   className={`py-2 px-6 text-[12px] text-[#1C231F] font-[600] border rounded-[5px] cursor-pointer ${
                     areaSizeType === "Meters"
                       ? "bg-[#237AFC] text-white border-[237AFC]"
@@ -727,7 +740,10 @@ export default function SiteCapacityForm({
                   Meters
                 </div>
                 <div
-                  onClick={() => setAreaSizeType("Feets")}
+                  onClick={() => {
+                    setAreaSizeType("Feets");
+                    setValue("area_size_unit", "Feets");
+                  }}
                   className={`py-2 px-6 text-[12px] text-[#1C231F] font-[600] border rounded-[5px] cursor-pointer ${
                     areaSizeType === "Feets"
                       ? "bg-[#237AFC] text-white border-[#237AFC]"
@@ -738,16 +754,36 @@ export default function SiteCapacityForm({
                 </div>
               </div>
               <div className="mt-2 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
-                <GlobalTextInput label={areaSizeType} type="number" />
-                <GlobalTextInput label="Enter length" type="number" />
-                <GlobalTextInput label="Enter width" type="number" />
+                <GlobalTextInput
+                  label={areaSizeType}
+                  type="number"
+                  {...register("area_length", { valueAsNumber: true })}
+                  error={errors.area_length?.message || undefined}
+                />
+                <GlobalTextInput
+                  label="Enter length"
+                  type="number"
+                  {...register("area_length", { valueAsNumber: true })}
+                  error={errors.area_length?.message || undefined}
+                />
+                <GlobalTextInput
+                  label="Enter width"
+                  type="number"
+                  {...register("area_width", { valueAsNumber: true })}
+                  error={errors.area_width?.message || undefined}
+                />
               </div>
             </div>
             <div className="mt-4">
               <label className="text-[12px] md:text-[14px] text-[#1C231F] font-bold  block">
                 Tell us about guest favourites?
               </label>
-              <GlobalTextArea label="Lodging Room/Cabin" className="" />
+              <GlobalTextArea
+                label="Lodging Room/Cabin"
+                className=""
+                {...register("guest_favourites")}
+                error={errors.guest_favourites?.message || undefined}
+              />
             </div>
           </div>
         );
@@ -762,8 +798,8 @@ export default function SiteCapacityForm({
                   </span>
                 }
                 type="number"
-                {...register("siteSize", { valueAsNumber: true })}
-                error={errors.siteSize?.message}
+                {...register("site_size", { valueAsNumber: true })}
+                error={errors.site_size?.message || undefined}
               />
 
               <GlobalTextInput
@@ -772,8 +808,8 @@ export default function SiteCapacityForm({
                     Type of Bed<span className="text-red-500">*</span>
                   </span>
                 }
-                {...register("typeOfBed")}
-                error={errors.typeOfBed?.message}
+                {...register("type_of_bed")}
+                error={errors.type_of_bed?.message || undefined}
               />
             </div>
 
@@ -783,8 +819,8 @@ export default function SiteCapacityForm({
                   Capacity Description<span className="text-red-500">*</span>
                 </span>
               }
-              {...register("capacityDescription")}
-              error={errors.capacityDescription?.message}
+              {...register("capacity_description")}
+              error={errors.capacity_description?.message || undefined}
             />
           </>
         );
@@ -798,10 +834,6 @@ export default function SiteCapacityForm({
       </h4>
       <div className="mt-4">
         <div className="border border-[#E1E1E1] bg-white p-2 md:p-4 rounded-[7px]">
-          {/* <p className="text-[12px] md:text-[14px] text-[#1C231F] font-bold">
-            What is the capacity and details of this site?
-          </p> */}
-
           {getCapacityForm()}
 
           {/* Submit Button */}
@@ -810,9 +842,17 @@ export default function SiteCapacityForm({
               type="button"
               onClick={handleSaveClick}
               disabled={isSubmitting}
-              className="bg-[#237AFC] w-[158px] mt-2 h-[35px] font-[500] text-[14px] text-white px-4 md:px-10 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className={` w-[158px] mt-2 h-[35px] font-[500] text-[14px] text-white px-4 md:px-10 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors ${
+                dataSent ? "bg-[#237AFC]" : "bg-[#BABBBC]"
+              }`}
             >
-              {isSubmitting ? "Saving..." : isEditMode ? "Update" : "Save"}
+              {dataSent
+                ? "Saved"
+                : isSubmitting
+                ? "Saving..."
+                : isEditMode
+                ? "Update"
+                : "Save"}
             </button>
           </div>
         </div>

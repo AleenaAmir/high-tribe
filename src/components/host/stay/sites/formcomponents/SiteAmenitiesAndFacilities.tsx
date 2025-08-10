@@ -238,6 +238,7 @@ export default function SiteAmenitiesAndFacilities({
   const [custombathroom_options, setCustombathroom_options] = useState<
     string[]
   >([]);
+  const [dataSent, setDataSent] = useState(false);
   // Sleeping options selected per category when accommodation_type is king_stay
   const [selectedSleepingByCategory, setSelectedSleepingByCategory] = useState<
     Record<string, string[]>
@@ -271,17 +272,129 @@ export default function SiteAmenitiesAndFacilities({
   // Populate form data when siteData is available in edit mode
   useEffect(() => {
     if (isEditMode && siteData?.amenities) {
+      console.log("Edit mode - siteData received:", siteData);
+      console.log("Amenities data:", siteData.amenities);
+      // Separate standard options from custom values
+      const standardAmenities =
+        siteData.amenities.amenities?.filter((item: string) =>
+          amenitiesOptions.includes(item)
+        ) || [];
+      const customAmenitiesData =
+        siteData.amenities.amenities?.filter(
+          (item: string) => !amenitiesOptions.includes(item)
+        ) || [];
+
+      const standardFacilities =
+        siteData.amenities.facilities?.filter((item: string) =>
+          facilitiesOptions.includes(item)
+        ) || [];
+      const customFacilitiesData =
+        siteData.amenities.facilities?.filter(
+          (item: string) => !facilitiesOptions.includes(item)
+        ) || [];
+
+      const standardSafetyItems =
+        siteData.amenities.safety_items?.filter((item: string) =>
+          safetyItemsOptions.includes(item)
+        ) || [];
+      const customSafetyItemsData =
+        siteData.amenities.safety_items?.filter(
+          (item: string) => !safetyItemsOptions.includes(item)
+        ) || [];
+
+      const standardBathroomOptions =
+        siteData.amenities.bathroom_options?.filter((item: string) =>
+          bathroom_options.includes(item)
+        ) || [];
+      const customBathroomOptionsData =
+        siteData.amenities.bathroom_options?.filter(
+          (item: string) => !bathroom_options.includes(item)
+        ) || [];
+
+      // Set custom values
+      setCustomAmenities(customAmenitiesData);
+      setCustomFacilities(customFacilitiesData);
+      setCustomSafetyItems(customSafetyItemsData);
+      setCustombathroom_options(customBathroomOptionsData);
+
+      // Add "Other" option if there are custom values
+      const amenitiesWithOther =
+        customAmenitiesData.length > 0
+          ? [...standardAmenities, "Other"]
+          : standardAmenities;
+      const facilitiesWithOther =
+        customFacilitiesData.length > 0
+          ? [...standardFacilities, "Other"]
+          : standardFacilities;
+      const safetyItemsWithOther =
+        customSafetyItemsData.length > 0
+          ? [...standardSafetyItems, "Other"]
+          : standardSafetyItems;
+
       reset({
-        amenities: siteData.amenities.amenities || [],
-        facilities: siteData.amenities.facilities || [],
-        safety_items: siteData.amenities.safety_items || [],
+        amenities: amenitiesWithOther,
+        facilities: facilitiesWithOther,
+        safety_items: safetyItemsWithOther,
         pet_policy: siteData.amenities.pet_policy,
         amenitiesOther: "",
         facilitiesOther: "",
         bathroom_options: siteData.amenities.bathroom_options || [],
+        accept_booking_with_children:
+          siteData.amenities.accept_booking_with_children === "1"
+            ? "yes"
+            : siteData.amenities.accept_booking_with_children === "0"
+            ? "no"
+            : siteData.amenities.accept_booking_with_children,
+        sewage_hookup:
+          siteData.amenities.sewage_hookup === "1"
+            ? "yes"
+            : siteData.amenities.sewage_hookup === "0"
+            ? "no"
+            : siteData.amenities.sewage_hookup,
+        television_hookup:
+          siteData.amenities.television_hookup === "1"
+            ? "yes"
+            : siteData.amenities.television_hookup === "0"
+            ? "no"
+            : siteData.amenities.television_hookup,
+        generators_allowed:
+          siteData.amenities.generators_allowed === "1"
+            ? "yes"
+            : siteData.amenities.generators_allowed === "0"
+            ? "no"
+            : siteData.amenities.generators_allowed,
+        electricity_hookup:
+          siteData.amenities.electricity_hookup === "1"
+            ? "yes"
+            : siteData.amenities.electricity_hookup === "0"
+            ? "no"
+            : siteData.amenities.electricity_hookup,
+        water_hookup:
+          siteData.amenities.water_hookup === "1"
+            ? "yes"
+            : siteData.amenities.water_hookup === "0"
+            ? "no"
+            : siteData.amenities.water_hookup,
       });
+
+      // Populate sleeping options for king_stay
+      if (
+        accommodationType === "king_stay" &&
+        siteData.amenities.sleeping_options
+      ) {
+        const sleepingByCategory: Record<string, string[]> = {};
+        siteData.amenities.sleeping_options.forEach((option: any) => {
+          if (option.category && option.option_key) {
+            if (!sleepingByCategory[option.category]) {
+              sleepingByCategory[option.category] = [];
+            }
+            sleepingByCategory[option.category].push(option.option_key);
+          }
+        });
+        setSelectedSleepingByCategory(sleepingByCategory);
+      }
     }
-  }, [siteData, isEditMode, reset]);
+  }, [siteData, isEditMode, reset, accommodationType]);
 
   const watchedAmenities = watch("amenities");
   const watchedFacilities = watch("facilities");
@@ -402,6 +515,7 @@ export default function SiteAmenitiesAndFacilities({
       if (onSuccess) {
         onSuccess();
       }
+      setDataSent(true);
     } catch (error) {
       console.error("Error submitting form:", error);
     }
@@ -698,9 +812,17 @@ export default function SiteAmenitiesAndFacilities({
                 !watchedAmenities.length ||
                 !watchedFacilities.length
               }
-              className="bg-[#237AFC] disabled:bg-[#BABBBC] w-[158px] mt-2 h-[35px] font-[500] text-[14px] text-white px-4 md:px-10 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className={` w-[158px] mt-2 h-[35px] font-[500] text-[14px] text-white px-4 md:px-10 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors ${
+                dataSent ? "bg-[#237AFC]" : "bg-[#BABBBC]"
+              }`}
             >
-              {isSubmitting ? "Saving..." : isEditMode ? "Update" : "Save"}
+              {dataSent
+                ? "Saved"
+                : isSubmitting
+                ? "Saving..."
+                : isEditMode
+                ? "Update"
+                : "Save"}
             </button>
           </div>
         </div>

@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -89,6 +89,7 @@ export default function SitesPolicyForm({
   siteData?: any;
   isEditMode?: boolean;
 }) {
+  const [dataSent, setDataSent] = useState(false);
   const {
     register,
     handleSubmit,
@@ -194,6 +195,7 @@ export default function SitesPolicyForm({
 
       console.log("Policies saved:", response.data);
       onSuccess?.();
+      setDataSent(true);
     } catch (error) {
       console.error("Error submitting policies:", error);
       // Error handling via apiFormDataWrapper
@@ -218,7 +220,7 @@ export default function SitesPolicyForm({
               >
                 <input
                   type="radio"
-                  className="accent-blue-600 w-4 h-4"
+                  className="accent-[#275BD3] w-4 h-4"
                   checked
                   readOnly
                 />
@@ -241,7 +243,7 @@ export default function SitesPolicyForm({
               >
                 <input
                   type="radio"
-                  className="accent-blue-600 w-4 h-4"
+                  className="accent-[#275BD3] w-4 h-4"
                   checked
                   readOnly
                 />
@@ -280,7 +282,7 @@ export default function SitesPolicyForm({
               >
                 <input
                   type="radio"
-                  className="accent-blue-600 w-4 h-4"
+                  className="accent-[#275BD3] w-4 h-4"
                   checked
                   readOnly
                 />
@@ -306,7 +308,7 @@ export default function SitesPolicyForm({
             >
               <input
                 type="checkbox"
-                className="accent-blue-600 w-4 h-4 "
+                className="accent-[#275BD3] w-4 h-4 "
                 checked={!!noFreeCancellation}
                 onChange={(e) =>
                   setValue("noFreeCancellation", e.target.checked, {
@@ -410,9 +412,17 @@ export default function SitesPolicyForm({
               onClick={() => {
                 handleSubmit(onSubmit)();
               }}
-              className="bg-[#237AFC] w-[158px] mt-2 h-[35px] font-[500] text-[14px] text-white px-4 md:px-10 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className={` w-[158px] mt-2 h-[35px] font-[500] text-[14px] text-white px-4 md:px-10 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors ${
+                dataSent ? "bg-[#237AFC]" : "bg-[#BABBBC]"
+              }`}
             >
-              {isSubmitting ? "Saving..." : isEditMode ? "Update" : "Save"}
+              {dataSent
+                ? "Saved"
+                : isSubmitting
+                ? "Saving..."
+                : isEditMode
+                ? "Update"
+                : "Save"}
             </button>
           </div>
         </div>

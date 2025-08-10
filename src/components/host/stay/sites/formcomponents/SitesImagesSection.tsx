@@ -40,7 +40,7 @@ export default function SitesImagesSection({
   const [existingImages, setExistingImages] = useState<any[]>([]);
   const [existingCoverImage, setExistingCoverImage] = useState<any>(null);
   const [existingVideo, setExistingVideo] = useState<any>(null);
-
+  const [dataSent, setDataSent] = useState(false);
   // React Hook Form setup
   const {
     register,
@@ -196,6 +196,7 @@ export default function SitesImagesSection({
       if (onSuccess) {
         onSuccess();
       }
+      setDataSent(true);
     } catch (error) {
       console.error("Network error:", error);
       toast.error("Something went wrong while submitting.");
@@ -539,9 +540,17 @@ export default function SitesImagesSection({
               type="button"
               onClick={handleSaveClick}
               disabled={isSubmitting}
-              className="bg-[#237AFC] w-[158px] mt-2 h-[35px] font-[500] text-[14px] text-white px-4 md:px-10 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className={` w-[158px] mt-2 h-[35px] font-[500] text-[14px] text-white px-4 md:px-10 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors ${
+                dataSent ? "bg-[#237AFC]" : "bg-[#BABBBC]"
+              }`}
             >
-              {isSubmitting ? "Saving..." : isEditMode ? "Update" : "Save"}
+              {dataSent
+                ? "Saved"
+                : isSubmitting
+                ? "Saving..."
+                : isEditMode
+                ? "Update"
+                : "Save"}
             </button>
           </div>
         </div>

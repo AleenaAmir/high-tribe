@@ -375,6 +375,8 @@ const PropertyForm: React.FC<PropertyFormProps> = ({
   }, [formData.languages, clearErrors]);
 
   // Custom location validation
+  const [locationTouched, setLocationTouched] = useState(false);
+
   const getLocationError = () => {
     const hasAddress =
       formData.location_address && formData.location_address.trim() !== "";
@@ -387,7 +389,7 @@ const PropertyForm: React.FC<PropertyFormProps> = ({
     return null;
   };
 
-  const locationError = getLocationError();
+  const locationError = locationTouched ? getLocationError() : null;
 
   // Section refs for scrolling
   const locationRef = useRef<HTMLDivElement>(null);
@@ -964,7 +966,7 @@ const PropertyForm: React.FC<PropertyFormProps> = ({
                     ))}
 
                     {/* Upload image button */}
-                    <div className="aspect-square p-4 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-gray-400 transition-colors">
+                    <div className="">
                       <input
                         type="file"
                         accept="image/*"
@@ -976,9 +978,10 @@ const PropertyForm: React.FC<PropertyFormProps> = ({
                         className="hidden"
                         id="image-upload"
                       />
+
                       <label
                         htmlFor="image-upload"
-                        className="cursor-pointer flex flex-col items-center"
+                        className=" aspect-square p-4 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-gray-400 transition-colors"
                       >
                         <span className="text-[#464444] text-4xl font-bold mb-1">
                           +
@@ -1065,7 +1068,7 @@ const PropertyForm: React.FC<PropertyFormProps> = ({
                         </div>
                       </div>
                     ) : (
-                      <div className="aspect-video border-2 p-4 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-gray-400 transition-colors">
+                      <div className="">
                         <input
                           type="file"
                           accept="video/*"
@@ -1080,7 +1083,7 @@ const PropertyForm: React.FC<PropertyFormProps> = ({
                         />
                         <label
                           htmlFor="video-upload"
-                          className="cursor-pointer flex flex-col items-center"
+                          className="aspect-video border-2 p-4 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-gray-400 transition-colors"
                         >
                           <span className="text-[#464444] text-4xl font-bold mb-1">
                             +
@@ -1162,7 +1165,7 @@ const PropertyForm: React.FC<PropertyFormProps> = ({
                         </div>
                       </div>
                     ) : (
-                      <div className="aspect-video border-2 p-4 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-gray-400 transition-colors">
+                      <div className="">
                         <input
                           type="file"
                           accept="image/*"
@@ -1177,7 +1180,7 @@ const PropertyForm: React.FC<PropertyFormProps> = ({
                         />
                         <label
                           htmlFor="cover-upload"
-                          className="cursor-pointer flex flex-col items-center"
+                          className="aspect-video border-2 p-4 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-gray-400 transition-colors"
                         >
                           <span className="text-[#464444] text-4xl font-bold mb-1">
                             +

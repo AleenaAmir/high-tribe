@@ -55,7 +55,7 @@ const GlobalCheckboxGroup: React.FC<GlobalCheckboxGroupProps> = ({
               value={option.value}
               checked={value.includes(option.value)}
               onChange={() => handleChange(option.value)}
-              className="accent-blue-600 w-4 h-4"
+              className="accent-[#275BD3] w-4 h-4"
             />
             {option.label}
           </label>

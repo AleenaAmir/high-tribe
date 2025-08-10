@@ -290,7 +290,12 @@ const SitesFormUpdated: React.FC<{ siteEdit?: string }> = ({ siteEdit }) => {
         try {
           const url = new URL(window.location.href);
           // List of params to remove
-          const paramsToRemove = ["sitepreview", "siteId", "siteEdit"];
+          const paramsToRemove = [
+            "sitepreview",
+            "siteId",
+            "siteEdit",
+            "showSiteForm",
+          ];
           paramsToRemove.forEach((param) => url.searchParams.delete(param));
           window.history.replaceState({}, "", url.toString());
         } catch (error) {

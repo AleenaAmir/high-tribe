@@ -283,7 +283,7 @@ export default function SiteOverViewForm({
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
-
+  const [dataSent, setDataSent] = useState(false);
   // Build select options from enums when provided
   const accommodationOptions = useMemo(() => {
     if (!enums?.accommodation_types) return defaultAccommodationOptions;
@@ -459,6 +459,7 @@ export default function SiteOverViewForm({
       if (onSuccess) {
         onSuccess();
       }
+      setDataSent(true);
     } catch (error) {
       console.error("Error submitting form:", error);
       // Error handling is already done by apiFormDataWrapper
@@ -676,16 +677,17 @@ export default function SiteOverViewForm({
                 !watch("accommodation_type") ||
                 !watch("site_description")
               }
-              className={`w-[158px] mt-2 h-[35px] font-[500] text-[14px] text-white px-4 md:px-10 py-2 rounded-lg transition-colors ${
-                !watch("site_name") ||
-                !watch("accommodation_type") ||
-                !watch("site_description") ||
-                isSubmitting
-                  ? "bg-[#BABBBC] cursor-not-allowed"
-                  : "bg-[#237AFC] hover:bg-blue-700"
-              }`}
+              className={`w-[158px] mt-2 h-[35px] font-[500]  text-[14px] text-white px-4 md:px-10 py-2 rounded-lg transition-colors ${
+                isSubmitting ? " cursor-not-allowed" : ""
+              } ${dataSent ? "bg-[#237AFC]" : "bg-[#BABBBC]"}`}
             >
-              {isSubmitting ? "Saving..." : isEditMode ? "Update" : "Save"}
+              {dataSent
+                ? "Saved"
+                : isSubmitting
+                ? "Saving..."
+                : isEditMode
+                ? "Update"
+                : "Save"}
             </button>
           </div>
         </div>

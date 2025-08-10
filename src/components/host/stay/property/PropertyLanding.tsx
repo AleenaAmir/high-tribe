@@ -134,7 +134,11 @@ export default function PropertyLanding() {
 
         setHasMore(newProperties.length === pageSize);
       } catch (err: any) {
-        setError(err.message || "Failed to fetch properties");
+        setError(
+          (err.message === "Host profile not found."
+            ? "Create your host profile before adding a property."
+            : err.message) || "Failed to fetch properties"
+        );
       } finally {
         setLoading(false);
         setLoadingMore(false);
@@ -209,7 +213,7 @@ export default function PropertyLanding() {
       setProperties(
         properties.filter((property) => property.id !== propertyId)
       );
-      toast.error("Property deleted successfully");
+      toast.success("Property deleted successfully");
     } catch (error) {
       console.error("Failed to delete property:", error);
       // You might want to show a toast notification here
@@ -217,7 +221,7 @@ export default function PropertyLanding() {
   };
 
   // Placeholder image for properties without media
-  const defaultImage = "https://via.placeholder.com/150?text=No+Image";
+  const defaultImage = "https://placehold.co/400";
 
   // If showing sites for a specific property
   if (showSites && selectedPropertyId) {
@@ -314,6 +318,19 @@ export default function PropertyLanding() {
   }
 
   if (error) {
+    if (error === "Create your host profile before adding a property.") {
+      return (
+        <div className="text-center py-10 font-bold text-2xl flex flex-col items-center justify-center gap-4">
+          {error}
+          <button
+            className="text-white bg-[#237AFC] px-4 py-2 rounded-md cursor-pointer text-xl"
+            onClick={() => router.push("/host/create")}
+          >
+            Create Host Profile
+          </button>
+        </div>
+      );
+    }
     return <div className="text-center py-10 text-red-500">{error}</div>;
   }
 
@@ -331,12 +348,7 @@ export default function PropertyLanding() {
           <div
             key={item.id}
             className="bg-white rounded-[20px] shadow-md border border-gray-100 flex relative cursor-pointer"
-            onClick={() => {
-              // Only trigger if the click is not on interactive elements
-             
-                handlePropertyClick(item.id);
-             
-            }}
+            onClick={() => handlePropertyClick(item.id)}
           >
             {/* Left side - Image and Details */}
             <div className="flex flex-1 p-2">
@@ -373,53 +385,52 @@ export default function PropertyLanding() {
               </div>
             </div>
 
-                        <div className="flex flex-col justify-between items-end gap-1 p-2">
+            <div className="flex flex-col justify-between items-end gap-1 p-2">
               {/* Active Button as Dropdown */}
               <div onClick={(e) => e.stopPropagation()}>
-
-             
-              <Dropdown
-                btnClassName="dropdown"
-                button={
-                  <div  className={`flex items-center space-x-1 border rounded-full px-2 py-1 border-blue-600 ${
-                    item.status === "active" ? "bg-blue-100" : "bg-white"
-                  }`}>
-                    <span className="text-xs font-medium text-blue-600">
-                      Active
-                    </span>
-                    <svg
-                      className="w-3 h-3"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
+                <Dropdown
+                  btnClassName="dropdown"
+                  button={
+                    <div
+                      className={`flex items-center space-x-1 border rounded-full px-2 py-1 border-blue-600 ${
+                        item.status === "active" ? "bg-blue-100" : "bg-white"
+                      }`}
                     >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M19 9l-7 7-7-7"
-                      />
-                    </svg>
+                      <span className="text-xs font-medium text-blue-600">
+                        Active
+                      </span>
+                      <svg
+                        className="w-3 h-3"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M19 9l-7 7-7-7"
+                        />
+                      </svg>
+                    </div>
+                  }
+                >
+                  <div className="text-xs font-medium  min-w-[90px] w-full border border-[#848484] rounded-[5px]">
+                    <button
+                      onClick={() => {
+                        console.log("Set to Deactive for property:", item.id);
+                        // Here you would call API to update status to inactive
+                      }}
+                      className="block w-full text-left p-2 bg-white rounded-[5px] hover:bg-orange-100 hover:text-orange-600 cursor-pointer"
+                    >
+                      Deactive
+                    </button>
                   </div>
-                }
-              >
-                <div className="text-xs font-medium  min-w-[90px] w-full border border-[#848484] rounded-[5px]">
-                  <button
-                    onClick={() => {
-                      console.log("Set to Inactive for property:", item.id);
-                      // Here you would call API to update status to inactive
-                    }}
-                    className="block w-full text-left p-2 bg-white rounded-[5px] hover:bg-orange-100 hover:text-orange-600 cursor-pointer"
-                  >
-                    Inactive
-                  </button>
-                </div>
-              </Dropdown>
- </div>
-
+                </Dropdown>
+              </div>
 
               {/* Chat Icon */}
-              <div 
+              <div
                 className="w-6 h-6 flex items-center justify-center cursor-pointer hover:bg-gray-100 rounded"
                 onClick={(e) => e.stopPropagation()}
               >
@@ -441,49 +452,47 @@ export default function PropertyLanding() {
                 </svg>
               </div>
 
-                            {/* Add site button */}
-                   <div  onClick={(e) => e.stopPropagation()} className="" >
-
-                           <Dropdown
-                             btnClassName="dropdown"
-                placement="bottom-end"
-                button={
-                  <svg
-                    className="w-4 h-4 mr-1"
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                  >
-                    <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
-                  </svg>
-                }
-              >
-                <div className="min-w-[150px] w-full border border-[#848484] rounded-[5px] bg-white shadow-lg z-[9999]">
-                  <button
-                    onClick={() => {
-                      const params = new URLSearchParams(
-                        searchParams.toString()
-                      );
-                      params.set("property", "edit");
-                      params.set("propertyId", item.id.toString());
-                      router.push(`?${params.toString()}`);
-                    }}
-                    className="block w-full text-left p-2 bg-white rounded-[5px] hover:bg-[#f8f8f8] cursor-pointer transition-colors duration-200 "
-                  >
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => {
-                      setDeleteModal(true);
-                      // handleDeleteProperty(item.id);
-                    }}
-                    className="block w-full text-left p-2 bg-white rounded-[5px] hover:bg-red-200 hover:text-red-500 cursor-pointer transition-colors duration-200"
-                  >
-                    Delete
-                  </button>
-                </div>
-              </Dropdown>
- </div>
-
+              {/* Add site button */}
+              <div onClick={(e) => e.stopPropagation()} className="">
+                <Dropdown
+                  btnClassName="dropdown"
+                  placement="bottom-end"
+                  button={
+                    <svg
+                      className="w-4 h-4 mr-1"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
+                    </svg>
+                  }
+                >
+                  <div className="min-w-[150px] w-full border border-[#848484] rounded-[5px] bg-white shadow-lg z-[9999]">
+                    <button
+                      onClick={() => {
+                        const params = new URLSearchParams(
+                          searchParams.toString()
+                        );
+                        params.set("property", "edit");
+                        params.set("propertyId", item.id.toString());
+                        router.push(`?${params.toString()}`);
+                      }}
+                      className="block w-full text-left p-2 bg-white rounded-[5px] hover:bg-[#f8f8f8] cursor-pointer transition-colors duration-200 "
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => {
+                        setDeleteModal(true);
+                        // handleDeleteProperty(item.id);
+                      }}
+                      className="block w-full text-left p-2 bg-white rounded-[5px] hover:bg-red-200 hover:text-red-500 cursor-pointer transition-colors duration-200"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </Dropdown>
+              </div>
             </div>
             <GlobalModal
               isOpen={deleteModal}
