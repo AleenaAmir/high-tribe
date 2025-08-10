@@ -210,24 +210,41 @@ export default function PropertySites({
                     {site?.publish_status}
                   </p>
                   <div className="flex flex-col justify-between items-end gap-1 p-2">
-                    <div
-                      className={`flex items-center space-x-1 border rounded-full px-2 py-0.5 border-blue-600`}
-                    >
-                      <span className="text-[9px] font-medium">Active</span>
-                      <svg
-                        className="w-3 h-3"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M19 9l-7 7-7-7"
-                        />
-                      </svg>
-                    </div>
+                                         <Dropdown
+                       btnClassName="dropdown"
+                       button={
+                         <div className="flex items-center space-x-1 border rounded-full px-2 py-0.5 border-blue-600">
+                           <span className="text-[9px] font-medium text-blue-600">
+                             Active
+                           </span>
+                           <svg
+                             className="w-3 h-3"
+                             fill="none"
+                             stroke="currentColor"
+                             viewBox="0 0 24 24"
+                           >
+                             <path
+                               strokeLinecap="round"
+                               strokeLinejoin="round"
+                               strokeWidth={2}
+                               d="M19 9l-7 7-7-7"
+                             />
+                           </svg>
+                         </div>
+                       }
+                     >
+                       <div className="text-[9px] font-medium min-w-[90px] w-full border border-[#848484] rounded-[5px]">
+                         <button
+                           onClick={() => {
+                             console.log("Set site to inactive for site:", site.id);
+                             // Here you would call API to update site status to inactive
+                           }}
+                           className="block w-full text-left p-2 bg-white rounded-[5px] hover:bg-orange-100 hover:text-orange-600 cursor-pointer"
+                         >
+                           Inactive
+                         </button>
+                       </div>
+                     </Dropdown>
 
                     <div className="w-6 h-6 flex items-center justify-center">
                       <svg

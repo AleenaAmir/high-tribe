@@ -216,12 +216,6 @@ export default function PropertyLanding() {
     }
   };
 
-  const [propertyId, setPropertyId] = useState<number | null>(null);
-
-  const handleDeleteModal = (propertyId: number) => {
-    setDeleteModal(true);
-    setPropertyId(propertyId);
-  };
   // Placeholder image for properties without media
   const defaultImage = "https://via.placeholder.com/150?text=No+Image";
 
@@ -274,32 +268,22 @@ export default function PropertyLanding() {
               />
             </div>
             <div>
-              <h2 className="text-lg font-bold">
+              <h2 className="text-lg font-bold text-gray-900">
                 {selectedProperty?.property_name || "No Name"}
               </h2>
-              <p className="text-sm text-black">
+              <p className="text-sm text-gray-600">
                 {selectedProperty?.location_address || "No City"}
               </p>
-              <p className="text-sm text-black">
+              <p className="text-sm text-gray-500">
                 {selectedProperty?.short_description || "No Description"}
               </p>
             </div>
             <div className="ml-auto">
-              <Dropdown
-                button={
-                  <span
-                    className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800`}
-                  >
-                    Active
-                  </span>
-                }
+              <span
+                className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800`}
               >
-                <div className="min-w-[150px] w-full border border-[#848484] rounded-[5px]">
-                  <button className="block w-full text-left p-2 bg-white rounded-[5px] hover:bg-[#f8f8f8] cursor-pointer">
-                    inactive
-                  </button>
-                </div>
-              </Dropdown>
+                Active
+              </span>
             </div>
           </div>
         </div>
@@ -341,12 +325,18 @@ export default function PropertyLanding() {
     "https://via.placeholder.com/150?text=No+Image";
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 relative z-50">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 md:mt-10">
         {properties.map((item) => (
           <div
             key={item.id}
-            className="bg-white rounded-[20px] shadow-md border border-gray-100 flex relative  cursor-pointer hover:shadow-lg transition-shadow"
+            className="bg-white rounded-[20px] shadow-md border border-gray-100 flex relative cursor-pointer"
+            onClick={() => {
+              // Only trigger if the click is not on interactive elements
+             
+                handlePropertyClick(item.id);
+             
+            }}
           >
             {/* Left side - Image and Details */}
             <div className="flex flex-1 p-2">
@@ -361,30 +351,39 @@ export default function PropertyLanding() {
 
               {/* Details */}
               <div className="flex-1 min-w-0">
-                <button
-                  onClick={() => handlePropertyClick(item.id)}
-                  className="font-bold text-xs text-black truncate hover:underline cursor-pointer"
-                >
+                <div className="font-bold text-xs text-black truncate">
                   {item.property_name || "No Name"}
-                </button>
+                </div>
                 <p className="font-bold text-xs text-black">
                   {item.location_address || "No City"}
                 </p>
                 <p className="text-xs text-black font-medium whitespace-nowrap overflow-hidden truncate md:max-w-[150px] lg:max-w-[200px] xl:max-w-[300px]">
                   {item.short_description || "No Description"}
                 </p>
-                <p className="text-[10px] mt-1">
-                  {item.property_type || "No Date"}
+                <p className="text-[10px] font-medium  mt-1">
+                  {item.created_at
+                    ? new Date(item.created_at).toLocaleDateString("en-US", {
+                        weekday: "long",
+                        month: "short",
+                        day: "numeric",
+                        year: "numeric",
+                      })
+                    : "No Date"}
                 </p>
               </div>
             </div>
 
-            <div className="flex flex-col justify-between items-end gap-1 p-2">
+                        <div className="flex flex-col justify-between items-end gap-1 p-2">
+              {/* Active Button as Dropdown */}
+              <div onClick={(e) => e.stopPropagation()}>
+
+             
               <Dropdown
+                btnClassName="dropdown"
                 button={
-                  <div
-                    className={`flex items-center space-x-1 border rounded-full px-2 py-1 border-blue-600`}
-                  >
+                  <div  className={`flex items-center space-x-1 border rounded-full px-2 py-1 border-blue-600 ${
+                    item.status === "active" ? "bg-blue-100" : "bg-white"
+                  }`}>
                     <span className="text-xs font-medium text-blue-600">
                       Active
                     </span>
@@ -404,15 +403,26 @@ export default function PropertyLanding() {
                   </div>
                 }
               >
-                <div className="min-w-[80px] w-full border border-[#848484] rounded-[5px]">
-                  <button className="block w-full text-left text-xs p-2 bg-white rounded-[5px] hover:bg-[#f8f8f8] cursor-pointer">
-                    inactive
+                <div className="text-xs font-medium  min-w-[90px] w-full border border-[#848484] rounded-[5px]">
+                  <button
+                    onClick={() => {
+                      console.log("Set to Inactive for property:", item.id);
+                      // Here you would call API to update status to inactive
+                    }}
+                    className="block w-full text-left p-2 bg-white rounded-[5px] hover:bg-orange-100 hover:text-orange-600 cursor-pointer"
+                  >
+                    Inactive
                   </button>
                 </div>
               </Dropdown>
+ </div>
+
 
               {/* Chat Icon */}
-              <div className="w-6 h-6 flex items-center justify-center">
+              <div 
+                className="w-6 h-6 flex items-center justify-center cursor-pointer hover:bg-gray-100 rounded"
+                onClick={(e) => e.stopPropagation()}
+              >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   width="18"
@@ -431,8 +441,12 @@ export default function PropertyLanding() {
                 </svg>
               </div>
 
-              {/* Add site button */}
-              <Dropdown
+                            {/* Add site button */}
+                   <div  onClick={(e) => e.stopPropagation()} className="" >
+
+                           <Dropdown
+                             btnClassName="dropdown"
+                placement="bottom-end"
                 button={
                   <svg
                     className="w-4 h-4 mr-1"
@@ -443,7 +457,7 @@ export default function PropertyLanding() {
                   </svg>
                 }
               >
-                <div className="min-w-[150px] w-full border border-[#848484] rounded-[5px]">
+                <div className="min-w-[150px] w-full border border-[#848484] rounded-[5px] bg-white shadow-lg z-[9999]">
                   <button
                     onClick={() => {
                       const params = new URLSearchParams(
@@ -453,22 +467,52 @@ export default function PropertyLanding() {
                       params.set("propertyId", item.id.toString());
                       router.push(`?${params.toString()}`);
                     }}
-                    className="block w-full text-left p-2 bg-white rounded-[5px] hover:bg-[#f8f8f8] cursor-pointer"
+                    className="block w-full text-left p-2 bg-white rounded-[5px] hover:bg-[#f8f8f8] cursor-pointer transition-colors duration-200 "
                   >
                     Edit
                   </button>
                   <button
                     onClick={() => {
-                      // setDeleteModal(true);
-                      handleDeleteModal(item.id);
+                      setDeleteModal(true);
+                      // handleDeleteProperty(item.id);
                     }}
-                    className="block w-full text-left p-2 bg-white rounded-[5px] hover:bg-red-200 hover:text-red-500 cursor-pointer"
+                    className="block w-full text-left p-2 bg-white rounded-[5px] hover:bg-red-200 hover:text-red-500 cursor-pointer transition-colors duration-200"
                   >
                     Delete
                   </button>
                 </div>
               </Dropdown>
+ </div>
+
             </div>
+            <GlobalModal
+              isOpen={deleteModal}
+              onClose={() => setDeleteModal(false)}
+            >
+              <div className="text-center">
+                <h2 className="text-lg font-bold">Delete Property</h2>
+                <p className="text-sm text-gray-500">
+                  Are you sure you want to delete this property?
+                </p>
+              </div>
+              <div className="flex items-center justify-center mt-4 gap-2">
+                <button
+                  onClick={() => {
+                    handleDeleteProperty(item.id);
+                    setDeleteModal(false);
+                  }}
+                  className="bg-red-500 text-white px-4 py-2 rounded-md"
+                >
+                  Delete
+                </button>
+                <button
+                  onClick={() => setDeleteModal(false)}
+                  className="bg-gray-500 text-white px-4 py-2 rounded-md"
+                >
+                  Cancel
+                </button>
+              </div>
+            </GlobalModal>
 
             {/* Right side - Status strip and actions */}
             <div className="w-8 flex flex-col items-center justify-between py-4 bg-blue-500 rounded-r-[20px]"></div>
@@ -484,32 +528,6 @@ export default function PropertyLanding() {
           ))}
         </div>
       )}
-
-      <GlobalModal isOpen={deleteModal} onClose={() => setDeleteModal(false)}>
-        <div className="text-center">
-          <h2 className="text-lg font-bold">Delete Property</h2>
-          <p className="text-sm text-gray-500">
-            Are you sure you want to delete this property?
-          </p>
-        </div>
-        <div className="flex items-center justify-center mt-4 gap-2">
-          <button
-            onClick={() => {
-              handleDeleteProperty(propertyId as number);
-              setDeleteModal(false);
-            }}
-            className="bg-red-500 text-white px-4 py-2 rounded-md"
-          >
-            Delete
-          </button>
-          <button
-            onClick={() => setDeleteModal(false)}
-            className="bg-gray-500 text-white px-4 py-2 rounded-md"
-          >
-            Cancel
-          </button>
-        </div>
-      </GlobalModal>
 
       {/* Intersection observer target */}
       <div ref={loadingRef} className="h-4" />
