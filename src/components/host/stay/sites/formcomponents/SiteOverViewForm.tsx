@@ -357,7 +357,14 @@ export default function SiteOverViewForm({
         site_name: siteData.site_name || "",
         accommodation_type: siteData.accommodation_type || "",
         site_description: siteData.site_description || "",
+        camping_glamping_type: siteData.camping_glamping_type || "",
+        camping_option: siteData.camping_option || "",
+        campsite_type: siteData.campsite_type || "",
       });
+      // Inform parent about accommodation type for conditional sections
+      if (siteData.accommodation_type) {
+        setAccommodationType?.(siteData.accommodation_type);
+      }
     }
   }, [siteData, isEditMode, reset]);
 
@@ -366,12 +373,19 @@ export default function SiteOverViewForm({
   const selectedCampingOption = watch("camping_option");
   const selectedCampsiteType = watch("campsite_type");
 
-  // Clear irrelevant fields so we do not submit stale data when type changes
+  // Clear irrelevant fields when type actually changes (avoid clearing initial edit values)
+  const prevTypeRef = React.useRef<string | undefined>(undefined);
   useEffect(() => {
-    setValue("camping_glamping_type", "");
-    setValue("camping_option", "");
-    setValue("campsite_type", "");
-    setValue("high_lights", []);
+    if (
+      prevTypeRef.current !== undefined &&
+      prevTypeRef.current !== selectedAccommodationType
+    ) {
+      setValue("camping_glamping_type", "");
+      setValue("camping_option", "");
+      setValue("campsite_type", "");
+      setValue("high_lights", []);
+    }
+    prevTypeRef.current = selectedAccommodationType;
   }, [selectedAccommodationType, setValue]);
 
   useEffect(() => {

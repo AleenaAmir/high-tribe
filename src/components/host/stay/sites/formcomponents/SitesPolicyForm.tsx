@@ -16,12 +16,12 @@ const policySchema = z
     minNights: z
       .number({ invalid_type_error: "Enter minimum nights" })
       .int()
-      .min(1)
+      .min(0)
       .max(365),
     maxNights: z
       .number({ invalid_type_error: "Enter maximum nights" })
       .int()
-      .min(1)
+      .min(0)
       .max(365),
     freeCancellationDays: z
       .number({ invalid_type_error: "Enter days" })
@@ -37,6 +37,14 @@ const policySchema = z
     acceptBookingWithChildren: z.enum(["yes", "no"]),
     curfewInPlace: z.enum(["yes", "no"]),
     curfewHours: z.enum(["yes", "no"]),
+  })
+  .refine((data) => data.minNights > 0, {
+    path: ["minNights"],
+    message: "Please select minimum nights",
+  })
+  .refine((data) => data.maxNights > 0, {
+    path: ["maxNights"],
+    message: "Please select maximum nights",
   })
   .refine((data) => data.maxNights >= data.minNights, {
     path: ["maxNights"],
@@ -96,16 +104,17 @@ export default function SitesPolicyForm({
     watch,
     reset,
     setValue,
+    trigger,
     formState: { errors, isSubmitting },
   } = useForm<PolicyFormData>({
     resolver: zodResolver(policySchema),
     defaultValues: {
-      minNights: 1,
-      maxNights: 1,
-      freeCancellationDays: 1,
+      minNights: 0,
+      maxNights: 0,
+      freeCancellationDays: 0,
       noFreeCancellation: false,
-      checkInTime: "14:00",
-      checkOutTime: "11:00",
+      checkInTime: "",
+      checkOutTime: "",
       acceptBookingWithChildren: "yes",
       curfewInPlace: "no",
       curfewHours: "no",
@@ -114,21 +123,23 @@ export default function SitesPolicyForm({
 
   // Populate form data when siteData is available in edit mode
   useEffect(() => {
-    if (isEditMode && siteData?.policies) {
-      const p = siteData.policies;
+    if (isEditMode && siteData?.policy) {
+      const p = siteData.policy;
       reset({
-        minNights: p.min_nights ?? 1,
-        maxNights: p.max_nights ?? 1,
+        minNights: p.min_nights ?? 0,
+        maxNights: p.max_nights ?? 0,
         freeCancellationDays: p.free_cancellation_days_before_check_in ?? 0,
-        noFreeCancellation:
-          typeof p.free_cancellation_days_before_check_in !== "number" ||
-          p.free_cancellation_days_before_check_in === 0,
+        noFreeCancellation: !(
+          typeof p.free_cancellation_days_before_check_in === "number" &&
+          p.free_cancellation_days_before_check_in > 0
+        ),
         checkInTime: p.check_in_time || "14:00",
         checkOutTime: p.check_out_time || "11:00",
-        acceptBookingWithChildren:
-          p.accept_booking_with_children === 0 ? "no" : "yes",
-        curfewInPlace: p.curfew_in_place === 1 ? "yes" : "no",
-        curfewHours: p.curfew_hours ?? 0,
+        acceptBookingWithChildren: p.accept_booking_with_children
+          ? "yes"
+          : "no",
+        curfewInPlace: p.curfew_hours ? "yes" : "no",
+        curfewHours: p.curfew_hours ? "yes" : "no",
       });
     }
   }, [siteData, isEditMode, reset]);
@@ -137,6 +148,15 @@ export default function SitesPolicyForm({
   const acceptChildren = watch("acceptBookingWithChildren");
   const curfewInPlace = watch("curfewInPlace");
   const curfewHours = watch("curfewHours");
+  // Trigger validation when times change
+  const checkInTime = watch("checkInTime");
+  const checkOutTime = watch("checkOutTime");
+
+  useEffect(() => {
+    if (checkInTime && checkOutTime) {
+      trigger(["checkInTime", "checkOutTime"]);
+    }
+  }, [checkInTime, checkOutTime, trigger]);
 
   const onSubmit = async (data: PolicyFormData) => {
     try {
@@ -215,7 +235,7 @@ export default function SitesPolicyForm({
     const curfewHours = watch("curfewHours");
 
     // Check basic required fields
-    if (!minNights || minNights < 1 || !maxNights || maxNights < 1) {
+    if (!minNights || minNights <= 0 || !maxNights || maxNights <= 0) {
       return false;
     }
 
@@ -273,8 +293,10 @@ export default function SitesPolicyForm({
                 <input
                   type="radio"
                   className="accent-[#275BD3] w-4 h-4"
-                  checked
-                  readOnly
+                  checked={watch("minNights") > 0}
+                  onChange={() =>
+                    setValue("minNights", 1, { shouldValidate: true })
+                  }
                 />
                 Minimum Nights
               </label>
@@ -285,7 +307,7 @@ export default function SitesPolicyForm({
                   setValue("minNights", value, { shouldValidate: true })
                 }
                 className="max-w-[250px] w-full"
-                min={1}
+                min={0}
                 max={365}
               />
             </div>
@@ -296,8 +318,10 @@ export default function SitesPolicyForm({
                 <input
                   type="radio"
                   className="accent-[#275BD3] w-4 h-4"
-                  checked
-                  readOnly
+                  checked={watch("maxNights") > 0}
+                  onChange={() =>
+                    setValue("maxNights", 1, { shouldValidate: true })
+                  }
                 />
                 Maximum Nights
               </label>
@@ -308,10 +332,15 @@ export default function SitesPolicyForm({
                   setValue("maxNights", value, { shouldValidate: true })
                 }
                 className="max-w-[250px] w-full"
-                min={1}
+                min={0}
                 max={365}
               />
             </div>
+            {errors.minNights && (
+              <span className="text-xs text-red-500">
+                {errors.minNights.message}
+              </span>
+            )}
             {errors.maxNights && (
               <span className="text-xs text-red-500">
                 {errors.maxNights.message}
@@ -335,8 +364,18 @@ export default function SitesPolicyForm({
                 <input
                   type="radio"
                   className="accent-[#275BD3] w-4 h-4"
-                  checked
-                  readOnly
+                  checked={
+                    !noFreeCancellation &&
+                    (watch("freeCancellationDays") || 0) > 0
+                  }
+                  onChange={() => {
+                    setValue("noFreeCancellation", false, {
+                      shouldValidate: true,
+                    });
+                    setValue("freeCancellationDays", 1, {
+                      shouldValidate: true,
+                    });
+                  }}
                 />
                 Day(s) in advance
               </label>
@@ -351,7 +390,7 @@ export default function SitesPolicyForm({
                   })
                 }
                 className="max-w-[250px] w-full"
-                min={1}
+                min={0}
                 max={365}
               />
             </div>

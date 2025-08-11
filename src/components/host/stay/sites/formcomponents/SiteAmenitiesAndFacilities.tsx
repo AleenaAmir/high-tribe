@@ -14,9 +14,9 @@ const amenitiesSchema = z.object({
     .array(z.string())
     .min(1, "Please select at least one safety item"),
   // Allow all pet policy enums per backend: yes_on_leash, yes_without_leash, yes, no
-  pet_policy: z.enum(["yes_on_leash", "yes_without_leash", "yes", "no"], {
-    required_error: "Please select a pet policy",
-  }),
+  pet_policy: z
+    .enum(["yes_on_leash", "yes_without_leash", "yes", "no"])
+    .optional(),
   amenitiesOther: z.string().optional(),
   facilitiesOther: z.string().optional(),
   bathroom_options: z.array(z.string()).optional(),
@@ -331,6 +331,13 @@ export default function SiteAmenitiesAndFacilities({
           ? [...standardSafetyItems, "Other"]
           : standardSafetyItems;
 
+      const toYesNo = (v: any) =>
+        v === "1" || v === 1 || v === true
+          ? "yes"
+          : v === "0" || v === 0 || v === false
+          ? "no"
+          : undefined;
+
       reset({
         amenities: amenitiesWithOther,
         facilities: facilitiesWithOther,
@@ -339,42 +346,18 @@ export default function SiteAmenitiesAndFacilities({
         amenitiesOther: "",
         facilitiesOther: "",
         bathroom_options: siteData.amenities.bathroom_options || [],
-        accept_booking_with_children:
-          siteData.amenities.accept_booking_with_children === "1"
-            ? "yes"
-            : siteData.amenities.accept_booking_with_children === "0"
-            ? "no"
-            : siteData.amenities.accept_booking_with_children,
-        sewage_hookup:
-          siteData.amenities.sewage_hookup === "1"
-            ? "yes"
-            : siteData.amenities.sewage_hookup === "0"
-            ? "no"
-            : siteData.amenities.sewage_hookup,
-        television_hookup:
-          siteData.amenities.television_hookup === "1"
-            ? "yes"
-            : siteData.amenities.television_hookup === "0"
-            ? "no"
-            : siteData.amenities.television_hookup,
-        generators_allowed:
-          siteData.amenities.generators_allowed === "1"
-            ? "yes"
-            : siteData.amenities.generators_allowed === "0"
-            ? "no"
-            : siteData.amenities.generators_allowed,
-        electricity_hookup:
-          siteData.amenities.electricity_hookup === "1"
-            ? "yes"
-            : siteData.amenities.electricity_hookup === "0"
-            ? "no"
-            : siteData.amenities.electricity_hookup,
-        water_hookup:
-          siteData.amenities.water_hookup === "1"
-            ? "yes"
-            : siteData.amenities.water_hookup === "0"
-            ? "no"
-            : siteData.amenities.water_hookup,
+        accept_booking_with_children: toYesNo(
+          siteData.amenities.accept_booking_with_children
+        ) as any,
+        sewage_hookup: toYesNo(siteData.amenities.sewage_hookup) as any,
+        television_hookup: toYesNo(siteData.amenities.television_hookup) as any,
+        generators_allowed: toYesNo(
+          siteData.amenities.generators_allowed
+        ) as any,
+        electricity_hookup: toYesNo(
+          siteData.amenities.electricity_hookup
+        ) as any,
+        water_hookup: toYesNo(siteData.amenities.water_hookup) as any,
       });
 
       // Populate sleeping options for king_stay
@@ -455,7 +438,9 @@ export default function SiteAmenitiesAndFacilities({
       }
 
       // Pet policy
-      formData.append("pet_policy", data.pet_policy);
+      if (data.pet_policy) {
+        formData.append("pet_policy", data.pet_policy);
+      }
 
       // Children policy
       if (data.accept_booking_with_children) {
@@ -532,7 +517,7 @@ export default function SiteAmenitiesAndFacilities({
     const amenities = watch("amenities");
     const facilities = watch("facilities");
     const safetyItems = watch("safety_items");
-    const petPolicy = watch("pet_policy");
+    // const petPolicy = watch("pet_policy");
     const childrenPolicy = watch("accept_booking_with_children");
     const bathroomOptions = watch("bathroom_options");
 
@@ -540,7 +525,7 @@ export default function SiteAmenitiesAndFacilities({
     if (!amenities || amenities.length === 0) return false;
     if (!facilities || facilities.length === 0) return false;
     if (!safetyItems || safetyItems.length === 0) return false;
-    if (!petPolicy) return false;
+    // if (!petPolicy) return false;
 
     // Additional validation based on accommodation type
     if (

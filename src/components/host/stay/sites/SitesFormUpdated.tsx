@@ -136,6 +136,10 @@ const SitesFormUpdated: React.FC<{ siteEdit?: string }> = ({ siteEdit }) => {
 
           const siteData = data.data || data;
           setSiteData(siteData);
+          // Ensure accommodation type is available to sub-forms in edit mode
+          if (siteData?.accommodation_type) {
+            setAccommodationType(siteData.accommodation_type);
+          }
 
           // Mark all sections as completed for edit mode
           setCompletedSections(

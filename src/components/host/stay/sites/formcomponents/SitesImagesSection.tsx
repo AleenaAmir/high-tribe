@@ -64,14 +64,19 @@ export default function SitesImagesSection({
   // Populate form data when siteData is available in edit mode
   useEffect(() => {
     if (isEditMode && siteData) {
-      // Set existing images
+      // Set existing images (exclude cover/video entries if present in media array)
       if (siteData.media && siteData.media.length > 0) {
-        setExistingImages(siteData.media);
-      }
-
-      // Set existing cover image
-      if (siteData.cover_image) {
-        setExistingCoverImage(siteData.cover_image);
+        const media = Array.isArray(siteData.media) ? siteData.media : [];
+        setExistingImages(media.filter((m: any) => m?.type === "image"));
+        // Cover from media type or fallback to property.cover_image
+        const coverItem = media.find((m: any) => m?.type === "cover");
+        if (coverItem?.file_path) {
+          setExistingCoverImage(coverItem.file_path);
+        } else if (siteData.property?.cover_image) {
+          setExistingCoverImage(siteData.property.cover_image);
+        }
+      } else if (siteData.property?.cover_image) {
+        setExistingCoverImage(siteData.property.cover_image);
       }
 
       // Set existing video

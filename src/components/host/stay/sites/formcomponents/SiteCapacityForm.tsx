@@ -133,18 +133,24 @@ export default function SiteCapacityForm({
 
   // Populate form data when siteData is available in edit mode
   useEffect(() => {
-    if (isEditMode && siteData?.capacity) {
+    if (isEditMode && siteData) {
       const defaultValues = getDefaultValuesForAccommodationType(
         accommodationType || null
       );
+
+      // Choose correct source for mapping
+      const sourceData =
+        (accommodationType || siteData?.accommodation_type) === "rv"
+          ? siteData.rv_detail || {}
+          : siteData.capacity || {};
 
       // Map backend data to form fields based on accommodation type
       const mappedData = {
         site_id: siteId,
         ...defaultValues,
         ...mapBackendDataToFormFields(
-          siteData.capacity,
-          accommodationType || null
+          sourceData,
+          accommodationType || siteData?.accommodation_type || null
         ),
       };
 
@@ -189,19 +195,52 @@ export default function SiteCapacityForm({
               ? capacityData.sleeping_capacity
               : 1,
         };
-      case "rv":
+      case "rv": {
+        const toYesNo = (v: any) =>
+          v === "1" || v === 1 || v === true
+            ? "yes"
+            : v === "0" || v === 0 || v === false
+            ? "no"
+            : "";
+
+        const rvTypes: string[] = [];
+        const addIf = (flag: any, key: string) => {
+          if (flag === 1 || flag === true || flag === "1") rvTypes.push(key);
+        };
+        addIf(capacityData.rv_travel_trailer, "travel_trailer");
+        addIf(capacityData.rv_fifth_wheel, "fifth_wheel");
+        addIf(capacityData.rv_toy_hauler, "toy_hauler");
+        addIf(capacityData.rv_pop_up_camper, "pop_up_camper");
+        addIf(capacityData.rv_class_a, "class_a");
+        addIf(capacityData.rv_class_b, "class_b");
+        addIf(capacityData.rv_class_c, "class_c");
+        addIf(capacityData.rv_campervan, "campervan");
+        addIf(capacityData.rv_car, "car");
+
+        const parsedLength = parseFloat(capacityData.max_length);
+        const parsedWidth = parseFloat(capacityData.max_width);
+
         return {
           level_ground: capacityData.level_ground || "",
-          access_method: capacityData.access_method || "",
-          rv_slidesouts: capacityData.rv_slidesouts || "",
+          access_method:
+            capacityData.guest_access || capacityData.access_method || "",
+          rv_slidesouts:
+            toYesNo(capacityData.accommodate_slideouts) ||
+            capacityData.rv_slidesouts ||
+            "",
           driveway_surface: capacityData.driveway_surface || "",
           driveway_surface_other: capacityData.driveway_surface_other || "",
-          rv_types: capacityData.rv_types || [],
-          rv_types_other: capacityData.rv_types_other || "",
-          max_length: capacityData.max_length || 0,
-          max_width: capacityData.max_width || 0,
-          turning_radius_warnings: capacityData.turning_radius_warnings || "",
+          rv_types: rvTypes,
+          rv_types_other:
+            capacityData.rv_other || capacityData.rv_types_other || "",
+          max_length: isNaN(parsedLength) ? 0 : parsedLength,
+          max_width: isNaN(parsedWidth) ? 0 : parsedWidth,
+          turning_radius_warnings:
+            capacityData.turning_radius_clearance ||
+            capacityData.turning_radius_warnings ||
+            "",
         };
+      }
       case "king_stay":
         return {
           area_size_unit: capacityData.area_size_unit || "Feets",
@@ -684,8 +723,8 @@ export default function SiteCapacityForm({
                   </label>
                   <div className="flex flex-col gap-2">
                     {[
-                      { label: "Concrete", value: "concrete" },
-                      { label: "Loose gravel", value: "loose_gravel" },
+                      { label: "Gravel", value: "gravel" },
+                      { label: "Paved", value: "paved" },
                       { label: "Grass", value: "grass" },
                       { label: "Dirt", value: "dirt" },
                     ].map((item, i) => (

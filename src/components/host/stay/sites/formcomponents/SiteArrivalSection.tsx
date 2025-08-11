@@ -5,7 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import GlobalTextInput from "../../../../global/GlobalTextInput";
 import GlobalTextArea from "../../../../global/GlobalTextArea";
-import { useSearchParams } from "next/navigation";
+// import { useSearchParams } from "next/navigation";
 import { apiFormDataWrapper } from "@/lib/api";
 
 // Zod validation schema
@@ -17,13 +17,21 @@ const arrivalSectionSchema = z
   })
   .refine(
     (data) => {
+      // Only validate if both times are provided
+      if (!data.checkInTime || !data.checkOutTime) {
+        return true;
+      }
+
       const toMinutes = (t: string) => {
         const [h, m] = t.split(":").map((v) => parseInt(v, 10));
         return h * 60 + m;
       };
       return toMinutes(data.checkOutTime) > toMinutes(data.checkInTime);
     },
-    { path: ["checkOutTime"], message: "Check-out must be after check-in" }
+    {
+      path: ["checkOutTime"],
+      message: "Check-out time must be after check-in time",
+    }
   );
 
 type ArrivalSectionFormData = z.infer<typeof arrivalSectionSchema>;
@@ -47,6 +55,7 @@ const SiteArrivalSection = ({
     handleSubmit,
     reset,
     watch,
+    trigger,
     formState: { errors, isSubmitting },
   } = useForm<ArrivalSectionFormData>({
     resolver: zodResolver(arrivalSectionSchema),
@@ -55,6 +64,7 @@ const SiteArrivalSection = ({
       checkOutTime: "",
       arrivalInstructions: "",
     },
+    mode: "onChange", // Enable real-time validation
   });
 
   // Populate form data when siteData is available in edit mode
@@ -67,6 +77,16 @@ const SiteArrivalSection = ({
       });
     }
   }, [siteData, isEditMode, reset]);
+
+  // Trigger validation when times change
+  const checkInTime = watch("checkInTime");
+  const checkOutTime = watch("checkOutTime");
+
+  useEffect(() => {
+    if (checkInTime && checkOutTime) {
+      trigger(["checkInTime", "checkOutTime"]);
+    }
+  }, [checkInTime, checkOutTime, trigger]);
 
   const onSubmit = async (data: ArrivalSectionFormData) => {
     try {

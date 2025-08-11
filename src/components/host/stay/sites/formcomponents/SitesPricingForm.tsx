@@ -128,17 +128,19 @@ export default function SitesPricingForm({
   // Populate form data when siteData is available in edit mode
   useEffect(() => {
     if (isEditMode && siteData?.pricing) {
+      const priceNum = parseFloat(siteData.pricing.base_price);
+      const discount = siteData.discount || {};
       reset({
         hostingType: siteData.pricing.hosting_type || "",
         currency: siteData.pricing.currency || "",
-        price: siteData.pricing.base_price || 0,
-        discountType: siteData.pricing.discount_type || "",
-        discountName: siteData.pricing.discount_name || "",
-        discountAmount: siteData.pricing.amount || 0,
-        startDate: siteData.pricing.start_date || "",
-        expirationDate: siteData.pricing.end_date || "",
-        promoCode: siteData.pricing.discount_code || "",
-        discountPrice: siteData.pricing.discount_price || 0,
+        price: isNaN(priceNum) ? 0 : priceNum,
+        discountType: discount.discount_type || "",
+        discountName: discount.name || "",
+        discountAmount: discount.value ? parseFloat(discount.value) : 0,
+        startDate: discount.start_date || "",
+        expirationDate: discount.end_date || "",
+        promoCode: "",
+        discountPrice: 0,
         exchangeService: siteData.pricing.service || "",
         otherService: "",
         exchangeDescription: siteData.pricing.hosting_description || "",

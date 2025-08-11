@@ -31,13 +31,6 @@ const SitesBookingSettingsForm = ({
 }) => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDates, setSelectedDates] = useState<string[]>([]);
-  const [dateRange, setDateRange] = useState<{
-    from: string | null;
-    to: string | null;
-  }>({
-    from: null,
-    to: null,
-  });
   const [dateError, setDateError] = useState<string>("");
   const [dataSent, setDataSent] = useState(false);
   const {
@@ -59,15 +52,19 @@ const SitesBookingSettingsForm = ({
   // Populate form data when siteData is available in edit mode
   useEffect(() => {
     if (isEditMode && siteData?.booking_setting) {
+      const bs = siteData.booking_setting;
+      const toBool = (v: any) => v === true || v === 1 || v === "1";
+      const selected =
+        bs.selected_dates || bs.selected_date || bs.available_dates || [];
       reset({
-        ownerBlock: siteData.booking_setting.owner_block || true,
-        bookingType: siteData.booking_setting.booking_type || "request",
-        selectedDates: siteData.booking_setting.selected_dates || [],
+        ownerBlock: toBool(bs.owner_block),
+        bookingType: bs.booking_type || "request",
+        selectedDates: Array.isArray(selected) ? selected : [],
       });
 
       // Set selected dates if available
-      if (siteData.booking_setting.selected_dates) {
-        setSelectedDates(siteData.booking_setting.selected_dates);
+      if (Array.isArray(selected)) {
+        setSelectedDates(selected);
       }
     }
   }, [siteData, isEditMode, reset]);
@@ -133,7 +130,7 @@ const SitesBookingSettingsForm = ({
     return days;
   };
 
-  // Handle date selection for range
+  // Handle date selection - now allows individual date selection
   const handleDateClick = (date: Date) => {
     // Check if date is in the past
     const today = new Date();
@@ -153,47 +150,16 @@ const SitesBookingSettingsForm = ({
     const day = String(date.getDate()).padStart(2, "0");
     const dateString = `${year}-${month}-${day}`;
 
-    if (!dateRange.from) {
-      // First date selection - set as from date
-      setDateRange({ from: dateString, to: null });
-      setSelectedDates([dateString]);
-    } else if (!dateRange.to) {
-      // Second date selection - set as to date
-      const fromDate = new Date(dateRange.from + "T00:00:00");
-      const toDate = new Date(dateString + "T00:00:00");
-
-      if (toDate < fromDate) {
-        // If to date is before from date, show error and don't update
-
-        setDateError("End date cannot be before start date");
-        setTimeout(() => setDateError(""), 3000);
-        return;
+    // Toggle date selection
+    setSelectedDates((prev) => {
+      if (prev.includes(dateString)) {
+        // Remove date if already selected
+        return prev.filter((d) => d !== dateString);
       } else {
-        setDateRange({ from: dateRange.from, to: dateString });
-        setSelectedDates(generateDateRange(dateRange.from, dateString));
+        // Add date if not selected
+        return [...prev, dateString].sort();
       }
-    } else {
-      // Reset selection
-      setDateRange({ from: dateString, to: null });
-      setSelectedDates([dateString]);
-    }
-  };
-
-  // Generate date range between two dates
-  const generateDateRange = (fromDate: string, toDate: string) => {
-    const dates = [];
-    const current = new Date(fromDate + "T00:00:00");
-    const end = new Date(toDate + "T00:00:00");
-
-    while (current <= end) {
-      const year = current.getFullYear();
-      const month = String(current.getMonth() + 1).padStart(2, "0");
-      const day = String(current.getDate()).padStart(2, "0");
-      dates.push(`${year}-${month}-${day}`);
-      current.setDate(current.getDate() + 1);
-    }
-
-    return dates;
+    });
   };
 
   // Check if date is selected
@@ -205,38 +171,27 @@ const SitesBookingSettingsForm = ({
     return selectedDates.includes(dateString);
   };
 
-  // Check if date is in range
-  const isDateInRange = (date: Date) => {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const day = String(date.getDate()).padStart(2, "0");
-    const dateString = `${year}-${month}-${day}`;
-
-    if (!dateRange.from || !dateRange.to) return false;
-
-    const currentDate = new Date(dateString + "T00:00:00");
-    const fromDate = new Date(dateRange.from + "T00:00:00");
-    const toDate = new Date(dateRange.to + "T00:00:00");
-
-    return currentDate >= fromDate && currentDate <= toDate;
+  // Clear all selected dates
+  const clearSelectedDates = () => {
+    setSelectedDates([]);
+    setDateError("");
   };
 
   const onSubmit = async (data: BookingSettingsFormData) => {
     try {
-      // Validate date range before submission
-      if (dateRange.from && dateRange.to) {
-        const fromDate = new Date(dateRange.from + "T00:00:00");
-        const toDate = new Date(dateRange.to + "T00:00:00");
+      // Validate that dates are not in the past
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
 
-        if (toDate < fromDate) {
-          return;
-        }
+      const hasPastDates = data.selectedDates?.some((dateString) => {
+        const date = new Date(dateString + "T00:00:00");
+        return date < today;
+      });
 
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        if (fromDate < today) {
-          return;
-        }
+      if (hasPastDates) {
+        setDateError("Cannot select dates in the past");
+        setTimeout(() => setDateError(""), 3000);
+        return;
       }
 
       const formData = new FormData();
@@ -374,14 +329,6 @@ const SitesBookingSettingsForm = ({
               </button>
             </div>
 
-            {/* Selected date range display */}
-            {/* {dateRange.from && dateRange.to && (
-              <div className="mb-3 p-2 bg-blue-50 border border-blue-200 rounded text-blue-600 text-sm">
-                Selected: {new Date(dateRange.from).toLocaleDateString()} -{" "}
-                {new Date(dateRange.to).toLocaleDateString()}
-              </div>
-            )} */}
-
             {/* Calendar Grid */}
             <div className="grid grid-cols-7 ">
               {/* Day headers */}
@@ -396,15 +343,6 @@ const SitesBookingSettingsForm = ({
 
               {/* Calendar days */}
               {days.map((day, index) => {
-                const isInRange = isDateInRange(day.date);
-                const isStartDate =
-                  dateRange.from &&
-                  day.date.toDateString() ===
-                    new Date(dateRange.from).toDateString();
-                const isEndDate =
-                  dateRange.to &&
-                  day.date.toDateString() ===
-                    new Date(dateRange.to).toDateString();
                 const isSelected = isDateSelected(day.date);
 
                 // Check if date is in the past
@@ -419,17 +357,11 @@ const SitesBookingSettingsForm = ({
                     onClick={() => handleDateClick(day.date)}
                     disabled={!ownerBlock || isPastDate}
                     className={`
-                      p-2 text-sm transition-colors
+                      p-2 text-sm transition-colors rounded
                       ${day.isCurrentMonth ? "text-gray-900" : "text-gray-400"}
                       ${
-                        isSelected
-                          ? "bg-black text-white"
-                          : isInRange
-                          ? "bg-black text-white"
-                          : "hover:bg-gray-100"
+                        isSelected ? "bg-black text-white" : "hover:bg-gray-100"
                       }
-                      ${isStartDate && isInRange ? "rounded-l-full" : ""}
-                      ${isEndDate && isInRange ? "rounded-r-full" : ""}
                       ${
                         !ownerBlock || isPastDate
                           ? "cursor-not-allowed opacity-50"
