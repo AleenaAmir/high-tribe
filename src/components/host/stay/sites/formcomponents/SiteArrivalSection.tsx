@@ -46,6 +46,7 @@ const SiteArrivalSection = ({
     register,
     handleSubmit,
     reset,
+    watch,
     formState: { errors, isSubmitting },
   } = useForm<ArrivalSectionFormData>({
     resolver: zodResolver(arrivalSectionSchema),
@@ -120,6 +121,26 @@ const SiteArrivalSection = ({
     return isValid;
   };
 
+  // Helper function to check if form is valid
+  const isFormValid = () => {
+    const checkInTime = watch("checkInTime");
+    const checkOutTime = watch("checkOutTime");
+    const arrivalInstructions = watch("arrivalInstructions");
+
+    // Check if all required fields are filled
+    if (!checkInTime || !checkOutTime || !arrivalInstructions) {
+      return false;
+    }
+
+    // Check if check-out time is after check-in time
+    const toMinutes = (t: string) => {
+      const [h, m] = t.split(":").map((v) => parseInt(v, 10));
+      return h * 60 + m;
+    };
+
+    return toMinutes(checkOutTime) > toMinutes(checkInTime);
+  };
+
   return (
     <div>
       <div>
@@ -173,9 +194,11 @@ const SiteArrivalSection = ({
             <button
               type="button"
               onClick={handleSaveClick}
-              disabled={isSubmitting}
+              disabled={isSubmitting || !isFormValid()}
               className={` w-[158px] mt-2 h-[35px] font-[500] text-[14px] text-white px-4 md:px-10 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors ${
-                dataSent ? "bg-[#237AFC]" : "bg-[#BABBBC]"
+                isSubmitting || !isFormValid()
+                  ? "bg-[#BABBBC] cursor-not-allowed"
+                  : "bg-[#237AFC]"
               }`}
             >
               {dataSent

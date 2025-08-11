@@ -3,9 +3,9 @@
 import { useForm } from "react-hook-form";
 import React, { useState, useEffect } from "react";
 import GlobalTextInput from "@/components/global/GlobalTextInput";
-import { apiRequest } from "@/lib/api";
+import { apiFormDataWrapper } from "@/lib/api";
 import Link from "next/link";
-import toast from "react-hot-toast";
+import { useRouter } from "next/navigation";
 
 interface UserData {
   name?: string;
@@ -15,11 +15,18 @@ interface UserData {
   city?: string;
 }
 
+interface HostProfileResponse {
+  status: number;
+  message: string;
+  data?: any;
+}
+
 const registeruser = () => {
   const [selectedIdType, setSelectedIdType] = useState("passport");
   const [profilePicture, setProfilePicture] = useState<File | null>(null);
   const [idDocuments, setIdDocuments] = useState<File[]>([]);
   const [userData, setUserData] = useState<UserData | null>(null);
+  const router = useRouter();
 
   const {
     register,
@@ -68,25 +75,17 @@ const registeruser = () => {
       });
     }
 
-    const token = localStorage.getItem("token") || "<PASTE_VALID_TOKEN_HERE>";
+    try {
+      const responseData = await apiFormDataWrapper<HostProfileResponse>(
+        "host-profiles",
+        formData,
+        "Host profile created successfully!"
+      );
 
-    const response = await fetch(
-      "https://api.hightribe.com/api/host-profiles",
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          Accept: "application/json",
-        },
-        body: formData,
-      }
-    );
-    const responseData = await response.json();
-    if (responseData.status == true) {
-      toast.success(responseData.message);
-      // window.location.href = "/host/approval";
-    } else {
-      toast.error(responseData.message);
+      router.push("/host/stay");
+    } catch (error) {
+      // Error handling is done by the wrapper
+      console.error("Failed to create host profile:", error);
     }
   };
 

@@ -129,6 +129,34 @@ export default function SitesRefundPolicyForm({
     }
   };
 
+  // Helper function to check if form is valid
+  const isFormValid = () => {
+    const refundType = watch("refundType");
+    const refundDays = watch("refundDays");
+    const advanceReservationPeriod = watch("advanceReservationPeriod");
+
+    // Basic required field
+    if (!refundType) {
+      return false;
+    }
+
+    // If refundable, check if refund days is provided and valid
+    if (refundType === "refundable") {
+      if (!refundDays || refundDays < 1) {
+        return false;
+      }
+    }
+
+    // For non lodging_room_cabin accommodation types, check advance reservation period
+    if (accommodationType !== "lodging_room_cabin") {
+      if (!advanceReservationPeriod) {
+        return false;
+      }
+    }
+
+    return true;
+  };
+
   return (
     <div>
       <h4 className="text-[14px] md:text-[16px] text-[#1C231F] font-semibold">
@@ -219,12 +247,14 @@ export default function SitesRefundPolicyForm({
           <div className="flex justify-end">
             <button
               type="button"
-              disabled={isSubmitting}
+              disabled={isSubmitting || !isFormValid()}
               onClick={() => {
                 handleSubmit(onSubmit)();
               }}
               className={` w-[158px] mt-2 h-[35px] font-[500] text-[14px] text-white px-4 md:px-10 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors ${
-                dataSent ? "bg-[#237AFC]" : "bg-[#BABBBC]"
+                isSubmitting || !isFormValid()
+                  ? "bg-[#BABBBC] cursor-not-allowed"
+                  : "bg-[#237AFC]"
               }`}
             >
               {dataSent

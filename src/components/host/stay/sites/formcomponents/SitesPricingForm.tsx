@@ -325,6 +325,39 @@ export default function SitesPricingForm({
     return isValid;
   };
 
+  // Helper function to check if form is valid based on hosting type
+  const isFormValid = () => {
+    const hostingType = watch("hostingType");
+
+    // Basic required field
+    if (!hostingType) {
+      return false;
+    }
+
+    // Hosting type specific validation
+    switch (hostingType) {
+      case "paid":
+        const currency = watch("currency");
+        const price = watch("price");
+        return currency && currency.length > 0 && price && price > 0;
+
+      case "exchange":
+        const exchangeService = watch("exchangeService");
+        return exchangeService && exchangeService.length > 0;
+
+      case "artist":
+        const artistService = watch("artistService");
+        return artistService && artistService.length > 0;
+
+      case "free":
+        // Free hosting type has no additional requirements
+        return true;
+
+      default:
+        return false;
+    }
+  };
+
   const discountType = watch("discountType");
   const exchangeService = watch("exchangeService");
   const artistService = watch("artistService");
@@ -643,9 +676,11 @@ export default function SitesPricingForm({
             <button
               type="button"
               onClick={handleSaveClick}
-              disabled={isSubmitting}
+              disabled={isSubmitting || !isFormValid()}
               className={` w-[158px] mt-2 h-[35px] font-[500] text-[14px] text-white px-4 md:px-10 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors ${
-                dataSent ? "bg-[#237AFC]" : "bg-[#BABBBC]"
+                isSubmitting || !isFormValid()
+                  ? "bg-[#BABBBC] cursor-not-allowed"
+                  : "bg-[#237AFC]"
               }`}
             >
               {dataSent

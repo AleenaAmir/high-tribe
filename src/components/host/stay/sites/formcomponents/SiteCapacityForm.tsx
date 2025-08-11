@@ -29,12 +29,12 @@ const siteCapacitySchema = z.object({
   level_ground: z.string().optional(),
   access_method: z.string().optional(),
   rv_slidesouts: z.string().optional(),
-  ground_surface: z.string().optional(),
-  ground_surface_other: z.string().optional(),
+  driveway_surface: z.string().optional(),
+  driveway_surface_other: z.string().optional(),
   rv_types: z.array(z.string()).optional(),
   rv_types_other: z.string().optional(),
-  max_rv_length: z.number().optional(),
-  max_rv_width: z.number().optional(),
+  max_length: z.number().optional(),
+  max_width: z.number().optional(),
   turning_radius_warnings: z.string().optional(),
   // King size bed fields
   area_size_unit: z.enum(["Meters", "Feets"]).optional(),
@@ -100,19 +100,19 @@ export default function SiteCapacityForm({
         };
       case "camping_glamping":
         return {
-          sleeping_capacity: 0,
+          sleeping_capacity: 1,
         };
       case "rv":
         return {
           level_ground: "",
           access_method: "",
           rv_slidesouts: "",
-          ground_surface: "",
-          ground_surface_other: "",
+          driveway_surface: "",
+          driveway_surface_other: "",
           rv_types: [],
           rv_types_other: "",
-          max_rv_length: 0,
-          max_rv_width: 0,
+          max_length: 0,
+          max_width: 0,
           turning_radius_warnings: "",
         };
       case "king_stay":
@@ -149,6 +149,17 @@ export default function SiteCapacityForm({
       };
 
       reset(mappedData);
+    } else if (!isEditMode) {
+      // Initialize form with default values for new sites
+      const defaultValues = getDefaultValuesForAccommodationType(
+        accommodationType || null
+      );
+      const initialData = {
+        site_id: siteId,
+        ...defaultValues,
+      };
+      console.log("Initializing form with:", initialData);
+      reset(initialData);
     }
   }, [siteData, isEditMode, reset, accommodationType, siteId]);
 
@@ -173,19 +184,22 @@ export default function SiteCapacityForm({
         };
       case "camping_glamping":
         return {
-          sleeping_capacity: capacityData.sleeping_capacity || 0,
+          sleeping_capacity:
+            capacityData.sleeping_capacity !== undefined
+              ? capacityData.sleeping_capacity
+              : 1,
         };
       case "rv":
         return {
           level_ground: capacityData.level_ground || "",
           access_method: capacityData.access_method || "",
           rv_slidesouts: capacityData.rv_slidesouts || "",
-          ground_surface: capacityData.ground_surface || "",
-          ground_surface_other: capacityData.ground_surface_other || "",
+          driveway_surface: capacityData.driveway_surface || "",
+          driveway_surface_other: capacityData.driveway_surface_other || "",
           rv_types: capacityData.rv_types || [],
           rv_types_other: capacityData.rv_types_other || "",
-          max_rv_length: capacityData.max_rv_length || 0,
-          max_rv_width: capacityData.max_rv_width || 0,
+          max_length: capacityData.max_length || 0,
+          max_width: capacityData.max_width || 0,
           turning_radius_warnings: capacityData.turning_radius_warnings || "",
         };
       case "king_stay":
@@ -247,6 +261,10 @@ export default function SiteCapacityForm({
           }
           break;
         case "camping_glamping":
+          console.log(
+            "Camping glamping submission - sleeping_capacity:",
+            data.sleeping_capacity
+          );
           if (data.sleeping_capacity !== undefined) {
             formData.append(
               "sleeping_capacity",
@@ -264,11 +282,14 @@ export default function SiteCapacityForm({
           if (data.rv_slidesouts) {
             formData.append("rv_slidesouts", data.rv_slidesouts);
           }
-          if (data.ground_surface) {
-            formData.append("ground_surface", data.ground_surface);
+          if (data.driveway_surface) {
+            formData.append("driveway_surface", data.driveway_surface);
           }
-          if (data.ground_surface_other) {
-            formData.append("ground_surface_other", data.ground_surface_other);
+          if (data.driveway_surface_other) {
+            formData.append(
+              "driveway_surface_other",
+              data.driveway_surface_other
+            );
           }
           if (data.rv_types && data.rv_types.length > 0) {
             formData.append("rv_types", JSON.stringify(data.rv_types));
@@ -276,11 +297,11 @@ export default function SiteCapacityForm({
           if (data.rv_types_other) {
             formData.append("rv_types_other", data.rv_types_other);
           }
-          if (data.max_rv_length !== undefined) {
-            formData.append("max_rv_length", data.max_rv_length.toString());
+          if (data.max_length !== undefined) {
+            formData.append("max_length", data.max_length.toString());
           }
-          if (data.max_rv_width !== undefined) {
-            formData.append("max_rv_width", data.max_rv_width.toString());
+          if (data.max_width !== undefined) {
+            formData.append("max_width", data.max_width.toString());
           }
           if (data.turning_radius_warnings) {
             formData.append(
@@ -343,9 +364,87 @@ export default function SiteCapacityForm({
   };
 
   const handleSaveClick = async () => {
+    console.log("Form validation result:", isFormValid());
+    console.log("Form errors:", errors);
+    console.log("Current form values:", watch());
+
     // Trigger form validation and submission
     const isValid = await handleSubmit(onSubmit)();
+    console.log("Form submission result:", isValid);
     return isValid;
+  };
+
+  // Helper function to check if form is valid based on accommodation type
+  const isFormValid = () => {
+    switch (accommodationType) {
+      case "lodging_room_cabin":
+        const maxOccupancy = watch("maximum_occupancy");
+        const typeOfBed = watch("type_of_bed");
+        const capacityDescription = watch("capacity_description");
+        return (
+          maxOccupancy && maxOccupancy > 0 && typeOfBed && capacityDescription
+        );
+
+      case "co_living_hostel":
+        const roomSize = watch("room_size");
+        const bedType = watch("bed_type");
+        const numberOfBeds = watch("number_of_beds");
+        return roomSize && bedType && numberOfBeds && numberOfBeds > 0;
+
+      case "camping_glamping":
+        const sleepingCapacity = watch("sleeping_capacity");
+        console.log(
+          "Camping glamping validation - sleepingCapacity:",
+          sleepingCapacity
+        );
+        return sleepingCapacity !== undefined && sleepingCapacity > 0;
+
+      case "rv":
+        const levelGround = watch("level_ground");
+        const accessMethod = watch("access_method");
+        const rvSlidesouts = watch("rv_slidesouts");
+        const groundSurface = watch("driveway_surface");
+        const maxRvLength = watch("max_length");
+        const maxRvWidth = watch("max_width");
+
+        // Basic required fields
+        if (!levelGround || !accessMethod || !rvSlidesouts || !groundSurface) {
+          return false;
+        }
+
+        // If ground surface is "other", require driveway_surface_other
+        if (groundSurface === "other" && !watch("driveway_surface_other")) {
+          return false;
+        }
+
+        // RV dimensions are required
+        if (
+          !maxRvLength ||
+          maxRvLength <= 0 ||
+          !maxRvWidth ||
+          maxRvWidth <= 0
+        ) {
+          return false;
+        }
+
+        return true;
+
+      case "king_stay":
+        const areaLength = watch("area_length");
+        const areaWidth = watch("area_width");
+        return areaLength && areaLength > 0 && areaWidth && areaWidth > 0;
+
+      default:
+        const siteSize = watch("site_size");
+        const defaultTypeOfBed = watch("type_of_bed");
+        const defaultCapacityDescription = watch("capacity_description");
+        return (
+          siteSize &&
+          siteSize > 0 &&
+          defaultTypeOfBed &&
+          defaultCapacityDescription
+        );
+    }
   };
 
   const getCapacityForm = () => {
@@ -473,8 +572,16 @@ export default function SiteCapacityForm({
                     render={({ field }) => (
                       <GlobalInputStepper
                         placeholder="Capacity"
-                        value={field.value || 0}
-                        onChange={(value) => field.onChange(value)}
+                        value={field.value ?? 1}
+                        onChange={(value) => {
+                          console.log(
+                            "Sleeping capacity changing from",
+                            field.value,
+                            "to",
+                            value
+                          );
+                          field.onChange(value);
+                        }}
                         className="max-w-[260px]"
                       />
                     )}
@@ -589,7 +696,7 @@ export default function SiteCapacityForm({
                         <input
                           type="radio"
                           className="accent-[#275BD3] w-4 h-4"
-                          {...register("ground_surface")}
+                          {...register("driveway_surface")}
                           value={item.value}
                         />
                         {item.label}
@@ -602,7 +709,7 @@ export default function SiteCapacityForm({
                         <input
                           type="radio"
                           className="accent-[#275BD3] w-4 h-4"
-                          {...register("ground_surface")}
+                          {...register("driveway_surface")}
                           value="other"
                         />
                         Other
@@ -610,7 +717,7 @@ export default function SiteCapacityForm({
                       <input
                         type="text"
                         className="border border-[#ADADAD6E] rounded outline-0 px-2"
-                        {...register("ground_surface_other")}
+                        {...register("driveway_surface_other")}
                       />
                     </div>
                   </div>
@@ -681,8 +788,8 @@ export default function SiteCapacityForm({
                   label="RV length"
                   type="number"
                   className="-mt-2"
-                  {...register("max_rv_length", { valueAsNumber: true })}
-                  error={errors.max_rv_length?.message || undefined}
+                  {...register("max_length", { valueAsNumber: true })}
+                  error={errors.max_length?.message || undefined}
                 />
               </div>
               <div>
@@ -696,8 +803,8 @@ export default function SiteCapacityForm({
                   label="RV Width"
                   type="number"
                   className="-mt-2"
-                  {...register("max_rv_width", { valueAsNumber: true })}
-                  error={errors.max_rv_width?.message || undefined}
+                  {...register("max_width", { valueAsNumber: true })}
+                  error={errors.max_width?.message || undefined}
                 />
               </div>
               <div>
@@ -841,10 +948,13 @@ export default function SiteCapacityForm({
             <button
               type="button"
               onClick={handleSaveClick}
-              disabled={isSubmitting}
+              disabled={isSubmitting || !isFormValid()}
               className={` w-[158px] mt-2 h-[35px] font-[500] text-[14px] text-white px-4 md:px-10 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors ${
-                dataSent ? "bg-[#237AFC]" : "bg-[#BABBBC]"
+                isSubmitting || !isFormValid()
+                  ? "bg-[#BABBBC] cursor-not-allowed"
+                  : "bg-[#237AFC]"
               }`}
+              title={`Form valid: ${isFormValid()}, Submitting: ${isSubmitting}`}
             >
               {dataSent
                 ? "Saved"

@@ -108,7 +108,7 @@ export default function PropertyLanding() {
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [pageSize] = useState(10);
-
+  const [propertyId, setPropertyId] = useState<number | null>(null);
   // Intersection Observer ref for infinite scroll
   const observerRef = useRef<IntersectionObserver | null>(null);
   const loadingRef = useRef<HTMLDivElement>(null);
@@ -484,7 +484,7 @@ export default function PropertyLanding() {
                     <button
                       onClick={() => {
                         setDeleteModal(true);
-                        // handleDeleteProperty(item.id);
+                        setPropertyId(item.id);
                       }}
                       className="block w-full text-left p-2 bg-white rounded-[5px] hover:bg-red-200 hover:text-red-500 cursor-pointer transition-colors duration-200"
                     >
@@ -494,40 +494,37 @@ export default function PropertyLanding() {
                 </Dropdown>
               </div>
             </div>
-            <GlobalModal
-              isOpen={deleteModal}
-              onClose={() => setDeleteModal(false)}
-            >
-              <div className="text-center">
-                <h2 className="text-lg font-bold">Delete Property</h2>
-                <p className="text-sm text-gray-500">
-                  Are you sure you want to delete this property?
-                </p>
-              </div>
-              <div className="flex items-center justify-center mt-4 gap-2">
-                <button
-                  onClick={() => {
-                    handleDeleteProperty(item.id);
-                    setDeleteModal(false);
-                  }}
-                  className="bg-red-500 text-white px-4 py-2 rounded-md"
-                >
-                  Delete
-                </button>
-                <button
-                  onClick={() => setDeleteModal(false)}
-                  className="bg-gray-500 text-white px-4 py-2 rounded-md"
-                >
-                  Cancel
-                </button>
-              </div>
-            </GlobalModal>
 
             {/* Right side - Status strip and actions */}
             <div className="w-8 flex flex-col items-center justify-between py-4 bg-blue-500 rounded-r-[20px]"></div>
           </div>
         ))}
       </div>
+      <GlobalModal isOpen={deleteModal} onClose={() => setDeleteModal(false)}>
+        <div className="text-center">
+          <h2 className="text-lg font-bold">Delete Property</h2>
+          <p className="text-sm text-gray-500">
+            Are you sure you want to delete this property?
+          </p>
+        </div>
+        <div className="flex items-center justify-center mt-4 gap-2">
+          <button
+            onClick={() => {
+              handleDeleteProperty(propertyId || 0);
+              setDeleteModal(false);
+            }}
+            className="bg-red-500 text-white px-4 py-2 rounded-md"
+          >
+            Delete
+          </button>
+          <button
+            onClick={() => setDeleteModal(false)}
+            className="bg-gray-500 text-white px-4 py-2 rounded-md"
+          >
+            Cancel
+          </button>
+        </div>
+      </GlobalModal>
 
       {/* Loading more skeleton */}
       {loadingMore && (

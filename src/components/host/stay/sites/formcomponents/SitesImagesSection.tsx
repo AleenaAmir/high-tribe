@@ -209,6 +209,17 @@ export default function SitesImagesSection({
     return isValid;
   };
 
+  // Helper function to check if form is valid
+  const isFormValid = () => {
+    // Check if there are images (either uploaded or existing)
+    const hasImages = uploadedImages.length > 0 || existingImages.length > 0;
+
+    // Check if there's a cover image (either uploaded or existing)
+    const hasCoverImage = coverImage !== null || existingCoverImage !== null;
+
+    return hasImages && hasCoverImage;
+  };
+
   return (
     <div>
       <h4 className="text-[14px] md:text-[16px] text-[#1C231F] font-semibold mb-4">
@@ -539,9 +550,11 @@ export default function SitesImagesSection({
             <button
               type="button"
               onClick={handleSaveClick}
-              disabled={isSubmitting}
+              disabled={isSubmitting || !isFormValid()}
               className={` w-[158px] mt-2 h-[35px] font-[500] text-[14px] text-white px-4 md:px-10 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors ${
-                dataSent ? "bg-[#237AFC]" : "bg-[#BABBBC]"
+                isSubmitting || !isFormValid()
+                  ? "bg-[#BABBBC] cursor-not-allowed"
+                  : "bg-[#237AFC]"
               }`}
             >
               {dataSent

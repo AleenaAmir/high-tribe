@@ -527,6 +527,68 @@ export default function SiteAmenitiesAndFacilities({
     return isValid;
   };
 
+  // Helper function to check if form is valid based on accommodation type
+  const isFormValid = () => {
+    const amenities = watch("amenities");
+    const facilities = watch("facilities");
+    const safetyItems = watch("safety_items");
+    const petPolicy = watch("pet_policy");
+    const childrenPolicy = watch("accept_booking_with_children");
+    const bathroomOptions = watch("bathroom_options");
+
+    // Basic required fields for all accommodation types
+    if (!amenities || amenities.length === 0) return false;
+    if (!facilities || facilities.length === 0) return false;
+    if (!safetyItems || safetyItems.length === 0) return false;
+    if (!petPolicy) return false;
+
+    // Additional validation based on accommodation type
+    if (
+      accommodationType === "camping_glamping" ||
+      accommodationType === "co_living_hostel" ||
+      accommodationType === "rv" ||
+      accommodationType === "king_stay"
+    ) {
+      if (!childrenPolicy) return false;
+    }
+
+    // RV specific validation - all hookup fields are optional but if any is selected, validate
+    if (accommodationType === "rv") {
+      const sewageHookup = watch("sewage_hookup");
+      const televisionHookup = watch("television_hookup");
+      const generatorsAllowed = watch("generators_allowed");
+      const electricityHookup = watch("electricity_hookup");
+      const waterHookup = watch("water_hookup");
+
+      // If any hookup field is selected, all should be selected (optional but consistent)
+      const hookupFields = [
+        sewageHookup,
+        televisionHookup,
+        generatorsAllowed,
+        electricityHookup,
+        waterHookup,
+      ];
+      const hasSomeHookup = hookupFields.some(
+        (field) => field === "yes" || field === "no"
+      );
+      const hasAllHookup = hookupFields.every(
+        (field) => field === "yes" || field === "no"
+      );
+
+      if (hasSomeHookup && !hasAllHookup) return false;
+    }
+
+    // King stay validation - requires at least one sleeping option
+    if (accommodationType === "king_stay") {
+      const hasSleepingOptions = Object.values(selectedSleepingByCategory).some(
+        (options) => options && options.length > 0
+      );
+      if (!hasSleepingOptions) return false;
+    }
+
+    return true;
+  };
+
   return (
     <div>
       <h4 className="text-[14px] md:text-[16px] text-[#1C231F] font-semibold">
@@ -807,14 +869,12 @@ export default function SiteAmenitiesAndFacilities({
             <button
               type="button"
               onClick={handleSaveClick}
-              disabled={
-                isSubmitting ||
-                !watchedAmenities.length ||
-                !watchedFacilities.length
-              }
+              disabled={isSubmitting || !isFormValid()}
               className={` w-[158px] mt-2 h-[35px] font-[500] text-[14px] text-white px-4 md:px-10 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors ${
-                dataSent ? "bg-[#237AFC]" : "bg-[#BABBBC]"
-              }`}
+                isSubmitting || !isFormValid()
+                  ? "bg-[#BABBBC] cursor-not-allowed"
+                  : "bg-[#237AFC]"
+              } `}
             >
               {dataSent
                 ? "Saved"

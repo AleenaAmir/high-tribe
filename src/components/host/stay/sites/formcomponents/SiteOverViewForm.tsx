@@ -472,6 +472,44 @@ export default function SiteOverViewForm({
     return isValid;
   };
 
+  // Helper function to check if form is valid based on accommodation type
+  const isFormValid = () => {
+    const siteName = watch("site_name");
+    const accommodationType = watch("accommodation_type");
+    const siteDescription = watch("site_description");
+    const campingGlampingType = watch("camping_glamping_type");
+    const campingOption = watch("camping_option");
+    const campsiteType = watch("campsite_type");
+    const highlights = watch("high_lights");
+
+    // Basic required fields
+    if (!siteName || !accommodationType || !siteDescription) {
+      return false;
+    }
+
+    // Additional validation based on accommodation type
+    if (accommodationType === "camping_glamping") {
+      if (!campingGlampingType) return false;
+      if (campingGlampingType === "camp" && !campingOption) return false;
+    }
+
+    if (accommodationType === "rv" && !campsiteType) {
+      return false;
+    }
+
+    if (accommodationType === "co_living_hostel") {
+      if (
+        !highlights ||
+        !Array.isArray(highlights) ||
+        highlights.length === 0
+      ) {
+        return false;
+      }
+    }
+
+    return true;
+  };
+
   return (
     <div>
       <h4 className="text-[16px] md:text-[16px] leading-[16px] text-[#1C231F] font-[600]">
@@ -671,15 +709,12 @@ export default function SiteOverViewForm({
             <button
               type="button"
               onClick={handleSaveClick}
-              disabled={
-                isSubmitting ||
-                !watch("site_name") ||
-                !watch("accommodation_type") ||
-                !watch("site_description")
-              }
+              disabled={isSubmitting || !isFormValid()}
               className={`w-[158px] mt-2 h-[35px] font-[500]  text-[14px] text-white px-4 md:px-10 py-2 rounded-lg transition-colors ${
-                isSubmitting ? " cursor-not-allowed" : ""
-              } ${dataSent ? "bg-[#237AFC]" : "bg-[#BABBBC]"}`}
+                isSubmitting || !isFormValid()
+                  ? "bg-[#BABBBC] cursor-not-allowed"
+                  : "bg-[#237AFC]"
+              } `}
             >
               {dataSent
                 ? "Saved"

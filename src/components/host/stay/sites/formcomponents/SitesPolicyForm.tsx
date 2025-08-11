@@ -202,6 +202,58 @@ export default function SitesPolicyForm({
     }
   };
 
+  // Helper function to check if form is valid
+  const isFormValid = () => {
+    const minNights = watch("minNights");
+    const maxNights = watch("maxNights");
+    const noFreeCancellation = watch("noFreeCancellation");
+    const freeCancellationDays = watch("freeCancellationDays");
+    const checkInTime = watch("checkInTime");
+    const checkOutTime = watch("checkOutTime");
+    const acceptBookingWithChildren = watch("acceptBookingWithChildren");
+    const curfewInPlace = watch("curfewInPlace");
+    const curfewHours = watch("curfewHours");
+
+    // Check basic required fields
+    if (!minNights || minNights < 1 || !maxNights || maxNights < 1) {
+      return false;
+    }
+
+    // Check if max nights is greater than or equal to min nights
+    if (maxNights < minNights) {
+      return false;
+    }
+
+    // Check free cancellation logic
+    if (
+      !noFreeCancellation &&
+      (!freeCancellationDays || freeCancellationDays < 0)
+    ) {
+      return false;
+    }
+
+    // Check time fields
+    if (!checkInTime || !checkOutTime) {
+      return false;
+    }
+
+    // Check if check-out time is after check-in time
+    const toMinutes = (t: string) => {
+      const [h, m] = t.split(":").map((v) => parseInt(v, 10));
+      return h * 60 + m;
+    };
+    if (toMinutes(checkOutTime) <= toMinutes(checkInTime)) {
+      return false;
+    }
+
+    // Check policy selections
+    if (!acceptBookingWithChildren || !curfewInPlace || !curfewHours) {
+      return false;
+    }
+
+    return true;
+  };
+
   return (
     <div>
       <h4 className="text-[14px] md:text-[16px] text-[#1C231F] font-semibold">
@@ -408,12 +460,14 @@ export default function SitesPolicyForm({
           <div className="flex justify-end">
             <button
               type="button"
-              disabled={isSubmitting}
+              disabled={isSubmitting || !isFormValid()}
               onClick={() => {
                 handleSubmit(onSubmit)();
               }}
               className={` w-[158px] mt-2 h-[35px] font-[500] text-[14px] text-white px-4 md:px-10 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors ${
-                dataSent ? "bg-[#237AFC]" : "bg-[#BABBBC]"
+                isSubmitting || !isFormValid()
+                  ? "bg-[#BABBBC] cursor-not-allowed"
+                  : "bg-[#237AFC]"
               }`}
             >
               {dataSent

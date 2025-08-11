@@ -294,6 +294,23 @@ const SitesBookingSettingsForm = ({
     return isValid;
   };
 
+  // Helper function to check if form is valid
+  const isFormValid = () => {
+    const bookingType = watch("bookingType");
+
+    // Basic required field
+    if (!bookingType) {
+      return false;
+    }
+
+    // If owner block is enabled, check if dates are selected
+    if (ownerBlock && selectedDates.length === 0) {
+      return false;
+    }
+
+    return true;
+  };
+
   const days = getDaysInMonth(currentDate);
   const monthNames = [
     "January",
@@ -478,16 +495,20 @@ const SitesBookingSettingsForm = ({
             <button
               type="button"
               onClick={handleSaveClick}
-              disabled={isSubmitting}
+              disabled={isSubmitting || !isFormValid()}
               className={` w-[158px] mt-2 h-[35px] font-[500] text-[14px] text-white px-4 md:px-10 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors ${
-                dataSent ? "bg-[#237AFC]" : "bg-[#BABBBC]"
+                isSubmitting || !isFormValid()
+                  ? "bg-[#BABBBC] cursor-not-allowed"
+                  : "bg-[#237AFC]"
               }`}
             >
               {dataSent
                 ? "Saved"
                 : isSubmitting
                 ? "Saving..."
-                : isEditMode ? "Update" : "Save"}
+                : isEditMode
+                ? "Update"
+                : "Save"}
             </button>
           </div>
         </div>

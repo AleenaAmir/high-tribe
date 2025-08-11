@@ -62,6 +62,8 @@ export default function PropertySites({
     router.push(`?${params.toString()}`);
   };
 
+  const [siteId, setSiteId] = useState<number | null>(null);
+
   const handleDeleteSite = async (siteId: number) => {
     try {
       await apiRequest(`properties/${propertyId}/sites/${siteId}`, {
@@ -74,13 +76,6 @@ export default function PropertySites({
       console.error("Failed to delete property:", error);
       // You might want to show a toast notification here
     }
-  };
-
-  const [siteId, setSiteId] = useState<number | null>(null);
-
-  const handleModalOpen = (siteId: number) => {
-    setDeleteModal(true);
-    setSiteId(siteId);
   };
 
   if (showSiteForm) {
@@ -168,7 +163,7 @@ export default function PropertySites({
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {sites.map((site, index) => {
-          console.log(site.id);
+        
           return (
             <div
               key={site.id || index}
@@ -293,7 +288,8 @@ export default function PropertySites({
                         </button>
                         <button
                           onClick={() => {
-                            handleModalOpen(site.id);
+                            setDeleteModal(true);
+                            setSiteId(site.id);
                           }}
                           className="block w-full text-left p-2 bg-white rounded-[5px] hover:bg-red-200 hover:text-red-500 cursor-pointer"
                         >
