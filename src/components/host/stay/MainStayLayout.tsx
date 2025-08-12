@@ -9,7 +9,6 @@ import PropertyForm from "./property/PropertyFormUpdated";
 import BookingsMain from "./bookings/BookingsMain";
 import SitesFormUpdated from "./sites/SitesFormUpdated";
 
-
 const stayTabs = [
   "stats",
   "booking",
@@ -137,8 +136,8 @@ export default function MainStayLayout() {
                 href={createTabUrl(tab)}
                 className={`text-[12px] md:text-[16px] px-3 py-2  border-b-4  transition-colors capitalize ${
                   currentTab === tab
-                    ? " text-black font-bold border-[#1179FA]"
-                    : "text-[#868686]  hover:bg-gray-100 border-white rounded-lg"
+                    ? " text-black font-semibold border-[#1179FA]"
+                    : "text-[#868686] font-medium hover:bg-gray-100 border-white rounded-lg"
                 }`}
               >
                 {tab}

@@ -239,7 +239,7 @@ export default function SiteAmenitiesAndFacilities({
     string[]
   >([]);
   const [dataSent, setDataSent] = useState(false);
-  // Sleeping options selected per category when accommodation_type is king_stay
+  // Sleeping options selected per category when accommodation_type is kind_stay
   const [selectedSleepingByCategory, setSelectedSleepingByCategory] = useState<
     Record<string, string[]>
   >({});
@@ -360,9 +360,9 @@ export default function SiteAmenitiesAndFacilities({
         water_hookup: toYesNo(siteData.amenities.water_hookup) as any,
       });
 
-      // Populate sleeping options for king_stay
+      // Populate sleeping options for kind_stay
       if (
-        accommodationType === "king_stay" &&
+        accommodationType === "kind_stay" &&
         siteData.amenities.sleeping_options
       ) {
         const sleepingByCategory: Record<string, string[]> = {};
@@ -467,8 +467,8 @@ export default function SiteAmenitiesAndFacilities({
         }
       });
 
-      // Sleeping options for In-Kind Stay (king_stay)
-      if (accommodationType === "king_stay") {
+      // Sleeping options for In-Kind Stay (kind_stay)
+      if (accommodationType === "kind_stay") {
         let idx = 0;
         Object.entries(selectedSleepingByCategory).forEach(
           ([category, options]) => {
@@ -532,7 +532,7 @@ export default function SiteAmenitiesAndFacilities({
       accommodationType === "camping_glamping" ||
       accommodationType === "co_living_hostel" ||
       accommodationType === "rv" ||
-      accommodationType === "king_stay"
+      accommodationType === "kind_stay"
     ) {
       if (!childrenPolicy) return false;
     }
@@ -564,7 +564,7 @@ export default function SiteAmenitiesAndFacilities({
     }
 
     // King stay validation - requires at least one sleeping option
-    if (accommodationType === "king_stay") {
+    if (accommodationType === "kind_stay") {
       const hasSleepingOptions = Object.values(selectedSleepingByCategory).some(
         (options) => options && options.length > 0
       );
@@ -618,7 +618,7 @@ export default function SiteAmenitiesAndFacilities({
           {(accommodationType === "camping_glamping" ||
             accommodationType === "co_living_hostel" ||
             accommodationType === "rv" ||
-            accommodationType === "king_stay") && (
+            accommodationType === "kind_stay") && (
             <MultiSelect
               label="Bathroom options"
               options={bathroom_options}
@@ -710,7 +710,7 @@ export default function SiteAmenitiesAndFacilities({
           {(accommodationType === "camping_glamping" ||
             accommodationType === "co_living_hostel" ||
             accommodationType === "rv" ||
-            accommodationType === "king_stay") && (
+            accommodationType === "kind_stay") && (
             <div className="mb-6">
               <label className="text-[12px] md:text-[14px] text-[#1C231F] font-bold mb-3 block">
                 Do you accept bookings that include children?
@@ -807,7 +807,7 @@ export default function SiteAmenitiesAndFacilities({
             </div>
           )}
 
-          {accommodationType === "king_stay" && (
+          {accommodationType === "kind_stay" && (
             <div className="mt-4 bg-[#FFFFFF] border-[#BBBBBB] border border-dashed p-4 md:p-8 rounded-[7px] flex flex-col">
               <p className="text-[12px] md:text-[14px] font-bold mb-4 text-[#1C231F]">
                 Sleeping Options

@@ -292,7 +292,7 @@ export default function SitesImagesSection({
               ))}
 
               {/* Upload image button */}
-              <div className="aspect-square max-w-[106px] max-h-[106px] p-4 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-gray-400 transition-colors">
+              <div className="">
                 <input
                   type="file"
                   accept="image/*"
@@ -306,7 +306,7 @@ export default function SitesImagesSection({
                 />
                 <label
                   htmlFor="image-upload"
-                  className="cursor-pointer flex flex-col items-center justify-center"
+                  className="aspect-square max-w-[106px] max-h-[106px] p-4 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-gray-400 transition-colors text-center"
                 >
                   <span className="text-[#464444] text-2xl font-bold mb-1">
                     +
@@ -393,7 +393,7 @@ export default function SitesImagesSection({
                   </div>
                 </div>
               ) : (
-                <div className="aspect-video border-2 p-4 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-gray-400 transition-colors">
+                <div className="">
                   <input
                     type="file"
                     accept="video/*"
@@ -408,7 +408,7 @@ export default function SitesImagesSection({
                   />
                   <label
                     htmlFor="video-upload"
-                    className="cursor-pointer flex flex-col items-center"
+                    className="aspect-video border-2 p-4 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-gray-400 transition-colors text-center"
                   >
                     <span className="text-[#464444] text-2xl font-bold mb-1">
                       +
@@ -490,7 +490,7 @@ export default function SitesImagesSection({
                   </div>
                 </div>
               ) : (
-                <div className="aspect-video max-w-[180px] border-2 p-4 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-gray-400 transition-colors">
+                <div className="">
                   <input
                     type="file"
                     accept="image/*"
@@ -505,7 +505,7 @@ export default function SitesImagesSection({
                   />
                   <label
                     htmlFor="cover-upload"
-                    className="cursor-pointer flex flex-col items-center"
+                    className="aspect-video max-w-[180px] border-2 p-4 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-gray-400 transition-colors text-center"
                   >
                     <span className="text-[#464444] text-2xl font-bold mb-1">
                       +

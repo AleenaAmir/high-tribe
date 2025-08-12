@@ -263,7 +263,7 @@ const defaultAccommodationOptions = [
     icon: "cabin",
   },
   { value: "co_living_hostel", label: "Co-living/Hostel", icon: "castle" },
-  { value: "king_stay", label: "In-Kind Stay", icon: "castle" },
+  { value: "kind_stay", label: "In-Kind Stay", icon: "castle" },
 ];
 
 export default function SiteOverViewForm({

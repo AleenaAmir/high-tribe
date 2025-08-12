@@ -115,7 +115,7 @@ export default function SiteCapacityForm({
           max_width: 0,
           turning_radius_warnings: "",
         };
-      case "king_stay":
+      case "kind_stay":
         return {
           area_size_unit: "Feets" as const,
           area_length: 0,
@@ -241,7 +241,7 @@ export default function SiteCapacityForm({
             "",
         };
       }
-      case "king_stay":
+      case "kind_stay":
         return {
           area_size_unit: capacityData.area_size_unit || "Feets",
           area_length: capacityData.area_length || 0,
@@ -349,7 +349,7 @@ export default function SiteCapacityForm({
             );
           }
           break;
-        case "king_stay":
+        case "kind_stay":
           if (data.area_size_unit) {
             formData.append("area_size_unit", data.area_size_unit);
           }
@@ -468,7 +468,7 @@ export default function SiteCapacityForm({
 
         return true;
 
-      case "king_stay":
+      case "kind_stay":
         const areaLength = watch("area_length");
         const areaWidth = watch("area_width");
         return areaLength && areaLength > 0 && areaWidth && areaWidth > 0;
@@ -864,7 +864,7 @@ export default function SiteCapacityForm({
             </div>
           </div>
         );
-      case "king_stay":
+      case "kind_stay":
         return (
           <div>
             <label className="text-[12px] md:text-[14px] text-[#1C231F] font-bold mb-3 block">
