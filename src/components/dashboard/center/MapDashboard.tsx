@@ -206,7 +206,7 @@ const MapDashboard = () => {
         </button>
       </div>
       <div className="overflow-hidden h-fit ">
-        <InteractiveMap ref={mapRef} />
+        <InteractiveMap ref={mapRef} height={""} />
       </div>
     </div>
   );

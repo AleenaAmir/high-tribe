@@ -7,7 +7,7 @@ import React, {
   forwardRef,
 } from "react";
 import mapboxgl from "mapbox-gl";
-import { MapSkeleton } from "../../global/LoadingSkeleton";
+import  MapSkeleton  from "../../components/dashboard/center/InteractiveMap";
 import "mapbox-gl/dist/mapbox-gl.css";
 
 const MAPBOX_ACCESS_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
@@ -23,17 +23,15 @@ interface Footprint {
   userAvatar?: string;
   timestamp: string;
   category?: string;
- 
 }
 
 export interface InteractiveMapRef {
-  centerMap: (lng: number, lat: number, placeName?: string,) => void;
- 
+  centerMap: (lng: number, lat: number, placeName?: string) => void;
 }
 
 interface MapProps {
-   height:string;
   className?: string;
+  
 }
 
 // --- POI ICON MAP & PLACE DETAILS UTILS (shared) ---
@@ -153,7 +151,7 @@ const getPlaceDetails = (placeName: string, category: string) => {
   }
 };
 
-const InteractiveMap = forwardRef<InteractiveMapRef, MapProps>(
+const ExploreMap = forwardRef<InteractiveMapRef, MapProps>(
   ({ className = "" }, ref) => {
     const mapContainer = useRef<HTMLDivElement>(null);
     const map = useRef<mapboxgl.Map | null>(null);
@@ -650,16 +648,16 @@ const InteractiveMap = forwardRef<InteractiveMapRef, MapProps>(
     }));
 
     return (
-      <div className={`relative ${className}`}>
+      <div className={`relative ${className} `}>
         {isLoading && (
-          <div className="absolute inset-0 z-10 rounded-b-lg " >
+          <div className="absolute inset-0 z-10 rounded-b-lg ">
             <MapSkeleton height="h-[400px]" />
           </div>
         )}
         <div
           ref={mapContainer}
           className="w-full h-[400px] rounded-b-lg"
-          style={{ minHeight: "400px" }}
+          style={{ minHeight: "800px" }}
         />
         <style jsx global>{`
           .footprint-marker {
@@ -706,6 +704,6 @@ const InteractiveMap = forwardRef<InteractiveMapRef, MapProps>(
   }
 );
 
-InteractiveMap.displayName = "InteractiveMap";
+ExploreMap.displayName = "ExploreMap";
 
-export default InteractiveMap;
+export default ExploreMap;

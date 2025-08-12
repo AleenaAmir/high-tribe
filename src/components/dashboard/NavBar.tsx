@@ -224,6 +224,7 @@ const NavIcon = ({
         isActive ? "bg-blue-600" : "bg-transparent group-hover:bg-blue-600"
       }`}
     />
+    
   </button>
 );
 
