@@ -116,9 +116,8 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
         <button
           type="button"
           onClick={() => setIsOpen(!isOpen)}
-          className={`w-full h-[40px] border rounded-lg px-5 py-2 text-[12px] text-left flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all ${
-            error ? "border-red-400" : "border-[#848484]"
-          }`}
+          className={`w-full h-[40px] border rounded-lg px-5 py-2 text-[12px] text-left flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all ${error ? "border-red-400" : "border-[#848484]"
+            }`}
         >
           <div className="flex items-center gap-2">
             {selectedOption && (
@@ -152,11 +151,10 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
                   onChange(option.value);
                   setIsOpen(false);
                 }}
-                className={`w-full px-4 py-2 text-left text-[12px] flex items-center gap-2 hover:bg-gray-50 transition-colors ${
-                  option.value === value
-                    ? "bg-blue-50 text-blue-600"
-                    : "text-[#1C231F]"
-                }`}
+                className={`w-full px-4 py-2 text-left text-[12px] flex items-center gap-2 hover:bg-gray-50 transition-colors ${option.value === value
+                  ? "bg-blue-50 text-blue-600"
+                  : "text-[#1C231F]"
+                  }`}
               >
                 <AccommodationIcon type={option.icon} className="w-4 h-4" />
                 {option.label}
@@ -192,8 +190,7 @@ const siteOverviewSchema = z
         });
       }
       if (
-        (data.camping_glamping_type === "camp" ||
-          data.camping_glamping_type === "glamp") &&
+        data.camping_glamping_type === "camp" &&
         !data.camping_option
       ) {
         ctx.addIssue({
@@ -416,7 +413,7 @@ export default function SiteOverViewForm({
         if (data.camping_glamping_type) {
           formData.append("camping_glamping_type", data.camping_glamping_type);
         }
-        if (data.camping_option) {
+        if (data.camping_option && data.camping_glamping_type === "camp") {
           formData.append("camping_option", data.camping_option);
         }
         // if (data.camping_glamping_type === "camp" && data.camping_option) {
@@ -590,11 +587,10 @@ export default function SiteOverViewForm({
                       setValue("camping_glamping_type", "camp");
                       setValue("camping_option", "");
                     }}
-                    className={`py-2 px-6 text-[12px] text-[#1C231F] font-[600] border rounded-[5px] cursor-pointer ${
-                      selectedCampingGlampingType === "camp"
-                        ? "bg-[#237AFC] text-white border-[237AFC]"
-                        : "border-[#848484]"
-                    }`}
+                    className={`py-2 px-6 text-[12px] text-[#1C231F] font-[600] border rounded-[5px] cursor-pointer ${selectedCampingGlampingType === "camp"
+                      ? "bg-[#237AFC] text-white border-[237AFC]"
+                      : "border-[#848484]"
+                      }`}
                   >
                     Camp
                   </div>
@@ -604,11 +600,10 @@ export default function SiteOverViewForm({
                       setValue("camping_option", "");
                       setValue("campsite_type", "");
                     }}
-                    className={`py-2 px-6 text-[12px] text-[#1C231F] font-[600] border rounded-[5px] cursor-pointer ${
-                      selectedCampingGlampingType === "glamp"
-                        ? "bg-[#237AFC] text-white border-[#237AFC]"
-                        : "border-[#848484]"
-                    }`}
+                    className={`py-2 px-6 text-[12px] text-[#1C231F] font-[600] border rounded-[5px] cursor-pointer ${selectedCampingGlampingType === "glamp"
+                      ? "bg-[#237AFC] text-white border-[#237AFC]"
+                      : "border-[#848484]"
+                      }`}
                   >
                     Glamp
                   </div>
@@ -618,25 +613,25 @@ export default function SiteOverViewForm({
                     {errors.camping_glamping_type.message}
                   </span>
                 )}
-                {/* {selectedCampingGlampingType === "camp" && ( */}
-                <div className="w-full md:w-[70%] lg:w-[50%] mt-2">
-                  <GlobalRadioGroup
-                    options={(
-                      enums?.camping_options || [
-                        "pitch_own_tent",
-                        "tent_available_on_site",
-                      ]
-                    ).map((value: string) => ({
-                      value,
-                      label: toLabel(value),
-                    }))}
-                    value={selectedCampingOption || ""}
-                    onChange={(value) => setValue("camping_option", value)}
-                    name="camping_option"
-                    error={errors.camping_option?.message}
-                  />
-                </div>
-                {/* )} */}
+                {selectedCampingGlampingType === "camp" && (
+                  <div className="w-full md:w-[70%] lg:w-[50%] mt-2">
+                    <GlobalRadioGroup
+                      options={(
+                        enums?.camping_options || [
+                          "pitch_own_tent",
+                          "tent_available_on_site",
+                        ]
+                      ).map((value: string) => ({
+                        value,
+                        label: toLabel(value),
+                      }))}
+                      value={selectedCampingOption || ""}
+                      onChange={(value) => setValue("camping_option", value)}
+                      name="camping_option"
+                      error={errors.camping_option?.message}
+                    />
+                  </div>
+                )}
               </div>
             )}
             {watch("accommodation_type") === "co_living_hostel" && (
@@ -644,21 +639,19 @@ export default function SiteOverViewForm({
                 <div className="flex items-center gap-2">
                   <div
                     onClick={() => setValue("high_lights", ["private_rooms"])}
-                    className={`py-2 px-6 text-[12px] text-[#1C231F] font-[600] border rounded-[5px] cursor-pointer ${
-                      watch("high_lights")?.includes("private_rooms")
-                        ? "bg-[#237AFC] text-white border-[237AFC]"
-                        : "border-[#848484]"
-                    }`}
+                    className={`py-2 px-6 text-[12px] text-[#1C231F] font-[600] border rounded-[5px] cursor-pointer ${watch("high_lights")?.includes("private_rooms")
+                      ? "bg-[#237AFC] text-white border-[237AFC]"
+                      : "border-[#848484]"
+                      }`}
                   >
                     Private Rooms
                   </div>
                   <div
                     onClick={() => setValue("high_lights", ["dorm_beds"])}
-                    className={`py-2 px-6 text-[12px] text-[#1C231F] font-[600] border rounded-[5px] cursor-pointer ${
-                      watch("high_lights")?.includes("dorm_beds")
-                        ? "bg-[#237AFC] text-white border-[#237AFC]"
-                        : "border-[#848484]"
-                    }`}
+                    className={`py-2 px-6 text-[12px] text-[#1C231F] font-[600] border rounded-[5px] cursor-pointer ${watch("high_lights")?.includes("dorm_beds")
+                      ? "bg-[#237AFC] text-white border-[#237AFC]"
+                      : "border-[#848484]"
+                      }`}
                   >
                     Dorm Beds
                   </div>
@@ -694,17 +687,16 @@ export default function SiteOverViewForm({
                       <div
                         key={value}
                         onClick={() => setValue("campsite_type", value)}
-                        className={`py-2 px-6 text-[12px] text-[#1C231F] font-[600] border rounded-[5px] cursor-pointer ${
-                          selectedCampsiteType === value
-                            ? "bg-[#237AFC] text-white border-[#237AFC]"
-                            : "border-[#848484]"
-                        }`}
+                        className={`py-2 px-6 text-[12px] text-[#1C231F] font-[600] border rounded-[5px] cursor-pointer ${selectedCampsiteType === value
+                          ? "bg-[#237AFC] text-white border-[#237AFC]"
+                          : "border-[#848484]"
+                          }`}
                       >
                         {value === "undefined"
                           ? "Non-Designated Spot"
                           : value === "defined"
-                          ? "Designated Spot"
-                          : toLabel(value)}
+                            ? "Designated Spot"
+                            : toLabel(value)}
                       </div>
                     )
                   )}
@@ -724,19 +716,18 @@ export default function SiteOverViewForm({
               type="button"
               onClick={handleSaveClick}
               disabled={isSubmitting || !isFormValid()}
-              className={`w-[158px] mt-2 h-[35px] font-[500]  text-[14px] text-white px-4 md:px-10 py-2 rounded-lg transition-colors ${
-                isSubmitting || !isFormValid()
-                  ? "bg-[#BABBBC] cursor-not-allowed"
-                  : "bg-[#237AFC]"
-              } `}
+              className={`w-[158px] mt-2 h-[35px] font-[500]  text-[14px] text-white px-4 md:px-10 py-2 rounded-lg transition-colors ${isSubmitting || !isFormValid()
+                ? "bg-[#BABBBC] cursor-not-allowed"
+                : "bg-[#237AFC]"
+                } `}
             >
               {dataSent
                 ? "Saved"
                 : isSubmitting
-                ? "Saving..."
-                : isEditMode
-                ? "Update"
-                : "Save"}
+                  ? "Saving..."
+                  : isEditMode
+                    ? "Update"
+                    : "Save"}
             </button>
           </div>
         </div>
