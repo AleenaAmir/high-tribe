@@ -9,7 +9,7 @@ const page = () => {
     <div>
       {/* <Home /> */}
       <Landing />
-     
+      
     </div>
   );
 };
