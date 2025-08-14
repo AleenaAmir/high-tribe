@@ -11,12 +11,14 @@ interface NavBarProps {
   onMenuClick: () => void;
   onPlaceSelected?: (lng: number, lat: number, name?: string) => void;
   onFilterChange?: (filter: string) => void;
+  onNewJourneyClick?: () => void;
 }
 
 const Explore = ({
   onMenuClick,
   onPlaceSelected,
   onFilterChange,
+  onNewJourneyClick,
 }: NavBarProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -324,6 +326,7 @@ const Explore = ({
         setAdvisoryModal={setAdvisoryModal}
         setTipModal={setTipModal}
         onFilterChange={onFilterChange}
+        onNewJourneyClick={onNewJourneyClick}
       />
     </div>
   );
@@ -335,12 +338,14 @@ const ExploreFeeds = ({
   setAdvisoryModal,
   setTipModal,
   onFilterChange,
+  onNewJourneyClick,
 }: {
   setJournyMap: (value: boolean) => void;
   setFootprintModal: (value: boolean) => void;
   setAdvisoryModal: (value: boolean) => void;
   setTipModal: (value: boolean) => void;
   onFilterChange?: (filter: string) => void;
+  onNewJourneyClick?: () => void;
 }) => {
   const [activeTab, setActiveTab] = useState("All feeds");
 
@@ -554,7 +559,7 @@ const ExploreFeeds = ({
         {/* Start New January Button */}
         <div className="relative">
           <button
-            onClick={() => console.log("Start New January clicked")}
+            onClick={onNewJourneyClick}
             className="flex items-center gap-2 px-3 py-2 bg-white text-black rounded-full border border-black hover:bg-gray-50 transition-colors cursor-pointer shadow-sm hover:shadow-md active:scale-95"
           >
             <span className="text-xs font-medium whitespace-nowrap">
