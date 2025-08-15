@@ -103,7 +103,7 @@ export default function NewJourneyExplore({
         customPadding="p-0"
       >
         <div
-          className="min-h-[80vh] overflow-y-scroll w-full
+          className="overflow-y-scroll w-full
         [&::-webkit-scrollbar]:w-1
        [&::-webkit-scrollbar-track]:bg-[#1063E0]
        [&::-webkit-scrollbar-thumb]:bg-[#D9D9D9] 
@@ -114,7 +114,7 @@ export default function NewJourneyExplore({
           <div className="grid grid-cols-1 lg:grid-cols-2  h-full rounded-lg">
             {/* Left Section - Image */}
             <div
-              className="relative bg-cover bg-center rounded-l-lg"
+              className="relative bg-cover bg-center rounded-l-lg hidden lg:grid"
               style={{
                 backgroundImage: `url(https://res.cloudinary.com/dtfzklzek/image/upload/v1755211203/794_1_x4c1uv.png)`,
               }}
@@ -130,14 +130,14 @@ export default function NewJourneyExplore({
             </div>
 
             {/* Right Section - Form */}
-            <div className="p-6 flex flex-col rounded-r-lg bg-white">
+            <div className="p-6 flex flex-col rounded-r-lg bg-white items-center justify-center  h-full">
               {/* Header */}
               <div className="flex justify-between items-start mb-6">
-                <div>
-                  <h2 className="text-xl font-bold text-gray-900 mb-2">
+                <div className="text-center">
+                  <h2 className="text-[16px] font-semibold">
                     Start New January
                   </h2>
-                  <p className="text-sm text-gray-500 leading-relaxed">
+                  <p className="text-[10px] leading-relaxed">
                     Lorem Ipsum is simply dummy text of the printing and
                     typesetting industry. Lorem Ipsum has been the industry's
                   </p>
@@ -145,10 +145,7 @@ export default function NewJourneyExplore({
               </div>
 
               {/* Form Fields */}
-              <form
-                onSubmit={handleSubmit(onSubmit)}
-                className="space-y-4 flex-1"
-              >
+              <form onSubmit={handleSubmit(onSubmit)} className="flex-1 h-full">
                 <GlobalTextInput
                   label="January Name"
                   placeholder="Enter journey name"
@@ -163,7 +160,7 @@ export default function NewJourneyExplore({
                     error={errors.startingPoint?.message}
                     {...register("startingPoint")}
                   />
-                  <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                  <div className="absolute right-3 top-9">
                     <Location className="text-gray-400" />
                   </div>
                 </div>
@@ -175,7 +172,7 @@ export default function NewJourneyExplore({
                     error={errors.endPoint?.message}
                     {...register("endPoint")}
                   />
-                  <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                  <div className="absolute right-3 top-9">
                     <Location className="text-gray-400" />
                   </div>
                 </div>
@@ -188,29 +185,7 @@ export default function NewJourneyExplore({
                       error={errors.startDate?.message}
                       {...register("startDate")}
                     />
-                    <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                      <svg
-                        width="16"
-                        height="16"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        className="text-gray-400"
-                      >
-                        <rect
-                          x="3"
-                          y="4"
-                          width="18"
-                          height="18"
-                          rx="2"
-                          ry="2"
-                        ></rect>
-                        <line x1="16" y1="2" x2="16" y2="6"></line>
-                        <line x1="8" y1="2" x2="8" y2="6"></line>
-                        <line x1="3" y1="10" x2="21" y2="10"></line>
-                      </svg>
-                    </div>
+                   
                   </div>
 
                   <div className="relative">
@@ -220,29 +195,7 @@ export default function NewJourneyExplore({
                       error={errors.endDate?.message}
                       {...register("endDate")}
                     />
-                    <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                      <svg
-                        width="16"
-                        height="16"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        className="text-gray-400"
-                      >
-                        <rect
-                          x="3"
-                          y="4"
-                          width="18"
-                          height="18"
-                          rx="2"
-                          ry="2"
-                        ></rect>
-                        <line x1="16" y1="2" x2="16" y2="6"></line>
-                        <line x1="8" y1="2" x2="8" y2="6"></line>
-                        <line x1="3" y1="10" x2="21" y2="10"></line>
-                      </svg>
-                    </div>
+                    
                   </div>
                 </div>
 
@@ -265,7 +218,7 @@ export default function NewJourneyExplore({
                     error={errors.budget?.message}
                     {...register("budget")}
                   />
-                  <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                  <div className="absolute right-3 top-9">
                     <svg
                       width="16"
                       height="16"

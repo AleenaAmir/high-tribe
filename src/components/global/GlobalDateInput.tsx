@@ -58,6 +58,7 @@ const GlobalDateInput: React.FC<GlobalDateInputProps> = ({
 }) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const calendarRef = useRef<HTMLDivElement>(null);
+  const isInitializedRef = useRef(false);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [currentDate, setCurrentDate] = useState<Date | null>(null);
   const [calendarPosition, setCalendarPosition] = useState<"bottom" | "top">(
@@ -76,7 +77,12 @@ const GlobalDateInput: React.FC<GlobalDateInputProps> = ({
       const date = new Date(value as string);
       if (!isNaN(date.getTime())) {
         setSelectedDate(date);
-        setCurrentDate(date);
+        // Only set currentDate to the selected date on initial load
+        // This prevents overwriting the current month view when a date is selected
+        if (!isInitializedRef.current) {
+          setCurrentDate(date);
+          isInitializedRef.current = true;
+        }
       }
     } else {
       setSelectedDate(null);
@@ -146,7 +152,8 @@ const GlobalDateInput: React.FC<GlobalDateInputProps> = ({
 
   const handleDateSelect = (date: Date) => {
     setSelectedDate(date);
-    setCurrentDate(date);
+    // Remove this line to prevent changing the calendar view when selecting a date
+    // setCurrentDate(date);
 
     // Format date for input value (YYYY-MM-DD)
     const year = date.getFullYear();
