@@ -41,7 +41,7 @@ const Page = () => {
         )}
       </div>
       <NewJourneyExplore newJourney={newJourney} setNewJourney={setNewJourney} />
-    </>
+        </>
   );
 };
 

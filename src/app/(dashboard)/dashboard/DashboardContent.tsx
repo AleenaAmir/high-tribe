@@ -96,9 +96,9 @@ const DashboardContent = () => {
         <div className="p-6">
           <div className="flex flex-col gap-6">
             <GroupsCard />
+            <EventsCard />
             <FindPeopleCard />
             <YourGroups />
-            <EventsCard />
             <NearbyPeopleGrid />
             <ContactsList />
           </div>
