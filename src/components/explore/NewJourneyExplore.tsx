@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -52,9 +52,11 @@ type JourneyFormData = z.infer<typeof journeyFormSchema>;
 export default function NewJourneyExplore({
   newJourney,
   setNewJourney,
+  onJourneyCreated,
 }: {
   newJourney: boolean;
   setNewJourney: (newJourney: boolean) => void;
+  onJourneyCreated?: (journeyData: JourneyFormData) => void;
 }) {
   const {
     register,
@@ -62,6 +64,7 @@ export default function NewJourneyExplore({
     formState: { errors, isSubmitting },
     reset,
     watch,
+    setValue,
   } = useForm<JourneyFormData>({
     resolver: zodResolver(journeyFormSchema),
     defaultValues: {
@@ -75,11 +78,28 @@ export default function NewJourneyExplore({
     },
   });
 
+  // Watch form values for debugging
+  const formValues = watch();
+  useEffect(() => {
+    console.log("Form values changed:", formValues);
+  }, [formValues]);
+
   const onSubmit = async (data: JourneyFormData) => {
+    console.log("onSubmit function called");
+    console.log("Form data:", data);
+    console.log("Form errors:", errors);
+
     try {
       console.log("Creating journey:", data);
+      console.log("Form submitted successfully!");
+
       // Here you would typically make an API call
       // await createJourney(data);
+
+      // Call the callback to open sidebar with journey data
+      if (onJourneyCreated) {
+        onJourneyCreated(data);
+      }
 
       // Reset form and close modal
       reset();
@@ -130,7 +150,7 @@ export default function NewJourneyExplore({
             </div>
 
             {/* Right Section - Form */}
-            <div className="p-6 flex flex-col rounded-r-lg bg-white items-center justify-center  h-full">
+            <div className="p-6 flex flex-col rounded-r-lg bg-white justify-center h-full">
               {/* Header */}
               <div className="flex justify-between items-start mb-6">
                 <div className="text-center">
@@ -145,9 +165,12 @@ export default function NewJourneyExplore({
               </div>
 
               {/* Form Fields */}
-              <form onSubmit={handleSubmit(onSubmit)} className="flex-1 h-full">
+              <form
+                onSubmit={handleSubmit(onSubmit)}
+                className="w-full relative z-10"
+              >
                 <GlobalTextInput
-                  label="January Name"
+                  label="Journey Name"
                   placeholder="Enter journey name"
                   error={errors.journeyName?.message}
                   {...register("journeyName")}
@@ -183,9 +206,11 @@ export default function NewJourneyExplore({
                       label="Start Date"
                       placeholder="Select date"
                       error={errors.startDate?.message}
-                      {...register("startDate")}
+                      value={formValues.startDate}
+                      onChange={(e) => {
+                        setValue("startDate", e.target.value);
+                      }}
                     />
-                   
                   </div>
 
                   <div className="relative">
@@ -193,9 +218,11 @@ export default function NewJourneyExplore({
                       label="End Date"
                       placeholder="Select date"
                       error={errors.endDate?.message}
-                      {...register("endDate")}
+                      value={formValues.endDate}
+                      onChange={(e) => {
+                        setValue("endDate", e.target.value);
+                      }}
                     />
-                    
                   </div>
                 </div>
 
@@ -238,6 +265,7 @@ export default function NewJourneyExplore({
                 <button
                   type="submit"
                   disabled={isSubmitting}
+                  onClick={() => console.log("Submit button clicked")}
                   className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200 mt-6 disabled:cursor-not-allowed"
                 >
                   {isSubmitting ? "Creating..." : "Create"}
