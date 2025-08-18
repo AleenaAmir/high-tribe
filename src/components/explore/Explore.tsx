@@ -559,19 +559,13 @@ const ExploreFeeds = ({
         {/* Start New January Button */}
         <div className="relative">
           <button
-            onClick={onNewJourneyClick}
+            onClick={onNewJourneyClick ? onNewJourneyClick : () => {}}
             className="flex items-center gap-2 px-3 py-2 bg-white text-black rounded-full border border-black hover:bg-gray-50 transition-colors cursor-pointer shadow-sm hover:shadow-md active:scale-95"
           >
             <span className="text-xs font-medium whitespace-nowrap">
               Start New January
             </span>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                console.log("Plus button clicked");
-              }}
-              className="w-5 h-5 bg-white border border-black rounded-full flex items-center justify-center hover:bg-gray-100 transition-colors cursor-pointer active:scale-95"
-            >
+            <div className="w-5 h-5 bg-white border border-black rounded-full flex items-center justify-center hover:bg-gray-100 transition-colors cursor-pointer active:scale-95">
               <svg
                 className="w-2.5 h-2.5 text-black"
                 fill="none"
@@ -585,7 +579,7 @@ const ExploreFeeds = ({
                   d="M12 4v16m8-8H4"
                 />
               </svg>
-            </button>
+            </div>
           </button>
         </div>
 
