@@ -41,6 +41,7 @@ interface JourneySidebarProps {
   selectedStep?: { dayIndex: number; stepIndex: number } | null;
   onStepSelect?: (dayIndex: number, stepIndex: number) => void;
   onJourneyDataUpdate?: (updatedData: JourneyData) => void;
+ 
 }
 
 interface FormData {
@@ -54,6 +55,7 @@ const JourneySidebar: React.FC<JourneySidebarProps> = ({
   selectedStep,
   onStepSelect,
   onJourneyDataUpdate,
+
 }) => {
   const [selectedDay, setSelectedDay] = useState<number | null>(null);
   const [searchQuery, setSearchQuery] = useState("");

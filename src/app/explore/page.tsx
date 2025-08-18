@@ -87,6 +87,39 @@ const Page = () => {
     setSelectedStep(null);
   };
 
+  // Handle journey click from SideExplore
+  const handleJourneyClick = (journey: any) => {
+    console.log("Journey clicked:", journey);
+
+    // Transform the API journey data to match the expected format
+    const transformedJourneyData = {
+      journeyName: journey.title || "Untitled Journey",
+      startingPoint:
+        journey.starting_point || journey.start_location || "Unknown",
+      endPoint: journey.ending_point || journey.end_location || "Unknown",
+      startDate: journey.start_date || new Date().toISOString().split("T")[0],
+      endDate: journey.end_date || new Date().toISOString().split("T")[0],
+      who: journey.travelers || "couple",
+      budget: journey.budget?.toString() || "1000",
+      days: journey.days ||
+        journey.steps || [
+          {
+            id: 1,
+            dayNumber: 1,
+            date: new Date(journey.start_date || new Date()),
+            steps: [],
+            isOpen: false,
+          },
+        ],
+    };
+
+    console.log("Transformed journey data:", transformedJourneyData);
+
+    // Update the journey data and open the sidebar
+    setJourneyData(transformedJourneyData);
+    setIsJourneySidebarOpen(true);
+  };
+
   // Get the selected step data
   const getSelectedStepData = (): Step | null => {
     if (!selectedStep || !journeyData) return null;
@@ -125,7 +158,10 @@ const Page = () => {
 
           {/* Main Content */}
           <div className="flex flex-1">
-            <SideExplore onExploreClick={() => setIsExplorePanelOpen(true)} />
+            <SideExplore
+              onExploreClick={() => setIsExplorePanelOpen(true)}
+              onJourneyClick={handleJourneyClick}
+            />
             <div className="flex-1">
               <ExploreMap
                 ref={mapRef}
