@@ -1,34 +1,37 @@
+"use client"
+import api from "@/lib/api";
 import Image from "next/image";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
 interface SideExploreProps {
   onExploreClick?: () => void;
 }
 
 const SideExplore = ({ onExploreClick }: SideExploreProps) => {
+
   const [activeSection, setActiveSection] = useState<string | null>("explore");
 
-  const trips = [
-    {
-      title: "Trip to Lahore and Islamabad",
-      date: "7/10/2025",
-      image:
-        "https://images.unsplash.com/photo-1592899677977-9c10ca588bbd?q=80&w=400&auto=format&fit=crop",
-    },
-    {
-      title: "Trip to Islamabad and Murree",
-      date: "7/10/2025",
-      image:
-        "https://images.unsplash.com/photo-1542442819-8a080c9f1c88?q=80&w=400&auto=format&fit=crop",
-    },
-    {
-      title: "Trip to Murree and Kashmir",
-      date: "7/10/2025",
-      image:
-        "https://images.unsplash.com/photo-1518684079-3c830dcef090?q=80&w=400&auto=format&fit=crop",
-    },
-  ];
+  const [trips, setTrips] = useState<any[]>([]);
 
+  useEffect(() => {
+    const fetchTrips = async () => {
+      try {
+        const token = localStorage.getItem("token"); // if you must use it
+        const res = await api.get("journeys", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        // depending on your api wrapper, res could be Response or already JSON:
+        const data = res.json ? await res.json() : res;
+        // @ts-ignore
+        setTrips(data.data); // adapt to API shape
+      } catch (e) {
+        console.error(e);
+      }
+    };
+    fetchTrips();
+  }, []);
+
+  console.log(trips, "trips11111111111111111111111111111");
   return (
     <div className="w-60 bg-white shadow-sm h-full flex flex-col">
       {/* Header with Search Icon */}
@@ -38,19 +41,16 @@ const SideExplore = ({ onExploreClick }: SideExploreProps) => {
           onExploreClick?.();
           setActiveSection("explore");
         }}
-        className={`flex items-center gap-2 p-4 ${
-          activeSection === "explore" ? "bg-[#1164E2] text-white" : "bg-white"
-        } font-semibold text-left`}
+        className={`flex items-center gap-2 p-4 ${activeSection === "explore" ? "bg-[#1164E2] text-white" : "bg-white"
+          } font-semibold text-left`}
       >
         <div
-          className={`w-6 h-6 rounded flex items-center justify-center ${
-            activeSection === "explore" ? "bg-white" : "bg-black"
-          }`}
+          className={`w-6 h-6 rounded flex items-center justify-center ${activeSection === "explore" ? "bg-white" : "bg-black"
+            }`}
         >
           <svg
-            className={`w-4 h-4 ${
-              activeSection === "explore" ? "text-[#1164E2]" : "text-white"
-            }`}
+            className={`w-4 h-4 ${activeSection === "explore" ? "text-[#1164E2]" : "text-white"
+              }`}
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -74,38 +74,33 @@ const SideExplore = ({ onExploreClick }: SideExploreProps) => {
           onClick={() =>
             setActiveSection((prev) => (prev === "journey" ? null : "journey"))
           }
-          className={`w-full flex items-center gap-3 p-4 border-b border-gray-100 ${
-            activeSection === "journey"
-              ? "bg-[#1164E2] text-white"
-              : "hover:bg-gray-50"
-          }`}
+          className={`w-full flex items-center gap-3 p-4 border-b border-gray-100 ${activeSection === "journey"
+            ? "bg-[#1164E2] text-white"
+            : "hover:bg-gray-50"
+            }`}
         >
           <div
-            className={`w-8 h-8 rounded flex items-center justify-center ${
-              activeSection === "journey" ? "bg-white" : "bg-black"
-            }`}
+            className={`w-8 h-8 rounded flex items-center justify-center ${activeSection === "journey" ? "bg-white" : "bg-black"
+              }`}
           >
             <Image
-              src="/dashboard/footprint1.svg"
+              src="/journey.png"
               alt="My Journey"
               width={16}
               height={16}
-              className={`w-4 h-4 ${
-                activeSection === "journey" ? "" : "filter brightness-0 invert"
-              }`}
+              className={`w-8 h-8 ${activeSection === "journey" ? "" : "filter brightness-0 invert"
+                }`}
             />
           </div>
           <span
-            className={`font-medium ${
-              activeSection === "journey" ? "text-white" : "text-gray-800"
-            }`}
+            className={`font-medium ${activeSection === "journey" ? "text-white" : "text-gray-800"
+              }`}
           >
             My Journey
           </span>
           <svg
-            className={`w-4 h-4 ml-auto ${
-              activeSection === "journey" ? "text-white" : "text-gray-400"
-            }`}
+            className={`w-4 h-4 ml-auto ${activeSection === "journey" ? "text-white" : "text-gray-400"
+              }`}
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -132,8 +127,9 @@ const SideExplore = ({ onExploreClick }: SideExploreProps) => {
               >
                 <div className="relative w-9 h-9 rounded-full overflow-hidden">
                   <Image
-                    src={trip.image}
-                    alt={trip.title}
+                    src="https://via.placeholder.com/150?text=No+Image"
+
+                    alt="trip image"
                     fill
                     className="object-cover"
                   />
@@ -143,7 +139,7 @@ const SideExplore = ({ onExploreClick }: SideExploreProps) => {
                     {trip.title}
                   </div>
                   <div className="text-[11px] text-gray-500">
-                    Date {trip.date}
+                    Date {trip.start_date}
                   </div>
                 </div>
               </div>
