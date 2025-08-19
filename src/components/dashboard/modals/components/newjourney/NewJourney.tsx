@@ -459,7 +459,7 @@ export default function NewJourney({ onClose }: NewJourneyProps) {
             }
             onStartChange={handleStartChange}
             onEndChange={handleEndChange}
-            onStepsChange={() => {}}
+            onStepsChange={() => { }}
             activeMapSelect={activeMapSelect}
             setActiveMapSelect={setActiveMapSelect}
           />

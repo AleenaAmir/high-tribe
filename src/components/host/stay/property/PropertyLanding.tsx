@@ -220,6 +220,39 @@ export default function PropertyLanding() {
     }
   };
 
+  const handleDeactiveProperty = async (propertyId: number) => {
+    try {
+      await apiRequest(`properties/${propertyId}/deactivate`, {
+        method: "PATCH",
+      });
+      setProperties(
+        properties.map((property) =>
+          property.id === propertyId ? { ...property, active: 0 } : property
+        )
+      );
+      toast.success("Property deactivated successfully");
+    } catch (error) {
+      console.error("Failed to deactive property:", error);
+      toast.error("Failed to deactive property");
+    }
+  };
+  const handleActiveProperty = async (propertyId: number) => {
+    try {
+      await apiRequest(`properties/${propertyId}/activate`, {
+        method: "PATCH",
+      });
+      setProperties(
+        properties.map((property) =>
+          property.id === propertyId ? { ...property, active: 1 } : property
+        )
+      );
+      toast.success("Property activated successfully");
+    } catch (error) {
+      console.error("Failed to activate property:", error);
+      toast.error("Failed to activate property");
+    }
+  };
+
   // Placeholder image for properties without media
   const defaultImage = "https://placehold.co/400";
 
@@ -392,12 +425,14 @@ export default function PropertyLanding() {
                   btnClassName="dropdown"
                   button={
                     <div
-                      className={`flex items-center space-x-1 border rounded-full px-2 py-1 border-blue-600 ${
-                        item.status === "active" ? "bg-blue-100" : "bg-white"
+                      className={`flex items-center space-x-1 border rounded-full px-2 py-1 bg-white  ${
+                        item.active === 0
+                          ? "border-[#FA8511]"
+                          : "border-[#1179FA]"
                       }`}
                     >
-                      <span className="text-xs font-medium text-blue-600">
-                        Active
+                      <span className="text-xs font-medium text-black">
+                        {item.active === 0 ? "Deactive" : "Active"}
                       </span>
                       <svg
                         className="w-3 h-3"
@@ -416,15 +451,21 @@ export default function PropertyLanding() {
                   }
                 >
                   <div className="text-xs font-medium  min-w-[90px] w-full border border-[#848484] rounded-[5px]">
-                    <button
-                      onClick={() => {
-                        console.log("Set to Deactive for property:", item.id);
-                        // Here you would call API to update status to inactive
-                      }}
-                      className="block w-full text-left p-2 bg-white rounded-[5px] hover:bg-orange-100 hover:text-orange-600 cursor-pointer"
-                    >
-                      Deactive
-                    </button>
+                    {item.active === 0 ? (
+                      <button
+                        onClick={() => handleActiveProperty(item.id)}
+                        className="block w-full text-left p-2 bg-white rounded-[5px] hover:bg-[#1179FA] hover:border-[#1179FA] cursor-pointer"
+                      >
+                        Active
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => handleDeactiveProperty(item.id)}
+                        className="block w-full text-left p-2 bg-white rounded-[5px] hover:bg-[#FA8511] hover:border-[#FA8511] cursor-pointer"
+                      >
+                        Deactive
+                      </button>
+                    )}
                   </div>
                 </Dropdown>
               </div>
@@ -496,7 +537,11 @@ export default function PropertyLanding() {
             </div>
 
             {/* Right side - Status strip and actions */}
-            <div className="w-8 flex flex-col items-center justify-between py-4 bg-blue-500 rounded-r-[20px]"></div>
+            <div
+              className={`w-8 flex flex-col items-center justify-between py-4 rounded-r-[20px] ${
+                item.active === 0 ? "bg-[#FA8511]" : "bg-[#1179FA]"
+              }`}
+            ></div>
           </div>
         ))}
       </div>

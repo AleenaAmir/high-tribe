@@ -1,8 +1,10 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import LocationSmall from "../svgs/LocationSmall";
 import MediaModal from "../../global/MediaModal";
+import { apiFormDataWrapper, apiRequest } from "../../../lib/api";
+import { toast } from "react-hot-toast";
 
 // --- TYPE DEFINITIONS ---
 export type Post = {
@@ -40,6 +42,20 @@ export type Post = {
   tripDetails?: {
     tags: string[];
   };
+};
+
+// Comment type definition
+export type Comment = {
+  id: string;
+  content: string;
+  user: {
+    name: string;
+    avatarUrl: string;
+  };
+  timestamp: string;
+  parent_id?: string;
+  replies?: Comment[];
+  likes?: number;
 };
 
 // --- SVG ICONS ---
@@ -262,7 +278,11 @@ const MediaGrid = ({
     >
       {mediaItem.type === "image" ? (
         <Image
-          src={mediaItem.url}
+          src={
+            typeof mediaItem.url === "string"
+              ? mediaItem.url
+              : "https://via.placeholder.com/400x300?text=Image"
+          }
           alt={`Post image ${altIndex + 1}`}
           fill
           className="object-cover"
@@ -380,13 +400,29 @@ const MediaGrid = ({
 };
 
 // --- MAIN POST CARD COMPONENT ---
-export const PostCard = ({ post }: { post: Post }) => {
+export const PostCard = ({
+  post,
+  onCommentAdded,
+}: {
+  post: Post;
+  onCommentAdded?: () => void;
+}) => {
   // Modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentMedia, setCurrentMedia] = useState<
     { type: "image" | "video"; url: string }[]
   >([]);
   const [currentMediaIndex, setCurrentMediaIndex] = useState(0);
+
+  // Comment state
+  const [commentContent, setCommentContent] = useState("");
+  const [isSubmittingComment, setIsSubmittingComment] = useState(false);
+  const [comments, setComments] = useState<Comment[]>([]);
+  const [loadingComments, setLoadingComments] = useState(false);
+  const [showComments, setShowComments] = useState(false);
+  const [replyTo, setReplyTo] = useState<string | null>(null);
+  const [replyContent, setReplyContent] = useState("");
+  const [isSubmittingReply, setIsSubmittingReply] = useState(false);
 
   // Handle media click
   const handleMediaClick = (
@@ -406,6 +442,197 @@ export const PostCard = ({ post }: { post: Post }) => {
   // Handle media index change in modal
   const handleMediaIndexChange = (index: number) => {
     setCurrentMediaIndex(index);
+  };
+
+  // Fetch comments for the post
+  const fetchComments = async () => {
+    if (loadingComments) return;
+
+    setLoadingComments(true);
+    try {
+      // Determine post type based on post properties
+      let postType = "posts"; // default
+      if (post.isTravelAdvisory) {
+        postType = "advisories";
+      } else if (post.journeyHead) {
+        postType = "journeys";
+      } else if (post.isTripBoard) {
+        postType = "tripboards";
+      }
+
+      console.log("Fetching comments for post:", post.id, "type:", postType);
+
+      const response = await apiRequest<{ data: Comment[] }>(
+        `${postType}/${post.id}/comments?per_page=10&page=1&with_replies=true`
+      );
+
+      console.log("Comments response:", response);
+
+      const commentsData = response.data || [];
+      console.log("Setting comments:", commentsData);
+      setComments(commentsData);
+    } catch (error) {
+      console.error("Error fetching comments:", error);
+      toast.error("Failed to load comments");
+    } finally {
+      setLoadingComments(false);
+    }
+  };
+
+  // Load comments when component mounts or when showComments changes
+  useEffect(() => {
+    if (showComments && comments.length === 0) {
+      fetchComments();
+    }
+  }, [showComments]);
+
+  // Toggle comments visibility
+  const toggleComments = () => {
+    setShowComments(!showComments);
+    if (!showComments && comments.length === 0) {
+      fetchComments();
+    }
+  };
+
+  // Handle comment submission
+  const handleCommentSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!commentContent.trim() || isSubmittingComment) {
+      return;
+    }
+
+    setIsSubmittingComment(true);
+
+    try {
+      // Determine post type based on post properties
+      let postType = "posts"; // default
+      if (post.isTravelAdvisory) {
+        postType = "advisories";
+      } else if (post.journeyHead) {
+        postType = "journeys";
+      } else if (post.isTripBoard) {
+        postType = "tripboards";
+      }
+
+      // Create FormData for the comment
+      const formData = new FormData();
+      formData.append("content", commentContent.trim());
+
+      // Submit comment using the existing API helper (which handles auth automatically)
+      const result = await apiFormDataWrapper(
+        `${postType}/${post.id}/comments`,
+        formData,
+        "Comment added successfully!"
+      );
+
+      console.log("Comment submitted successfully:", result);
+
+      // Clear the input
+      setCommentContent("");
+
+      // Refresh comments to show the new comment
+      if (showComments) {
+        fetchComments();
+      }
+
+      // Call the callback to refresh the parent component
+      if (onCommentAdded) {
+        onCommentAdded();
+      }
+    } catch (error) {
+      console.error("Error submitting comment:", error);
+      // Show error message to user
+      toast.error(
+        error instanceof Error ? error.message : "Failed to submit comment"
+      );
+    } finally {
+      setIsSubmittingComment(false);
+    }
+  };
+
+  // Handle Enter key press
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleCommentSubmit(e);
+    }
+  };
+
+  // Handle reply submission
+  const handleReplySubmit = async (e: React.FormEvent, parentId: string) => {
+    e.preventDefault();
+
+    if (!replyContent.trim() || isSubmittingReply) {
+      return;
+    }
+
+    setIsSubmittingReply(true);
+
+    try {
+      // Determine post type based on post properties
+      let postType = "posts"; // default
+      if (post.isTravelAdvisory) {
+        postType = "advisories";
+      } else if (post.journeyHead) {
+        postType = "journeys";
+      } else if (post.isTripBoard) {
+        postType = "tripboards";
+      }
+
+      // Create FormData for the reply
+      const formData = new FormData();
+      formData.append("content", replyContent.trim());
+      formData.append("parent_id", parentId);
+
+      // Submit reply using the existing API helper
+      const result = await apiFormDataWrapper(
+        `${postType}/${post.id}/comments`,
+        formData,
+        "Reply added successfully!"
+      );
+
+      console.log("Reply submitted successfully:", result);
+
+      // Clear the reply input and reset reply state
+      setReplyContent("");
+      setReplyTo(null);
+
+      // Refresh comments to show the new reply
+      fetchComments();
+
+      // Call the callback to refresh the parent component
+      if (onCommentAdded) {
+        onCommentAdded();
+      }
+    } catch (error) {
+      console.error("Error submitting reply:", error);
+      toast.error(
+        error instanceof Error ? error.message : "Failed to submit reply"
+      );
+    } finally {
+      setIsSubmittingReply(false);
+    }
+  };
+
+  // Handle reply key press
+  const handleReplyKeyPress = (e: React.KeyboardEvent, parentId: string) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleReplySubmit(e, parentId);
+    }
+  };
+
+  // Start reply to a comment
+  const startReply = (commentId: string) => {
+    setReplyTo(commentId);
+    setReplyContent("");
+  };
+
+  // Cancel reply
+  const cancelReply = () => {
+    setReplyTo(null);
+    setReplyContent("");
   };
 
   return (
@@ -430,7 +657,11 @@ export const PostCard = ({ post }: { post: Post }) => {
         <div className="flex items-start justify-between">
           <div className="flex items-start gap-4">
             <Image
-              src={post.user.avatarUrl}
+              src={
+                typeof post.user.avatarUrl === "string"
+                  ? post.user.avatarUrl
+                  : "https://via.placeholder.com/48x48?text=U"
+              }
               alt={post.user.name}
               width={48}
               height={48}
@@ -571,7 +802,10 @@ export const PostCard = ({ post }: { post: Post }) => {
                   </div>
                 </div> */}
                 <Image
-                  src={post?.journeyContent?.travelDetails?.mapView}
+                  src={
+                    post?.journeyContent?.travelDetails?.mapView ||
+                    "https://via.placeholder.com/700x320?text=Map+View"
+                  }
                   alt="mapView"
                   height={320}
                   width={700}
@@ -598,7 +832,11 @@ export const PostCard = ({ post }: { post: Post }) => {
                           >
                             {mediaItem.type === "image" ? (
                               <Image
-                                src={mediaItem.url}
+                                src={
+                                  typeof mediaItem.url === "string"
+                                    ? mediaItem.url
+                                    : "https://via.placeholder.com/400x300?text=Image"
+                                }
                                 alt="journeyMedia"
                                 fill
                                 className="object-cover rounded-lg"
@@ -685,7 +923,11 @@ export const PostCard = ({ post }: { post: Post }) => {
                     {post.participants.slice(0, 5).map((p, i) => (
                       <Image
                         key={i}
-                        src={p.avatarUrl}
+                        src={
+                          typeof p.avatarUrl === "string"
+                            ? p.avatarUrl
+                            : "https://via.placeholder.com/24x24?text=P"
+                        }
                         alt={`participant ${i}`}
                         width={24}
                         height={24}
@@ -703,31 +945,393 @@ export const PostCard = ({ post }: { post: Post }) => {
               </div>
             </div>
             <div className="flex items-center gap-4">
-              <span className="text-sm text-[#656565]">
-                {post.comments} Comments
-              </span>
+              <button
+                onClick={toggleComments}
+                className="text-sm text-[#656565] hover:text-blue-600 transition-colors"
+              >
+                {post.comments} Comments {showComments ? "(Hide)" : "(Show)"}
+              </button>
               <span className="text-sm text-[#656565]">
                 {post.shares} Share
               </span>
             </div>
           </div>
 
-          {/* Comment Section - Hidden for Trip Board */}
-          {/* {!post.isTripBoard && (
+          {/* Comments Section */}
+          {showComments && (
             <>
-              <div className="border-t border-gray-100 my-4"></div>
-              <div className="flex items-center gap-3">
-                <div className="flex items-center px-4 gap-2">
-                  <EmojiIcon className="hover:text-yellow-400" />
-                  <input
-                    type="text"
-                    placeholder="Add a comment..."
-                    className="w-full bg-transparent outline-none py-2 text-sm"
-                  />
-                </div>
+              {console.log("Comments state:", {
+                comments,
+                loadingComments,
+                showComments,
+              })}
+              <div className="border-t border-gray-100 my-4">
+                {loadingComments ? (
+                  <div className="py-4 text-center text-gray-500">
+                    <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
+                    Loading comments...
+                  </div>
+                ) : comments.length > 0 ? (
+                  <div className="space-y-4 py-4">
+                    {comments.map((comment) => (
+                      <div key={comment.id} className="flex gap-3  items-start">
+                        <Image
+                          src={
+                            typeof comment.user.avatarUrl === "string"
+                              ? comment.user.avatarUrl
+                              : "https://placehold.co/400"
+                          }
+                          alt={comment.user.name}
+                          width={32}
+                          height={32}
+                          className="rounded-full object-contain flex-shrink-0"
+                          unoptimized
+                        />
+                        <div className="flex-1 min-w-0">
+                          <div className="inline-block bg-gray-50 rounded-2xl px-3 py-2 max-w-full">
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="font-semibold text-sm text-gray-800">
+                                {comment.user.name}
+                              </span>
+                              <span className="text-xs text-gray-500">
+                                {comment.timestamp}
+                              </span>
+                            </div>
+                            <p className="text-sm text-gray-700 mb-1 break-words">
+                              {comment.content}
+                            </p>
+                            <div className="flex items-center gap-3 text-xs">
+                              <button className="text-gray-500 hover:text-gray-700 transition-colors">
+                                Like
+                              </button>
+                              <button
+                                onClick={() => startReply(comment.id)}
+                                className="text-gray-500 hover:text-gray-700 transition-colors"
+                              >
+                                Reply
+                              </button>
+                            </div>
+                          </div>
+
+                          {/* Reply Input */}
+                          {replyTo === comment.id && (
+                            <div className="mt-2 ml-2">
+                              <form
+                                onSubmit={(e) =>
+                                  handleReplySubmit(e, comment.id)
+                                }
+                              >
+                                <div className="flex items-center gap-2">
+                                  <input
+                                    type="text"
+                                    placeholder="Write a reply..."
+                                    className="flex-1 bg-white border border-gray-200 rounded-full px-3 py-1.5 text-sm outline-none focus:border-blue-500"
+                                    value={replyContent}
+                                    onChange={(e) =>
+                                      setReplyContent(e.target.value)
+                                    }
+                                    onKeyPress={(e) =>
+                                      handleReplyKeyPress(e, comment.id)
+                                    }
+                                    disabled={isSubmittingReply}
+                                  />
+                                  <button
+                                    type="submit"
+                                    disabled={
+                                      isSubmittingReply || !replyContent.trim()
+                                    }
+                                    className="bg-blue-600 text-white px-3 py-1.5 rounded-full text-sm font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                  >
+                                    {isSubmittingReply ? (
+                                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                    ) : (
+                                      "Reply"
+                                    )}
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={cancelReply}
+                                    className="text-gray-500 hover:text-gray-700 text-sm"
+                                  >
+                                    Cancel
+                                  </button>
+                                </div>
+                              </form>
+                            </div>
+                          )}
+
+                          {/* Replies */}
+                          {comment.replies && comment.replies.length > 0 && (
+                            <div className="mt-2 space-y-2">
+                              {comment.replies.map((reply) => (
+                                <div
+                                  key={reply.id}
+                                  className="flex gap-2 ml-8 items-start"
+                                >
+                                  <Image
+                                    src={
+                                      typeof reply.user.avatarUrl === "string"
+                                        ? reply.user.avatarUrl
+                                        : "https://placehold.co/400"
+                                    }
+                                    alt={reply.user.name}
+                                    width={20}
+                                    height={20}
+                                    className="rounded-full object-contain flex-shrink-0"
+                                    unoptimized
+                                  />
+                                  <div className="flex-1 min-w-0">
+                                    <div className="inline-block bg-gray-50 rounded-2xl px-3 py-2 max-w-full">
+                                      <div className="flex items-center gap-2 mb-1">
+                                        <span className="font-semibold text-xs text-gray-800">
+                                          {reply.user.name}
+                                        </span>
+                                        <span className="text-xs text-gray-500">
+                                          {reply.timestamp}
+                                        </span>
+                                      </div>
+                                      <p className="text-xs text-gray-700 mb-1 break-words">
+                                        {reply.content}
+                                      </p>
+                                      <div className="flex items-center gap-3 text-xs">
+                                        <button className="text-gray-500 hover:text-gray-700 transition-colors">
+                                          Like
+                                        </button>
+                                        <button
+                                          onClick={() => startReply(reply.id)}
+                                          className="text-gray-500 hover:text-gray-700 transition-colors"
+                                        >
+                                          Reply
+                                        </button>
+                                      </div>
+                                    </div>
+
+                                    {/* Reply to Reply Input */}
+                                    {replyTo === reply.id && (
+                                      <div className="mt-2 ml-2">
+                                        <form
+                                          onSubmit={(e) =>
+                                            handleReplySubmit(e, reply.id)
+                                          }
+                                        >
+                                          <div className="flex items-center gap-2">
+                                            <input
+                                              type="text"
+                                              placeholder="Write a reply..."
+                                              className="flex-1 bg-white border border-gray-200 rounded-full px-3 py-1.5 text-xs outline-none focus:border-blue-500"
+                                              value={replyContent}
+                                              onChange={(e) =>
+                                                setReplyContent(e.target.value)
+                                              }
+                                              onKeyPress={(e) =>
+                                                handleReplyKeyPress(e, reply.id)
+                                              }
+                                              disabled={isSubmittingReply}
+                                            />
+                                            <button
+                                              type="submit"
+                                              disabled={
+                                                isSubmittingReply ||
+                                                !replyContent.trim()
+                                              }
+                                              className="bg-blue-600 text-white px-3 py-1.5 rounded-full text-xs font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                            >
+                                              {isSubmittingReply ? (
+                                                <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                              ) : (
+                                                "Reply"
+                                              )}
+                                            </button>
+                                            <button
+                                              type="button"
+                                              onClick={cancelReply}
+                                              className="text-gray-500 hover:text-gray-700 text-xs"
+                                            >
+                                              Cancel
+                                            </button>
+                                          </div>
+                                        </form>
+                                      </div>
+                                    )}
+
+                                    {/* Nested Replies */}
+                                    {reply.replies &&
+                                      reply.replies.length > 0 && (
+                                        <div className="mt-2 space-y-2">
+                                          {reply.replies.map((nestedReply) => (
+                                            <div
+                                              key={nestedReply.id}
+                                              className="flex gap-2 ml-6"
+                                            >
+                                              <Image
+                                                src={
+                                                  typeof nestedReply.user
+                                                    .avatarUrl === "string"
+                                                    ? nestedReply.user.avatarUrl
+                                                    : "https://via.placeholder.com/16x16?text=U"
+                                                }
+                                                alt={nestedReply.user.name}
+                                                width={16}
+                                                height={16}
+                                                className="rounded-full object-cover flex-shrink-0"
+                                                unoptimized
+                                              />
+                                              <div className="flex-1 min-w-0">
+                                                <div className="inline-block bg-gray-50 rounded-2xl px-2.5 py-1.5 max-w-full">
+                                                  <div className="flex items-center gap-2 mb-1">
+                                                    <span className="font-semibold text-xs text-gray-800">
+                                                      {nestedReply.user.name}
+                                                    </span>
+                                                    <span className="text-xs text-gray-500">
+                                                      {nestedReply.timestamp}
+                                                    </span>
+                                                  </div>
+                                                  <p className="text-xs text-gray-700 mb-1 break-words">
+                                                    {nestedReply.content}
+                                                  </p>
+                                                  <div className="flex items-center gap-3 text-xs">
+                                                    <button className="text-gray-500 hover:text-gray-700 transition-colors">
+                                                      Like
+                                                    </button>
+                                                    <button
+                                                      onClick={() =>
+                                                        startReply(
+                                                          nestedReply.id
+                                                        )
+                                                      }
+                                                      className="text-gray-500 hover:text-gray-700 transition-colors"
+                                                    >
+                                                      Reply
+                                                    </button>
+                                                  </div>
+                                                </div>
+
+                                                {/* Reply to Nested Reply Input */}
+                                                {replyTo === nestedReply.id && (
+                                                  <div className="mt-2 ml-2">
+                                                    <form
+                                                      onSubmit={(e) =>
+                                                        handleReplySubmit(
+                                                          e,
+                                                          nestedReply.id
+                                                        )
+                                                      }
+                                                    >
+                                                      <div className="flex items-center gap-2">
+                                                        <input
+                                                          type="text"
+                                                          placeholder="Write a reply..."
+                                                          className="flex-1 bg-white border border-gray-200 rounded-full px-3 py-1.5 text-xs outline-none focus:border-blue-500"
+                                                          value={replyContent}
+                                                          onChange={(e) =>
+                                                            setReplyContent(
+                                                              e.target.value
+                                                            )
+                                                          }
+                                                          onKeyPress={(e) =>
+                                                            handleReplyKeyPress(
+                                                              e,
+                                                              nestedReply.id
+                                                            )
+                                                          }
+                                                          disabled={
+                                                            isSubmittingReply
+                                                          }
+                                                        />
+                                                        <button
+                                                          type="submit"
+                                                          disabled={
+                                                            isSubmittingReply ||
+                                                            !replyContent.trim()
+                                                          }
+                                                          className="bg-blue-600 text-white px-3 py-1.5 rounded-full text-xs font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                                        >
+                                                          {isSubmittingReply ? (
+                                                            <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                                          ) : (
+                                                            "Reply"
+                                                          )}
+                                                        </button>
+                                                        <button
+                                                          type="button"
+                                                          onClick={cancelReply}
+                                                          className="text-gray-500 hover:text-gray-700 text-xs"
+                                                        >
+                                                          Cancel
+                                                        </button>
+                                                      </div>
+                                                    </form>
+                                                  </div>
+                                                )}
+                                              </div>
+                                            </div>
+                                          ))}
+                                        </div>
+                                      )}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="py-4 text-center text-gray-500">
+                    No comments yet. Be the first to comment!
+                  </div>
+                )}
               </div>
             </>
-          )} */}
+          )}
+
+          <>
+            <div className="border-t border-gray-100 my-4"></div>
+            <form
+              onSubmit={handleCommentSubmit}
+              className="flex items-center gap-3 group"
+            >
+              <div className="flex items-center px-4 gap-2 w-full">
+                <EmojiIcon className="hover:text-yellow-400" />
+                <input
+                  type="text"
+                  placeholder="Add a comment..."
+                  className="w-full bg-transparent outline-none py-2 text-sm flex-1"
+                  value={commentContent}
+                  onChange={(e) => setCommentContent(e.target.value)}
+                  onKeyPress={handleKeyPress}
+                  disabled={isSubmittingComment}
+                />
+                <button
+                  type="submit"
+                  className={`group-hover:flex bg-gradient-to-r from-[#247CFF] to-[#0F62DE] text-white px-4 py-1.5 rounded-full text-sm font-semibold hidden cursor-pointer items-center gap-2 h-fit w-fit ${
+                    isSubmittingComment ? "opacity-50 cursor-not-allowed" : ""
+                  }`}
+                  disabled={isSubmittingComment || !commentContent.trim()}
+                >
+                  {isSubmittingComment ? (
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  ) : (
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      xmlSpace="preserve"
+                      width="20"
+                      height="20"
+                      viewBox="0 0 256 256"
+                    >
+                      <path
+                        fill="white"
+                        strokeMiterlimit="10"
+                        strokeWidth="0"
+                        d="M254.304 10.047a8.758 8.758 0 0 0-.107-1.576c-.02-.115-.025-.228-.05-.343a8 8 0 0 0-.405-1.36c-.05-.13-.115-.25-.172-.376a8 8 0 0 0-.511-.973 10 10 0 0 0-.245-.388 8.4 8.4 0 0 0-.958-1.171 8.6 8.6 0 0 0-1.545-1.197 8 8 0 0 0-1.023-.537c-.11-.048-.214-.104-.326-.149a8.3 8.3 0 0 0-1.397-.413c-.087-.017-.177-.023-.264-.04a8.3 8.3 0 0 0-1.604-.115 8 8 0 0 0-1.189.116c-.098.016-.194.022-.292.042-.433.087-.86.205-1.281.362L6.875 90.51a8.43 8.43 0 0 0-5.46 7.511 8.44 8.44 0 0 0 4.757 7.975l96.819 46.724 46.722 96.819a8.44 8.44 0 0 0 7.98 4.76 8.44 8.44 0 0 0 7.511-5.46l88.583-236.057c.157-.418.272-.843.36-1.272.022-.116.03-.228.047-.343q.093-.557.11-1.119m-41.906 21.348L107.582 136.21 31.246 99.374zm-56.06 193.072-36.836-76.333 104.82-104.82z"
+                      ></path>
+                    </svg>
+                  )}
+                </button>
+              </div>
+            </form>
+          </>
         </div>
       </div>
 
