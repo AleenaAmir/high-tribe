@@ -2,8 +2,9 @@ import React, { useState } from "react";
 import { Search, Heart, ChevronRight, Star } from "lucide-react";
 import { MoreOptionsIcon } from "../center/PostCard";
 const Booking = () => {
-  const [selectedType, setSelectedType] = useState("Any type");
+
   const [isLiked, setIsLiked] = useState(false);
+  const [selectedType, setSelectedType] = useState<string | null>("Any type");
 
   const roomTypes = ["Any type", "Room", "Entire home"];
 
@@ -28,21 +29,30 @@ const Booking = () => {
       </div>
 
       <div className="mt-3">
-        <div className="flex gap-1">
-          {roomTypes.map((type) => (
-            <button
-              key={type}
-              onClick={() => setSelectedType(type)}
-              className={`px-3 py-1 rounded-full text-[10px] transition-all duration-200 border border-gray-200 font-gilroy font-medium  leading-[22.4px] tracking-normal flex items-center justify-center whitespace-nowrap min-w-[80px] ${
-                selectedType === type
-                  ? "bg-black text-white"
-                  : "bg-[#FFFFFF] text-[#030303] hover:bg-gray-50"
-              }`}
-            >
-              {type}
-            </button>
-          ))}
+        <div className="mt-4 grid grid-cols-3 gap-3">
+          {roomTypes.map((tag) => {
+            const isActive = selectedType === tag;
+            return (
+              <button
+                key={tag}
+                type="button"
+                onClick={() => setSelectedType(isActive ? null : tag)} // toggle
+                aria-pressed={isActive}
+                title={tag}
+                className={[
+                  "flex w-full h-9 items-center justify-center rounded-2xl border px-3 py-1",
+                  "text-[10px] sm:text-xs truncate transition-colors cursor-pointer text-gilroy text-[#000000] font-[500] leading-[100%] tracking-[3%]",
+                  isActive
+                    ? "bg-black text-white border-black"
+                    : "bg-white text-[#030303] border-[#D1D4D9] hover:bg-black hover:text-white"
+                ].join(" ")}
+              >
+                {tag}
+              </button>
+            );
+          })}
         </div>
+
       </div>
 
       <div className="mt-3">
@@ -59,9 +69,8 @@ const Booking = () => {
               className="absolute top-3 right-3 w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-md hover:shadow-lg transition-shadow"
             >
               <Heart
-                className={`w-4 h-4 ${
-                  isLiked ? "fill-red-500 text-red-500" : "text-gray-600"
-                }`}
+                className={`w-4 h-4 ${isLiked ? "fill-red-500 text-red-500" : "text-gray-600"
+                  }`}
               />
             </button>
 

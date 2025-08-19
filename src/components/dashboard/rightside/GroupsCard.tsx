@@ -22,13 +22,13 @@ const GroupsCard = () => {
           className="object-cover"
         />
         <div className="absolute inset-0 bg-black/0 flex flex-col justify-end items-end text-right text-white p-4">
-          <h2 className="text-2xl font-bold">GROUPS</h2>
-          <p className="mt-1 text-sm">
+          <h2 className="text-[24px] font-roboto font-[800] leading-[100%] tracking-[3%]">GROUPS</h2>
+          <p className="mt-1 text-[12px] font-poppins font-[400] leading-[130%] tracking-[0%] text-[#FFFFFF]">
             New ways to find and
             <br />
             join communities.
           </p>
-          <Link href={'/explore'} className="mt-3  bg-gradient-to-r from-[#9243AC] via-[#B6459F] to-[#E74294] text-white px-6 mb-3 py-2 rounded-2xl text-sm font-bold font-gilroy hover:bg-white/30 transition-colors w-[114.2px] h-[32px] ">
+          <Link href={'/explore'} className="mt-3  text-center justify-center bg-gradient-to-r from-[#9243AC] via-[#B6459F] to-[#E74294] text-white px-3 mb-3 py-2  rounded-2xl text-sm font-bold font-gilroy hover:bg-white/30 transition-colors w-[100px] h-[32px] ">
             Let's Plan
           </Link>
         </div>

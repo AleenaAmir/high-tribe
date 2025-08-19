@@ -189,25 +189,26 @@
 import Image from "next/image";
 import { MoreOptionsIcon } from "./PostCard";
 import React, { useEffect, useState } from "react";
+import CardsSwiper from "./CardsSwiper";
 
-  // Arrow icons for swiping
-  const LeftArrow = () => (
-    <Image 
-      src="/dashboard/left.svg" 
-      alt="left arrow" 
-      width={22} 
-      height={22} 
-      className="w-[14px] h-[14px] opacity-30  shadow-[0px_px_4px_0px_#00000040] " 
-    />
-  );
+// Arrow icons for swiping
+const LeftArrow = () => (
+  <Image
+    src="/dashboard/left.svg"
+    alt="left arrow"
+    width={22}
+    height={22}
+    className="w-[14px] h-[14px] opacity-30  shadow-[0px_px_4px_0px_#00000040] "
+  />
+);
 
 const RightArrow = () => (
-  <Image 
-    src="/dashboard/right.svg" 
-    alt="right arrow" 
-    width={22} 
-    height={22} 
-    className="w-[14px] h-[14px] opacity-77 shadow-[0px_0px_4px_px_#00000040]" 
+  <Image
+    src="/dashboard/right.svg"
+    alt="right arrow"
+    width={22}
+    height={22}
+    className="w-[14px] h-[14px] opacity-77 shadow-[0px_0px_4px_px_#00000040]"
   />
 );
 
@@ -221,7 +222,7 @@ const cardDetails = [
   {
     img: "/dashboard/cardbgyellow.svg",
   },
-   {
+  {
     img: "/dashboard/cardbgblue.svg",
   },
   {
@@ -230,7 +231,7 @@ const cardDetails = [
   {
     img: "/dashboard/cardbgyellow.svg",
   },
- 
+
 ];
 
 const participants = [
@@ -271,10 +272,10 @@ const ReadyToHost: React.FC = () => {
     <section className="bg-white overflow-hidden rounded-[10px] shadow-md w-[784px] h-[270px] opacity-100">
       <div className="p-4 md:p-6 flex items-center justify-between gap-4 mt-4">
         <div className="text-[#656565]">
-          <p className="text-[14px] md:text-[20px] font-semibold font-roboto">
+          <p className="text-[14px] md:text-[20px] text-[#000000] font-gilroy font-[600] leading-[100%] tracking-[-3%] mb-1">
             Ready to Host?
           </p>
-          <p className="text-[10px] md:text-[12px]">
+          <p className="text-[10px] md:text-[12px] text-[#000000] font-gilroy font-[400] leading-[130%] tracking-[-0%]">
             Connect with travelers by sharing what you love about your location.
           </p>
         </div>
@@ -290,7 +291,7 @@ const ReadyToHost: React.FC = () => {
         <div className="flex flex-col justify-center h-full ">
           <div className="flex items-center gap-2">
             {/* Avatars */}
-            <div className="flex -space-x-2">
+            <div className="flex -space-x-4">
               {participants.slice(0, 5).map((p, i) => (
                 <Image
                   key={i}
@@ -304,67 +305,30 @@ const ReadyToHost: React.FC = () => {
               ))}
             </div>
             <div className="flex items-center gap-2 flex-wrap">
+              <Image src="/dashboard/dots.png" alt="star" width={10} height={10} />
+              <span className="ml-2 text-[10px] text-[#000000] font-gilroy font-[400] leading-[130%] tracking-[0.2%]">
+
+                1000+ Happy Hosts
+              </span>
               <div className="flex items-center gap-1 ml-2">
                 {[...Array(5)].map((_, i) => (
                   <span key={i}>{star}</span>
                 ))}
               </div>
-              <span className="ml-2 text-xs text-[#888]">
-                1000+ Happy Hosts
-              </span>
+
             </div>
           </div>
-          <h2 className="text-[#222] font-gilroy font-medium text-[25px] leading-[100%] tracking-[-3%] w-[320px] h-[25px] opacity-100 mb-2">
+          <h2 className="text-[#000000 ] font-gilroy font-medium text-[25px] leading-[100%] tracking-[-3%] w-[320px] h-[25px] opacity-100 mb-4">
             Ready to Host?
           </h2>
-          <p className="text-[#696969] text-xs font-poppins font-normal leading-[130%] tracking-[0%] max-w-xs">
+          <p className="text-[#000000] text-[14px] font-gilroy font-[400] leading-[130%] tracking-[0%] max-w-[320px]">
             Connect with travelers by sharing what you love about your location.
           </p>
         </div>
         {/* Right Side: Swipeable Images */}
         <div className="relative flex items-center justify-center w-full h-full">
-          {/* Left Arrow */}
-        <button
-            onClick={prevCard}
-          
-             className="absolute left-[-14px] top-1/2 -translate-y-1/2 
-               p-2 rounded-full bg-white/70 hover:bg-white shadow-md 
-               transition-all duration-200 z-20"
-          >
-            <LeftArrow />
-          </button>
-          {/* Cards Container */}
-          <div className="flex items-center gap-1 overflow-hidden z-10">
-            {cardDetails.map((card, idx) => (
-              <div 
-                key={idx} 
-                className={`flex-shrink-0 transition-all duration-300 transform ${
-                  idx >= currentIndex && idx < currentIndex + 3 ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0'
-                }`}
-                style={{
-                  transform: `translateX(-${currentIndex * 130}px)`
-                }}
-              >
-                <Image
-                  src={card.img}
-                  height={90}
-                  width={100}
-                  alt="Hosting card"
-                  className="object-cover w-[100px] h-[90px] rounded-[20px] opacity-100"
-                />
-              </div>
-            ))}
-          </div>
-          
-          {/* Right Arrow */}
-          <button
-            onClick={nextCard}
-            className="absolute left-[294px] top-1/2 -translate-y-1/2
-               p-2 rounded-full bg-white/70 hover:bg-white shadow-md 
-               transition-all duration-200  z-30"
-          >
-            <RightArrow />
-          </button>
+          <CardsSwiper cards={cardDetails} />
+
         </div>
       </div>
     </section>
