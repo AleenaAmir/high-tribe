@@ -283,24 +283,36 @@ const formatDateRange = (startDate: string, endDate: string): string => {
 
 // Transform API data to Post format
 const transformApiPostToPost = (apiPost: ApiPost): Post => {
+  // Validate that apiPost has required properties
+  if (!apiPost || !apiPost.id || !apiPost.user) {
+    console.error("Invalid API post data:", apiPost);
+    throw new Error("Invalid API post data");
+  }
+
   // Handle different post types
   const postType = apiPost.type;
 
   console.log(`Transforming post ${apiPost.id} of type: ${postType}`);
 
   // Transform media from different post types
-  const transformMedia = (media: ApiMedia[]) => {
+  const transformMedia = (media: ApiMedia[] | undefined) => {
+    if (!media || !Array.isArray(media)) {
+      return [];
+    }
     return media.map((item) => ({
       type:
         item.type === "photo" || item.media_type === "image"
           ? "image"
           : ("video" as "image" | "video"),
-      url: `${item.url || item.file_path || ""}`,
+      url:
+        item.url ||
+        item.file_path ||
+        "https://via.placeholder.com/400x300?text=No+Image",
     }));
   };
 
   // Create participants from tagged users (with placeholder avatars)
-  const participants = apiPost.tagged_users.map((user, index) => ({
+  const participants = (apiPost.tagged_users || []).map((user, index) => ({
     avatarUrl: `https://randomuser.me/api/portraits/${
       index % 2 === 0 ? "men" : "women"
     }/${50 + index}.jpg`,
@@ -315,7 +327,7 @@ const transformApiPostToPost = (apiPost: ApiPost): Post => {
   const basePost: Post = {
     id: apiPost.id.toString(),
     user: {
-      name: apiPost.user.name,
+      name: apiPost.user.name || "Unknown User",
       avatarUrl: `https://randomuser.me/api/portraits/${
         apiPost.user.id % 2 === 0 ? "men" : "women"
       }/${30 + (apiPost.user.id % 20)}.jpg`,
@@ -366,7 +378,7 @@ const transformApiPostToPost = (apiPost: ApiPost): Post => {
         apiPost.start_location_name &&
         apiPost.end_location_name
       ) {
-        const taggedUsersHtml = apiPost.tagged_users
+        const taggedUsersHtml = (apiPost.tagged_users || [])
           .filter((user) => user.id !== apiPost.user.id)
           .map((user) => `<span class='text-[#247BFE]'>${user.name}</span>`)
           .join(" and ");
@@ -525,6 +537,12 @@ const UserFeed = () => {
 
         console.log(`Found ${postsData.length} posts on page ${pageNum}`);
 
+        // Ensure postsData is always an array
+        if (!Array.isArray(postsData)) {
+          console.error("postsData is not an array:", postsData);
+          postsData = [];
+        }
+
         if (postsData.length > 0) {
           console.log("Raw posts data:", postsData);
 
@@ -623,6 +641,12 @@ const UserFeed = () => {
     },
     []
   );
+
+  // Function to refresh posts after comment is added
+  const handleCommentAdded = useCallback(() => {
+    // Refresh the current page to get updated comment counts
+    fetchPosts(page, false);
+  }, [page, fetchPosts]);
 
   // Load more posts when user scrolls near bottom
   const loadMorePosts = useCallback(() => {
@@ -748,7 +772,11 @@ const UserFeed = () => {
   return (
     <div className="">
       {posts?.map((post, index) => (
-        <PostCard key={`${post.id}-${index}`} post={post} />
+        <PostCard
+          key={`${post.id}-${index}`}
+          post={post}
+          onCommentAdded={handleCommentAdded}
+        />
       ))}
 
       {/* Loading indicator for infinite scroll */}
