@@ -64,7 +64,7 @@ const ProfileDropdown = ({
           alt="Profile"
           className="w-8 h-8 rounded-full object-cover"
         />
-        <span className="hidden md:block text-sm font-medium">
+        <span className="hidden md:block text-sm  text-[#000000] font-gilroy font-[500] leading-[100%] tracking-[-3%]">
           {userName?.split(" ")[0]}
         </span>
         <svg

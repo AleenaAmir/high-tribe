@@ -39,16 +39,15 @@ const NavMenu = ({ active, onItemClick, isSidebar }: NavMenuProps) => (
         <button
           key={item.label}
           onClick={onItemClick}
-          className={`w-full flex items-center space-x-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 ${
-            active === item.label ? "bg-gray-50" : ""
-          }`}
+          className={`w-full flex items-center space-x-3 px-4 py-2 text-sm text-[#000000] font-gilroy font-[7e00] leading-[100%] tracking-[-3%] hover:bg-gray-100 ${active === item.label ? "bg-gray-50" : ""
+            }`}
         >
           <Image
             src={item.icon}
             alt={item.label}
-            width={20}
-            height={20}
-            className="w-5 h-5"
+            width={24}
+            height={24}
+            className="w-6 h-6"
           />
           <span>{item.label}</span>
         </button>

@@ -30,7 +30,7 @@ const PostFootPrint = ({
         setJournyMap(true);
       },
     },
-        {
+    {
       name: "Foot Print",
       img: (
         <Image
@@ -45,7 +45,7 @@ const PostFootPrint = ({
         setJournyMap(true);
       },
     },
-   
+
     {
       name: "Travel Tip",
       img: (
@@ -61,7 +61,7 @@ const PostFootPrint = ({
         setTipModal(true);
       },
     },
-     {
+    {
       name: "Travel Advisory",
       img: (
         <Image
@@ -79,7 +79,7 @@ const PostFootPrint = ({
   ];
   return (
     <div className="bg-white rounded-lg shadow-md ">
-      <h2 className="text-xl text-[#696969] border-b p-4 md:p-6 pb-2 font-roboto border-[#EEEEEE]">
+      <h2 className="text-[16px] font-[550] leading-[100%] tracking-[-3%]  text-[#000000] border-b p-4 md:p-6 pb-2 font-roboto border-[#EEEEEE]">
         Post Footprint
       </h2>
       <div className="p-4 md:px-8  border-b border-[#EEEEEE]">
@@ -95,17 +95,17 @@ const PostFootPrint = ({
             />
             <input
               type="text"
-              className="w-full placeholder:text-[#938585] outline-none"
-              placeholder="What's on your mind"
+              className="w-full placeholder:text-[#000000]  text-[12px] font-poppins font-[400] leading-[100%] tracking-[-3%] outline-none"
+              placeholder="What's on your mind?"
             />
           </div>
           <button
-            className="text-white font-bold cursor-pointer outline-none text-[10px] group flex items-center gap-2 justify-end font-poppins bg-gradient-to-r from-[#9243AC] via-[#B6459F] to-[#E74294] rounded-full w-[114px] h-[32px] p-1"
+            className="text-white font-bold cursor-pointer outline-none text-[10px] group flex items-center gap-2 justify-center font-poppins bg-gradient-to-r from-[#9243AC] via-[#B6459F] to-[#E74294] rounded-full w-[114px] h-[32px] p-1"
             onClick={() => setFootprintModal(true)}
           >
             <span>Footprint</span>
-            <span className="bg-[#FFFFFF]  transition-all duration-300 rounded-full p-1">
-              <FootPrint className="" />
+            <span className="bg-[#FFFFFF]  transition-all duration-300 rounded-full">
+              <FootPrint />
             </span>
           </button>
         </div>
@@ -115,7 +115,7 @@ const PostFootPrint = ({
           <button
             type="button"
             key={i}
-            onClick={option?.onclick || (() => {})}
+            onClick={option?.onclick || (() => { })}
             className="flex items-center text-[9px] md:text-[11px] gap-1 p-1 md:p-2 cursor-pointer hover:shadow-md transition-all duration-300 px-2 md:px-4 rounded-full bg-white"
           >
             {option?.img && option?.img}

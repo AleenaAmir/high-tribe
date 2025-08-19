@@ -57,8 +57,8 @@ const stories = [
 
 const StoriesBar = () => {
   return (
-    <div className="p-4 bg-white rounded-lg shadow-md relative">
-      <h2 className="text-[20px]  text-[#696969] mb-4 font-roboto">
+    <div className="p-4 bg-white rounded-lg shadow-sm relative">
+      <h2 className="text-[20px] font-[550] leading-[100%] tracking-[-3%]  text-[#000000] mb-4 font-gilroy">
         Stories from the Tribe
       </h2>
 
@@ -93,24 +93,23 @@ const StoriesBar = () => {
           <SwiperSlide key={index} className="!w-auto">
             <div className="flex flex-col items-center gap-2 cursor-pointer">
               <div
-                className={`w-[79px] h-[79px] rounded-full p-[3px] ${
-                  story.live
-                    ? " rounded-full bg-gradient-to-b from-[#EF373D] via-[#B01C9E] to-[#7100FF]"
-                    : ""
-                }`}
+                className={`w-[79px] h-[79px] rounded-full p-[3px] ${story.live
+                  ? " rounded-full bg-gradient-to-b from-[#EF373D] via-[#B01C9E] to-[#7100FF]"
+                  : ""
+                  }`}
               >
                 <div className="bg-white rounded-full">
                   <Image
                     src={story.img}
                     alt={story.name}
-                    width={79}
-                    height={79}
+                    width={70}
+                    height={70}
                     className="w-full h-full rounded-full object-cover"
                     unoptimized
                   />
                 </div>
               </div>
-              <span className="text-xs text-gray-600">{story.name}</span>
+              <span className="text-xs text-[#000000] font-gilroy font-medium leading-[100%] tracking-[-3%]">{story.name}</span>
             </div>
           </SwiperSlide>
         ))}
