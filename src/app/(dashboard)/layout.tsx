@@ -31,7 +31,7 @@ export default function DashboardLayout({
         <aside
           className={`
             fixed lg:relative inset-y-0 left-0 lg:z-40 z-50
-            w-[276px] flex-shrink-0
+            w-[280px] flex-shrink-0
             bg-white flex flex-col
             transform transition-transform duration-300 ease-in-out
             lg:transform-none

@@ -10,6 +10,7 @@ import Achivments from "./leftside/Achivments";
 import Badges from "./leftside/Badges";
 import { useRouter } from "next/navigation";
 import { toast } from "react-hot-toast";
+import BucketList from "./leftside/BucketList";
 
 const mockFriends = [
   {
@@ -45,36 +46,43 @@ const mockFriends = [
 ];
 
 const mockEvents = [
-  {
-    title: "Events Host",
-  },
-  {
-    title: "Number of Friend Tribe",
-  },
-  {
-    title: "Hosting List",
-  },
-  {
-    title: "Total Events",
-  },
-  {
-    title: "Total Host",
-  },
-  {
-    title: "Footprints Visitor",
-  },
-  {
-    title: "Travel KM",
-  },
+  // {
+  //   id: 1, title: "Events Host", date: "8/13/2025", isHighlighted: true 
+  // },
+  // {
+  //   title: "Events in Iceland",
+  // },
+  // {
+  //   title: "Event Stay",
+  // },
+  // {
+  //   title: "Event coffee with ali",
+  // },
+  // {
+  //   title: "Event cofee with ali",
+  // },
+  // {
+  //   title: "event stay",
+  // },
+  // {
+  //   title: "Event in Iceland",
+  // },
+  { id: 1, title: "Events Host", date: "8/13/2025", isHighlighted: true },
+  { id: 2, title: "Events in Iceland", date: "8/14/2025", isHighlighted: false },
+  { id: 3, title: "Event story", date: "8/15/2025", isHighlighted: false },
+  { id: 4, title: "Event coffee with ali", date: "8/16/2025", isHighlighted: false },
+  { id: 5, title: "Event coffee with ali", date: "8/16/2025", isHighlighted: false },
+  { id: 6, title: "Event stay", date: "8/16/2025", isHighlighted: false },
+  { id: 7, title: "Events in Iceland", date: "8/17/2025", isHighlighted: false }
 ];
 
 const mockBadges = [
   "/dashboard/achivment.png",
-  "/dashboard/achivment.png",
-  "/dashboard/achivment.png",
-  "/dashboard/achivment.png",
-  "/dashboard/achivment.png",
-  "/dashboard/achivment.png",
+  // "/dashboard/achivment.png",
+  // "/dashboard/achivment.png",
+  // "/dashboard/achivment.png",
+  // "/dashboard/achivment.png",
+  // "/dashboard/achivment.png",
 ];
 
 interface SideBarProps {
@@ -134,16 +142,17 @@ const SideBar = ({ onItemClick }: SideBarProps) => {
       </div>
       <Intarctions footprint={"268"} likes={"1.4K"} photos={"2.5K"} />
       <Events events={mockEvents} />
+      <BucketList  />
       <Badges badges={mockBadges} />
       <Achivments />
       <FriendsList friends={mockFriends} onItemClick={onItemClick} />
-      <Image
+      {/* <Image
         src="/dashboard/hotdeal.png"
         alt="Hot Deal"
         width={315}
         height={212}
         className="rounded-xl max-w-[100%] object-contain mt-5"
-      />
+      /> */}
     </div>
   );
 };

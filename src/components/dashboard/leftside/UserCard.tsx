@@ -54,7 +54,7 @@ const UserCard = ({
               className="w-5 h-3.5 rounded-sm"
             />
           ))}
-          <span className="text-xs font-medium text-blue-600 ml-0.5">+21</span>
+          <span className="text-xs font-medium text-blue-600 ml-1 bg-blue-600 text-white px-2 rounded-full text-center justify-center w-fit h-fit ">+21</span>
         </div>
       </div>
     </div>
