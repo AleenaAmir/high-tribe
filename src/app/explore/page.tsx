@@ -1,4 +1,5 @@
 "use client";
+
 import { useRef, useState } from "react";
 import Explore from "@/components/explore/Explore";
 import SideExplore from "@/components/explore/SideExplore";
@@ -9,77 +10,134 @@ import JourneySidebar from "@/components/explore/JourneySidebar";
 import StepDetailsPanel from "@/components/explore/StepDetailsPanel";
 import { Step } from "@/components/dashboard/modals/components/newjourney/types";
 
+/** === API & Local Types === */
+type ApiJourney = {
+  id: number;
+  title?: string;
+  start_location_name?: string;
+  start_lat?: string | number | null;
+  start_lng?: string | number | null;
+  end_location_name?: string;
+  end_lat?: string | number | null;
+  end_lng?: string | number | null;
+  start_date?: string; // "YYYY-MM-DD"
+  end_date?: string;   // "YYYY-MM-DD"
+  budget?: string | number;
+  travelers?: string;
+  user?: any;
+};
+
+type JourneyDay = {
+  id?: number;
+  dayNumber: number;
+  date: string | Date;
+  steps: Step[];
+  isOpen?: boolean;
+};
+
+type JourneyData = {
+  id: number;
+  journeyName: string;
+  startingPoint: string;
+  endPoint: string;
+  startDate: string; // YYYY-MM-DD
+  endDate: string;   // YYYY-MM-DD
+  who: string;
+  budget: string;
+  days: JourneyDay[];
+};
+
+/** === Helpers === */
+const toISODate = (d?: string | Date): string => {
+  const date = d ? new Date(d) : new Date();
+  return date.toISOString().split("T")[0];
+};
+
+const toNumberOrNull = (v: unknown): number | null => {
+  if (typeof v === "number") return Number.isFinite(v) ? v : null;
+  if (typeof v === "string") {
+    const n = parseFloat(v);
+    return Number.isFinite(n) ? n : null;
+  }
+  return null;
+};
+
+const normalizeDays = (raw: any): JourneyDay[] => {
+  if (!raw || !Array.isArray(raw)) return [];
+  return raw.map((d: any, i: number) => ({
+    id: d?.id ?? i + 1,
+    dayNumber: d?.dayNumber ?? i + 1,
+    date: d?.date ?? new Date(),
+    steps: Array.isArray(d?.steps) ? d.steps : [],
+    isOpen: !!d?.isOpen,
+  }));
+};
+
+/** API → Local mapper */
+const toJourneyDataFromApi = (j: ApiJourney): JourneyData => {
+  return {
+    id: j.id,
+    journeyName: j.title || "Untitled Journey",
+    startingPoint: j.start_location_name || "Unknown",
+    endPoint: j.end_location_name || "Unknown",
+    startDate: toISODate(j.start_date),
+    endDate: toISODate(j.end_date),
+    who: j.travelers || "couple",
+    budget: j.budget != null ? String(j.budget) : "1000",
+    // API doesn't provide days/steps in your example; keep empty array
+    days: [],
+  };
+};
+
+/** Base for safe merges when prev is null */
+const blankJourney: JourneyData = {
+  id: 0,
+  journeyName: "",
+  startingPoint: "",
+  endPoint: "",
+  startDate: toISODate(),
+  endDate: toISODate(),
+  who: "",
+  budget: "",
+  days: [],
+};
+
 const Page = () => {
-  const handleMenuClick = () => {};
   const mapRef = useRef<InteractiveMapRef>(null);
+
   const [activeFilter, setActiveFilter] = useState<string>("All feeds");
   const [isExplorePanelOpen, setIsExplorePanelOpen] = useState<boolean>(false);
   const [newJourney, setNewJourney] = useState<boolean>(false);
-  const [isJourneySidebarOpen, setIsJourneySidebarOpen] =
-    useState<boolean>(true);
-  const [journeyData, setJourneyData] = useState<any>({
-    journeyName: "Trip to Lahore to Hunza",
-    startingPoint: "Lahore",
-    endPoint: "Hunza",
-    startDate: "2024-07-06",
-    endDate: "2024-07-12",
-    who: "couple",
-    budget: "2000",
-    days: [
-      {
-        id: 1,
-        dayNumber: 1,
-        date: new Date("2024-07-06"),
-        steps: [
-          {
-            name: "Trip to Lahore and Islamabad",
-            location: { coords: null, name: "Lahore" },
-            notes: "Starting our journey from Lahore",
-            media: [],
-            mediumOfTravel: "car",
-            startDate: "2024-07-06",
-            endDate: "2024-07-06",
-            category: "1",
-            dateError: "",
-          },
-        ],
-        isOpen: false,
-      },
-      {
-        id: 2,
-        dayNumber: 2,
-        date: new Date("2024-07-07"),
-        steps: [
-          {
-            name: "Trip to Islamabad and Murree",
-            location: { coords: null, name: "Islamabad" },
-            notes: "Visiting Faisal Mosque and exploring Islamabad",
-            media: [],
-            mediumOfTravel: "car",
-            startDate: "2024-07-07",
-            endDate: "2024-07-07",
-            category: "2",
-            dateError: "",
-          },
-        ],
-        isOpen: false,
-      },
-    ],
-  });
+  const [isJourneySidebarOpen, setIsJourneySidebarOpen] = useState<boolean>(false);
+
+  // 🔹 No mock: start empty until user picks or creates a journey
+  const [journeyData, setJourneyData] = useState<JourneyData | null>(null);
+
   const [selectedStep, setSelectedStep] = useState<{
     dayIndex: number;
     stepIndex: number;
   } | null>(null);
+
   const [isStepDetailsOpen, setIsStepDetailsOpen] = useState<boolean>(false);
+
+  /** === Handlers === */
+  const handleMenuClick = () => { };
 
   const handleStepSelect = (dayIndex: number, stepIndex: number) => {
     setSelectedStep({ dayIndex, stepIndex });
     setIsStepDetailsOpen(true);
   };
 
-  const updateJourneyData = (updatedData: any) => {
-    console.log("Updating journey data:", updatedData);
-    setJourneyData(updatedData);
+  // Accepts full or partial updates from children (e.g., JourneySidebar)
+  const updateJourneyData = (updated: Partial<JourneyData> | JourneyData) => {
+    setJourneyData((prev) => {
+      const merged = { ...(prev ?? blankJourney), ...(updated as any) };
+      // normalize days if provided
+      if ((updated as any)?.days) {
+        merged.days = normalizeDays((updated as any).days);
+      }
+      return merged;
+    });
   };
 
   const handleStepDetailsClose = () => {
@@ -87,50 +145,27 @@ const Page = () => {
     setSelectedStep(null);
   };
 
-  // Handle journey click from SideExplore
-  const handleJourneyClick = (journey: any) => {
-    console.log("Journey clicked:", journey);
-
-    // Transform the API journey data to match the expected format
-    const transformedJourneyData = {
-      journeyName: journey.title || "Untitled Journey",
-      startingPoint:
-        journey.starting_point || journey.start_location || "Unknown",
-      endPoint: journey.ending_point || journey.end_location || "Unknown",
-      startDate: journey.start_date || new Date().toISOString().split("T")[0],
-      endDate: journey.end_date || new Date().toISOString().split("T")[0],
-      who: journey.travelers || "couple",
-      budget: journey.budget?.toString() || "1000",
-      days: journey.days ||
-        journey.steps || [
-          {
-            id: 1,
-            dayNumber: 1,
-            date: new Date(journey.start_date || new Date()),
-            steps: [],
-            isOpen: false,
-          },
-        ],
-    };
-
-    console.log("Transformed journey data:", transformedJourneyData);
-
-    // Update the journey data and open the sidebar
-    setJourneyData(transformedJourneyData);
+  // Called when a journey is clicked in SideExplore (uses your API shape)
+  const handleJourneyClick = (journey: ApiJourney) => {
+    const transformed = toJourneyDataFromApi(journey);
+    setJourneyData(transformed);
     setIsJourneySidebarOpen(true);
+
+    // Center map at start coordinates if present
+    const lng = toNumberOrNull(journey.start_lng);
+    const lat = toNumberOrNull(journey.start_lat);
+    if (lng != null && lat != null) {
+      mapRef.current?.centerMap(lng, lat, journey.start_location_name || "Start");
+    }
   };
 
-  // Get the selected step data
+  // Selected step for details panel
   const getSelectedStepData = (): Step | null => {
-    if (!selectedStep || !journeyData) return null;
-
-    // This is a simplified version - you'll need to adapt this based on your actual data structure
+    if (!selectedStep || !journeyData?.days?.length) return null;
     const { dayIndex, stepIndex } = selectedStep;
-    const days = journeyData.days || [];
-    const day = days[dayIndex];
-    if (!day || !day.steps) return null;
-
-    return day.steps[stepIndex] || null;
+    const day = journeyData.days[dayIndex];
+    if (!day?.steps?.length) return null;
+    return day.steps[stepIndex] ?? null;
   };
 
   return (
@@ -146,21 +181,23 @@ const Page = () => {
         />
 
         <div className="flex h-full">
-          {/* Journey Sidebar */}
-          <JourneySidebar
-            isOpen={isJourneySidebarOpen}
-            onClose={() => setIsJourneySidebarOpen(false)}
-            journeyData={journeyData}
-            selectedStep={selectedStep}
-            onStepSelect={handleStepSelect}
-            onJourneyDataUpdate={updateJourneyData}
-          />
+          {/* Sidebar only when journeyData exists */}
+          {journeyData && (
+            <JourneySidebar
+              isOpen={isJourneySidebarOpen}
+              onClose={() => setIsJourneySidebarOpen(false)}
+              journeyData={journeyData}
+              selectedStep={selectedStep}
+              onStepSelect={handleStepSelect}
+              onJourneyDataUpdate={updateJourneyData}
+            />
+          )}
 
           {/* Main Content */}
           <div className="flex flex-1">
             <SideExplore
               onExploreClick={() => setIsExplorePanelOpen(true)}
-              onJourneyClick={handleJourneyClick}
+              onJourneyClick={handleJourneyClick} // <-- consumes ApiJourney
             />
             <div className="flex-1">
               <ExploreMap
@@ -186,12 +223,24 @@ const Page = () => {
         stepIndex={selectedStep?.stepIndex || 0}
       />
 
+      {/* Create Journey (if your modal returns the same API shape) */}
       <NewJourneyExplore
         newJourney={newJourney}
         setNewJourney={setNewJourney}
-        onJourneyCreated={(data) => {
-          setJourneyData(data);
+        onJourneyCreated={(data: any) => {
+          const transformed = toJourneyDataFromApi(data);
+          setJourneyData(transformed);
           setIsJourneySidebarOpen(true);
+
+          const lng = toNumberOrNull(data.start_lng);
+          const lat = toNumberOrNull(data.start_lat);
+          if (lng != null && lat != null) {
+            mapRef.current?.centerMap(
+              lng,
+              lat,
+              data.start_location_name || "Start"
+            );
+          }
         }}
       />
     </>

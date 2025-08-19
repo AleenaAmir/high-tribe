@@ -54,7 +54,7 @@ export default function NewJourneyExplore({
 }: {
   newJourney: boolean;
   setNewJourney: (v: boolean) => void;
-  onJourneyCreated?: (journeyData: JourneyFormData) => void;
+  onJourneyCreated?: (journeyData: JourneyFormData) => any;
 }) {
   const {
     register,
@@ -87,7 +87,7 @@ export default function NewJourneyExplore({
       console.log(TOKEN, "TOKEN")
 
 
-      const user_id = localStorage.getItem("user_id");
+      const user_id = JSON.parse(localStorage.getItem("user") || "{}").id;
       // Prepare payload for your API (map to their expected snake_case keys)
       const payload = {
         title: data.title,

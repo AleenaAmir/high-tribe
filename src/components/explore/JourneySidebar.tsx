@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+"use client"
+import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import { useForm, useFieldArray, Controller } from "react-hook-form";
 import {
@@ -14,8 +15,12 @@ import WalkIcon from "@/components/dashboard/svgs/WalkIcon";
 import BikeIcon from "@/components/dashboard/svgs/BikeIcon";
 import JourneyCalendar from "./JourneyCalendar";
 import JourneyBookings from "./JourneyBookings";
+import { generateDaysFromRange } from "@/app/querry/getDays";
+import api from "@/lib/api";
+import { toast } from "react-hot-toast";
 
 interface JourneyData {
+  id: number;
   journeyName: string;
   startingPoint: string;
   endPoint: string;
@@ -37,11 +42,11 @@ interface Day {
 interface JourneySidebarProps {
   isOpen: boolean;
   onClose: () => void;
-  journeyData: JourneyData | null;
+  journeyData: JourneyData | any;
   selectedStep?: { dayIndex: number; stepIndex: number } | null;
   onStepSelect?: (dayIndex: number, stepIndex: number) => void;
   onJourneyDataUpdate?: (updatedData: JourneyData) => void;
- 
+
 }
 
 interface FormData {
@@ -57,6 +62,7 @@ const JourneySidebar: React.FC<JourneySidebarProps> = ({
   onJourneyDataUpdate,
 
 }) => {
+  console.log(journeyData, "journeyData")
   const [selectedDay, setSelectedDay] = useState<number | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [openDayIndex, setOpenDayIndex] = useState<number | null>(null);
@@ -66,7 +72,15 @@ const JourneySidebar: React.FC<JourneySidebarProps> = ({
     "itinerary" | "calendar" | "bookings"
   >("itinerary");
 
-  // React Hook Form setup
+  useEffect(() => {
+    const days = generateDaysFromRange(journeyData.startDate, journeyData.endDate);
+    if (days.length > 0) {
+      setSelectedDay(days.length - 1);
+    } else {
+      setSelectedDay(null);
+    }
+    console.log(days, "days")
+  }, [journeyData])
   const { control, handleSubmit, watch, setValue, getValues } =
     useForm<FormData>({
       defaultValues: {
@@ -219,19 +233,11 @@ const JourneySidebar: React.FC<JourneySidebarProps> = ({
   };
 
   const handleAddStop = (dayIndex: number) => {
-    console.log("Adding stop to day:", dayIndex);
-    console.log("Current journeyData:", journeyData);
-
-    // If we have sample data, update it directly
+    // --- SAMPLE DATA PATH (journeyData.days exists) ---
     if (journeyData?.days) {
-      console.log("Using sample data path for adding stop");
       const updatedJourneyData = { ...journeyData };
       const currentDay = updatedJourneyData.days?.[dayIndex];
-
-      if (!currentDay) {
-        console.error("Day not found at index:", dayIndex);
-        return;
-      }
+      if (!currentDay) return;
 
       const newStep: Step = {
         name: `Stop ${(currentDay.steps?.length || 0) + 1}`,
@@ -245,32 +251,25 @@ const JourneySidebar: React.FC<JourneySidebarProps> = ({
         dateError: "",
       };
 
-      console.log("New step to add:", newStep);
+      // add the step
       currentDay.steps = [...(currentDay.steps || []), newStep];
-      console.log("Updated day:", currentDay);
 
-      // Update the journeyData in the parent component
-      if (onJourneyDataUpdate) {
-        onJourneyDataUpdate(updatedJourneyData);
-        console.log("✅ Stop added successfully!");
-      }
+      // ⬇️ mark the new step as UNSAVED so the form appears
+      const newIndex = currentDay.steps.length - 1;
+      setSavedSteps((m) => ({ ...m, [`${dayIndex}-${newIndex}`]: false }));
 
+      // ⬇️ ensure the day is expanded
       setOpenDayIndex(dayIndex);
+
+      if (onJourneyDataUpdate) onJourneyDataUpdate(updatedJourneyData);
       return;
     }
 
-    // Original form-based logic
+    // --- FORM-BASED PATH (react-hook-form days) ---
     const currentDays = getValues("days");
-    console.log("Current days:", currentDays);
-
-    if (!currentDays || !currentDays[dayIndex]) {
-      console.error("Day not found at index:", dayIndex);
-      return;
-    }
+    if (!currentDays || !currentDays[dayIndex]) return;
 
     const currentDay = currentDays[dayIndex];
-    console.log("Current day:", currentDay);
-
     const newStep: Step = {
       name: `Stop ${(currentDay.steps?.length || 0) + 1}`,
       location: { coords: null, name: "" },
@@ -288,16 +287,15 @@ const JourneySidebar: React.FC<JourneySidebarProps> = ({
       steps: [...(currentDay.steps || []), newStep],
     };
 
-    console.log("Updated day:", updatedDay);
-
-    // Update the form
     setValue(`days.${dayIndex}`, updatedDay, { shouldValidate: true });
-
-    // Force a re-render by triggering watch
     watch("days");
 
+    // ⬇️ mark unsaved + expand
+    const newIndex = updatedDay.steps.length - 1;
+    setSavedSteps((m) => ({ ...m, [`${dayIndex}-${newIndex}`]: false }));
     setOpenDayIndex(dayIndex);
   };
+
 
   const handleStepDelete = (dayIndex: number, stepIndex: number) => {
     // If we have sample data, update it directly
@@ -311,7 +309,7 @@ const JourneySidebar: React.FC<JourneySidebarProps> = ({
       }
 
       currentDay.steps = currentDay.steps.filter(
-        (_, index) => index !== stepIndex
+        (_: any, index: any) => index !== stepIndex
       );
 
       // Update the journeyData in the parent component
@@ -461,19 +459,17 @@ const JourneySidebar: React.FC<JourneySidebarProps> = ({
 
     return (
       <div
-        className={`bg-gray-50 border border-gray-200 rounded-lg p-3 mb-3 cursor-pointer transition-all hover:bg-gray-100 ${
-          isSelected ? "border-blue-500 bg-blue-50" : ""
-        }`}
+        className={`bg-gray-50 border border-gray-200 rounded-lg p-3 mb-3 cursor-pointer transition-all hover:bg-gray-100 ${isSelected ? "border-blue-500 bg-blue-50" : ""
+          }`}
         onClick={handleStepClick}
       >
         <div className="flex items-start gap-3">
           {/* Step Number */}
           <div
-            className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center ${
-              isSelected
-                ? "bg-blue-500 text-white"
-                : "bg-gray-300 text-gray-700"
-            }`}
+            className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center ${isSelected
+              ? "bg-blue-500 text-white"
+              : "bg-gray-300 text-gray-700"
+              }`}
           >
             <span className="text-[10px] font-medium">{stepIndex + 1}</span>
           </div>
@@ -498,9 +494,8 @@ const JourneySidebar: React.FC<JourneySidebarProps> = ({
           {/* Step Content */}
           <div className="flex-1 min-w-0">
             <h3
-              className={`text-[12px] font-semibold mb-1 ${
-                isSelected ? "text-blue-900" : "text-gray-900"
-              }`}
+              className={`text-[12px] font-semibold mb-1 ${isSelected ? "text-blue-900" : "text-gray-900"
+                }`}
             >
               {step.location.name || step.name}
             </h3>
@@ -553,10 +548,10 @@ const JourneySidebar: React.FC<JourneySidebarProps> = ({
             <div className="text-[10px] text-gray-500">
               {step.startDate
                 ? new Date(step.startDate).toLocaleDateString("en-US", {
-                    weekday: "short",
-                    month: "short",
-                    day: "numeric",
-                  })
+                  weekday: "short",
+                  month: "short",
+                  day: "numeric",
+                })
                 : "No date"}
             </div>
             <button
@@ -604,9 +599,40 @@ const JourneySidebar: React.FC<JourneySidebarProps> = ({
     const stepKey = `${dayIndex}-${stepIndex}`;
     const isSaved = savedSteps[stepKey];
 
-    const handleSave = () => {
-      handleSaveStep(dayIndex, stepIndex);
-      console.log("Saving step:", step);
+    const handleSaveStop = async (dayIndex: number, stepIndex: number, step: Step) => {
+      // Persist
+      try {
+        const TOKEN =
+          typeof window !== "undefined"
+            ? localStorage.getItem("token") || "<PASTE_VALID_TOKEN_HERE>"
+            : "<PASTE_VALID_TOKEN_HERE>";
+
+        const formData = new FormData();
+        formData.append("title", step.name);
+        formData.append("stop_category_id", step.category || "1");
+        formData.append("location_name", step.location.name);
+        formData.append("lat", step.location.coords?.[1]?.toString() || "48.8584");
+        formData.append("lng", step.location.coords?.[0]?.toString() || "2.2945");
+        formData.append("transport_mode", step.mediumOfTravel || "");
+        formData.append("start_date", step.startDate || "");
+        formData.append("end_date", step.endDate || "");
+        formData.append("notes", step.notes || "");
+
+        const response = await fetch(`https://api.hightribe.com/api/journeys/${journeyData.id}/stops`, {
+          method: "POST",
+          headers: { Authorization: `Bearer ${TOKEN}`, Accept: "application/json" },
+          body: formData,
+        });
+        if (response.status === 201) {
+          toast.success("Stop saved successfully!");
+        }
+      } catch (e) {
+        console.warn("Save failed (show a toast, keep user in edit):", e);
+        return;
+      }
+
+      // Switch to preview mode
+      setSavedSteps((m) => ({ ...m, [`${dayIndex}-${stepIndex}`]: true }));
     };
 
     return (
@@ -681,11 +707,10 @@ const JourneySidebar: React.FC<JourneySidebarProps> = ({
                   <button
                     key={mode.id}
                     type="button"
-                    className={`w-8 h-8 rounded-md flex items-center justify-center transition-colors ${
-                      selectedTravelMode === mode.id
-                        ? "bg-blue-500 text-white"
-                        : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                    }`}
+                    className={`w-8 h-8 rounded-md flex items-center justify-center transition-colors ${selectedTravelMode === mode.id
+                      ? "bg-blue-500 text-white"
+                      : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                      }`}
                     onClick={() => {
                       setSelectedTravelMode(mode.id);
                       handleStepUpdate(dayIndex, stepIndex, {
@@ -790,7 +815,7 @@ const JourneySidebar: React.FC<JourneySidebarProps> = ({
             <button
               type="button"
               className="px-6 py-2 bg-blue-500 text-white rounded-md text-[12px] font-medium hover:bg-blue-600 transition-colors"
-              onClick={handleSave}
+              onClick={() => handleSaveStop(dayIndex, stepIndex, step)}
             >
               {isSaved ? "Update" : "Save"}
             </button>
@@ -808,9 +833,8 @@ const JourneySidebar: React.FC<JourneySidebarProps> = ({
     <div>
       {/* Main Sidebar */}
       <div
-        className={`fixed left-0 top-30 bottom-2 z-40 w-[524px] bg-white rounded-r-2xl shadow-2xl border border-gray-100 overflow-hidden transform transition-transform duration-300 ease-in-out flex flex-col ${
-          isOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
+        className={`fixed left-0 top-30 bottom-2 z-40 w-[524px] bg-white rounded-r-2xl shadow-2xl border border-gray-100 overflow-hidden transform transition-transform duration-300 ease-in-out flex flex-col ${isOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
       >
         <form
           onSubmit={handleSubmit(onSubmit)}
@@ -908,7 +932,7 @@ const JourneySidebar: React.FC<JourneySidebarProps> = ({
             </div>
             <div className="text-[9px] mb-2 flex items-center gap-3">
               <span className="">{journeyData.startingPoint}</span>
-              {totalDays} days in {monthDisplay}
+              {selectedDay ? selectedDay : 0} days in {monthDisplay}
               <span className="">{travelerCount} travelers</span>
               <span className="">${journeyData.budget}</span>
             </div>
@@ -916,7 +940,8 @@ const JourneySidebar: React.FC<JourneySidebarProps> = ({
             {/* Heading */}
             <div className="pb-2 pt-3">
               <div className="text-[16px] font-semibold ">
-                Itinerary ({totalDays} days)
+
+                Itinerary ({selectedDay ? selectedDay : 0} days)
               </div>
             </div>
           </div>
@@ -924,31 +949,28 @@ const JourneySidebar: React.FC<JourneySidebarProps> = ({
           {/* Navigation Tabs */}
           <div className="flex items-center gap-1 p-3 border-b border-gray-100 overflow-x-auto">
             <button
-              className={`px-3 py-2 text-xs font-medium whitespace-nowrap transition-colors ${
-                activeTab === "itinerary"
-                  ? "text-black border-b-2 border-black"
-                  : "text-gray-600 hover:text-gray-900"
-              }`}
+              className={`px-3 py-2 text-xs font-medium whitespace-nowrap transition-colors ${activeTab === "itinerary"
+                ? "text-black border-b-2 border-black"
+                : "text-gray-600 hover:text-gray-900"
+                }`}
               onClick={() => setActiveTab("itinerary")}
             >
               Itinerary
             </button>
             <button
-              className={`px-3 py-2 text-xs font-medium whitespace-nowrap transition-colors ${
-                activeTab === "calendar"
-                  ? "text-black border-b-2 border-black"
-                  : "text-gray-600 hover:text-gray-900"
-              }`}
+              className={`px-3 py-2 text-xs font-medium whitespace-nowrap transition-colors ${activeTab === "calendar"
+                ? "text-black border-b-2 border-black"
+                : "text-gray-600 hover:text-gray-900"
+                }`}
               onClick={() => setActiveTab("calendar")}
             >
               Calendar
             </button>
             <button
-              className={`px-3 py-2 text-xs font-medium whitespace-nowrap transition-colors ${
-                activeTab === "bookings"
-                  ? "text-black border-b-2 border-black"
-                  : "text-gray-600 hover:text-gray-900"
-              }`}
+              className={`px-3 py-2 text-xs font-medium whitespace-nowrap transition-colors ${activeTab === "bookings"
+                ? "text-black border-b-2 border-black"
+                : "text-gray-600 hover:text-gray-900"
+                }`}
               onClick={() => setActiveTab("bookings")}
             >
               Bookings
@@ -960,7 +982,7 @@ const JourneySidebar: React.FC<JourneySidebarProps> = ({
             {activeTab === "itinerary" && (
               <div className="p-3">
                 <div className="space-y-2">
-                  {finalDisplayDays.map((day, dayIndex) => (
+                  {finalDisplayDays.map((day: any, dayIndex: any) => (
                     <div key={day.id} className="border-b border-gray-200 pb-2">
                       {/* Day Header */}
                       <div className="flex items-center justify-between py-2">
@@ -972,9 +994,8 @@ const JourneySidebar: React.FC<JourneySidebarProps> = ({
                             Day {day.dayNumber}
                           </span>
                           <svg
-                            className={`w-3 h-3 transition-transform ${
-                              openDayIndex === dayIndex ? "rotate-180" : ""
-                            }`}
+                            className={`w-3 h-3 transition-transform ${openDayIndex === dayIndex ? "rotate-180" : ""
+                              }`}
                             fill="none"
                             stroke="currentColor"
                             viewBox="0 0 24 24"
@@ -1009,7 +1030,7 @@ const JourneySidebar: React.FC<JourneySidebarProps> = ({
                               </p>
                             </div>
                           ) : (
-                            day.steps.map((step, stepIndex) => {
+                            day.steps.map((step: any, stepIndex: any) => {
                               const stepKey = `${dayIndex}-${stepIndex}`;
                               const isSaved = savedSteps[stepKey];
 
