@@ -13,7 +13,7 @@ const Badges = ({ badges }: BadgesProps) => {
     setShowBadges(!showBadges);
   };
   return (
-         <div className="w-full max-w-sm mx-auto bg-white p-2 font-gilroy border border-gray-200 rounded-lg">
+         <div className="w-full mb-2 max-w-sm mx-auto bg-white p-2 font-gilroy border border-gray-200 rounded-lg">
       {/* Header */}
              <div className="flex justify-between items-center mb-3 mt-1">
                    <h1 className="w-[113px] h-[19px] opacity-100 top-[1311px] left-[303px] font-gilroy font-medium text-[16px] leading-[100%] tracking-[0%] capitalize text-gray-800">Recent Badges</h1>

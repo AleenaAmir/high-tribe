@@ -87,9 +87,9 @@ const Achievements=()=> {
   };
 
   return (
-         <div className="w-[240px] ml-auto mr-4 bg-gray-50 p-4 font-gilroy border border-gray-200 rounded-lg ">
+         <div className="w-full ml-auto  p-3 mb-2 font-gilroy  bg-[#FFFFFF] border border-[#F2F2F1] rounded-lg">
              {/* Header */}
-               <div className="flex justify-between items-center mb-3 mt-1">
+               <div className="flex justify-between items-center mb-3 mt-1 h-[10px]">
                      <h1 className="text-bold font-gilroy font-medium text-gray-800 leading-[100%] tracking-[0%] capitalize">Achieved Milestones</h1>
           <div 
             className="gap-1 w-5 h-5 rounded-full flex items-center justify-center bg-gradient-to-br from-[#9243AC] via-[#B6459F] to-[#E74294] cursor-pointer hover:opacity-80 transition-opacity"

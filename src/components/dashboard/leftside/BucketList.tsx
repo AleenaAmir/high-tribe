@@ -48,9 +48,9 @@ import Image from 'next/image';
   };
 
   return (
-         <div className="w-[240px] mx-auto bg-white p-3 font-gilroy border border-gray-200 rounded-lg">
+         <div className="w-full mx-auto mb-2 bg-[#FFFFFF] p-3 font-gilroy border border-[#F2F2F1] rounded-lg">
  
-             <div className="flex justify-between items-center mb-4 mt-1">
+             <div className="flex justify-between items-center mb-4 mt-1 h-[10px]">
          <h1 className="text-base font-gilroy font-medium text-gray-800 leading-[100%] tracking-[0%] capitalize">Bucket List</h1>
            <div 
              className="w-5 h-5 rounded-full flex items-center justify-center bg-gradient-to-br from-[#9243AC] via-[#B6459F] to-[#E74294] cursor-pointer hover:opacity-80 transition-opacity"
@@ -70,7 +70,7 @@ import Image from 'next/image';
               <div className="absolute bottom-0 left-0 right-0 h-px bg-gray-200"></div>
             
                           <div className="flex items-center space-x-3">
-                <div className="w-12 h-12 rounded-lg overflow-hidden bg-gray-200">
+                <div className="w-12 h-12 rounded-lg overflow-hidden bg-gray-200 ">
                   <Image
                     src={item.image} 
                     alt={item.title}

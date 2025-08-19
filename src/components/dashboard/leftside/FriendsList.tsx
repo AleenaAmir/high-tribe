@@ -21,18 +21,18 @@ const FriendsList = ({ friends, onItemClick }: FriendsListProps) => {
   };
 
   return (
-    <div className="max-w-sm mx-auto bg-white p-3">
+    <div className="w-full max-w-sm mx-auto bg-[#FFFFFF] p-3 font-roboto">
              
-       <div className="border-2 border-gray-200 rounded-xl overflow-hidden">
+       <div className=" border border-[#F2F2F1] rounded-xl overflow-hidden">
        
-         <div 
-           className="px-4 py-2 flex justify-between items-center cursor-pointer hover:bg-gray-50 transition-colors"
-           onClick={toggleFriendsList}
-         >
-           <h1 className="text-md font-bold text-gray-800">
-             Friends <span className="text-blue-500">82</span>
+         <div className=" px-4 py-2 flex justify-between items-center">
+           <h1 className=" text-md font-semibold text-gray-800">
+             Friends <span className=" text-blue-500">82</span>
            </h1>
-           <div className="w-5 h-5 rounded-full flex items-center justify-center bg-gradient-to-br from-[#9243AC] via-[#B6459F] to-[#E74294]">
+           <div 
+             className="w-5 h-5 rounded-full flex items-center justify-center bg-gradient-to-br from-[#9243AC] via-[#B6459F] to-[#E74294] cursor-pointer hover:opacity-80 transition-opacity"
+             onClick={toggleFriendsList}
+           >
              <img
                src="/dashboard/upArrow.svg" 
                alt="Arrow"
@@ -80,7 +80,7 @@ const FriendsList = ({ friends, onItemClick }: FriendsListProps) => {
                </button>
              ))}
            </div>
-                                             <button className="w-full mt-4 bg-gradient-to-r from-[#9243AC] via-[#B6459F] to-[#E74294] text-white rounded-full py-2 hover:opacity-90 transition-all">
+               <button className="w-full mt-4 bg-gradient-to-r from-[#9243AC] via-[#B6459F] to-[#E74294] text-white rounded-full py-2 hover:opacity-90 transition-all">
              See all Friends
            </button>
          </div>

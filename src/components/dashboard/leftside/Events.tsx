@@ -71,7 +71,7 @@ const Events = ({ events = [] }: EventsProps) => {
   };
 
                                                return (
-                <div className={`w-[240px] mx-auto bg-[#FFFFFF] p-4 rounded-lg shadow-sm font-gilroy transition-all duration-300 ${showEvents ? '' : 'h-[80px]'}`}>
+                <div className={`w-full mx-auto bg-[#FFFFFF] border border-[#F2F2F1] p-4 mb-2 rounded-lg shadow-sm font-gilroy transition-all duration-300 ${showEvents ? '' : 'h-[60px]'}`}>
     
                     <div className="flex justify-between items-center mb-4">
                 <h1 className="text-base font-md text-[#000000]font-gilroy ">Upcoming Trips</h1>
@@ -88,7 +88,7 @@ const Events = ({ events = [] }: EventsProps) => {
                   </div>
                 </div>
               </div>
-                                                       {showEvents && (
+                                {showEvents && (
                               <div className="space-y-2">
                                 {trips.map((trip) => (
                                   <div 
