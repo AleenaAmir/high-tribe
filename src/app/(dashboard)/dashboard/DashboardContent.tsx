@@ -12,6 +12,10 @@ import YourGroups from "@/components/dashboard/rightside/YourGroups";
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
+import Image from "next/image";
+import Link from "next/link";
+import Booking from "@/components/dashboard/rightside/Booking";
+import FoodCard from "@/components/dashboard/rightside/FoodCard";
 
 const UserFeed = dynamic(
   () => import("@/components/dashboard/center/UserFeed"),
@@ -76,7 +80,7 @@ const DashboardContent = () => {
       {/* Center Content - Independent Scroll */}
       <div className="flex-1 lg:flex-[3] overflow-y-auto scrollbar-hide">
         <div className="p-6">
-          <div className="max-w-[780px] mx-auto flex flex-col gap-6">
+          <div className="max-w-[780px] mx-auto flex flex-col gap-2">
             <StoriesBar />
             <PostFootPrint
               setJournyMap={setJournyMap}
@@ -84,6 +88,30 @@ const DashboardContent = () => {
               setAdvisoryModal={setAdvisoryModal}
               setTipModal={setTipModal}
             />
+             <div className="bg-white shadow-sm flex justify-between items-center h-[50px] rounded-xl">
+         
+         <h2 className="text-xl text-[#696969] p-4 md:p-6 pb-2 font-roboto border-[#EEEEEE] ">
+           Trip Schedule
+           </h2>
+
+             <Link href={'/explore'}
+             className="text-white font-bold cursor-pointer outline-none text-[10px] flex gap-6 justify-center font-poppins bg-gradient-to-r from-[#9243AC] via-[#B6459F] to-[#E74294] rounded-full w-[148px] h-[32px] p-1 items-center opacity-100 mr-4" 
+        >
+             <Image
+                     src={"/dashboard/map.svg"}
+                     alt={"footprint3"}
+                     width={12.75}
+                     height={12.75}
+                     className="md:w-[20px] md:h-[20px]"
+                   />
+                   <span className="transition-all duration-300 rounded-full p-1">
+
+                   Lets Plan
+                   </span>
+           </Link>
+
+       </div>
+
             {/* <MapDashboard /> */}
             <ReadyToHost />
             <UserFeed />
@@ -92,15 +120,17 @@ const DashboardContent = () => {
       </div>
 
       {/* Right Sidebar - Independent Scroll */}
-      <div className="hidden lg:block lg:flex-1 overflow-y-auto scrollbar-hide">
+      <div className="w-[326px] hidden lg:block lg:flex-1 overflow-y-auto scrollbar-hide">
         <div className="p-6">
           <div className="flex flex-col gap-6">
             <GroupsCard />
             <EventsCard />
-            <FindPeopleCard />
+            <Booking/>
+            <FoodCard/>
+            {/* <FindPeopleCard />
             <YourGroups />
             <NearbyPeopleGrid />
-            <ContactsList />
+            <ContactsList /> */}
           </div>
         </div>
       </div>

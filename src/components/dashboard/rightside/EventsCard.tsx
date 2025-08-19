@@ -68,43 +68,44 @@ const EventsCard = () => {
     time: "Tonight, 7:00 PM",
     location: "Gothic Quarter",
     tags: ["Food", "Culture", "Spirituality"],
-    imageUrl: "https://picsum.photos/seed/event1/800/600",
+    imageUrl: "/dashboard/group-2.svg",
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-md  overflow-hidden">
-      <div className="relative h-48">
+    <div className="bg-white rounded-lg shadow-md overflow-hidden">
+      <div className="relative h-58 ">
         <Image
           src={event.imageUrl}
           alt={event.title}
           layout="fill"
           className="object-cover"
+        
         />
       </div>
       <div className="px-2 py-4">
         <div className="flex justify-between items-center text-[12px] text-[#696969] mb-4">
-          <span className="flex items-center gap-1">
+          <span className="flex items-center gap-1 font-poppins">
             <CalendarIcon />
             {event.time}
           </span>
-          <span className="flex items-center gap-1">
+          <span className="flex items-center gap-1 font-poppins">
             <LocationPinIcon />
             {event.location}
           </span>
         </div>
-        <h3 className="text-[15px] text-[#5E5E5E]">{event.title}</h3>
-        <p className="text-[12px] text-[#959595] ">{event.description}</p>
+        <h3 className="text-[15px] text-[#000000] font-roboto">{event.title}</h3>
+                 <p className="text-[12px] text-[#959595] font-poppins">{event.description}</p>
         <div className="flex flex-wrap justify-center gap-2 mt-3">
           {event.tags.map((tag) => (
             <span
               key={tag}
-              className="bg-[#414141] text-white text-[8px]  px-2 py-1 rounded-md"
+              className="bg-[#D1D4D9 text-[#030303] text-[8px]  px-2 py-1 rounded-xl border border-[#D1D4D9] mb-4 w-[60px] h-[26px] flex items-center justify-center text-center"
             >
               {tag}
             </span>
           ))}
         </div>
-        <button className="w-full bg-gradient-to-r mt-6 from-[#257CFF] to-[#0F62DE] text-white font-bold py-3 rounded-lg hover:opacity-90 transition-opacity">
+        <button className="bg-gradient-to-r from-[#9243AC] via-[#B6459F] to-[#E74294] text-white font-bold py-1 rounded-2xl w-[230px] h-[32px] hover:opacity-90 transition-opacity font-gilroy">
           Join Events
         </button>
       </div>

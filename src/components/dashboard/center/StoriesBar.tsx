@@ -93,13 +93,13 @@ const StoriesBar = () => {
           <SwiperSlide key={index} className="!w-auto">
             <div className="flex flex-col items-center gap-2 cursor-pointer">
               <div
-                className={`w-[79px] h-[79px] rounded-full p-0.5 ${
+                className={`w-[79px] h-[79px] rounded-full p-[3px] ${
                   story.live
-                    ? "bg-gradient-to-tr from-purple-500 to-pink-500"
+                    ? " rounded-full bg-gradient-to-b from-[#EF373D] via-[#B01C9E] to-[#7100FF]"
                     : ""
                 }`}
               >
-                <div className="bg-white p-0.5 rounded-full">
+                <div className="bg-white rounded-full">
                   <Image
                     src={story.img}
                     alt={story.name}
