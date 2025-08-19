@@ -1,34 +1,28 @@
 @import "tailwindcss";
 
-@font-face {
-  font-family: 'Gilroy';
-  src: url('/fonts/gilroy400.ttf') format('truetype');
-  font-weight: 400;
-  font-style: normal;
-}
-
-@font-face {
-  font-family: 'Gilroy';
-  src: url('/fonts/gilroy500.ttf') format('truetype');
-  font-weight: 500;
-  font-style: normal;
-}
-
-@font-face {
-  font-family: 'Gilroy';
-  src: url('/fonts/gilroy700.ttf') format('truetype');
-  font-weight: 700;
-  font-style: normal;
-}
-
+/* Ensure font variables are properly applied */
 :root {
   --font-gilroy: 'Gilroy', sans-serif;
   --font-roboto: 'Roboto', sans-serif;
   --font-poppins: 'Poppins', sans-serif;
 }
 
+/* Apply fonts globally */
 body {
   font-family: var(--font-gilroy);
+}
+
+/* Ensure Tailwind font classes work */
+.font-gilroy {
+  font-family: var(--font-gilroy) !important;
+}
+
+.font-roboto {
+  font-family: var(--font-roboto) !important;
+}
+
+.font-poppins {
+  font-family: var(--font-poppins) !important;
 }
 
 .border-gradient-custom {

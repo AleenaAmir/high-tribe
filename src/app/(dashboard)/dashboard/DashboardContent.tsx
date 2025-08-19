@@ -88,29 +88,27 @@ const DashboardContent = () => {
               setAdvisoryModal={setAdvisoryModal}
               setTipModal={setTipModal}
             />
-             <div className="bg-white shadow-sm flex justify-between items-center h-[50px] rounded-xl">
-         
-         <h2 className="text-xl text-[#696969] p-4 md:p-6 pb-2 font-roboto border-[#EEEEEE] ">
-           Trip Schedule
-           </h2>
+            <div className="bg-white shadow-sm flex justify-between items-center h-[50px] rounded-xl">
+              <h2 className="text-xl text-[#696969] p-4 md:p-6 pb-2 font-roboto border-[#EEEEEE] ">
+                Trip Schedule
+              </h2>
 
-             <Link href={'/explore'}
-             className="text-white font-bold cursor-pointer outline-none text-[10px] flex gap-6 justify-center font-poppins bg-gradient-to-r from-[#9243AC] via-[#B6459F] to-[#E74294] rounded-full w-[148px] h-[32px] p-1 items-center opacity-100 mr-4" 
-        >
-             <Image
-                     src={"/dashboard/map.svg"}
-                     alt={"footprint3"}
-                     width={12.75}
-                     height={12.75}
-                     className="md:w-[20px] md:h-[20px]"
-                   />
-                   <span className="transition-all duration-300 rounded-full p-1">
-
-                   Lets Plan
-                   </span>
-           </Link>
-
-       </div>
+              <Link
+                href={"/explore"}
+                className="text-white font-bold cursor-pointer outline-none text-[10px] flex gap-6 justify-center font-poppins bg-gradient-to-r from-[#9243AC] via-[#B6459F] to-[#E74294] rounded-full w-[148px] h-[32px] p-1 items-center opacity-100 mr-4"
+              >
+                <Image
+                  src={"/dashboard/map.svg"}
+                  alt={"footprint3"}
+                  width={12.75}
+                  height={12.75}
+                  className="md:w-[20px] md:h-[20px]"
+                />
+                <span className="transition-all duration-300 rounded-full p-1">
+                  Lets Plan
+                </span>
+              </Link>
+            </div>
 
             {/* <MapDashboard /> */}
             <ReadyToHost />
@@ -125,8 +123,8 @@ const DashboardContent = () => {
           <div className="flex flex-col gap-6">
             <GroupsCard />
             <EventsCard />
-            <Booking/>
-            <FoodCard/>
+            <Booking />
+            <FoodCard />
             {/* <FindPeopleCard />
             <YourGroups />
             <NearbyPeopleGrid />

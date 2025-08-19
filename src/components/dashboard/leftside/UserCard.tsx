@@ -16,7 +16,7 @@ const UserCard = ({
   countries = ["au", "az", "no", "ch", "ke", "fo"],
 }: UserCardProps) => {
   return (
-    <div className="bg-white rounded-xl overflow-hidden">
+    <div className="bg-white rounded-xl overflow-hidden border border-[#F2F2F1]">
       {/* Cover Image & Profile */}
       <div className="relative h-24">
         <img
@@ -28,7 +28,7 @@ const UserCard = ({
           <img
             src={avatarUrl}
             alt={name}
-            className="w-12 h-12 rounded-full object-cover ring-2 ring-white"
+            className="w-12 h-12 rounded-full object-cover ring-4 ring-white"
           />
         </div>
       </div>
@@ -37,11 +37,11 @@ const UserCard = ({
       <div className="pt-8 px-4 pb-3">
         {/* User Info */}
         <div>
-          <h3 className="font-semibold text-gray-900">
+          <h3 className="font-bold text-[18px] text-black font-gilroy">
             Good Morning {name?.split(" ")[0]}
           </h3>
-          <p className="text-xs text-gray-500">{dateRange}</p>
-          <p className="text-xs text-gray-600 mt-1.5">{subtitle}</p>
+          <p className="text-[12px] font-[500] font-gilroy">{dateRange}</p>
+          <p className="text-[11px] mt-1.5 font-gilroy">{subtitle}</p>
         </div>
 
         {/* Country Flags */}
@@ -54,7 +54,9 @@ const UserCard = ({
               className="w-5 h-3.5 rounded-sm"
             />
           ))}
-          <span className="text-xs font-medium text-blue-600 ml-1 bg-blue-600 text-white px-2 rounded-full text-center justify-center w-fit h-fit ">+21</span>
+          <span className="text-xs font-medium  ml-1 bg-blue-600 text-white px-2 rounded-full text-center justify-center w-fit h-fit ">
+            +21
+          </span>
         </div>
       </div>
     </div>

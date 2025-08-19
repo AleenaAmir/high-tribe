@@ -47,7 +47,7 @@ const mockFriends = [
 
 const mockEvents = [
   // {
-  //   id: 1, title: "Events Host", date: "8/13/2025", isHighlighted: true 
+  //   id: 1, title: "Events Host", date: "8/13/2025", isHighlighted: true
   // },
   // {
   //   title: "Events in Iceland",
@@ -68,12 +68,32 @@ const mockEvents = [
   //   title: "Event in Iceland",
   // },
   { id: 1, title: "Events Host", date: "8/13/2025", isHighlighted: true },
-  { id: 2, title: "Events in Iceland", date: "8/14/2025", isHighlighted: false },
+  {
+    id: 2,
+    title: "Events in Iceland",
+    date: "8/14/2025",
+    isHighlighted: false,
+  },
   { id: 3, title: "Event story", date: "8/15/2025", isHighlighted: false },
-  { id: 4, title: "Event coffee with ali", date: "8/16/2025", isHighlighted: false },
-  { id: 5, title: "Event coffee with ali", date: "8/16/2025", isHighlighted: false },
+  {
+    id: 4,
+    title: "Event coffee with ali",
+    date: "8/16/2025",
+    isHighlighted: false,
+  },
+  {
+    id: 5,
+    title: "Event coffee with ali",
+    date: "8/16/2025",
+    isHighlighted: false,
+  },
   { id: 6, title: "Event stay", date: "8/16/2025", isHighlighted: false },
-  { id: 7, title: "Events in Iceland", date: "8/17/2025", isHighlighted: false }
+  {
+    id: 7,
+    title: "Events in Iceland",
+    date: "8/17/2025",
+    isHighlighted: false,
+  },
 ];
 
 const mockBadges = [
@@ -119,10 +139,10 @@ const SideBar = ({ onItemClick }: SideBarProps) => {
   };
 
   return (
-    <div className="flex flex-col space-y-4">
+    <div className="flex flex-col space-y-2">
       <UserCard
         name={userName || "Umer Hussain"}
-        subtitle="Lorem Ipsum is simply dummy text of the printing and typesetting industry.."
+        subtitle="Exploring the world, one adventure at a time. Passionate traveler and storyteller."
         avatarUrl="https://randomuser.me/api/portraits/men/32.jpg"
         // onClick={onItemClick}
       />
@@ -142,7 +162,7 @@ const SideBar = ({ onItemClick }: SideBarProps) => {
       </div>
       <Intarctions footprint={"268"} likes={"1.4K"} photos={"2.5K"} />
       <Events events={mockEvents} />
-      <BucketList  />
+      <BucketList />
       <Badges badges={mockBadges} />
       <Achivments />
       <FriendsList friends={mockFriends} onItemClick={onItemClick} />

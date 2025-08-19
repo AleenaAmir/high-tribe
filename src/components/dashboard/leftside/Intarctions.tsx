@@ -44,9 +44,7 @@
 
 // export default Intarctions;
 
-
-
-import React, { useState } from 'react';
+import React, { useState } from "react";
 
 interface IntarctionsProps {
   footprint?: string;
@@ -54,35 +52,44 @@ interface IntarctionsProps {
   photos?: string;
 }
 
-const Intarctions = ({ footprint = "268", likes = "2.5K", photos = "1.4K" }: IntarctionsProps) => {
+const Intarctions = ({
+  footprint = "268",
+  likes = "2.5K",
+  photos = "1.4K",
+}: IntarctionsProps) => {
   const [stats, setStats] = useState({
     footsteps: parseInt(footprint) || 268,
     photos: 1400,
-    likes: 2500
+    likes: 2500,
   });
 
   const formatNumber = (num: number) => {
     if (num >= 1000) {
-      return (num / 1000).toFixed(1) + 'k';
+      return (num / 1000).toFixed(1) + "k";
     }
     return num.toString();
   };
 
   const incrementStat = (statType: string) => {
-    setStats(prev => ({
+    setStats((prev) => ({
       ...prev,
-      [statType as keyof typeof prev]: prev[statType as keyof typeof prev] + 1
+      [statType as keyof typeof prev]: prev[statType as keyof typeof prev] + 1,
     }));
   };
 
   return (
-    <div className="max-w-md mx-auto bg-white rounded-2xl shadow-lg p-6 mt-8 border border-gray-100" >
+    <div className="w-full bg-white rounded-2xl p-6 border border-[#F2F2F1]">
       <div className="flex justify-around items-center">
-
-        <div className="text-center cursor-pointer transform hover:scale-105 transition-transform" 
-             onClick={() => incrementStat('footsteps')}>
+        <div
+          className="text-center cursor-pointer transform hover:scale-105 transition-transform"
+          onClick={() => incrementStat("footsteps")}
+        >
           <div className="w-16 h-16   flex items-center justify-center mb-3 mx-auto transition-colors overflow-hidden">
-            <img src="dashboard/foot.svg" alt="Footsteps" className="w-8 h-8 object-cover" />
+            <img
+              src="dashboard/foot.svg"
+              alt="Footsteps"
+              className="w-8 h-8 object-cover"
+            />
           </div>
           <div className="text-[18px] font-gilroy font-semibold text-gray-800 mb-1 leading-[100%] tracking-[0px] text-center">
             {stats.footsteps}
@@ -92,12 +99,18 @@ const Intarctions = ({ footprint = "268", likes = "2.5K", photos = "1.4K" }: Int
           </div>
         </div>
 
-        <div className="w-px h-20 bg-gray-200"></div>
+        <div className="w-px h-16 my-auto bg-gray-200"></div>
 
-        <div className="text-center cursor-pointer transform hover:scale-105 transition-transform"
-             onClick={() => incrementStat('photos')}>
+        <div
+          className="text-center cursor-pointer transform hover:scale-105 transition-transform"
+          onClick={() => incrementStat("photos")}
+        >
           <div className="w-16 h-16 flex items-center justify-center mb-3 mx-auto  transition-colors overflow-hidden">
-            <img src="dashboard/photo.svg" alt="Photos" className="w-8 h-8 object-cover" />
+            <img
+              src="dashboard/photo.svg"
+              alt="Photos"
+              className="w-8 h-8 object-cover"
+            />
           </div>
           <div className="text-[18px] font-gilroy font-semibold text-gray-800 mb-1 leading-[100%] tracking-[0px] text-center">
             {formatNumber(stats.photos)}
@@ -109,10 +122,16 @@ const Intarctions = ({ footprint = "268", likes = "2.5K", photos = "1.4K" }: Int
 
         <div className="w-px h-20 bg-gray-200"></div>
 
-        <div className="text-center cursor-pointer transform hover:scale-105 transition-transform"
-             onClick={() => incrementStat('likes')}>
+        <div
+          className="text-center cursor-pointer transform hover:scale-105 transition-transform"
+          onClick={() => incrementStat("likes")}
+        >
           <div className="w-16 h-16  flex items-center justify-center mb-3 mx-auto transition-colors overflow-hidden">
-            <img src="dashboard/like.svg" alt="Likes" className="w-8 h-8 object-cover" />
+            <img
+              src="dashboard/like.svg"
+              alt="Likes"
+              className="w-8 h-8 object-cover"
+            />
           </div>
           <div className="text-[18px] font-gilroy font-semibold text-gray-800 mb-1 leading-[100%] tracking-[0px] text-center">
             {formatNumber(stats.likes)}
@@ -124,5 +143,5 @@ const Intarctions = ({ footprint = "268", likes = "2.5K", photos = "1.4K" }: Int
       </div>
     </div>
   );
-}
+};
 export default Intarctions;
