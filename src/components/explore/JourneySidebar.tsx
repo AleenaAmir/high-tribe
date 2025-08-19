@@ -65,6 +65,7 @@ const JourneySidebar: React.FC<JourneySidebarProps> = ({
 }) => {
   console.log(journeyData, "journeyData");
   const [selectedDay, setSelectedDay] = useState<number | null>(null);
+  const [addDayDisabled, setAddDayDisabled] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [openDayIndex, setOpenDayIndex] = useState<number | null>(null);
   const [editingStepIndex, setEditingStepIndex] = useState<number | null>(null);
@@ -73,18 +74,41 @@ const JourneySidebar: React.FC<JourneySidebarProps> = ({
     "itinerary" | "calendar" | "bookings"
   >("itinerary");
   const isInitialLoad = React.useRef(true);
+
+  // Calculate number of days early so it can be used in useEffects
+  const startDate = new Date(journeyData.startDate);
+  const endDate = new Date(journeyData.endDate);
+  const daysDiff =
+    Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 3600 * 24)) +
+    1;
+
   useEffect(() => {
     const days = generateDaysFromRange(
       journeyData.startDate,
       journeyData.endDate
     );
     if (days.length > 0) {
-      setSelectedDay(days.length - 1);
+      setSelectedDay(days.length);
     } else {
       setSelectedDay(null);
     }
     console.log(days, "days");
   }, [journeyData]);
+
+  // Reset addDayDisabled when journey data changes
+  useEffect(() => {
+    if (journeyData) {
+      const currentDaysCount = journeyData.days?.length || 0;
+      const totalAllowedDays = daysDiff;
+
+      // Enable the button if we haven't reached the maximum days
+      if (currentDaysCount < totalAllowedDays) {
+        setAddDayDisabled(false);
+      } else {
+        setAddDayDisabled(true);
+      }
+    }
+  }, [journeyData, daysDiff]);
   const { control, handleSubmit, watch, setValue, getValues } =
     useForm<FormData>({
       defaultValues: {
@@ -158,13 +182,6 @@ const JourneySidebar: React.FC<JourneySidebarProps> = ({
 
   if (!journeyData) return null;
 
-  // Calculate number of days
-  const startDate = new Date(journeyData.startDate);
-  const endDate = new Date(journeyData.endDate);
-  const daysDiff =
-    Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 3600 * 24)) +
-    1;
-
   // Get month names
   const startMonth = startDate.toLocaleDateString("en-US", { month: "short" });
   const endMonth = endDate.toLocaleDateString("en-US", { month: "short" });
@@ -206,10 +223,20 @@ const JourneySidebar: React.FC<JourneySidebarProps> = ({
     if (journeyData?.days) {
       console.log("Using sample data path");
       const updatedJourneyData = { ...journeyData };
-      const newDayNumber = (updatedJourneyData.days?.length || 0) + 1;
+      const currentDaysCount = updatedJourneyData.days?.length || 0;
+      const newDayNumber = currentDaysCount + 1;
       const newDayDate = new Date(
         startDate.getTime() + (newDayNumber - 1) * 24 * 60 * 60 * 1000
       );
+
+      // Check if adding a new day would exceed the total allowed days
+      if (currentDaysCount >= daysDiff) {
+        setAddDayDisabled(true);
+        toast.error(
+          "You have reached the maximum number of days for this journey."
+        );
+        return;
+      }
 
       const newDay: Day = {
         id: newDayNumber,
@@ -237,10 +264,24 @@ const JourneySidebar: React.FC<JourneySidebarProps> = ({
 
     console.log("Using form data path");
     // Original form-based logic
+    const currentDaysCount = days.length;
+    const newDayNumber = currentDaysCount + 1;
+
+    // Check if adding a new day would exceed the total allowed days
+    if (currentDaysCount >= daysDiff) {
+      setAddDayDisabled(true);
+      toast.error(
+        "You have reached the maximum number of days for this journey."
+      );
+      return;
+    }
+
     const newDay: Day = {
-      id: days.length + 1,
-      dayNumber: days.length + 1,
-      date: new Date(startDate.getTime() + days.length * 24 * 60 * 60 * 1000),
+      id: newDayNumber,
+      dayNumber: newDayNumber,
+      date: new Date(
+        startDate.getTime() + currentDaysCount * 24 * 60 * 60 * 1000
+      ),
       steps: [],
       isOpen: false,
     };
@@ -1151,8 +1192,9 @@ const JourneySidebar: React.FC<JourneySidebarProps> = ({
                 <div className="text-center pt-4 pb-4">
                   <button
                     type="button"
-                    className="text-blue-600 hover:text-blue-800 text-[12px] font-medium"
+                    className="text-blue-600 hover:text-blue-800 text-[12px] font-medium disabled:text-[#7F7C7C]"
                     onClick={handleAddDay}
+                    disabled={addDayDisabled}
                   >
                     + Add Days
                   </button>
