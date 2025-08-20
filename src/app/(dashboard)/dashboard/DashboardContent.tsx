@@ -84,7 +84,7 @@ const DashboardContent = () => {
       {/* Center Content - Independent Scroll */}
       <div className="flex-1 lg:flex-[3] overflow-y-auto scrollbar-hide">
         <div className="p-2">
-          <div className="max-w-[790px] mx-auto flex flex-col gap-3">
+          <div className="mx-auto flex flex-col gap-3">
             <StoriesBar />
             <PostFootPrint
               setJournyMap={setJournyMap}

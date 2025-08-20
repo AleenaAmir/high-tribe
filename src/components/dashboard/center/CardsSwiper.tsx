@@ -28,7 +28,7 @@ const CardsSwiper: FC<Props> = ({ cards }) => {
       <Swiper
         modules={[Navigation, Pagination, Autoplay, A11y, Keyboard]}
         slidesPerView={1}
-        spaceBetween={-30}
+        spaceBetween={20}
         loop
         navigation
         pagination={false}
@@ -39,8 +39,9 @@ const CardsSwiper: FC<Props> = ({ cards }) => {
           disableOnInteraction: false,
         }}
         breakpoints={{
-          640: { slidesPerView: 2, spaceBetween: 0 },
-          1024: { slidesPerView: 3, spaceBetween: 0 },
+          640: { slidesPerView: 2, spaceBetween: 10 },
+          1024: { slidesPerView: 3, spaceBetween: 10 },
+          1440: { slidesPerView: 4, spaceBetween: 10 },
         }}
         className="px-4"
       >

@@ -165,26 +165,6 @@
 
 // export default ReadyToHost;
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 "use client";
 import Image from "next/image";
 import { MoreOptionsIcon } from "./PostCard";
@@ -231,7 +211,6 @@ const cardDetails = [
   {
     img: "/dashboard/cardbgyellow.svg",
   },
-
 ];
 
 const participants = [
@@ -265,12 +244,14 @@ const ReadyToHost: React.FC = () => {
   };
 
   const prevCard = () => {
-    setCurrentIndex((prev) => (prev - 1 + cardDetails.length) % cardDetails.length);
+    setCurrentIndex(
+      (prev) => (prev - 1 + cardDetails.length) % cardDetails.length
+    );
   };
 
   return (
-    <section className="bg-white overflow-hidden rounded-[10px] shadow-md w-[784px] h-[270px] opacity-100">
-      <div className="p-4 md:p-6 flex items-center justify-between gap-4 mt-4">
+    <section className="bg-white overflow-hidden rounded-[10px] shadow-md  opacity-100">
+      {/* <div className="p-4 md:p-6 flex items-center justify-between gap-4 mt-4">
         <div className="text-[#656565]">
           <p className="text-[14px] md:text-[20px] text-[#000000] font-gilroy font-[600] leading-[100%] tracking-[-3%] mb-1">
             Ready to Host?
@@ -285,7 +266,7 @@ const ReadyToHost: React.FC = () => {
           </span>
           <button className="text-2xl text-gray-500">&times;</button>
         </div>
-      </div>
+      </div> */}
       <div className="grid grid-cols-1 border-t border-[#EEEEEE] lg:grid-cols-2 items-center gap-[20px] md:gap-[18px]  p-4 md:pl-10 md:py-6 md:pr-0 overflow-hidden ">
         {/* Left Side */}
         <div className="flex flex-col justify-center h-full ">
@@ -305,9 +286,13 @@ const ReadyToHost: React.FC = () => {
               ))}
             </div>
             <div className="flex items-center gap-2 flex-wrap">
-              <Image src="/dashboard/dots.png" alt="star" width={10} height={10} />
+              <Image
+                src="/dashboard/dots.png"
+                alt="star"
+                width={10}
+                height={10}
+              />
               <span className="ml-2 text-[10px] text-[#000000] font-gilroy font-[400] leading-[130%] tracking-[0.2%]">
-
                 1000+ Happy Hosts
               </span>
               <div className="flex items-center gap-1 ml-2">
@@ -315,20 +300,18 @@ const ReadyToHost: React.FC = () => {
                   <span key={i}>{star}</span>
                 ))}
               </div>
-
             </div>
           </div>
-          <h2 className="text-[#000000 ] font-gilroy font-medium text-[25px] leading-[100%] tracking-[-3%] w-[320px] h-[25px] opacity-100 mb-4">
+          <h2 className="text-[#000000] mt-4 font-gilroy font-medium text-[25px] leading-[100%] mb-4 tracking-tighter">
             Ready to Host?
           </h2>
-          <p className="text-[#000000] text-[14px] font-gilroy font-[400] leading-[130%] tracking-[0%] max-w-[320px]">
+          <p className="text-[#000000] text-[15px] font-gilroy font-[400] leading-[130%] max-w-[320px]">
             Connect with travelers by sharing what you love about your location.
           </p>
         </div>
         {/* Right Side: Swipeable Images */}
         <div className="relative flex items-center justify-center w-full h-full">
           <CardsSwiper cards={cardDetails} />
-
         </div>
       </div>
     </section>
@@ -336,4 +319,3 @@ const ReadyToHost: React.FC = () => {
 };
 
 export default ReadyToHost;
-
