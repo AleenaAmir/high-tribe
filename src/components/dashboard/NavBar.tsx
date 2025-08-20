@@ -199,7 +199,7 @@ const NavIcon = ({
   notificationCount?: number;
 }) => (
   <button
-    className={`relative flex group cursor-pointer flex-col items-center ${isActive ? "text-blue-600" : "text-[#000000] hover:text-blue-600 font-gilroy font-[500] leading-[100%] tracking-[-3%]"
+    className={`relative text-[#000000] flex group cursor-pointer flex-col items-center ${isActive ? "text-blue-600" : "text-[#000000] hover:text-blue-600 font-gilroy font-[500] leading-[100%] tracking-[-3%]"
       }`}
   >
     <div className="p-1.5 relative">
