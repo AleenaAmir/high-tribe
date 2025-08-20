@@ -88,6 +88,25 @@ const HeartIcon = ({
   </svg>
 );
 
+const ExpandIcon = ({ className }: { className?: string }) => (
+  <svg
+    className={className}
+    width="20"
+    height="20"
+    viewBox="0 0 24 24"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path
+      d="M7 14L12 9L17 14"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
+
 const LikeIcon = ({ className }: { className?: string }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -232,6 +251,8 @@ const MediaGrid = ({
   const count = media.length;
   if (count === 0) return null;
 
+  const [isExpanded, setIsExpanded] = useState(false);
+
   const renderMedia = (
     mediaItem: Media,
     className: string,
@@ -308,40 +329,71 @@ const MediaGrid = ({
           "w-full h-full object-cover max-h-[370px] min-h-[370px] 2xl:min-h-[500px] 2xl:max-h-[500px]",
           0
         )}
-      </div>
+      </div>{" "}
+      <div className="absolute bottom-4 right-4 flex w-fit">
+        {/* Expand/Collapse Button */}
+        <button
+          onClick={() => setIsExpanded(!isExpanded)}
+          className="bg-white rounded-full p-2 flex items-center justify-center w-fit h-fit absolute z-10 top-1/2 -translate-y-1/2 shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
+        >
+          {isExpanded ? (
+            <ExpandIcon className="w-4 h-4 text-gray-700 rotate-90" />
+          ) : (
+            <ExpandIcon className="w-4 h-4 text-gray-700 -rotate-90" />
+          )}
+        </button>
 
-      {/* Side thumbnails overlay */}
-      <div className="absolute bottom-4 right-4 flex">
-        {media.slice(1, 4).map((mediaItem, index) => (
-          <div
-            key={index + 1}
-            className={`relative w-[117px] h-[117px] rounded-lg overflow-hidden border border-white shadow-lg transform transition-transform hover:scale-105 cursor-pointer`}
-            style={{
-              marginLeft: index > 0 ? "-80px" : "0",
-              zIndex: index + 1,
-            }}
-            onClick={() => onMediaClick(media, index + 1)}
-          >
-            {renderMedia(mediaItem, "w-full h-full", index + 1)}
-          </div>
-        ))}
+        {/* Thumbnails - Show only when not expanded */}
 
-        {/* Show count overlay if more than 4 media items */}
-        {count > 4 && (
-          <div
-            className="relative w-[117px] h-[117px] rounded-lg overflow-hidden border border-white shadow-lg bg-black/60 flex items-center justify-center transform transition-transform hover:scale-105 cursor-pointer"
-            style={{
-              marginLeft: "-80px",
-              zIndex: 50,
-            }}
-            onClick={() => onMediaClick(media, 4)}
-          >
-            <div className="text-white text-sm font-semibold absolute z-50 h-full w-full flex items-center justify-center bg-black/10">
-              +{count - 4}
+        <>
+          {isExpanded ? (
+            <div className="flex items-center mx-auto overflow-x-scroll gap-3 max-w-[750px] scrollbar-hide">
+              {media.map((mediaItem, index) => (
+                <div
+                  key={index}
+                  className="relative min-w-[117px] min-h-[117px] max-w-[117px] max-h-[117px] rounded-lg overflow-hidden border border-white shadow-lg transform transition-all hover:scale-105 cursor-pointer"
+                >
+                  {renderMedia(
+                    mediaItem,
+                    "min-w-[117px] min-h-[117px] max-w-[117px] max-h-[117px] object-cover",
+                    index + 1
+                  )}
+                </div>
+              ))}
             </div>
-            {renderMedia(media[4], "w-full h-full", 3, "16/9")}
-          </div>
-        )}
+          ) : (
+            media.slice(1, 4).map((mediaItem, index) => (
+              <div
+                key={index + 1}
+                className={`relative w-[117px] h-[117px] rounded-lg overflow-hidden border border-white shadow-lg transform transition-all hover:scale-105 cursor-pointer`}
+                style={{
+                  marginLeft: isExpanded ? "4px" : index > 0 ? "-80px" : "0",
+                  zIndex: index + 1,
+                }}
+                onClick={() => onMediaClick(media, index + 1)}
+              >
+                {renderMedia(mediaItem, "w-full h-full", index + 1)}
+              </div>
+            ))
+          )}
+
+          {/* Show count overlay if more than 4 media items */}
+          {!isExpanded && count > 4 && (
+            <div
+              className="relative w-[117px] h-[117px] rounded-lg overflow-hidden border border-white shadow-lg bg-black/60 flex items-center justify-center transform transition-all hover:scale-105 cursor-pointer"
+              style={{
+                marginLeft: isExpanded ? "4px" : "-80px",
+                zIndex: 50,
+              }}
+              onClick={() => onMediaClick(media, 4)}
+            >
+              <div className="text-white text-sm font-semibold absolute z-50 h-full w-full flex items-center justify-center bg-black/10">
+                +{count - 4}
+              </div>
+              {renderMedia(media[4], "w-full h-full", 3, "16/9")}
+            </div>
+          )}
+        </>
       </div>
     </div>
   );
