@@ -17,8 +17,12 @@ import Link from "next/link";
 import Booking from "@/components/dashboard/rightside/Booking";
 import FoodCard from "@/components/dashboard/rightside/FoodCard";
 
+// const UserFeed = dynamic(
+//   () => import("@/components/dashboard/center/UserFeed"),
+//   { ssr: false }
+// );
 const UserFeed = dynamic(
-  () => import("@/components/dashboard/center/UserFeed"),
+  () => import("@/components/dashboard/center/feed/UserFeed"),
   { ssr: false }
 );
 const NearbyPeopleGrid = dynamic(

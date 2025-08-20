@@ -9,6 +9,8 @@ interface MediaModalProps {
   media: { type: "image" | "video"; url: string }[];
   currentIndex: number;
   onIndexChange: (index: number) => void;
+  postTitle?: string;
+  postDescription?: string;
 }
 
 const MediaModal: React.FC<MediaModalProps> = ({
@@ -17,6 +19,8 @@ const MediaModal: React.FC<MediaModalProps> = ({
   media,
   currentIndex,
   onIndexChange,
+  postTitle,
+  postDescription,
 }) => {
   const [imageDimensions, setImageDimensions] = useState<{
     width: number;
@@ -89,6 +93,10 @@ const MediaModal: React.FC<MediaModalProps> = ({
           setIsLoading(false);
         };
         img.src = currentMedia.url;
+      } else {
+        // Fallback for SSR
+        setIsLoading(false);
+        setImageDimensions({ width: 1, height: 1, aspectRatio: 1 });
       }
     } else {
       // For videos, we don't need to load dimensions
@@ -123,17 +131,21 @@ const MediaModal: React.FC<MediaModalProps> = ({
   const currentMedia = media[currentIndex];
   const hasMultipleMedia = media.length > 1;
 
+  // Debug logging
+  console.log("MediaModal - Current media:", currentMedia);
+  console.log("MediaModal - All media:", media);
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90">
       {/* Close button */}
       <button
         onClick={onClose}
-        className="absolute top-4 right-4 z-10 text-white hover:text-gray-300 transition-colors"
+        className="absolute top-6 right-6 z-10 bg-white text-gray-800 hover:bg-gray-100 transition-colors rounded-full p-3 shadow-lg"
         aria-label="Close modal"
       >
         <svg
-          width="32"
-          height="32"
+          width="20"
+          height="20"
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
@@ -146,92 +158,160 @@ const MediaModal: React.FC<MediaModalProps> = ({
         </svg>
       </button>
 
-      {/* Navigation buttons */}
-      {hasMultipleMedia && (
-        <>
-          {/* Previous button */}
-          {currentIndex > 0 && (
-            <button
-              onClick={() => onIndexChange(currentIndex - 1)}
-              className="absolute left-4 top-1/2 -translate-y-1/2 z-10 bg-black/50 text-white p-3 rounded-full hover:bg-black/70 transition-colors"
-              aria-label="Previous media"
-            >
-              <svg
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <polyline points="15,18 9,12 15,6"></polyline>
-              </svg>
-            </button>
+      {/* Main modal content */}
+      <div className="relative w-full max-w-4xl h-full max-h-[90vh] bg-transparent rounded-lg overflow-hidden flex flex-col">
+        {/* Main image/video section */}
+        <div className="relative flex-1 bg-gray-900">
+          {isLoading ? (
+            <div className="flex items-center justify-center w-full h-full">
+              <ImageSkeleton width="w-full" height="h-full" />
+            </div>
+          ) : (
+            <div className="relative w-full h-full">
+              {currentMedia.type === "image" ? (
+                <Image
+                  src={currentMedia.url}
+                  alt={`Image ${currentIndex + 1}`}
+                  fill
+                  className="object-cover"
+                  unoptimized
+                  priority
+                  onError={(e) => {
+                    console.error("Image failed to load:", currentMedia.url);
+                    // Fallback to a placeholder
+                    const target = e.target as HTMLImageElement;
+                    target.src =
+                      "https://via.placeholder.com/400x300?text=Image+Not+Available";
+                  }}
+                />
+              ) : (
+                <video
+                  ref={videoRef}
+                  src={currentMedia.url}
+                  className="w-full h-full object-cover"
+                  controls
+                  autoPlay
+                  muted
+                  loop
+                  playsInline
+                />
+              )}
+
+              {/* Text overlay */}
+              {(postTitle || postDescription) && (
+                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-6">
+                  {postTitle && (
+                    <h2 className="text-white text-2xl font-bold mb-2">
+                      {postTitle}
+                    </h2>
+                  )}
+                  {postDescription && (
+                    <p className="text-white/90 text-sm leading-relaxed">
+                      {postDescription}
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
           )}
 
-          {/* Next button */}
-          {currentIndex < media.length - 1 && (
-            <button
-              onClick={() => onIndexChange(currentIndex + 1)}
-              className="absolute right-4 top-1/2 -translate-y-1/2 z-10 bg-black/50 text-white p-3 rounded-full hover:bg-black/70 transition-colors"
-              aria-label="Next media"
-            >
-              <svg
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <polyline points="9,18 15,12 9,6"></polyline>
-              </svg>
-            </button>
-          )}
-        </>
-      )}
+          {/* Navigation arrows */}
+          {hasMultipleMedia && (
+            <>
+              {currentIndex > 0 && (
+                <button
+                  onClick={() => onIndexChange(currentIndex - 1)}
+                  className="absolute left-6 top-1/2 -translate-y-1/2 z-10 bg-white text-gray-800 p-3 rounded-full hover:bg-gray-100 transition-colors shadow-lg"
+                  aria-label="Previous media"
+                >
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <polyline points="15,18 9,12 15,6"></polyline>
+                  </svg>
+                </button>
+              )}
 
-      {/* Media counter */}
-      {hasMultipleMedia && (
-        <div className="absolute top-4 left-4 z-10 text-white bg-black/50 px-3 py-1 rounded-full text-sm">
-          {currentIndex + 1} / {media.length}
+              {currentIndex < media.length - 1 && (
+                <button
+                  onClick={() => onIndexChange(currentIndex + 1)}
+                  className="absolute right-6 top-1/2 -translate-y-1/2 z-10 bg-white text-gray-800 p-3 rounded-full hover:bg-gray-100 transition-colors shadow-lg"
+                  aria-label="Next media"
+                >
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <polyline points="9,18 15,12 9,6"></polyline>
+                  </svg>
+                </button>
+              )}
+            </>
+          )}
         </div>
-      )}
 
-      {/* Main media container */}
-      <div className="relative w-full h-full flex items-center justify-center p-4">
-        {isLoading ? (
-          <div className="flex items-center justify-center w-full h-full">
-            <ImageSkeleton width="w-96" height="h-64" />
-          </div>
-        ) : (
-          <div className="relative w-full h-full flex items-center justify-center">
-            {currentMedia.type === "image" ? (
-              <Image
-                src={currentMedia.url}
-                alt={`Image ${currentIndex + 1}`}
-                width={imageDimensions?.width || 800}
-                height={imageDimensions?.height || 600}
-                className="max-w-full max-h-full object-contain"
-                unoptimized
-                priority
-              />
-            ) : (
-              <video
-                ref={videoRef}
-                src={currentMedia.url}
-                className="max-w-full max-h-full object-contain"
-                controls
-                autoPlay
-                muted
-                loop
-                playsInline
-              />
-            )}
+        {/* Thumbnail strip */}
+        {hasMultipleMedia && (
+          <div className="bg-transparent p-4">
+            <div className="flex gap-2 overflow-x-auto scrollbar-hide">
+              {media.map((item, index) => (
+                <button
+                  key={index}
+                  onClick={() => onIndexChange(index)}
+                  className={`flex-shrink-0 relative w-20 h-20 rounded-lg overflow-hidden border-2 transition-all ${
+                    index === currentIndex
+                      ? "border-blue-500 "
+                      : "border-transparent hover:border-gray-300"
+                  }`}
+                >
+                  {item.type === "image" ? (
+                    <Image
+                      src={item.url}
+                      alt={`Thumbnail ${index + 1}`}
+                      fill
+                      className="object-cover"
+                      unoptimized
+                      onError={(e) => {
+                        console.error("Thumbnail failed to load:", item.url);
+                        // Fallback to a placeholder
+                        const target = e.target as HTMLImageElement;
+                        target.src =
+                          "https://via.placeholder.com/80x80?text=Image";
+                      }}
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-gray-800 flex items-center justify-center">
+                      <svg
+                        width="24"
+                        height="24"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="text-white"
+                      >
+                        <polygon points="5,3 19,12 5,21 5,3"></polygon>
+                      </svg>
+                    </div>
+                  )}
+                </button>
+              ))}
+            </div>
           </div>
         )}
       </div>

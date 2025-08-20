@@ -1,0 +1,892 @@
+"use client";
+import React, { useState, useEffect } from "react";
+import Image from "next/image";
+import { toast } from "react-hot-toast";
+import { apiFormDataWrapper, apiRequest } from "@/lib/api";
+import MediaModal from "@/components/global/MediaModal";
+
+// --- TYPE DEFINITIONS ---
+export type User = {
+  id: number;
+  name: string;
+  email: string;
+  username: string;
+  phone: string | null;
+  date_of_birth: string;
+  type: number;
+  roles: string[];
+  created_at: string;
+};
+
+export type Media = {
+  id?: number;
+  file_path?: string;
+  media_type?: "image" | "video";
+  duration?: number | null;
+  type?: "photo" | "video";
+  url?: string;
+};
+
+export type Post = {
+  id: number;
+  user: User;
+  title?: string;
+  description?: string;
+  story?: string;
+  location?: string;
+  location_name?: string;
+  latitude?: string;
+  longitude?: string;
+  lat?: string;
+  lng?: string;
+  privacy: string;
+  media: Media[];
+  tagged_users?: User[];
+  tagged_friends?: number[];
+  mood_tags?: string[];
+  expires_on?: string;
+  is_resolved?: boolean;
+  resolved_at?: string | null;
+  created_at: string;
+  updated_at?: string;
+};
+
+export type Comment = {
+  id: string;
+  content: string;
+  user: {
+    name: string;
+    avatarUrl: string;
+  };
+  timestamp: string;
+  parent_id?: string;
+  replies?: Comment[];
+  likes?: number;
+};
+
+// --- SVG ICONS ---
+const HeartIcon = ({
+  className,
+  filled = false,
+}: {
+  className?: string;
+  filled?: boolean;
+}) => (
+  <svg
+    className={className}
+    xmlns="http://www.w3.org/2000/svg"
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill={filled ? "currentColor" : "none"}
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+  </svg>
+);
+
+const LikeIcon = ({ className }: { className?: string }) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width={20}
+    height={20}
+    fill="none"
+    className={className}
+  >
+    <g fill="currentColor" clipPath="url(#a)">
+      <path d="M18.978 6.435A4.16 4.16 0 0 0 15.833 5H12.51l.28-1.7a2.53 2.53 0 0 0-4.767-1.531L6.667 4.515V17.5h8.583a4.187 4.187 0 0 0 4.126-3.583l.587-4.167a4.161 4.161 0 0 0-.985-3.315ZM0 9.167v4.166A4.172 4.172 0 0 0 4.167 17.5H5V5h-.833A4.172 4.172 0 0 0 0 9.167Z" />
+    </g>
+    <defs>
+      <clipPath id="a">
+        <path fill="#fff" d="M0 0h20v20H0z" />
+      </clipPath>
+    </defs>
+  </svg>
+);
+
+const EmojiIcon = ({ className }: { className?: string }) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="24"
+    height="24"
+    fill="none"
+    viewBox="0 0 24 24"
+    className={className}
+  >
+    <g fill="currentColor" clipPath="url(#clip0_3874_22889)">
+      <path d="M12 24C5.4 24 0 18.6 0 12S5.4 0 12 0s12 5.4 12 12-5.4 12-12 12m0-22.5C6.2 1.5 1.5 6.2 1.5 12S6.2 22.5 12 22.5 22.5 17.8 22.5 12 17.8 1.5 12 1.5"></path>
+      <path d="M17.45 12c0-.7-.55-1.25-1.25-1.25s-1.25.55-1.25 1.25.55 1.25 1.25 1.25 1.25-.55 1.25-1.25m-10.9 0c0-.7.55-1.25 1.25-1.25s1.25.55 1.25 1.25-.55 1.25-1.25 1.25S6.55 12.7 6.55 12M12 18.65c-2.6 0-4-1.75-4.1-1.85-.25-.3-.2-.8.1-1.05s.8-.2 1.05.1c.05.05 1.05 1.25 2.9 1.25s2.9-1.25 2.9-1.25c.25-.3.75-.35 1.05-.1s.35.75.1 1.05c0 .1-1.4 1.85-4 1.85"></path>
+    </g>
+    <defs>
+      <clipPath id="clip0_3874_22889">
+        <path fill="#fff" d="M0 0h24v24H0z"></path>
+      </clipPath>
+    </defs>
+  </svg>
+);
+
+const LocationIcon = ({ className }: { className?: string }) => (
+  <svg
+    className={className}
+    width="16"
+    height="16"
+    viewBox="0 0 16 16"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path
+      d="M8 5.333c.736 0 1.333.597 1.333 1.334s-.597 1.333-1.333 1.333c-.737 0-1.334-.597-1.334-1.333S7.263 5.333 8 5.333zm0-4C5.067 1.333 2.667 3.733 2.667 6.666c0 2.4 1.733 4.8 2.666 5.867l2.667 2.134 2.667-2.134c.933-1.066 2.666-3.466 2.666-5.866C13.333 3.733 10.933 1.333 8 1.333z"
+      fill="currentColor"
+    />
+  </svg>
+);
+
+const MoreOptionsIcon = ({ className }: { className?: string }) => (
+  <svg
+    className={className}
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <circle cx="12" cy="12" r="1.5" fill="currentColor"></circle>
+    <circle cx="6" cy="12" r="1.5" fill="currentColor"></circle>
+    <circle cx="18" cy="12" r="1.5" fill="currentColor"></circle>
+  </svg>
+);
+
+const PlayIcon = ({ className }: { className?: string }) => (
+  <svg
+    className={className}
+    width="48"
+    height="48"
+    viewBox="0 0 48 48"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <circle cx="24" cy="24" r="24" fill="rgba(0,0,0,0.5)" />
+    <path d="M20 16L32 24L20 32V16Z" fill="white" />
+  </svg>
+);
+
+const ClockIcon = ({ className }: { className?: string }) => (
+  <svg
+    className={className}
+    width="16"
+    height="16"
+    viewBox="0 0 16 16"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path
+      d="M8 1.333A6.667 6.667 0 1 0 8 14.667 6.667 6.667 0 0 0 8 1.333ZM8 13.333A5.333 5.333 0 1 1 8 2.667a5.333 5.333 0 0 1 0 10.666Z"
+      fill="currentColor"
+    />
+    <path
+      d="M8.667 4.667H7.333v3.333l2.667 2.667.943-.943L8.667 7.333V4.667Z"
+      fill="currentColor"
+    />
+  </svg>
+);
+
+// --- UTILITY FUNCTIONS ---
+const formatDate = (dateString: string): string => {
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffInHours = Math.floor(
+    (now.getTime() - date.getTime()) / (1000 * 60 * 60)
+  );
+
+  if (diffInHours < 1) {
+    return "Just now";
+  } else if (diffInHours < 24) {
+    return `${diffInHours}h ago`;
+  } else if (diffInHours < 48) {
+    return "Yesterday";
+  } else {
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: date.getFullYear() !== now.getFullYear() ? "numeric" : undefined,
+    });
+  }
+};
+
+const isExpired = (expiresOn?: string): boolean => {
+  if (!expiresOn) return false;
+  return new Date(expiresOn) < new Date();
+};
+
+// --- MEDIA GRID COMPONENT ---
+const MediaGrid = ({
+  media,
+  onMediaClick,
+}: {
+  media: Media[];
+  onMediaClick: (media: Media[], index: number) => void;
+}) => {
+  const count = media.length;
+  if (count === 0) return null;
+
+  const renderMedia = (
+    mediaItem: Media,
+    className: string,
+    altIndex: number,
+    customAspectRatio?: string
+  ) => {
+    const mediaUrl =
+      mediaItem.file_path ||
+      mediaItem.url ||
+      "https://via.placeholder.com/400x300?text=Image";
+    const isVideo =
+      mediaItem.media_type === "video" || mediaItem.type === "video";
+
+    return (
+      <div
+        className={`relative ${className} cursor-pointer hover:opacity-90 transition-opacity`}
+        style={
+          customAspectRatio ? { aspectRatio: customAspectRatio } : undefined
+        }
+        onClick={() => onMediaClick(media, altIndex)}
+      >
+        {isVideo ? (
+          <div className="w-full h-full relative">
+            <video
+              src={mediaUrl}
+              className="w-full h-full object-cover"
+              preload="metadata"
+              muted
+            />
+            <div className="absolute inset-0 flex items-center justify-center">
+              <PlayIcon className="w-8 h-8" />
+            </div>
+          </div>
+        ) : (
+          <Image
+            src={mediaUrl}
+            alt={`Post media ${altIndex + 1}`}
+            fill
+            className="object-cover"
+            unoptimized
+            onError={(e) => {
+              console.error("Post media failed to load:", mediaUrl);
+              // Fallback to a placeholder
+              const target = e.target as HTMLImageElement;
+              target.src =
+                "https://via.placeholder.com/400x300?text=Image+Not+Available";
+            }}
+          />
+        )}
+      </div>
+    );
+  };
+
+  // Single media layout
+  if (count === 1) {
+    return (
+      <div className="mt-4 relative rounded-lg overflow-hidden aspect-[4/3]">
+        {renderMedia(media[0], "w-full h-full", 0)}
+      </div>
+    );
+  }
+
+  // Multiple media layout - Main image with side thumbnails
+  return (
+    <div className="mt-4 relative rounded-lg overflow-hidden aspect-[16/9]">
+      {/* Main large image/video */}
+      <div className="w-full h-full">
+        {renderMedia(media[0], "w-full h-full", 0)}
+      </div>
+
+      {/* Side thumbnails overlay */}
+      <div className="absolute bottom-4 right-4 flex">
+        {media.slice(1, 4).map((mediaItem, index) => (
+          <div
+            key={index + 1}
+            className={`relative w-[117px] h-[117px] rounded-lg overflow-hidden border border-white shadow-lg transform transition-transform hover:scale-105 cursor-pointer`}
+            style={{
+              marginLeft: index > 0 ? "-80px" : "0",
+              zIndex: index + 1,
+            }}
+            onClick={() => onMediaClick(media, index + 1)}
+          >
+            {renderMedia(mediaItem, "w-full h-full", index + 1)}
+          </div>
+        ))}
+
+        {/* Show count overlay if more than 4 media items */}
+        {count > 4 && (
+          <div
+            className="relative w-[117px] h-[117px] rounded-lg overflow-hidden border border-white shadow-lg bg-black/60 flex items-center justify-center transform transition-transform hover:scale-105 cursor-pointer"
+            style={{
+              marginLeft: "-80px",
+              zIndex: 50,
+            }}
+            onClick={() => onMediaClick(media, 4)}
+          >
+            <div className="text-white text-sm font-semibold absolute z-50 h-full w-full flex items-center justify-center bg-black/10">
+              +{count - 4}
+            </div>
+            {renderMedia(media[4], "w-full h-full", 3, "16/9")}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// --- MAIN POST CARD COMPONENT ---
+export const PostCard = ({
+  post,
+  onCommentAdded,
+}: {
+  post: Post;
+  onCommentAdded?: () => void;
+}) => {
+  // Modal state
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [currentMedia, setCurrentMedia] = useState<Media[]>([]);
+  const [currentMediaIndex, setCurrentMediaIndex] = useState(0);
+
+  // Comment state
+  const [commentContent, setCommentContent] = useState("");
+  const [isSubmittingComment, setIsSubmittingComment] = useState(false);
+  const [comments, setComments] = useState<Comment[]>([]);
+  const [loadingComments, setLoadingComments] = useState(false);
+  const [showComments, setShowComments] = useState(false);
+
+  // Handle media click
+  const handleMediaClick = (media: Media[], index: number) => {
+    console.log("PostCard - Media clicked:", media);
+    console.log("PostCard - Index clicked:", index);
+    setCurrentMedia(media);
+    setCurrentMediaIndex(index);
+    setIsModalOpen(true);
+  };
+
+  // Handle modal close
+  const handleModalClose = () => {
+    setIsModalOpen(false);
+  };
+
+  // Handle media index change in modal
+  const handleMediaIndexChange = (index: number) => {
+    setCurrentMediaIndex(index);
+  };
+
+  // Fetch comments for the post
+  const fetchComments = async () => {
+    if (loadingComments) return;
+
+    setLoadingComments(true);
+    try {
+      // Determine post type based on post properties
+      let postType = "posts"; // default
+      if (post.expires_on && post.is_resolved !== undefined) {
+        postType = "advisories";
+      } else if (post.story) {
+        postType = "footprints";
+      } else if (post.title && !post.expires_on && !post.story) {
+        postType = "tips";
+      }
+
+      console.log("Fetching comments for post:", post.id, "type:", postType);
+
+      const response = await apiRequest<{ data: Comment[] }>(
+        `${postType}/${post.id}/comments?per_page=10&page=1&with_replies=true`
+      );
+
+      console.log("Comments response:", response);
+
+      const commentsData = response.data || [];
+      console.log("Setting comments:", commentsData);
+      setComments(commentsData);
+    } catch (error) {
+      console.error("Error fetching comments:", error);
+      toast.error("Failed to load comments");
+    } finally {
+      setLoadingComments(false);
+    }
+  };
+
+  // Load comments when component mounts or when showComments changes
+  useEffect(() => {
+    if (showComments && comments.length === 0) {
+      fetchComments();
+    }
+  }, [showComments]);
+
+  // Toggle comments visibility
+  const toggleComments = () => {
+    setShowComments(!showComments);
+    if (!showComments && comments.length === 0) {
+      fetchComments();
+    }
+  };
+
+  // Handle comment submission
+  const handleCommentSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!commentContent.trim() || isSubmittingComment) {
+      return;
+    }
+
+    setIsSubmittingComment(true);
+
+    try {
+      // Determine post type based on post properties
+      let postType = "posts"; // default
+      if (post.expires_on && post.is_resolved !== undefined) {
+        postType = "advisories";
+      } else if (post.story) {
+        postType = "footprints";
+      } else if (post.title && !post.expires_on && !post.story) {
+        postType = "tips";
+      }
+
+      // Create FormData for the comment
+      const formData = new FormData();
+      formData.append("content", commentContent.trim());
+
+      // Submit comment using the existing API helper (which handles auth automatically)
+      const result = await apiFormDataWrapper(
+        `${postType}/${post.id}/comments`,
+        formData,
+        "Comment added successfully!"
+      );
+
+      console.log("Comment submitted successfully:", result);
+
+      // Clear the input
+      setCommentContent("");
+
+      // Refresh comments to show the new comment
+      if (showComments) {
+        fetchComments();
+      }
+
+      // Call the callback to refresh the parent component
+      if (onCommentAdded) {
+        onCommentAdded();
+      }
+    } catch (error) {
+      console.error("Error submitting comment:", error);
+      // Show error message to user
+      toast.error(
+        error instanceof Error ? error.message : "Failed to submit comment"
+      );
+    } finally {
+      setIsSubmittingComment(false);
+    }
+  };
+
+  // Handle Enter key press
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleCommentSubmit(e);
+    }
+  };
+
+  // Determine post type for styling
+  const isAdvisory = post.expires_on && post.is_resolved !== undefined;
+  const isFootprint = post.story !== undefined;
+  const isTip = post.title && !post.expires_on && !post.story;
+
+  // Get display content
+  const displayTitle = post.title || post.story;
+  const displayContent = post.description || post.story;
+  const displayLocation = post.location || post.location_name;
+
+  return (
+    <div className="bg-white rounded-lg shadow-md my-4 overflow-hidden">
+      <div className="p-6">
+        {/* Post Header */}
+        <div className="flex items-start justify-between">
+          <div className="flex items-start gap-4">
+            <div className="relative">
+              <Image
+                src={`https://ui-avatars.com/api/?name=${encodeURIComponent(
+                  post.user.name
+                )}&background=random&size=48`}
+                alt={post.user.name}
+                width={48}
+                height={48}
+                className="rounded-full object-cover"
+                unoptimized
+              />
+              {post.user.type === 1 && (
+                <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-blue-500 rounded-full border-2 border-white flex items-center justify-center">
+                  <span className="text-white text-xs">✓</span>
+                </div>
+              )}
+            </div>
+            <div>
+              <p className="font-bold text-gray-800">{post.user.name}</p>
+              <div className="flex items-center gap-2 text-xs text-[#656565] whitespace-nowrap">
+                <span>{formatDate(post.created_at)}</span>
+                {displayLocation && (
+                  <>
+                    <span>|</span>
+                    <span className="flex items-center gap-1">
+                      <LocationIcon className="w-3 h-3" />
+                      <span className="truncate max-w-[200px]">
+                        {displayLocation}
+                      </span>
+                    </span>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            {/* Post Type Badge */}
+            {isAdvisory && (
+              <Image
+                src={"/dashboard/advisory.svg"}
+                alt={"footprint2"}
+                width={24}
+                height={24}
+                className="md:w-[20px] md:h-[20px] w-[14px] h-[14px]"
+              />
+            )}
+
+            {isFootprint && (
+              <Image
+                src={"/dashboard/foot.svg"}
+                alt={"footprint1"}
+                width={24}
+                height={24}
+                className="md:w-[20px] md:h-[20px] w-[14px] h-[14px]"
+              />
+            )}
+
+            {isTip && (
+              <Image
+                src={"/dashboard/trip.svg"}
+                alt={"footprint3"}
+                width={24}
+                height={24}
+                className="md:w-[20px] md:h-[20px] w-[14px] h-[14px]"
+              />
+            )}
+
+            <button className="p-1 hover:bg-gray-100 rounded-full transition-colors">
+              <MoreOptionsIcon className="w-5 h-5 text-gray-500" />
+            </button>
+            <button className="text-2xl text-gray-500">&times;</button>
+          </div>
+        </div>
+
+        {/* Post Title */}
+        {/* {displayTitle && (
+          <div className="mt-4">
+            <h3
+              className={`font-semibold text-gray-800 ${
+                isTip
+                  ? "text-[35px] font-medium"
+                  : isAdvisory
+                  ? "text-[18px] md:text-[25px] font-medium"
+                  : isFootprint
+                  ? "text-[16px] md:text-[18px] font-medium"
+                  : "text-lg font-medium"
+              }`}
+            >
+              {displayTitle}
+            </h3>
+          </div>
+        )} */}
+
+        {/* Post Content */}
+        {displayContent && post.media.length === 0 ? (
+          <div className="mt-2">
+            <p className="text-[30px] font-medium leading-relaxed">
+              {displayContent}
+            </p>
+          </div>
+        ) : (
+          <div className="mt-2">
+            <p
+              className={`leading-relaxed ${
+                isTip
+                  ? "text-[12px]"
+                  : isAdvisory
+                  ? "text-[16px]"
+                  : isFootprint
+                  ? "text-[16px]"
+                  : "text-sm"
+              }`}
+            >
+              {displayContent}
+            </p>
+          </div>
+        )}
+
+        {/* Tagged Users */}
+        {/* {post.tagged_users && post.tagged_users.length > 0 && (
+          <div className="mt-3">
+            <p className="text-xs text-gray-500 mb-2">Tagged:</p>
+            <div className="flex flex-wrap gap-2">
+              {post.tagged_users.map((user) => (
+                <div
+                  key={user.id}
+                  className="flex items-center gap-2 bg-gray-50 px-2 py-1 rounded-full hover:bg-gray-100 transition-colors cursor-pointer"
+                >
+                  <Image
+                    src={`https://ui-avatars.com/api/?name=${encodeURIComponent(
+                      user.name
+                    )}&background=random&size=16`}
+                    alt={user.name}
+                    width={16}
+                    height={16}
+                    className="rounded-full"
+                    unoptimized
+                  />
+                  <span className="text-xs text-gray-700 font-medium">
+                    {user.name}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )} */}
+
+        {/* Media Grid */}
+        {post.media && post.media.length > 0 && (
+          <MediaGrid media={post.media} onMediaClick={handleMediaClick} />
+        )}
+
+        <div className="mt-2 flex justify-between items-center">
+          {/* Mood Tags */}
+          {post.mood_tags && post.mood_tags.length > 0 && (
+            <div className="flex flex-wrap gap-2 mt-3">
+              {post.mood_tags.map((tag, index) => (
+                <span
+                  key={index}
+                  className="border rounded-full px-2 py-1 flex items-center gap-1 justify-end cursor-pointer border-[#E1E1E1] text-[#696969] text-[11px] bg-white hover:bg-[#E1E1E1] transition-all duration-200"
+                >
+                  {tag}
+                </span>
+              ))}
+            </div>
+          )}
+          <div>
+            {post.expires_on && (
+              <div className="flex items-center gap-1 text-xs text-gray-500">
+                <ClockIcon className="w-3 h-3" />
+                {isExpired(post.expires_on)
+                  ? "Expired"
+                  : `Expires ${formatDate(post.expires_on)}`}
+              </div>
+            )}
+            {post.is_resolved && (
+              <div className="flex items-center gap-1 bg-green-100 text-green-600 px-2 py-1 rounded-full text-xs">
+                <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                Resolved
+              </div>
+            )}
+            {isAdvisory && !post.is_resolved && (
+              <button
+                type="button"
+                className="text-[#0C8C38] bg-[#DCFCE7] rounded-md p-3 font-bold text-[11px] hover:bg-[#DCFCE7]/80 transition-all duration-200"
+              >
+                Mark as Resolved
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Post Footer */}
+        <div className="mt-4">
+          <div className="flex justify-between items-center text-sm text-[#656565]">
+            <div className="flex items-center gap-4">
+              <button className="flex items-center gap-1.5 hover:text-red-500 transition-colors">
+                <HeartIcon className="w-5 h-5" filled={true} /> 0
+              </button>
+              <button className="flex items-center gap-1.5 hover:text-[#3162E7] transition-colors">
+                <LikeIcon className="w-5 h-5" /> 0
+              </button>
+              <div className="flex items-center gap-2">
+                {post.tagged_users && post.tagged_users.length > 0 && (
+                  <div className="flex -space-x-2">
+                    {post.tagged_users.slice(0, 5).map((user, i) => (
+                      <Image
+                        key={i}
+                        src={`https://ui-avatars.com/api/?name=${encodeURIComponent(
+                          user.name
+                        )}&background=random&size=24`}
+                        alt={user.name}
+                        width={24}
+                        height={24}
+                        className="rounded-full border-2 border-white object-cover"
+                        unoptimized
+                      />
+                    ))}
+                  </div>
+                )}
+                <span className="text-sm text-[#656565]">
+                  {post.tagged_users && post.tagged_users.length > 5
+                    ? `${post.tagged_users.length} Participants`
+                    : ""}
+                </span>
+              </div>
+            </div>
+            <div className="flex items-center gap-4">
+              <button
+                onClick={toggleComments}
+                className="text-sm text-[#656565] hover:text-blue-600 transition-colors"
+              >
+                {comments.length} Comments {showComments ? "(Hide)" : "(Show)"}
+              </button>
+              <span className="text-sm text-[#656565]">0 Share</span>
+            </div>
+          </div>
+
+          {/* Comments Section */}
+          {showComments && (
+            <div className="border-t border-gray-100 my-4">
+              {loadingComments ? (
+                <div className="py-4 text-center text-gray-500">
+                  <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
+                  Loading comments...
+                </div>
+              ) : comments.length > 0 ? (
+                <div className="space-y-4 py-4">
+                  {comments.map((comment) => (
+                    <div key={comment.id} className="flex gap-3 items-start">
+                      <Image
+                        src={
+                          typeof comment.user.avatarUrl === "string"
+                            ? comment.user.avatarUrl
+                            : "https://placehold.co/400"
+                        }
+                        alt={comment.user.name}
+                        width={32}
+                        height={32}
+                        className="rounded-full object-contain flex-shrink-0"
+                        unoptimized
+                      />
+                      <div className="flex-1 min-w-0">
+                        <div className="inline-block bg-gray-50 rounded-2xl px-3 py-2 max-w-full">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="font-semibold text-sm text-gray-800">
+                              {comment.user.name}
+                            </span>
+                            <span className="text-xs text-gray-500">
+                              {comment.timestamp}
+                            </span>
+                          </div>
+                          <p className="text-sm text-gray-700 mb-1 break-words leading-relaxed">
+                            {comment.content}
+                          </p>
+                          <div className="flex items-center gap-3 text-xs">
+                            <button className="text-gray-500 hover:text-gray-700 transition-colors">
+                              Like
+                            </button>
+                            <button className="text-gray-500 hover:text-gray-700 transition-colors">
+                              Reply
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="py-4 text-center text-gray-500">
+                  No comments yet. Be the first to comment!
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Comment Input */}
+          <div className="border-t border-gray-100 my-4"></div>
+          <form
+            onSubmit={handleCommentSubmit}
+            className="flex items-center gap-3 group"
+          >
+            <div className="flex items-center px-4 gap-2 w-full">
+              <EmojiIcon className="hover:text-yellow-400" />
+              <input
+                type="text"
+                placeholder="Add a comment..."
+                className="w-full bg-transparent outline-none py-2 text-sm flex-1"
+                value={commentContent}
+                onChange={(e) => setCommentContent(e.target.value)}
+                onKeyPress={handleKeyPress}
+                disabled={isSubmittingComment}
+              />
+              <button
+                type="submit"
+                className={`group-hover:flex bg-gradient-to-r from-[#247CFF] to-[#0F62DE] text-white px-4 py-1.5 rounded-full text-sm font-semibold hidden cursor-pointer items-center gap-2 h-fit w-fit ${
+                  isSubmittingComment ? "opacity-50 cursor-not-allowed" : ""
+                }`}
+                disabled={isSubmittingComment || !commentContent.trim()}
+              >
+                {isSubmittingComment ? (
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                ) : (
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    xmlSpace="preserve"
+                    width="20"
+                    height="20"
+                    viewBox="0 0 256 256"
+                  >
+                    <path
+                      fill="white"
+                      strokeMiterlimit="10"
+                      strokeWidth="0"
+                      d="M254.304 10.047a8.758 8.758 0 0 0-.107-1.576c-.02-.115-.025-.228-.05-.343a8 8 0 0 0-.405-1.36c-.05-.13-.115-.25-.172-.376a8 8 0 0 0-.511-.973 10 10 0 0 0-.245-.388 8.4 8.4 0 0 0-.958-1.171 8.6 8.6 0 0 0-1.545-1.197 8 8 0 0 0-1.023-.537c-.11-.048-.214-.104-.326-.149a8.3 8.3 0 0 0-1.397-.413c-.087-.017-.177-.023-.264-.04a8.3 8.3 0 0 0-1.604-.115 8 8 0 0 0-1.189.116c-.098.016-.194.022-.292.042-.433.087-.86.205-1.281.362L6.875 90.51a8.43 8.43 0 0 0-5.46 7.511 8.44 8.44 0 0 0 4.757 7.975l96.819 46.724 46.722 96.819a8.44 8.44 0 0 0 7.98 4.76 8.44 8.44 0 0 0 7.511-5.46l88.583-236.057c.157-.418.272-.843.36-1.272.022-.116.03-.228.047-.343q.093-.557.11-1.119m-41.906 21.348L107.582 136.21 31.246 99.374zm-56.06 193.072-36.836-76.333 104.82-104.82z"
+                    ></path>
+                  </svg>
+                )}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      {/* Media Modal */}
+      <MediaModal
+        isOpen={isModalOpen}
+        onClose={handleModalClose}
+        media={currentMedia.map((m) => {
+          // Determine media type more accurately
+          const mediaType = m.media_type || m.type;
+          let type: "image" | "video" = "image"; // default to image
+
+          if (mediaType === "video") {
+            type = "video";
+          } else if (
+            mediaType === "image" ||
+            mediaType === "photo" ||
+            !mediaType
+          ) {
+            type = "image";
+          }
+
+          const mappedMedia = {
+            type,
+            url: m.file_path || m.url || "",
+          };
+
+          console.log("PostCard - Mapping media:", m, "to:", mappedMedia);
+          return mappedMedia;
+        })}
+        currentIndex={currentMediaIndex}
+        onIndexChange={handleMediaIndexChange}
+        postTitle={displayTitle}
+        postDescription={displayContent}
+      />
+    </div>
+  );
+};
+
+export default PostCard;
