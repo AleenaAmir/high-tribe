@@ -94,7 +94,7 @@ const Intarctions = ({
           <div className="text-[18px] font-gilroy font-semibold text-gray-800 mb-1 leading-[100%] tracking-[0px] text-center">
             {stats.footsteps}
           </div>
-          <div className="text-[#000000] font-gilroy font-normal text-[14px] leading-[20px] tracking-[0%]">
+          <div className="text-[#000000] font-gilroy font-normal text-[13px] leading-[20px] tracking-[0%]">
             Footsteps
           </div>
         </div>
@@ -115,7 +115,7 @@ const Intarctions = ({
           <div className="text-[18px] font-gilroy font-semibold text-gray-800 mb-1 leading-[100%] tracking-[0px] text-center">
             {formatNumber(stats.photos)}
           </div>
-          <div className="text-gray-600 font-gilroy font-normal text-[14px] leading-[20px] tracking-[0%]">
+          <div className="text-[#000000] font-gilroy font-normal text-[13px] leading-[20px] tracking-[0%]">
             Photos
           </div>
         </div>
@@ -136,7 +136,7 @@ const Intarctions = ({
           <div className="text-[18px] font-gilroy font-semibold text-gray-800 mb-1 leading-[100%] tracking-[0px] text-center">
             {formatNumber(stats.likes)}
           </div>
-          <div className="text-gray-600 font-gilroy font-normal text-[14px] leading-[20px] tracking-[0%]">
+          <div className="text-[#000000] font-gilroy font-normal text-[13px] leading-[20px] tracking-[0%]">
             Likes
           </div>
         </div>
