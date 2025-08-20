@@ -72,7 +72,7 @@ const StoriesBar = () => {
         }}
         className="!pb-4"
       >
-        <SwiperSlide className="!w-auto">
+        {/* <SwiperSlide className="!w-auto">
           <div className="flex flex-col items-center gap-2 cursor-pointer">
             <div className="relative">
               <Image
@@ -88,15 +88,16 @@ const StoriesBar = () => {
               </div>
             </div>
           </div>
-        </SwiperSlide>
+        </SwiperSlide> */}
         {stories.map((story, index) => (
           <SwiperSlide key={index} className="!w-auto">
             <div className="flex flex-col items-center gap-2 cursor-pointer">
               <div
-                className={`w-[79px] h-[79px] rounded-full p-[3px] ${story.live
-                  ? " rounded-full bg-gradient-to-b from-[#EF373D] via-[#B01C9E] to-[#7100FF]"
-                  : ""
-                  }`}
+                className={`w-[79px] h-[79px] rounded-full p-[3px] ${
+                  story.live
+                    ? " rounded-full bg-gradient-to-b from-[#EF373D] via-[#B01C9E] to-[#7100FF]"
+                    : ""
+                }`}
               >
                 <div className="bg-white rounded-full">
                   <Image
@@ -109,7 +110,9 @@ const StoriesBar = () => {
                   />
                 </div>
               </div>
-              <span className="text-xs text-[#000000] font-gilroy font-medium leading-[100%] tracking-[-3%]">{story.name}</span>
+              <span className="text-xs text-[#000000] font-gilroy font-medium leading-[100%] tracking-[-3%]">
+                {story.name}
+              </span>
             </div>
           </SwiperSlide>
         ))}

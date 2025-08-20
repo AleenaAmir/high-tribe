@@ -288,18 +288,26 @@ const MediaGrid = ({
   // Single media layout
   if (count === 1) {
     return (
-      <div className="mt-4 relative rounded-lg overflow-hidden aspect-[4/3]">
-        {renderMedia(media[0], "w-full h-full", 0)}
+      <div className="mt-4 relative rounded-lg overflow-hidden min-h-[370px] max-h-[370px] 2xl:min-h-[500px] 2xl:max-h-[500px]">
+        {renderMedia(
+          media[0],
+          "w-full h-full min-h-[370px] max-h-[370px] 2xl:min-h-[500px] 2xl:max-h-[500px] object-cover",
+          0
+        )}
       </div>
     );
   }
 
   // Multiple media layout - Main image with side thumbnails
   return (
-    <div className="mt-4 relative rounded-lg overflow-hidden aspect-[16/9]">
+    <div className="mt-4 relative rounded-lg overflow-hidden min-h-[370px] max-h-[370px] 2xl:min-h-[500px] 2xl:max-h-[500px]">
       {/* Main large image/video */}
-      <div className="w-full h-full">
-        {renderMedia(media[0], "w-full h-full", 0)}
+      <div className="w-full h-full max-h-[370px] min-h-[370px] 2xl:min-h-[500px] 2xl:max-h-[500px] overflow-hidden">
+        {renderMedia(
+          media[0],
+          "w-full h-full object-cover max-h-[370px] min-h-[370px] 2xl:min-h-[500px] 2xl:max-h-[500px]",
+          0
+        )}
       </div>
 
       {/* Side thumbnails overlay */}
