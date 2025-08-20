@@ -494,6 +494,8 @@ const UserFeed = () => {
     );
   }
 
+  console.log(posts);
+
   return (
     <div className="">
       {posts?.map((post, index) => (
