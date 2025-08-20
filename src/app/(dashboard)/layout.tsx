@@ -42,7 +42,7 @@ export default function DashboardLayout({
             }
           `}
         >
-          <div className="flex-1 flex flex-col pl-4 pr-2 pt-2 overflow-y-auto scrollbar-hide">
+          <div className="flex-1 flex flex-col pl-8 pr-2 pt-2 overflow-y-auto scrollbar-hide">
             <SideBar onItemClick={() => setIsSidebarOpen(false)} />
           </div>
         </aside>
