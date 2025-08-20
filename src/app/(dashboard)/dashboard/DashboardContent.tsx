@@ -93,7 +93,7 @@ const DashboardContent = () => {
               setTipModal={setTipModal}
             />
             <div className="bg-white shadow-sm flex justify-between items-center h-[50px] rounded-xl">
-              <h2 className="text-[16px] font-[500] leading-[100%] tracking-[-3%]  text-[#000000] p-4 md:p-6 pb-2 font-gilroy border-[#EEEEEE] ">
+              <h2 className="text-[18px] font-[600] leading-[100%] tracking-[-3%]  text-[#000000] p-4 md:p-6 pb-2 font-gilroy border-[#EEEEEE] ">
                 Trip Schedule
               </h2>
 

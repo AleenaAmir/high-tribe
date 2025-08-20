@@ -587,20 +587,22 @@ export const PostCard = ({
               )}
             </div>
             <div>
-              <p className="font-bold text-gray-800">{post.user.name}</p>
+              <p className="font-semibold text-black text-[14px] font-gilroy">
+                {post.user.name}
+              </p>
               <div className="flex items-center gap-2 text-xs text-[#656565] whitespace-nowrap">
-                <span>{formatDate(post.created_at)}</span>
                 {displayLocation && (
                   <>
                     <span>|</span>
                     <span className="flex items-center gap-1">
-                      <LocationIcon className="w-3 h-3" />
+                      <LocationIcon className="w-3 h-3 text-orange-500" />
                       <span className="truncate max-w-[200px]">
                         {displayLocation}
                       </span>
                     </span>
                   </>
                 )}
+                <span>{formatDate(post.created_at)}</span>
               </div>
             </div>
           </div>
