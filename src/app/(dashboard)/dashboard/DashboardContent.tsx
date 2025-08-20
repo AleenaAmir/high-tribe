@@ -83,8 +83,8 @@ const DashboardContent = () => {
     <div className="h-full flex">
       {/* Center Content - Independent Scroll */}
       <div className="flex-1 lg:flex-[3] overflow-y-auto scrollbar-hide">
-        <div className="p-6">
-          <div className="max-w-[780px] mx-auto flex flex-col gap-2">
+        <div className="p-2">
+          <div className="max-w-[790px] mx-auto flex flex-col gap-3">
             <StoriesBar />
             <PostFootPrint
               setJournyMap={setJournyMap}
@@ -122,8 +122,8 @@ const DashboardContent = () => {
       </div>
 
       {/* Right Sidebar - Independent Scroll */}
-      <div className="w-[326px] hidden lg:block lg:flex-1 overflow-y-auto scrollbar-hide">
-        <div className="p-6">
+      <div className="w-[340px] hidden lg:block lg:flex-1 overflow-y-auto scrollbar-hide">
+        <div className="pt-2  pr-4 pl-2">
           <div className="flex flex-col gap-6">
             <GroupsCard />
             <EventsCard />

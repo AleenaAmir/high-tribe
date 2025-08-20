@@ -58,7 +58,7 @@ const stories = [
 const StoriesBar = () => {
   return (
     <div className="p-4 bg-white rounded-lg shadow-sm relative">
-      <h2 className="text-[20px] font-[550] leading-[100%] tracking-[-3%]  text-[#000000] mb-4 font-gilroy">
+      <h2 className="text-[20px] font-[550] leading-[100%] tracking-[-3%]  text-[#000000] mb-6 font-gilroy">
         Stories from the Tribe
       </h2>
 

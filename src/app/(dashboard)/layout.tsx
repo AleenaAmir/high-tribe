@@ -36,14 +36,13 @@ export default function DashboardLayout({
             transform transition-transform duration-300 ease-in-out
             lg:transform-none
             h-full
-            ${
-              isSidebarOpen
-                ? "translate-x-0"
-                : "-translate-x-full lg:translate-x-0"
+            ${isSidebarOpen
+              ? "translate-x-0"
+              : "-translate-x-full lg:translate-x-0"
             }
           `}
         >
-          <div className="flex-1 flex flex-col p-4 pt-6 overflow-y-auto scrollbar-hide">
+          <div className="flex-1 flex flex-col pl-4 pr-2 pt-2 overflow-y-auto scrollbar-hide">
             <SideBar onItemClick={() => setIsSidebarOpen(false)} />
           </div>
         </aside>

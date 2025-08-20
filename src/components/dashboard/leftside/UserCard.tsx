@@ -16,7 +16,7 @@ const UserCard = ({
   countries = ["au", "az", "no", "ch", "ke", "fo"],
 }: UserCardProps) => {
   return (
-    <div className="bg-white rounded-xl overflow-hidden border border-[#F2F2F1]">
+    <div className="bg-white rounded-lg overflow-hidden border border-[#F2F2F1]">
       {/* Cover Image & Profile */}
       <div className="relative h-24">
         <img

@@ -139,12 +139,12 @@ const SideBar = ({ onItemClick }: SideBarProps) => {
   };
 
   return (
-    <div className="flex flex-col space-y-2">
+    <div className="flex flex-col space-y-2 p">
       <UserCard
         name={userName || "Umer Hussain"}
         subtitle="Exploring the world, one adventure at a time. Passionate traveler and storyteller."
         avatarUrl="https://randomuser.me/api/portraits/men/32.jpg"
-        // onClick={onItemClick}
+      // onClick={onItemClick}
       />
       {/* <NavMenu active="Feed" onItemClick={onItemClick} /> */}
       <div className="md:hidden flex justify-between items-center gap-1">
