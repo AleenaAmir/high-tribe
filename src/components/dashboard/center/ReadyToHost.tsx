@@ -302,7 +302,7 @@ const ReadyToHost: React.FC = () => {
               </div>
             </div>
           </div>
-          <h2 className="text-[#000000] mt-4 font-gilroy font-medium text-[25px] leading-[100%] mb-4 tracking-tighter">
+          <h2 className="text-[#000000] mt-4 font-gilroy font-bold text-[25px] leading-[100%] mb-4 tracking-tighter">
             Ready to Host?
           </h2>
           <p className="text-[#000000] text-[15px] font-gilroy font-[400] leading-[130%] max-w-[320px]">

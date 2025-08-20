@@ -83,7 +83,7 @@ const DashboardContent = () => {
     <div className="h-full flex">
       {/* Center Content - Independent Scroll */}
       <div className="flex-1  overflow-y-auto scrollbar-hide">
-        <div className="p-6">
+        <div className="px-6 py-2" >
           <div className="mx-auto flex flex-col gap-3">
             <StoriesBar />
             <PostFootPrint
@@ -93,7 +93,7 @@ const DashboardContent = () => {
               setTipModal={setTipModal}
             />
             <div className="bg-white shadow-sm flex justify-between items-center h-[50px] rounded-xl">
-              <h2 className="text-[16px] font-[500] leading-[100%] tracking-[-3%]  text-[#000000] p-4 md:p-6 pb-2 font-gilroy border-[#EEEEEE] ">
+              <h2 className="text-[16px] font-[600] leading-[100%] tracking-[-3%]  text-[#000000] p-4 md:p-6 pb-2 font-gilroy border-[#EEEEEE] ">
                 Trip Schedule
               </h2>
 
