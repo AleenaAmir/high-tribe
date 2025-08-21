@@ -40,6 +40,38 @@ const HeartIcon = ({
   </svg>
 );
 
+const MapIcon = ({ className }: { className?: string }) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="15"
+    height="15"
+    fill="none"
+    viewBox="0 0 15 15"
+    className={className}
+  >
+    <path
+      fill="#ED892D"
+      d="m12.92 10.752-.001 1.22a.45.45 0 0 1-.639.41l-.444-.205q.133-.141.262-.29.465-.528.821-1.135M1.216 2.25a.45.45 0 0 1 .638-.409l3.33 1.536 3.596-1.54a.45.45 0 0 1 .307-.018l.06.022 3.51 1.62a.45.45 0 0 1 .261.41V7.51a2.5 2.5 0 0 0-.9-.657V4.16L8.95 2.743 5.354 4.285a.45.45 0 0 1-.366-.005L2.116 2.954v7.11l3.067 1.416L8.638 10q.164.449.448.908l-.136-.063-3.596 1.542a.45.45 0 0 1-.307.017l-.059-.022-3.51-1.62a.45.45 0 0 1-.262-.41z"
+    ></path>
+    <path
+      fill="#F5C280"
+      d="M8.508 9.544c.087.41.262.83.513 1.254a.45.45 0 0 1-.509-.389l-.003-.056zm.45-7.743a.45.45 0 0 1 .447.393l.004.057-.001 4.88a2.32 2.32 0 0 0-.9 1.31V2.25a.45.45 0 0 1 .45-.45m-3.78 1.62a.45.45 0 0 1 .446.394l.004.056v8.102a.45.45 0 0 1-.897.056l-.003-.056V3.87a.45.45 0 0 1 .45-.45"
+    ></path>
+    <path
+      fill="#ED892D"
+      d="M8.78 1.837a.45.45 0 0 1 .308-.017l.059.022 1.755.81a.45.45 0 0 1-.324.838l-.053-.02-1.574-.727-3.597 1.542a.45.45 0 0 1-.306.017l-.06-.022-1.755-.81a.45.45 0 0 1 .325-.838l.052.02 1.574.726zM8.64 10q.163.448.447.907l-.135-.062-3.597 1.542a.45.45 0 0 1-.306.017l-.06-.022-1.755-.81a.45.45 0 0 1 .325-.838l.052.02 1.574.726z"
+    ></path>
+    <path
+      fill="#BE4BDB"
+      d="M10.957 5.734c-1.88 0-3.413 1.439-3.413 3.228 0 1.184.6 2.368 1.59 3.512.339.391.7.75 1.061 1.07l.183.159.168.139.14.11a.45.45 0 0 0 .54 0l.14-.11.169-.14q.088-.075.183-.158.566-.5 1.06-1.07c.99-1.144 1.592-2.328 1.592-3.512 0-1.79-1.535-3.228-3.413-3.228m0 .9c1.394 0 2.513 1.05 2.513 2.328 0 .923-.51 1.927-1.372 2.923-.31.359-.644.69-.977.985l-.085.075-.08.067-.164-.142a10.5 10.5 0 0 1-.977-.985c-.861-.996-1.371-2-1.371-2.923 0-1.279 1.118-2.328 2.513-2.328"
+    ></path>
+    <path
+      fill="#BE4BDB"
+      d="M10.956 7.574a1.62 1.62 0 1 1 0 3.241 1.62 1.62 0 0 1 0-3.24m0 .9a.72.72 0 1 0 0 1.44.72.72 0 0 0 0-1.44"
+    ></path>
+  </svg>
+);
+
 const ExpandIcon = ({ className }: { className?: string }) => (
   <svg
     className={className}
@@ -171,14 +203,49 @@ const ClockIcon = ({ className }: { className?: string }) => (
 const MediaGrid = ({
   media,
   onMediaClick,
+  post,
 }: {
   media: Media[];
   onMediaClick: (media: Media[], index: number) => void;
+  post: Post;
 }) => {
   const count = media.length;
   if (count === 0) return null;
 
   const [isExpanded, setIsExpanded] = useState(false);
+
+  // Get media source info for journey mapping posts
+  const getMediaSourceInfo = (
+    mediaIndex: number
+  ): { source: string; stopTitle?: string } => {
+    if (post.type !== "mapping_journey") {
+      return { source: "post" };
+    }
+
+    let currentIndex = 0;
+
+    // Check if it's from main post media
+    if (post.media && post.media.length > 0) {
+      if (mediaIndex < post.media.length) {
+        return { source: "post" };
+      }
+      currentIndex += post.media.length;
+    }
+
+    // Check if it's from stops
+    if (post.stops && post.stops.length > 0) {
+      for (const stop of post.stops) {
+        if (stop.media && stop.media.length > 0) {
+          if (mediaIndex < currentIndex + stop.media.length) {
+            return { source: "stop", stopTitle: stop.title };
+          }
+          currentIndex += stop.media.length;
+        }
+      }
+    }
+
+    return { source: "post" };
+  };
 
   const renderMedia = (
     mediaItem: Media,
@@ -188,6 +255,7 @@ const MediaGrid = ({
   ) => {
     const mediaUrl = getMediaUrl(mediaItem);
     const isVideoMedia = isVideo(mediaItem);
+    const sourceInfo = getMediaSourceInfo(altIndex);
 
     return (
       <div
@@ -225,6 +293,13 @@ const MediaGrid = ({
             }}
           />
         )}
+
+        {/* Source indicator for journey mapping posts */}
+        {/* {post.type === "mapping_journey" && sourceInfo.source === "stop" && (
+          <div className="absolute top-2 left-2 bg-orange-500 text-white text-xs px-2 py-1 rounded-full opacity-90">
+            {sourceInfo.stopTitle}
+          </div>
+        )} */}
       </div>
     );
   };
@@ -341,6 +416,45 @@ export const PostCard = ({
   const [comments, setComments] = useState<Comment[]>([]);
   const [loadingComments, setLoadingComments] = useState(false);
   const [showComments, setShowComments] = useState(false);
+
+  // Collect all media for journey mapping posts (main post media + all stop media)
+  const getAllMedia = (): Media[] => {
+    const allMedia: Media[] = [];
+
+    // Add main post media
+    if (post.media && post.media.length > 0) {
+      allMedia.push(...post.media);
+    }
+
+    // Add media from all stops for journey mapping posts
+    if (
+      post.type === "mapping_journey" &&
+      post.stops &&
+      post.stops.length > 0
+    ) {
+      console.log(
+        "Processing journey mapping post with stops:",
+        post.stops.length
+      );
+      post.stops.forEach((stop, index) => {
+        if (stop.media && stop.media.length > 0) {
+          console.log(
+            `Stop ${index + 1} (${stop.title}) has ${
+              stop.media.length
+            } media items`
+          );
+          allMedia.push(...stop.media);
+        }
+      });
+    }
+
+    console.log(
+      `Total media collected for post ${post.id}: ${allMedia.length} items`
+    );
+    return allMedia;
+  };
+
+  const allMedia = getAllMedia();
 
   // Handle media click
   const handleMediaClick = (media: Media[], index: number) => {
@@ -519,19 +633,35 @@ export const PostCard = ({
               <p className="font-semibold text-black text-[14px] font-gilroy">
                 {post.user?.name || "Unknown User"}
               </p>
-              <div className="flex items-center gap-2 text-xs text-[#656565] whitespace-nowrap">
+
+              <div className="flex items-center gap-2 text-xs text-black mt-1 whitespace-nowrap font-gilroy">
+                {isJourney &&
+                  post.start_location_name &&
+                  post.end_location_name && (
+                    <div className="flex items-center gap-1 text-sm text-black text-[10px]">
+                      <LocationIcon className="w-3 h-3 text-orange-500" />
+                      <span className="truncate">
+                        {post.start_location_name}
+                      </span>
+                      <span className="text-orange-500">→</span>
+                      <span className="truncate">{post.end_location_name}</span>
+                      <span>|</span>
+                    </div>
+                  )}
                 {displayLocation && (
                   <>
-                    <span>|</span>
-                    <span className="flex items-center gap-1">
+                    <span className="flex items-center gap-1 text-black text-[10px]">
                       <LocationIcon className="w-3 h-3 text-orange-500" />
                       <span className="truncate max-w-[200px]">
                         {displayLocation}
                       </span>
+                      <span>|</span>
                     </span>
                   </>
                 )}
-                <span>{formatDate(post.created_at)}</span>
+                <span className="text-black text-[10px]">
+                  {formatDate(post.created_at)}
+                </span>
               </div>
             </div>
           </div>
@@ -604,14 +734,29 @@ export const PostCard = ({
         )} */}
 
         {/* Post Content */}
-        {displayContent && post.media.length === 0 ? (
+        {isJourney && post.start_location_name && post.end_location_name && (
+          <div className="flex items-center gap-2 text-sm text-black font-gilroy mt-2 text-[12px]">
+            <span className="truncate font-semibold">
+              Trip to {post.start_location_name}
+            </span>
+            <span className="">→</span>
+            <span className="truncate">{post.start_location_name}</span>
+            <button type="button" className="flex items-center gap-1">
+              <MapIcon />
+              <span className="text-[10px] font-gilroy font-bold">
+                View Map
+              </span>
+            </button>
+          </div>
+        )}
+        {displayContent && allMedia.length === 0 ? (
           <div className="mt-2">
             <p className="text-[30px] font-medium leading-relaxed">
               {displayContent}
             </p>
           </div>
         ) : (
-          <div className="mt-2">
+          <div className="mt-1 font-gilroy">
             <p
               className={`leading-relaxed ${
                 isTip
@@ -627,6 +772,58 @@ export const PostCard = ({
             </p>
           </div>
         )}
+
+        {/* Journey Stops Preview */}
+        {/* {isJourney && post.stops && post.stops.length > 0 && (
+          <div className="mt-4">
+            <div className="flex items-center justify-between mb-3">
+              <h4 className="font-semibold text-sm text-gray-700">
+                Journey Stops
+              </h4>
+              {allMedia.length > 0 && (
+                <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
+                  {allMedia.length} total photo
+                  {allMedia.length !== 1 ? "s" : ""}
+                </span>
+              )}
+            </div>
+            <div className="space-y-3">
+              {post.stops.map((stop, index) => (
+                <div
+                  key={stop.id}
+                  className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg"
+                >
+                  <div className="flex-shrink-0 w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center">
+                    <span className="text-xs font-semibold text-orange-600">
+                      {index + 1}
+                    </span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h5 className="font-medium text-sm text-gray-800 truncate">
+                      {stop.title}
+                    </h5>
+                    <p className="text-xs text-gray-600 truncate">
+                      {stop.location_name}
+                    </p>
+                    {stop.media && stop.media.length > 0 && (
+                      <p className="text-xs text-gray-500 mt-1">
+                        {stop.media.length} photo
+                        {stop.media.length !== 1 ? "s" : ""}
+                      </p>
+                    )}
+                  </div>
+                  {stop.transport_mode && (
+                    <div className="flex-shrink-0">
+                      <span className="text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded-full">
+                        {stop.transport_mode}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )} */}
 
         {/* Tagged Users */}
         {/* {post.tagged_users && post.tagged_users.length > 0 && (
@@ -658,8 +855,12 @@ export const PostCard = ({
         )} */}
 
         {/* Media Grid */}
-        {post.media && post.media.length > 0 && (
-          <MediaGrid media={post.media} onMediaClick={handleMediaClick} />
+        {allMedia && allMedia.length > 0 && (
+          <MediaGrid
+            media={allMedia}
+            onMediaClick={handleMediaClick}
+            post={post}
+          />
         )}
 
         <div className="mt-2 flex justify-between items-center">

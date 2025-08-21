@@ -41,7 +41,6 @@ const CardsSwiper: FC<Props> = ({ cards }) => {
         breakpoints={{
           640: { slidesPerView: 2, spaceBetween: 10 },
           1024: { slidesPerView: 3, spaceBetween: 10 },
-          1440: { slidesPerView: 4, spaceBetween: 10 },
         }}
         className="px-4"
       >

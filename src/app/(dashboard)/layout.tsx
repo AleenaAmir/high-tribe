@@ -31,14 +31,15 @@ export default function DashboardLayout({
         <aside
           className={`
             fixed lg:relative inset-y-0 left-0 lg:z-40 z-50
-            w-[280px] flex-shrink-0
+            xl:min-w-[280px] w-[280px] xl:w-full xl:max-w-[300px] flex-shrink-0
             bg-white flex flex-col
             transform transition-transform duration-300 ease-in-out
             lg:transform-none
             h-full
-            ${isSidebarOpen
-              ? "translate-x-0"
-              : "-translate-x-full lg:translate-x-0"
+            ${
+              isSidebarOpen
+                ? "translate-x-0"
+                : "-translate-x-full lg:translate-x-0"
             }
           `}
         >

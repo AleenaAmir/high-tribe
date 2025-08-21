@@ -82,8 +82,8 @@ const DashboardContent = () => {
   return (
     <div className="h-full flex">
       {/* Center Content - Independent Scroll */}
-      <div className="flex-1  overflow-y-auto scrollbar-hide">
-        <div className="px-6 py-2" >
+      <div className="flex-1 overflow-y-auto scrollbar-hide xl:min-w-[700px] xl:max-w-[1000px]">
+        <div className="px-6 py-2">
           <div className="mx-auto flex flex-col gap-3">
             <StoriesBar />
             <PostFootPrint
@@ -122,7 +122,7 @@ const DashboardContent = () => {
       </div>
 
       {/* Right Sidebar - Independent Scroll */}
-      <div className="max-w-[280px] hidden lg:block lg:flex-1 overflow-y-auto scrollbar-hide">
+      <div className="xl:min-w-[280px] max-w-[300px] xl:w-full xl:max-w-[380px] hidden lg:block lg:flex-1 overflow-y-auto scrollbar-hide">
         <div className="pt-2  pr-8 pl-2">
           <div className="flex flex-col gap-6">
             <GroupsCard />
