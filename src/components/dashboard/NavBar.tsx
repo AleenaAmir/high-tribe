@@ -118,7 +118,7 @@ const NavBar = ({ onMenuClick }: NavBarProps) => {
         {/* Right Section - Navigation Icons & Profile */}
         <div className="flex items-center gap-4">
           {/* Navigation Icons */}
-          <nav className="hidden md:flex items-center gap-6 py-2">
+          <nav className="hidden md:flex items-center gap-6 py-2 text-[#000000] font-gilroy font-[500] leading-[100%] tracking-[-3%]" >
             <NavIcon icon="/dashboard/navsvg1.svg" label="Home" isActive />
             <NavIcon
               icon="/dashboard/navsvg3.svg"
@@ -199,7 +199,7 @@ const NavIcon = ({
   notificationCount?: number;
 }) => (
   <button
-    className={`relative flex group cursor-pointer flex-col items-center ${isActive ? "text-blue-600" : "text-[#6C6C6C] hover:text-blue-600"
+    className={`relative text-[#000000] flex group cursor-pointer flex-col items-center ${isActive ? "text-blue-600" : "text-[#000000] hover:text-blue-600 font-gilroy font-[500] leading-[100%] tracking-[-3%]"
       }`}
   >
     <div className="p-1.5 relative">

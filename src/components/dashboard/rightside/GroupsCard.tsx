@@ -28,7 +28,7 @@ const GroupsCard = () => {
             <br />
             join communities.
           </p>
-          <Link href={'/explore'} className="mt-3  text-center justify-center bg-gradient-to-r from-[#9243AC] via-[#B6459F] to-[#E74294] text-white px-3 mb-3 py-2  rounded-2xl text-sm font-bold font-gilroy hover:bg-white/30 transition-colors w-[100px] h-[32px] ">
+          <Link href={'/explore'} className="mt-3  text-center justify-center bg-gradient-to-r from-[#9243AC] via-[#B6459F] to-[#E74294] text-white mb-3 py-2  rounded-2xl text-[12px] font-bold font-gilroy hover:bg-white/30 transition-colors w-[100px] h-[32px] ">
             Let's Plan
           </Link>
         </div>

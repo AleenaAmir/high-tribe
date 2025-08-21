@@ -83,7 +83,7 @@ const DashboardContent = () => {
     <div className="h-full flex">
       {/* Center Content - Independent Scroll */}
       <div className="flex-1  overflow-y-auto scrollbar-hide">
-        <div className="p-6">
+        <div className="px-6 py-2" >
           <div className="mx-auto flex flex-col gap-3">
             <StoriesBar />
             <PostFootPrint
