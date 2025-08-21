@@ -4,6 +4,7 @@ import Image from "next/image";
 import { toast } from "react-hot-toast";
 import { apiFormDataWrapper, apiRequest } from "@/lib/api";
 import MediaModal from "@/components/global/MediaModal";
+import JourneyMapModal from "./JourneyMapModal";
 import {
   Post,
   PostUser as User,
@@ -410,6 +411,9 @@ export const PostCard = ({
   const [currentMedia, setCurrentMedia] = useState<Media[]>([]);
   const [currentMediaIndex, setCurrentMediaIndex] = useState(0);
 
+  // Journey map modal state
+  const [isJourneyMapModalOpen, setIsJourneyMapModalOpen] = useState(false);
+
   // Comment state
   const [commentContent, setCommentContent] = useState("");
   const [isSubmittingComment, setIsSubmittingComment] = useState(false);
@@ -468,6 +472,15 @@ export const PostCard = ({
   // Handle modal close
   const handleModalClose = () => {
     setIsModalOpen(false);
+  };
+
+  // Handle journey map modal
+  const handleJourneyMapModalOpen = () => {
+    setIsJourneyMapModalOpen(true);
+  };
+
+  const handleJourneyMapModalClose = () => {
+    setIsJourneyMapModalOpen(false);
   };
 
   // Handle media index change in modal
@@ -740,8 +753,12 @@ export const PostCard = ({
               Trip to {post.start_location_name}
             </span>
             <span className="">→</span>
-            <span className="truncate">{post.start_location_name}</span>
-            <button type="button" className="flex items-center gap-1">
+            <span className="truncate">{post.end_location_name}</span>
+            <button
+              type="button"
+              className="flex items-center gap-1 hover:opacity-80 transition-opacity"
+              onClick={handleJourneyMapModalOpen}
+            >
               <MapIcon />
               <span className="text-[10px] font-gilroy font-bold">
                 View Map
@@ -1087,6 +1104,15 @@ export const PostCard = ({
         postTitle={displayTitle}
         postDescription={displayContent}
       />
+
+      {/* Journey Map Modal */}
+      {isJourney && (
+        <JourneyMapModal
+          isOpen={isJourneyMapModalOpen}
+          onClose={handleJourneyMapModalClose}
+          post={post}
+        />
+      )}
     </div>
   );
 };
