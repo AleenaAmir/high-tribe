@@ -1,185 +1,27 @@
 "use client";
 import React, { useEffect, useState, useCallback, useRef } from "react";
-import { PostCard, Post, User, Media } from "./PostCard";
+import { PostCard } from "./PostCard";
 import { apiRequest } from "@/lib/api";
 import {
   PostCardSkeleton,
   JourneyPostSkeleton,
 } from "../../../global/LoadingSkeleton";
+import {
+  Post,
+  ApiPost,
+  ApiUser,
+  ApiMedia,
+  ApiResponse,
+  transformApiPostToPost,
+  transformApiPostsToPosts,
+} from "@/lib/adapters/postAdapter";
 
-// API Response Types based on actual API response
-interface ApiUser {
-  id: number;
-  name: string;
-  email: string;
-  username: string;
-  phone: string | null;
-  date_of_birth: string;
-  type: number;
-  roles: string[];
-  created_at: string;
-}
+// API Response Types are now imported from postAdapter
 
-interface ApiMedia {
-  id: number;
-  file_path?: string;
-  media_type?: "image" | "video";
-  type?: "photo" | "video";
-  url?: string;
-  duration?: number | null;
-}
+// Pagination response type - using the new ApiResponse interface
+type PaginatedResponse = ApiResponse;
 
-interface ApiPost {
-  id: number;
-  user: ApiUser;
-  title: string;
-  description?: string;
-  story?: string;
-  location?: string;
-  location_name?: string;
-  latitude?: string;
-  longitude?: string;
-  lat?: string;
-  lng?: string;
-  privacy: string;
-  expires_on?: string;
-  is_resolved?: boolean;
-  resolved_at?: string | null;
-  media: ApiMedia[];
-  tagged_users: ApiUser[];
-  tagged_friends?: number[];
-  mood_tags?: string[];
-  created_at: string;
-  updated_at?: string;
-}
-
-// Pagination response type
-interface PaginatedResponse {
-  data?: {
-    data?: ApiPost[];
-    posts?: ApiPost[];
-    pagination?: {
-      total: number;
-      page: number;
-      limit: number;
-      totalPages: number;
-    };
-  };
-  posts?: ApiPost[];
-  pagination?: {
-    total: number;
-    page: number;
-    limit: number;
-    totalPages: number;
-  };
-}
-
-// Helper function to format timestamp
-const formatTimestamp = (dateString: string): string => {
-  const date = new Date(dateString);
-  const now = new Date();
-  const diffInHours = Math.floor(
-    (now.getTime() - date.getTime()) / (1000 * 60 * 60)
-  );
-
-  if (diffInHours < 1) return "Just now";
-  if (diffInHours < 24)
-    return `${diffInHours} hour${diffInHours > 1 ? "s" : ""} ago`;
-
-  const diffInDays = Math.floor(diffInHours / 24);
-  if (diffInDays < 7)
-    return `${diffInDays} day${diffInDays > 1 ? "s" : ""} ago`;
-
-  return date.toLocaleDateString();
-};
-
-// Transform API data to Post format
-const transformApiPostToPost = (apiPost: ApiPost): Post => {
-  // Validate that apiPost has required properties
-  if (!apiPost || !apiPost.id || !apiPost.user) {
-    console.error("Invalid API post data:", apiPost);
-    throw new Error("Invalid API post data");
-  }
-
-  console.log(`Transforming post ${apiPost.id}`);
-
-  // Transform media
-  const transformMedia = (media: ApiMedia[] | undefined) => {
-    if (!media || !Array.isArray(media)) {
-      return [];
-    }
-    return media.map((item) => ({
-      id: item.id,
-      file_path: item.file_path,
-      media_type: item.media_type,
-      type: item.type,
-      url: item.url,
-      duration: item.duration,
-    }));
-  };
-
-  // Create participants from tagged users
-  const participants = (apiPost.tagged_users || []).map((user, index) => ({
-    avatarUrl: `https://randomuser.me/api/portraits/${
-      index % 2 === 0 ? "men" : "women"
-    }/${50 + index}.jpg`,
-  }));
-
-  // Transform media
-  const allMedia = transformMedia(apiPost.media);
-  const displayMedia = allMedia.slice(0, 5);
-  const additionalMediaCount = Math.max(0, allMedia.length - 5);
-
-  // Base post object
-  const basePost: Post = {
-    id: apiPost.id,
-    user: {
-      id: apiPost.user.id,
-      name: apiPost.user.name || "Unknown User",
-      email: apiPost.user.email,
-      username: apiPost.user.username,
-      phone: apiPost.user.phone,
-      date_of_birth: apiPost.user.date_of_birth,
-      type: apiPost.user.type,
-      roles: apiPost.user.roles,
-      created_at: apiPost.user.created_at,
-    },
-    title: apiPost.title,
-    description: apiPost.description,
-    story: apiPost.story,
-    location: apiPost.location,
-    location_name: apiPost.location_name,
-    latitude: apiPost.latitude,
-    longitude: apiPost.longitude,
-    lat: apiPost.lat,
-    lng: apiPost.lng,
-    privacy: apiPost.privacy,
-    media: allMedia.length > 0 ? allMedia : [],
-    tagged_users: apiPost.tagged_users,
-    tagged_friends: apiPost.tagged_friends,
-    mood_tags: apiPost.mood_tags,
-    expires_on: apiPost.expires_on,
-    is_resolved: apiPost.is_resolved,
-    resolved_at: apiPost.resolved_at,
-    created_at: apiPost.created_at,
-    updated_at: apiPost.updated_at,
-  };
-
-  // Handle different post types based on available fields
-  if (apiPost.expires_on && apiPost.is_resolved !== undefined) {
-    // Travel Advisory
-    console.log(`Creating travel advisory post for ${apiPost.id}`);
-    return basePost;
-  } else if (apiPost.mood_tags && apiPost.mood_tags.length > 0) {
-    // Footprint
-    console.log(`Creating footprint post for ${apiPost.id}`);
-    return basePost;
-  } else {
-    // Travel Tip or default
-    console.log(`Creating travel tip/default post for ${apiPost.id}`);
-    return basePost;
-  }
-};
+// Transformation logic is now imported from postAdapter
 
 const UserFeed = () => {
   const [posts, setPosts] = useState<Post[]>([]);
@@ -262,26 +104,26 @@ const UserFeed = () => {
 
         console.log("API Response:", response);
 
-        // Handle different response structures
+        // Handle the new API response structure
         let postsData: ApiPost[] = [];
         let paginationInfo = null;
 
-        if (response?.data?.data && Array.isArray(response.data.data)) {
-          postsData = response.data.data;
-          paginationInfo = response.data.pagination;
-        } else if (
-          response?.data?.posts &&
-          Array.isArray(response.data.posts)
+        if (
+          response?.status &&
+          response?.data?.data &&
+          Array.isArray(response.data.data)
         ) {
-          postsData = response.data.posts;
-          paginationInfo = response.data.pagination;
+          postsData = response.data.data;
+          paginationInfo = {
+            total: response.data.total,
+            page: response.data.current_page,
+            limit: response.data.per_page,
+            totalPages: response.data.last_page,
+          };
         } else if (response?.data && Array.isArray(response.data)) {
           postsData = response.data;
-          paginationInfo = response.pagination;
         } else if (Array.isArray(response)) {
           postsData = response;
-        } else if (response?.posts && Array.isArray(response.posts)) {
-          postsData = response.posts;
         }
 
         console.log(`Found ${postsData.length} posts on page ${pageNum}`);
@@ -290,19 +132,7 @@ const UserFeed = () => {
           console.log("Raw posts data:", postsData);
 
           // Transform API posts to match Post interface
-          const transformedPosts: Post[] = postsData
-            .map((post, index) => {
-              try {
-                console.log(`Transforming post ${index}:`, post);
-                const transformed = transformApiPostToPost(post);
-                console.log(`Transformed post ${index}:`, transformed);
-                return transformed;
-              } catch (error) {
-                console.error(`Error transforming post ${index}:`, error);
-                return null;
-              }
-            })
-            .filter((post): post is Post => post !== null);
+          const transformedPosts: Post[] = transformApiPostsToPosts(postsData);
 
           console.log("Transformed posts:", transformedPosts);
 

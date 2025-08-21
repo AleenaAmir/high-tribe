@@ -4,65 +4,17 @@ import Image from "next/image";
 import { toast } from "react-hot-toast";
 import { apiFormDataWrapper, apiRequest } from "@/lib/api";
 import MediaModal from "@/components/global/MediaModal";
-
-// --- TYPE DEFINITIONS ---
-export type User = {
-  id: number;
-  name: string;
-  email: string;
-  username: string;
-  phone: string | null;
-  date_of_birth: string;
-  type: number;
-  roles: string[];
-  created_at: string;
-};
-
-export type Media = {
-  id?: number;
-  file_path?: string;
-  media_type?: "image" | "video";
-  duration?: number | null;
-  type?: "photo" | "video";
-  url?: string;
-};
-
-export type Post = {
-  id: number;
-  user: User;
-  title?: string;
-  description?: string;
-  story?: string;
-  location?: string;
-  location_name?: string;
-  latitude?: string;
-  longitude?: string;
-  lat?: string;
-  lng?: string;
-  privacy: string;
-  media: Media[];
-  tagged_users?: User[];
-  tagged_friends?: number[];
-  mood_tags?: string[];
-  expires_on?: string;
-  is_resolved?: boolean;
-  resolved_at?: string | null;
-  created_at: string;
-  updated_at?: string;
-};
-
-export type Comment = {
-  id: string;
-  content: string;
-  user: {
-    name: string;
-    avatarUrl: string;
-  };
-  timestamp: string;
-  parent_id?: string;
-  replies?: Comment[];
-  likes?: number;
-};
+import {
+  Post,
+  PostUser as User,
+  PostMedia as Media,
+  Comment,
+  formatDate,
+  isExpired,
+  getPostType,
+  getMediaUrl,
+  isVideo,
+} from "@/lib/adapters/postAdapter";
 
 // --- SVG ICONS ---
 const HeartIcon = ({
@@ -213,32 +165,7 @@ const ClockIcon = ({ className }: { className?: string }) => (
 );
 
 // --- UTILITY FUNCTIONS ---
-const formatDate = (dateString: string): string => {
-  const date = new Date(dateString);
-  const now = new Date();
-  const diffInHours = Math.floor(
-    (now.getTime() - date.getTime()) / (1000 * 60 * 60)
-  );
-
-  if (diffInHours < 1) {
-    return "Just now";
-  } else if (diffInHours < 24) {
-    return `${diffInHours}h ago`;
-  } else if (diffInHours < 48) {
-    return "Yesterday";
-  } else {
-    return date.toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      year: date.getFullYear() !== now.getFullYear() ? "numeric" : undefined,
-    });
-  }
-};
-
-const isExpired = (expiresOn?: string): boolean => {
-  if (!expiresOn) return false;
-  return new Date(expiresOn) < new Date();
-};
+// All utility functions are now imported from postAdapter
 
 // --- MEDIA GRID COMPONENT ---
 const MediaGrid = ({
@@ -259,12 +186,8 @@ const MediaGrid = ({
     altIndex: number,
     customAspectRatio?: string
   ) => {
-    const mediaUrl =
-      mediaItem.file_path ||
-      mediaItem.url ||
-      "https://via.placeholder.com/400x300?text=Image";
-    const isVideo =
-      mediaItem.media_type === "video" || mediaItem.type === "video";
+    const mediaUrl = getMediaUrl(mediaItem);
+    const isVideoMedia = isVideo(mediaItem);
 
     return (
       <div
@@ -274,7 +197,7 @@ const MediaGrid = ({
         }
         onClick={() => onMediaClick(media, altIndex)}
       >
-        {isVideo ? (
+        {isVideoMedia ? (
           <div className="w-full h-full relative">
             <video
               src={mediaUrl}
@@ -446,7 +369,9 @@ export const PostCard = ({
     try {
       // Determine post type based on post properties
       let postType = "posts"; // default
-      if (post.expires_on && post.is_resolved !== undefined) {
+      if (post.type === "mapping_journey") {
+        postType = "journeys";
+      } else if (post.expires_on && post.is_resolved !== undefined) {
         postType = "advisories";
       } else if (post.story) {
         postType = "footprints";
@@ -501,7 +426,9 @@ export const PostCard = ({
     try {
       // Determine post type based on post properties
       let postType = "posts"; // default
-      if (post.expires_on && post.is_resolved !== undefined) {
+      if (post.type === "mapping_journey") {
+        postType = "journeys";
+      } else if (post.expires_on && post.is_resolved !== undefined) {
         postType = "advisories";
       } else if (post.story) {
         postType = "footprints";
@@ -554,9 +481,11 @@ export const PostCard = ({
   };
 
   // Determine post type for styling
-  const isAdvisory = post.expires_on && post.is_resolved !== undefined;
-  const isFootprint = post.story !== undefined;
-  const isTip = post.title && !post.expires_on && !post.story;
+  const postType = getPostType(post);
+  const isJourney = postType === "journey";
+  const isAdvisory = postType === "advisory";
+  const isFootprint = postType === "footprint";
+  const isTip = postType === "tip";
 
   // Get display content
   const displayTitle = post.title || post.story;
@@ -572,15 +501,15 @@ export const PostCard = ({
             <div className="relative">
               <Image
                 src={`https://ui-avatars.com/api/?name=${encodeURIComponent(
-                  post.user.name
+                  post.user?.name || "Unknown User"
                 )}&background=random&size=48`}
-                alt={post.user.name}
+                alt={post.user?.name || "Unknown User"}
                 width={48}
                 height={48}
                 className="rounded-full object-cover"
                 unoptimized
               />
-              {post.user.type === 1 && (
+              {post.user?.type === 1 && (
                 <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-blue-500 rounded-full border-2 border-white flex items-center justify-center">
                   <span className="text-white text-xs">✓</span>
                 </div>
@@ -588,7 +517,7 @@ export const PostCard = ({
             </div>
             <div>
               <p className="font-semibold text-black text-[14px] font-gilroy">
-                {post.user.name}
+                {post.user?.name || "Unknown User"}
               </p>
               <div className="flex items-center gap-2 text-xs text-[#656565] whitespace-nowrap">
                 {displayLocation && (
@@ -608,10 +537,20 @@ export const PostCard = ({
           </div>
           <div className="flex items-center gap-2">
             {/* Post Type Badge */}
+            {isJourney && (
+              <Image
+                src={"/dashboard/jurney.svg"}
+                alt={"journey"}
+                width={24}
+                height={24}
+                className="md:w-[20px] md:h-[20px] w-[14px] h-[14px]"
+              />
+            )}
+
             {isAdvisory && (
               <Image
                 src={"/dashboard/advisory.svg"}
-                alt={"footprint2"}
+                alt={"advisory"}
                 width={24}
                 height={24}
                 className="md:w-[20px] md:h-[20px] w-[14px] h-[14px]"
@@ -621,7 +560,7 @@ export const PostCard = ({
             {isFootprint && (
               <Image
                 src={"/dashboard/foot.svg"}
-                alt={"footprint1"}
+                alt={"footprint"}
                 width={24}
                 height={24}
                 className="md:w-[20px] md:h-[20px] w-[14px] h-[14px]"
@@ -631,7 +570,7 @@ export const PostCard = ({
             {isTip && (
               <Image
                 src={"/dashboard/trip.svg"}
-                alt={"footprint3"}
+                alt={"tip"}
                 width={24}
                 height={24}
                 className="md:w-[20px] md:h-[20px] w-[14px] h-[14px]"

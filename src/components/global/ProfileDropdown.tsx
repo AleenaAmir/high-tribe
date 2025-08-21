@@ -38,7 +38,7 @@ const ProfileDropdown = ({
   const handleLogout = async () => {
     try {
       await apiRequest("logout", { method: "POST" });
-      if (typeof window !== 'undefined') {
+      if (typeof window !== "undefined") {
         localStorage.removeItem("token");
         localStorage.removeItem("name");
         localStorage.removeItem("isHost");
@@ -88,7 +88,7 @@ const ProfileDropdown = ({
           <button
             onClick={() => {
               onToggle();
-              // Navigate to profile page
+              router.push("/profile");
             }}
             className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
           >
@@ -110,7 +110,6 @@ const ProfileDropdown = ({
           <button
             onClick={() => {
               onToggle();
-              // Navigate to settings page
             }}
             className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
           >
@@ -138,7 +137,6 @@ const ProfileDropdown = ({
           <button
             onClick={() => {
               onToggle();
-              // Navigate to help page
             }}
             className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
           >
