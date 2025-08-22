@@ -443,8 +443,7 @@ export const PostCard = ({
       post.stops.forEach((stop, index) => {
         if (stop.media && stop.media.length > 0) {
           console.log(
-            `Stop ${index + 1} (${stop.title}) has ${
-              stop.media.length
+            `Stop ${index + 1} (${stop.title}) has ${stop.media.length
             } media items`
           );
           allMedia.push(...stop.media);
@@ -760,7 +759,7 @@ export const PostCard = ({
               onClick={handleJourneyMapModalOpen}
             >
               <MapIcon />
-              <span className="text-[10px] font-gilroy font-bold">
+              <span className="text-[12px] font-gilroy font-bold cursor-pointer hover:text-[#247CFF]">
                 View Map
               </span>
             </button>
@@ -775,15 +774,14 @@ export const PostCard = ({
         ) : (
           <div className="mt-1 font-gilroy">
             <p
-              className={`leading-relaxed ${
-                isTip
-                  ? "text-[12px]"
-                  : isAdvisory
+              className={`leading-relaxed ${isTip
+                ? "text-[12px]"
+                : isAdvisory
                   ? "text-[16px]"
                   : isFootprint
-                  ? "text-[16px]"
-                  : "text-sm"
-              }`}
+                    ? "text-[16px]"
+                    : "text-sm"
+                }`}
             >
               {displayContent}
             </p>
@@ -1043,9 +1041,8 @@ export const PostCard = ({
               />
               <button
                 type="submit"
-                className={`group-hover:flex bg-gradient-to-r from-[#247CFF] to-[#0F62DE] text-white px-4 py-1.5 rounded-full text-sm font-semibold hidden cursor-pointer items-center gap-2 h-fit w-fit ${
-                  isSubmittingComment ? "opacity-50 cursor-not-allowed" : ""
-                }`}
+                className={`group-hover:flex bg-gradient-to-r from-[#247CFF] to-[#0F62DE] text-white px-4 py-1.5 rounded-full text-sm font-semibold hidden cursor-pointer items-center gap-2 h-fit w-fit ${isSubmittingComment ? "opacity-50 cursor-not-allowed" : ""
+                  }`}
                 disabled={isSubmittingComment || !commentContent.trim()}
               >
                 {isSubmittingComment ? (
