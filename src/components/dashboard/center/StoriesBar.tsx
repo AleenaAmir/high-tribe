@@ -53,6 +53,36 @@ const stories = [
     img: "https://randomuser.me/api/portraits/women/72.jpg",
     live: true,
   },
+  {
+    name: "Sarah T.",
+    img: "https://randomuser.me/api/portraits/women/68.jpg",
+    live: true,
+  },
+  {
+    name: "Nadir K.",
+    img: "https://randomuser.me/api/portraits/men/68.jpg",
+    live: true,
+  },
+  {
+    name: "Elena P.",
+    img: "https://randomuser.me/api/portraits/women/69.jpg",
+    live: true,
+  },
+  {
+    name: "Sarah T.",
+    img: "https://randomuser.me/api/portraits/women/68.jpg",
+    live: true,
+  },
+  {
+    name: "Nadir K.",
+    img: "https://randomuser.me/api/portraits/men/68.jpg",
+    live: true,
+  },
+  {
+    name: "Elena P.",
+    img: "https://randomuser.me/api/portraits/women/69.jpg",
+    live: true,
+  },
 ];
 
 const StoriesBar = () => {
@@ -93,11 +123,10 @@ const StoriesBar = () => {
           <SwiperSlide key={index} className="!w-auto">
             <div className="flex flex-col items-center gap-2 cursor-pointer">
               <div
-                className={`w-[79px] h-[79px] rounded-full p-[3px] ${
-                  story.live
+                className={`w-[79px] h-[79px] rounded-full p-[3px] ${story.live
                     ? " rounded-full bg-gradient-to-b from-[#EF373D] via-[#B01C9E] to-[#7100FF]"
                     : ""
-                }`}
+                  }`}
               >
                 <div className="bg-white rounded-full">
                   <Image

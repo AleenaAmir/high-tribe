@@ -115,11 +115,11 @@ const PostFootPrint = ({
           <button
             type="button"
             key={i}
-            onClick={option?.onclick || (() => {})}
+            onClick={option?.onclick || (() => { })}
             className="flex items-center text-[9px] md:text-[11px] gap-1 p-1 md:p-2 cursor-pointer hover:shadow-md transition-all duration-300 px-2 md:px-4 rounded-full bg-white"
           >
             {option?.img && option?.img}
-            {option?.name && <p>{option.name}</p>}
+            {option?.name && <p className="text-[10px] leading-[100%]  font-gilroy text-[#000000] md:text-[12px]">{option.name}</p>}
           </button>
         ))}
       </div>
