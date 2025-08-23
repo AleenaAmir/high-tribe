@@ -682,7 +682,7 @@ export const PostCard = ({
             {/* Post Type Badge */}
             {isJourney && (
               <Image
-                src={"/dashboard/postsicon/MapTrip.png"}
+                src={"/dashboard/postsicon/maptrip.png"}
                 alt={"journey"}
                 width={35}
                 height={35}
