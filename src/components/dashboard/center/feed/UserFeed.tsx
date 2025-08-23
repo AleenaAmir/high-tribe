@@ -357,17 +357,12 @@ const UserFeed = () => {
       <div
         ref={loadingRef}
         className="h-8 bg-gray-50 border-t border-gray-200 flex items-center justify-center"
-      >
-
-      </div>
+      ></div>
 
       {/* End of feed message */}
       {!hasMore && posts.length > 0 && (
         <div className="text-center py-8">
-
-          <p className="text-sm text-gray-400 mt-2">
-            No more posts found
-          </p>
+          <p className="text-sm text-gray-400 mt-2">No more posts found</p>
         </div>
       )}
     </div>

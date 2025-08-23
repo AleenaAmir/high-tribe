@@ -62,6 +62,8 @@ export interface ApiPost {
   mood_tags?: string[];
   created_at: string;
   updated_at?: string;
+  reactions_count?: number;
+  comments_count?: number;
   
   // Journey-specific fields
   start_location_name?: string;
@@ -142,6 +144,8 @@ export interface Post {
   resolved_at?: string | null;
   created_at: string;
   updated_at?: string;
+  reactions_count?: number;
+  comments_count?: number;
   
   // Journey-specific fields
   start_location_name?: string;
@@ -173,6 +177,58 @@ export interface Comment {
   parent_id?: string;
   replies?: Comment[];
   likes?: number;
+}
+
+// API Comment interfaces
+export interface ApiCommentUser {
+  id: number;
+  name: string;
+  username: string;
+  date_of_birth: string;
+  email: string;
+  phone: string | null;
+  type: number;
+}
+
+export interface ApiComment {
+  id: number;
+  user_id: number;
+  commentable_type: string;
+  commentable_id: number;
+  parent_id: number | null;
+  content: string;
+  depth: number;
+  is_hidden: number;
+  created_at: string;
+  updated_at: string;
+  user: ApiCommentUser;
+  replies: ApiComment[];
+}
+
+export interface ApiCommentsResponse {
+  data: ApiComment[];
+  links: {
+    first: string;
+    last: string;
+    prev: string | null;
+    next: string | null;
+  };
+  meta: {
+    current_page: number;
+    from: number;
+    last_page: number;
+    links: Array<{
+      url: string | null;
+      label: string;
+      page: number | null;
+      active: boolean;
+    }>;
+    path: string;
+    per_page: number;
+    to: number;
+    total: number;
+    total_comments: number;
+  };
 }
 
 // Utility functions
@@ -294,6 +350,8 @@ export const transformApiPostToPost = (apiPost: ApiPost): Post => {
     resolved_at: apiPost.resolved_at,
     created_at: apiPost.created_at,
     updated_at: apiPost.updated_at,
+    reactions_count: apiPost.reactions_count,
+    comments_count: apiPost.comments_count,
     
     // Journey-specific fields
     start_location_name: apiPost.start_location_name,
@@ -327,6 +385,27 @@ export const transformApiPostsToPosts = (apiPosts: ApiPost[]): Post[] => {
       }
     })
     .filter((post): post is Post => post !== null);
+};
+
+// Transform API comment to component-ready comment
+export const transformApiCommentToComment = (apiComment: ApiComment): Comment => {
+  return {
+    id: apiComment.id.toString(),
+    content: apiComment.content,
+    user: {
+      name: apiComment.user.name,
+      avatarUrl: `https://ui-avatars.com/api/?name=${encodeURIComponent(apiComment.user.name)}&background=random&size=32`,
+    },
+    timestamp: formatDate(apiComment.created_at),
+    parent_id: apiComment.parent_id?.toString(),
+    replies: apiComment.replies ? apiComment.replies.map(transformApiCommentToComment) : [],
+    likes: 0, // API doesn't provide likes count yet
+  };
+};
+
+// Transform array of API comments to component-ready comments
+export const transformApiCommentsToComments = (apiComments: ApiComment[]): Comment[] => {
+  return apiComments.map(transformApiCommentToComment);
 };
 
 // Post type detection helpers

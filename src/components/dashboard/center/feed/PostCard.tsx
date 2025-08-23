@@ -4,12 +4,16 @@ import Image from "next/image";
 import { toast } from "react-hot-toast";
 import { apiFormDataWrapper, apiRequest } from "@/lib/api";
 import MediaModal from "@/components/global/MediaModal";
+import GlobalModalBorderLess from "@/components/global/GlobalModalBorderLess";
 import JourneyMapModal from "./JourneyMapModal";
 import {
   Post,
   PostUser as User,
   PostMedia as Media,
   Comment,
+  ApiCommentsResponse,
+  ApiComment,
+  transformApiCommentsToComments,
   formatDate,
   isExpired,
   getPostType,
@@ -414,10 +418,6 @@ export const PostCard = ({
 
   useEffect(() => {
     console.log("PostCard - Post ID:", post.id);
-    if (post.id) {
-      fetchComments();
-    }
-
   }, [post.id]);
 
   // Journey map modal state
@@ -428,7 +428,9 @@ export const PostCard = ({
   const [isSubmittingComment, setIsSubmittingComment] = useState(false);
   const [comments, setComments] = useState<Comment[]>([]);
   const [loadingComments, setLoadingComments] = useState(false);
-  const [showComments, setShowComments] = useState(false);
+  const [replyingTo, setReplyingTo] = useState<string | null>(null);
+  const [replyContent, setReplyContent] = useState("");
+  const [isSubmittingReply, setIsSubmittingReply] = useState(false);
 
   // Collect all media for journey mapping posts (main post media + all stop media)
   const getAllMedia = (): Media[] => {
@@ -452,7 +454,9 @@ export const PostCard = ({
       post.stops.forEach((stop, index) => {
         if (stop.media && stop.media.length > 0) {
           console.log(
-            `Stop ${index + 1} (${stop.title}) has ${stop.media.length} media items`
+            `Stop ${index + 1} (${stop.title}) has ${
+              stop.media.length
+            } media items`
           );
           allMedia.push(...stop.media);
         }
@@ -498,12 +502,18 @@ export const PostCard = ({
   // Fetch comments for the post
   const fetchComments = async () => {
     console.log("PostCard - Fetching comments for post:", post.id);
-    debugger;
     if (loadingComments || !post.id) return;
 
     setLoadingComments(true);
     try {
-      console.log("PostCard - Post ID:", post.id, "loadingComments:", loadingComments, "post.id:", post.type);
+      console.log(
+        "PostCard - Post ID:",
+        post.id,
+        "loadingComments:",
+        loadingComments,
+        "post.type:",
+        post.type
+      );
       // Determine post type based on post properties
       let postType = "posts"; // default
       if (post.type === "mapping_journey") {
@@ -518,27 +528,53 @@ export const PostCard = ({
 
       console.log("Fetching comments for post:", post.id, "type:", postType);
 
-      const response = await apiRequest<{ data: Comment[] }>(
+      const response = await apiRequest<ApiCommentsResponse>(
         `${postType}/${post.id}/comments?per_page=10&page=1&with_replies=true`
       );
 
       console.log("Comments response:", response);
 
-      const commentsData = response.data || [];
-      console.log("Setting comments:", commentsData);
-      setComments(commentsData);
+      if (response?.data) {
+        const apiComments = response.data;
+        console.log("Raw API comments:", apiComments);
+        console.log("Number of API comments:", apiComments.length);
+
+        // Check for replies in the raw data
+        apiComments.forEach((comment, index) => {
+          console.log(`API Comment ${index + 1} (ID: ${comment.id}):`, {
+            content: comment.content,
+            hasReplies: comment.replies && comment.replies.length > 0,
+            repliesCount: comment.replies ? comment.replies.length : 0,
+            replies: comment.replies,
+          });
+        });
+
+        const transformedComments = transformApiCommentsToComments(apiComments);
+        console.log("Transformed comments:", transformedComments);
+        console.log(
+          "Number of transformed comments:",
+          transformedComments.length
+        );
+        setComments(transformedComments);
+      } else {
+        console.log("No comments data in response");
+        setComments([]);
+      }
     } catch (error) {
       console.error("Error fetching comments:", error);
       toast.error("Failed to load comments");
+      setComments([]);
     } finally {
       setLoadingComments(false);
     }
   };
 
-  // Load comments when component mounts or when showComments changes
-  useEffect(() => {
+  // Handle comment modal open
+  const handleCommentsModalOpen = () => {
+    setIsCommentsModalOpen(true);
+    // Fetch comments when modal is opened
     fetchComments();
-  }, []);
+  };
 
   // Handle comment submission
   const handleCommentSubmit = async (e: React.FormEvent) => {
@@ -580,9 +616,7 @@ export const PostCard = ({
       setCommentContent("");
 
       // Refresh comments to show the new comment
-      if (showComments) {
-        fetchComments();
-      }
+      fetchComments();
 
       // Call the callback to refresh the parent component
       if (onCommentAdded) {
@@ -597,6 +631,199 @@ export const PostCard = ({
     } finally {
       setIsSubmittingComment(false);
     }
+  };
+
+  // Handle reply submission
+  const handleReplySubmit = async (
+    e: React.FormEvent,
+    parentCommentId: string
+  ) => {
+    e.preventDefault();
+
+    if (!replyContent.trim() || isSubmittingReply) {
+      return;
+    }
+
+    setIsSubmittingReply(true);
+
+    try {
+      // Determine post type based on post properties
+      let postType = "posts"; // default
+      if (post.type === "mapping_journey") {
+        postType = "journeys";
+      } else if (post.expires_on && post.is_resolved !== undefined) {
+        postType = "advisories";
+      } else if (post.story) {
+        postType = "footprints";
+      } else if (post.title && !post.expires_on && !post.story) {
+        postType = "tips";
+      }
+
+      // Create FormData for the reply
+      const formData = new FormData();
+      formData.append("content", replyContent.trim());
+      formData.append("parent_id", parentCommentId);
+
+      // Submit reply using the existing API helper
+      const result = await apiFormDataWrapper(
+        `${postType}/${post.id}/comments`,
+        formData,
+        "Reply added successfully!"
+      );
+
+      console.log("Reply submitted successfully:", result);
+
+      // Clear the reply input and reset reply state
+      setReplyContent("");
+      setReplyingTo(null);
+
+      // Refresh comments to show the new reply
+      fetchComments();
+
+      // Call the callback to refresh the parent component
+      if (onCommentAdded) {
+        onCommentAdded();
+      }
+    } catch (error) {
+      console.error("Error submitting reply:", error);
+      // Show error message to user
+      toast.error(
+        error instanceof Error ? error.message : "Failed to submit reply"
+      );
+    } finally {
+      setIsSubmittingReply(false);
+    }
+  };
+
+  // Handle reply button click
+  const handleReplyClick = (commentId: string) => {
+    setReplyingTo(commentId);
+    setReplyContent("");
+  };
+
+  // Handle cancel reply
+  const handleCancelReply = () => {
+    setReplyingTo(null);
+    setReplyContent("");
+  };
+
+  // Recursive Comment Item Component
+  const CommentItem = ({
+    comment,
+    level = 0,
+  }: {
+    comment: Comment;
+    level?: number;
+  }) => {
+    const isReplying = replyingTo === comment.id;
+    const hasReplies = comment.replies && comment.replies.length > 0;
+
+    return (
+      <div className={`${level > 0 ? "ml-8" : ""}`}>
+        <div className="flex gap-3 items-start">
+          <Image
+            src={
+              comment.user && typeof comment.user.avatarUrl === "string"
+                ? comment.user.avatarUrl
+                : "https://placehold.co/400"
+            }
+            alt={comment.user?.name || "Unknown User"}
+            width={32}
+            height={32}
+            className="rounded-full object-contain flex-shrink-0"
+            unoptimized
+          />
+          <div className="flex-1 min-w-0">
+            <div className="inline-block bg-gray-50 rounded-2xl px-3 py-2 max-w-full">
+              <div className="flex items-center gap-2 mb-1">
+                <span className="font-semibold text-sm text-gray-800">
+                  {comment.user?.name || "Unknown User"}
+                </span>
+                <span className="text-xs text-gray-500">
+                  {comment.timestamp}
+                </span>
+              </div>
+              <p className="text-sm text-gray-700 mb-1 break-words leading-relaxed">
+                {comment.content}
+              </p>
+              <div className="flex items-center gap-3 text-xs">
+                <button className="text-gray-500 hover:text-gray-700 transition-colors">
+                  Like {comment.likes || 0}
+                </button>
+                <button
+                  onClick={() => handleReplyClick(comment.id)}
+                  className="text-gray-500 hover:text-gray-700 transition-colors"
+                >
+                  Reply
+                </button>
+              </div>
+            </div>
+
+            {/* Reply Input */}
+            {isReplying && (
+              <div className="mt-3 ml-4">
+                <form
+                  onSubmit={(e) => handleReplySubmit(e, comment.id)}
+                  className="flex items-center gap-2"
+                >
+                  <input
+                    type="text"
+                    placeholder="Write a reply..."
+                    className="flex-1 bg-white border border-gray-200 rounded-full px-3 py-2 text-sm outline-none focus:border-blue-500"
+                    value={replyContent}
+                    onChange={(e) => setReplyContent(e.target.value)}
+                    disabled={isSubmittingReply}
+                    autoFocus
+                    onKeyPress={(e) => {
+                      if (e.key === "Enter" && !e.shiftKey) {
+                        e.preventDefault();
+                        handleReplySubmit(e, comment.id);
+                      }
+                    }}
+                  />
+                  <button
+                    type="submit"
+                    disabled={isSubmittingReply || !replyContent.trim()}
+                    className="bg-gradient-to-r from-[#9243AC] via-[#B6459F] to-[#E74294] text-white px-3 py-2 rounded-full text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:bg-blue-600 transition-colors"
+                  >
+                    {isSubmittingReply ? "Sending..." : "Reply"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleCancelReply}
+                    className="text-gray-500 hover:text-gray-700 text-sm px-2 py-1 rounded transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </form>
+              </div>
+            )}
+
+            {/* Nested Replies */}
+            {hasReplies && (
+              <div className="mt-3 space-y-3">
+                {(() => {
+                  console.log(
+                    `Comment ${comment.id} has ${
+                      comment.replies?.length || 0
+                    } replies:`,
+                    comment.replies
+                  );
+                  return null;
+                })()}
+                {comment.replies!.map((reply) => (
+                  <CommentItem
+                    key={reply.id}
+                    comment={reply}
+                    level={level + 1}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
   };
 
   // Handle Enter key press
@@ -682,7 +909,7 @@ export const PostCard = ({
             {/* Post Type Badge */}
             {isJourney && (
               <Image
-                src={"/dashboard/postsicon/maptrip.png"}
+                src={"/dashboard/postsicon/MapTrip.png"}
                 alt={"journey"}
                 width={35}
                 height={35}
@@ -756,14 +983,15 @@ export const PostCard = ({
         ) : (
           <div className="mt-1 font-gilroy">
             <p
-              className={`leading-relaxed ${isTip
-                ? "text-[12px]"
-                : isAdvisory
+              className={`leading-relaxed ${
+                isTip
+                  ? "text-[12px]"
+                  : isAdvisory
                   ? "text-[16px]"
                   : isFootprint
-                    ? "text-[16px]"
-                    : "text-sm"
-                }`}
+                  ? "text-[16px]"
+                  : "text-sm"
+              }`}
             >
               {displayContent}
             </p>
@@ -905,10 +1133,11 @@ export const PostCard = ({
           <div className="flex justify-between items-center text-sm text-[#656565]">
             <div className="flex items-center gap-4">
               <button className="flex items-center gap-1.5 hover:text-red-500 transition-colors">
-                <HeartIcon className="w-5 h-5" filled={true} /> 0
+                <HeartIcon className="w-5 h-5" filled={true} />{" "}
+                {post.reactions_count || 0}
               </button>
               <button className="flex items-center gap-1.5 hover:text-[#3162E7] transition-colors">
-                <LikeIcon className="w-5 h-5" /> 0
+                <LikeIcon className="w-5 h-5" /> {post.reactions_count || 0}
               </button>
               <div className="flex items-center gap-2">
                 {post.tagged_users && post.tagged_users.length > 0 && (
@@ -937,119 +1166,260 @@ export const PostCard = ({
             </div>
             <div className="flex items-center gap-4">
               <button
-                onClick={() => setIsCommentsModalOpen(true)}
+                onClick={handleCommentsModalOpen}
                 className="text-sm text-[#656565] hover:text-blue-600 transition-colors"
               >
-                {comments.length} Comments
+                {post.comments_count || comments.length} Comments
               </button>
               <span className="text-sm text-[#656565]">0 Share</span>
             </div>
           </div>
+        </div>
+      </div>
 
-          {/* Comments Section */}
-          {showComments && (
-            <div className="border-t border-gray-100 my-4">
-              {loadingComments ? (
-                <div className="py-4 text-center text-gray-500">
-                  <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
-                  Loading comments...
-                </div>
-              ) : comments.length > 0 ? (
-                <div className="space-y-4 py-4">
-                  {comments.map((comment) => (
-                    <div key={comment.id} className="flex gap-3 items-start">
-                      <Image
-                        src={
-                          typeof comment.user.avatarUrl === "string"
-                            ? comment.user.avatarUrl
-                            : "https://placehold.co/400"
-                        }
-                        alt={comment.user.name}
-                        width={32}
-                        height={32}
-                        className="rounded-full object-contain flex-shrink-0"
-                        unoptimized
-                      />
-                      <div className="flex-1 min-w-0">
-                        <div className="inline-block bg-gray-50 rounded-2xl px-3 py-2 max-w-full">
-                          <div className="flex items-center gap-2 mb-1">
-                            <span className="font-semibold text-sm text-gray-800">
-                              {comment.user.name}
-                            </span>
-                            <span className="text-xs text-gray-500">
-                              {comment.timestamp}
-                            </span>
-                          </div>
-                          <p className="text-sm text-gray-700 mb-1 break-words leading-relaxed">
-                            {comment.content} ({comment.content.length} characters)
-                          </p>
-                          <div className="flex items-center gap-3 text-xs">
-                            <button className="text-gray-500 hover:text-gray-700 transition-colors">
-                              Like
-                            </button>
-                            <button className="text-gray-500 hover:text-gray-700 transition-colors">
-                              Reply
-                            </button>
-                          </div>
-                        </div>
-                      </div>
+      {/* Comments Modal */}
+      <GlobalModalBorderLess
+        isOpen={isCommentsModalOpen}
+        onClose={() => {
+          setIsCommentsModalOpen(false);
+          setCommentContent(""); // Clear comment input when modal closes
+          setReplyingTo(null); // Clear reply state when modal closes
+          setReplyContent(""); // Clear reply input when modal closes
+        }}
+        maxWidth="max-w-4xl"
+        customPadding="p-0"
+      >
+        <div className="w-full max-h-[90vh] overflow-y-auto">
+          {/* Modal Header */}
+          <div className="p-6 border-b border-gray-100">
+            <h2 className="text-xl font-semibold text-gray-800">
+              {post.comments_count || comments.length} Comments
+            </h2>
+          </div>
+
+          {/* Post Content in Modal */}
+          <div className="p-6 border-b border-gray-100">
+            {/* Post Header */}
+            <div className="flex items-start justify-between mb-4">
+              <div className="flex items-start gap-4">
+                <div className="relative">
+                  <Image
+                    src={`https://ui-avatars.com/api/?name=${encodeURIComponent(
+                      post.user?.name || "Unknown User"
+                    )}&background=random&size=48`}
+                    alt={post.user?.name || "Unknown User"}
+                    width={48}
+                    height={48}
+                    className="rounded-full object-cover"
+                    unoptimized
+                  />
+                  {post.user?.type === 1 && (
+                    <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-blue-500 rounded-full border-2 border-white flex items-center justify-center">
+                      <span className="text-white text-xs">✓</span>
                     </div>
-                  ))}
+                  )}
                 </div>
-              ) : (
-                <div className="py-4 text-center text-gray-500">
-                  No comments yet. Be the first to comment!
+                <div>
+                  <p className="font-semibold text-black text-[14px] font-gilroy">
+                    {post.user?.name || "Unknown User"}
+                  </p>
+                  <div className="flex items-center gap-2 text-xs text-black mt-1 whitespace-nowrap font-gilroy">
+                    {isJourney &&
+                      post.start_location_name &&
+                      post.end_location_name && (
+                        <div className="flex items-center gap-1 text-sm text-black text-[10px]">
+                          <LocationIcon className="w-3 h-3 text-orange-500" />
+                          <span className="truncate">
+                            {post.start_location_name}
+                          </span>
+                          <span className="text-orange-500">→</span>
+                          <span className="truncate">
+                            {post.end_location_name}
+                          </span>
+                          <span>|</span>
+                        </div>
+                      )}
+                    {displayLocation && (
+                      <>
+                        <span className="flex items-center gap-1 text-black text-[10px]">
+                          <LocationIcon className="w-3 h-3 text-orange-500" />
+                          <span className="truncate max-w-[200px]">
+                            {displayLocation}
+                          </span>
+                          <span>|</span>
+                        </span>
+                      </>
+                    )}
+                    <span className="text-black text-[10px]">
+                      {formatDate(post.created_at)}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Post Content */}
+            {isJourney &&
+              post.start_location_name &&
+              post.end_location_name && (
+                <div className="flex items-center gap-2 text-sm text-black font-gilroy mb-2 text-[12px]">
+                  <span className="truncate font-semibold">
+                    Trip to {post.start_location_name}
+                  </span>
+                  <span className="">→</span>
+                  <span className="truncate">{post.end_location_name}</span>
+                  <button
+                    type="button"
+                    className="flex items-center gap-1 hover:opacity-80 transition-opacity"
+                    onClick={handleJourneyMapModalOpen}
+                  >
+                    <MapIcon />
+                    <span className="text-[12px] font-gilroy font-bold cursor-pointer hover:text-[#247CFF]">
+                      View Map
+                    </span>
+                  </button>
                 </div>
               )}
-            </div>
-          )}
 
-          {/* Comment Input */}
-          <div className="border-t border-gray-100 my-4"></div>
-          <form
-            onSubmit={handleCommentSubmit}
-            className="flex items-center gap-3 group"
-          >
-            <div className="flex items-center px-4 gap-2 w-full">
-              <EmojiIcon className="hover:text-yellow-400" />
-              <input
-                type="text"
-                placeholder="Add a comment..."
-                className="w-full bg-transparent outline-none py-2 text-sm flex-1"
-                value={commentContent}
-                onChange={(e) => setCommentContent(e.target.value)}
-                onKeyPress={handleKeyPress}
-                disabled={isSubmittingComment}
-              />
+            {displayContent && (
+              <div className="mb-4 font-gilroy">
+                <p
+                  className={`leading-relaxed ${
+                    isTip
+                      ? "text-[12px]"
+                      : isAdvisory
+                      ? "text-[16px]"
+                      : isFootprint
+                      ? "text-[16px]"
+                      : "text-sm"
+                  }`}
+                >
+                  {displayContent}
+                </p>
+              </div>
+            )}
+
+            {/* Media Grid in Modal */}
+            {allMedia && allMedia.length > 0 && (
+              <div className="mb-4">
+                <MediaGrid
+                  media={allMedia}
+                  onMediaClick={handleMediaClick}
+                  post={post}
+                />
+              </div>
+            )}
+
+            {/* Post Footer in Modal */}
+            <div className="flex justify-between items-center text-sm text-[#656565]">
+              <div className="flex items-center gap-4">
+                <button className="flex items-center gap-1.5 hover:text-red-500 transition-colors">
+                  <HeartIcon className="w-5 h-5" filled={true} />{" "}
+                  {post.reactions_count || 0}
+                </button>
+                <button className="flex items-center gap-1.5 hover:text-[#3162E7] transition-colors">
+                  <LikeIcon className="w-5 h-5" /> {post.reactions_count || 0}
+                </button>
+                <div className="flex items-center gap-2">
+                  {post.tagged_users && post.tagged_users.length > 0 && (
+                    <div className="flex -space-x-2">
+                      {post.tagged_users.slice(0, 5).map((user, i) => (
+                        <Image
+                          key={i}
+                          src={`https://ui-avatars.com/api/?name=${encodeURIComponent(
+                            user.name
+                          )}&background=random&size=24`}
+                          alt={user.name}
+                          width={24}
+                          height={24}
+                          className="rounded-full border-2 border-white object-cover"
+                          unoptimized
+                        />
+                      ))}
+                    </div>
+                  )}
+                  <span className="text-sm text-[#656565]">
+                    {post.tagged_users && post.tagged_users.length > 5
+                      ? `${post.tagged_users.length} Participants`
+                      : ""}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Comments Content */}
+          <div className="max-h-[50vh] overflow-y-auto">
+            {loadingComments ? (
+              <div className="py-8 text-center text-gray-500">
+                <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
+                Loading comments...
+              </div>
+            ) : comments.length > 0 ? (
+              <div className="space-y-4 p-6">
+                {comments.map((comment) => (
+                  <CommentItem key={comment.id} comment={comment} />
+                ))}
+              </div>
+            ) : (
+              <div className="py-8 text-center text-gray-500">
+                No comments yet. Be the first to comment!
+              </div>
+            )}
+          </div>
+
+          {/* Comment Input Section */}
+          <div className="border-t border-gray-100 p-6">
+            <form
+              onSubmit={handleCommentSubmit}
+              className="flex items-center gap-3"
+            >
+              <div className="flex items-center gap-2 w-full bg-gray-50 rounded-full px-4 py-2">
+                <EmojiIcon className="w-5 h-5 text-gray-400 hover:text-yellow-400 cursor-pointer" />
+                <input
+                  type="text"
+                  placeholder="Add a comment....."
+                  className="w-full bg-transparent outline-none text-sm flex-1"
+                  value={commentContent}
+                  onChange={(e) => setCommentContent(e.target.value)}
+                  onKeyPress={handleKeyPress}
+                  disabled={isSubmittingComment}
+                />
+              </div>
               <button
                 type="submit"
-                className={`group-hover:flex bg-gradient-to-r from-[#247CFF] to-[#0F62DE] text-white px-4 py-1.5 rounded-full text-sm font-semibold hidden cursor-pointer items-center gap-2 h-fit w-fit ${isSubmittingComment ? "opacity-50 cursor-not-allowed" : ""
-                  }`}
+                className={`bg-gradient-to-r from-[#9243AC] via-[#B6459F] to-[#E74294] text-white px-4 py-2 rounded-full text-sm font-semibold flex items-center gap-2 h-fit w-fit transition-all duration-200 hover:scale-105 ${
+                  isSubmittingComment || !commentContent.trim()
+                    ? "opacity-50 cursor-not-allowed"
+                    : ""
+                }`}
                 disabled={isSubmittingComment || !commentContent.trim()}
               >
                 {isSubmittingComment ? (
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                 ) : (
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    xmlSpace="preserve"
-                    width="20"
-                    height="20"
-                    viewBox="0 0 256 256"
-                  >
-                    <path
-                      fill="white"
-                      strokeMiterlimit="10"
-                      strokeWidth="0"
-                      d="M254.304 10.047a8.758 8.758 0 0 0-.107-1.576c-.02-.115-.025-.228-.05-.343a8 8 0 0 0-.405-1.36c-.05-.13-.115-.25-.172-.376a8 8 0 0 0-.511-.973 10 10 0 0 0-.245-.388 8.4 8.4 0 0 0-.958-1.171 8.6 8.6 0 0 0-1.545-1.197 8 8 0 0 0-1.023-.537c-.11-.048-.214-.104-.326-.149a8.3 8.3 0 0 0-1.397-.413c-.087-.017-.177-.023-.264-.04a8.3 8.3 0 0 0-1.604-.115 8 8 0 0 0-1.189.116c-.098.016-.194.022-.292.042-.433.087-.86.205-1.281.362L6.875 90.51a8.43 8.43 0 0 0-5.46 7.511 8.44 8.44 0 0 0 4.757 7.975l96.819 46.724 46.722 96.819a8.44 8.44 0 0 0 7.98 4.76 8.44 8.44 0 0 0 7.511-5.46l88.583-236.057c.157-.418.272-.843.36-1.272.022-.116.03-.228.047-.343q.093-.557.11-1.119m-41.906 21.348L107.582 136.21 31.246 99.374zm-56.06 193.072-36.836-76.333 104.82-104.82z"
-                    ></path>
-                  </svg>
+                  <>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      xmlSpace="preserve"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 256 256"
+                    >
+                      <path
+                        fill="white"
+                        strokeMiterlimit="10"
+                        strokeWidth="0"
+                        d="M254.304 10.047a8.758 8.758 0 0 0-.107-1.576c-.02-.115-.025-.228-.05-.343a8 8 0 0 0-.405-1.36c-.05-.13-.115-.25-.172-.376a8 8 0 0 0-.511-.973 10 10 0 0 0-.245-.388 8.4 8.4 0 0 0-.958-1.171 8.6 8.6 0 0 0-1.545-1.197 8 8 0 0 0-1.023-.537c-.11-.048-.214-.104-.326-.149a8.3 8.3 0 0 0-1.397-.413c-.087-.017-.177-.023-.264-.04a8.3 8.3 0 0 0-1.604-.115 8 8 0 0 0-1.189.116c-.098.016-.194.022-.292.042-.433.087-.86.205-1.281.362L6.875 90.51a8.43 8.43 0 0 0-5.46 7.511 8.44 8.44 0 0 0 4.757 7.975l96.819 46.724 46.722 96.819a8.44 8.44 0 0 0 7.98 4.76 8.44 8.44 0 0 0 7.511-5.46l88.583-236.057c.157-.418.272-.843.36-1.272.022-.116.03-.228.047-.343q.093-.557.11-1.119m-41.906 21.348L107.582 136.21 31.246 99.374zm-56.06 193.072-36.836-76.333 104.82-104.82z"
+                      ></path>
+                    </svg>
+                  </>
                 )}
               </button>
-            </div>
-          </form>
+            </form>
+          </div>
         </div>
-      </div>
+      </GlobalModalBorderLess>
 
       {/* Media Modal */}
       <MediaModal
