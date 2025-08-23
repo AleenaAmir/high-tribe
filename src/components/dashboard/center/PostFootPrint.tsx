@@ -17,7 +17,7 @@ const PostFootPrint = ({
   const options = [
     {
       name: "Map your Trip",
-      src: "/dashboard/postsicon/MapTrip.png",
+      src: "/dashboard/postsicon/maptrip.png",
       onClick: () => setJournyMap(true),
 
     },
