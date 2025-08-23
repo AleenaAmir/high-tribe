@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useState } from "react";
 import Image from "next/image";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation } from "swiper/modules";
@@ -7,78 +7,95 @@ import "swiper/css";
 import "swiper/css/navigation";
 import "./StoriesBar.css";
 
+import StoryModal, { Story } from "./feed/StoryModal";
+
 const stories = [
   {
+    id: 1,
     name: "Sarah T.",
     img: "https://randomuser.me/api/portraits/women/68.jpg",
     live: true,
   },
   {
+    id: 2,
     name: "Nadir K.",
     img: "https://randomuser.me/api/portraits/men/68.jpg",
     live: true,
   },
   {
+    id: 3,
     name: "Elena P.",
     img: "https://randomuser.me/api/portraits/women/69.jpg",
     live: true,
   },
   {
+    id: 4,
     name: "Tokyo",
     img: "https://randomuser.me/api/portraits/men/69.jpg",
     live: true,
   },
   {
+    id: 5,
     name: "Hunza",
     img: "https://randomuser.me/api/portraits/women/70.jpg",
     live: true,
   },
   {
+    id: 6,
     name: "Barcelona",
     img: "https://randomuser.me/api/portraits/men/70.jpg",
     live: true,
   },
   {
+    id: 7,
     name: "Sydney",
     img: "https://randomuser.me/api/portraits/women/71.jpg",
     live: true,
   },
   {
+    id: 8,
     name: "John D.",
     img: "https://randomuser.me/api/portraits/men/71.jpg",
     live: true,
   },
   {
+    id: 9,
     name: "Jane S.",
     img: "https://randomuser.me/api/portraits/women/72.jpg",
     live: true,
   },
   {
+    id: 10,
     name: "Sarah T.",
     img: "https://randomuser.me/api/portraits/women/68.jpg",
     live: true,
   },
   {
+    id: 11,
     name: "Nadir K.",
     img: "https://randomuser.me/api/portraits/men/68.jpg",
     live: true,
   },
   {
+    id: 12,
     name: "Elena P.",
     img: "https://randomuser.me/api/portraits/women/69.jpg",
     live: true,
   },
   {
+    id: 13,
     name: "Sarah T.",
     img: "https://randomuser.me/api/portraits/women/68.jpg",
     live: true,
   },
   {
+    id: 14,
     name: "Nadir K.",
     img: "https://randomuser.me/api/portraits/men/68.jpg",
     live: true,
   },
   {
+    id: 15,
     name: "Elena P.",
     img: "https://randomuser.me/api/portraits/women/69.jpg",
     live: true,
@@ -86,6 +103,15 @@ const stories = [
 ];
 
 const StoriesBar = () => {
+  const [modalOpen, setModalOpen] = useState(false);
+  const [activeStory, setActiveStory] = useState<Story | undefined>(undefined);
+  const handleStoryClick = (id: number) => {
+    const story = stories.find((s) => s.id === id) || undefined;
+    setActiveStory(story);
+    setModalOpen(true);
+
+
+  }
   return (
     <div className="p-4 bg-white rounded-lg shadow-sm relative">
       <h2 className="text-[20px] font-[550] leading-[100%] tracking-[-3%]  text-[#000000] mb-6 font-gilroy">
@@ -102,34 +128,19 @@ const StoriesBar = () => {
         }}
         className="!pb-4"
       >
-        {/* <SwiperSlide className="!w-auto">
-          <div className="flex flex-col items-center gap-2 cursor-pointer">
-            <div className="relative">
-              <Image
-                src="https://randomuser.me/api/portraits/men/32.jpg"
-                alt="Your Story"
-                width={79}
-                height={79}
-                className="w-[79px] h-[79px] rounded-full object-cover"
-                unoptimized
-              />
-              <div className="absolute bottom-0 right-0 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-white border-2 border-white">
-                +
-              </div>
-            </div>
-          </div>
-        </SwiperSlide> */}
+
         {stories.map((story, index) => (
           <SwiperSlide key={index} className="!w-auto">
             <div className="flex flex-col items-center gap-2 cursor-pointer">
               <div
-                className={`w-[79px] h-[79px] rounded-full p-[3px] ${
-                  story.live
-                    ? " rounded-full bg-gradient-to-b from-[#EF373D] via-[#B01C9E] to-[#7100FF]"
-                    : ""
-                }`}
+                className={`w-[79px] h-[79px] rounded-full p-[3px] ${story.live
+                  ? " rounded-full bg-gradient-to-b from-[#EF373D] via-[#B01C9E] to-[#7100FF]"
+                  : ""
+                  }`}
               >
-                <div className="bg-white rounded-full">
+                <div className="bg-white rounded-full" onClick={() => {
+                  handleStoryClick(story.id);
+                }}>
                   <Image
                     src={story.img}
                     alt={story.name}
@@ -163,7 +174,16 @@ const StoriesBar = () => {
           />
         </svg>
       </div>
+      <StoryModal
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        story={activeStory}
+
+      >
+
+      </StoryModal>
     </div>
+
   );
 };
 

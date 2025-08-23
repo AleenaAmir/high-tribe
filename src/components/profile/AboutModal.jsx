@@ -6,6 +6,7 @@ import { RiEdit2Fill } from 'react-icons/ri'
 import { BsFacebook } from 'react-icons/bs'
 import { RiInstagramFill } from 'react-icons/ri'
 
+
 export default function AboutModal({ open, onClose }) {
   const [isEditingBio, setIsEditingBio] = useState(false)
   const [isEditingDob, setIsEditingDob] = useState(false)
