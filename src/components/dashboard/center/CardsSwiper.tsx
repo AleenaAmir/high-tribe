@@ -24,7 +24,7 @@ interface Props {
 
 const CardsSwiper: FC<Props> = ({ cards }) => {
   return (
-    <div className="relative w-full max-w-[120px] sm:max-w-xl md:max-w-3xl px-4">
+    <div className="relative w-full px-4">
       <Swiper
         modules={[Navigation, Pagination, Autoplay, A11y, Keyboard]}
         slidesPerView={1}
@@ -46,13 +46,13 @@ const CardsSwiper: FC<Props> = ({ cards }) => {
       >
         {cards.map((card, i) => (
           <SwiperSlide key={i} className="!h-auto">
-            <div className="h-[80px] w-[80px] sm:h-[80px] sm:w-[120px] md:h-[130px] md:w-[140px]">
+            <div className="">
               <Image
                 src={card.img}
                 alt={card.alt ?? `Card ${i + 1}`}
-                width={100}
-                height={100}
-                className="w-[100px] h-[100px] rounded-2xl object-cover shadow-sm"
+                width={116.12031555175781}
+                height={105}
+                className="w-[117px] h-[105px] rounded-2xl object-cover shadow-sm"
                 unoptimized
                 priority={i < 3}
               />

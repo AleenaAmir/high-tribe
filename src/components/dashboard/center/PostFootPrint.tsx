@@ -19,11 +19,11 @@ const PostFootPrint = ({
       name: "Journey Mapping",
       img: (
         <Image
-          src={"/dashboard/jurney.svg"}
+          src={"/dashboard/postsicon1.png"}
           alt={"footprint1"}
-          width={33}
-          height={33}
-          className="md:w-[20px] md:h-[20px] w-[14px] h-[14px]"
+          width={35}
+          height={35}
+          className="md:w-[35px] md:h-[35px] w-[24px] h-[24px]"
         />
       ),
       onclick: () => {
@@ -34,11 +34,11 @@ const PostFootPrint = ({
       name: "Foot Print",
       img: (
         <Image
-          src={"/dashboard/foot.svg"}
+          src={"/dashboard/postsicon2.png"}
           alt={"footprint1"}
-          width={24}
-          height={24}
-          className="md:w-[20px] md:h-[20px] w-[14px] h-[14px]"
+          width={35}
+          height={35}
+          className="md:w-[35px] md:h-[35px] w-[24px] h-[24px]"
         />
       ),
       onclick: () => {
@@ -50,11 +50,11 @@ const PostFootPrint = ({
       name: "Travel Tip",
       img: (
         <Image
-          src={"/dashboard/trip.svg"}
+          src={"/dashboard/postsicon3.png"}
           alt={"footprint3"}
-          width={24}
-          height={24}
-          className="md:w-[20px] md:h-[20px] w-[14px] h-[14px]"
+          width={35}
+          height={35}
+          className="md:w-[35px] md:h-[35px] w-[24px] h-[24px]"
         />
       ),
       onclick: () => {
@@ -65,11 +65,11 @@ const PostFootPrint = ({
       name: "Travel Advisory",
       img: (
         <Image
-          src={"/dashboard/advisory.svg"}
+          src={"/dashboard/postsicon4.png"}
           alt={"footprint2"}
-          width={24}
-          height={24}
-          className="md:w-[20px] md:h-[20px] w-[14px] h-[14px]"
+          width={35}
+          height={35}
+          className="md:w-[35px] md:h-[35px] w-[24px] h-[24px]"
         />
       ),
       onclick: () => {
@@ -77,6 +77,22 @@ const PostFootPrint = ({
       },
     },
   ];
+  const addSvg = () => {
+    return (
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="23"
+        height="23"
+        fill="none"
+        viewBox="0 0 23 23"
+      >
+        <path
+          fill="#fff"
+          d="M21.89 2.384a1.59 1.59 0 0 0-1.274-1.275 68.5 68.5 0 0 0-18.232 0 1.59 1.59 0 0 0-1.275 1.275 68.5 68.5 0 0 0 0 18.232 1.59 1.59 0 0 0 1.275 1.275c6.05.812 12.182.812 18.232 0a1.59 1.59 0 0 0 1.275-1.275 68.5 68.5 0 0 0 0-18.232m-3.01 9.795c-2.032.149-4.063.22-6.095.243a99 99 0 0 1-.249 6.458.67.67 0 1 1-1.342 0 99 99 0 0 1-.249-6.451 99 99 0 0 1-6.451-.25.672.672 0 0 1 0-1.341 99 99 0 0 1 6.458-.25c.022-2.031.094-4.063.242-6.094a.671.671 0 0 1 1.342 0c.148 2.034.22 4.067.243 6.101a99 99 0 0 1 6.101.242.672.672 0 0 1 0 1.342"
+        ></path>
+      </svg>
+    );
+  };
   return (
     <div className="bg-white rounded-lg shadow-md ">
       <h2 className="text-[20px] font-[600] leading-[100%] tracking-[-3%] font-gilroy text-[#000000] border-b p-4 md:p-6 pb-2 font-roboto border-[#EEEEEE]">
@@ -100,13 +116,10 @@ const PostFootPrint = ({
             />
           </div>
           <button
-            className="text-white font-bold cursor-pointer outline-none text-[10px] group flex items-center gap-2 justify-center font-poppins bg-gradient-to-r from-[#9243AC] via-[#B6459F] to-[#E74294] rounded-full w-[114px] h-[32px] p-1"
+            className="text-white font-bold cursor-pointer outline-none text-[10px] group flex items-center gap-2 justify-center font-poppins bg-gradient-to-r from-[#9243AC] via-[#B6459F] to-[#E74294] rounded-full p-3 shadow-[0px_4px_4px_0px_#6C6A6A40]"
             onClick={() => setFootprintModal(true)}
           >
-            <span>Footprint</span>
-            <span className="bg-[#FFFFFF]  transition-all duration-300 rounded-full">
-              <FootPrint />
-            </span>
+            {addSvg()}
           </button>
         </div>
       </div>
@@ -115,11 +128,15 @@ const PostFootPrint = ({
           <button
             type="button"
             key={i}
-            onClick={option?.onclick || (() => { })}
-            className="flex items-center text-[9px] md:text-[11px] gap-1 p-1 md:p-2 cursor-pointer hover:shadow-md transition-all duration-300 px-2 md:px-4 rounded-full bg-white"
+            onClick={option?.onclick || (() => {})}
+            className="flex items-center text-[9px] md:text-[11px] gap-1 border border-[#E6E6E6] cursor-pointer hover:shadow-md transition-all duration-300 pr-2 md:pr-4 rounded-full bg-white"
           >
             {option?.img && option?.img}
-            {option?.name && <p className="text-[10px] leading-[100%]  font-gilroy text-[#000000] md:text-[12px]">{option.name}</p>}
+            {option?.name && (
+              <p className="text-[10px] leading-[100%]  font-gilroy text-[#000000] md:text-[12px]">
+                {option.name}
+              </p>
+            )}
           </button>
         ))}
       </div>

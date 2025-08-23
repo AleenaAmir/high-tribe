@@ -310,7 +310,7 @@ const ReadyToHost: React.FC = () => {
           </p>
         </div>
         {/* Right Side: Swipeable Images */}
-        <div className="relative flex items-center justify-center w-full h-full max-w-[360px] mx-auto">
+        <div className="relative flex items-center justify-center w-full h-full max-w-[420px] mx-auto">
           <CardsSwiper cards={cardDetails} />
         </div>
       </div>

@@ -94,7 +94,7 @@ const StoriesBar = () => {
 
       <Swiper
         modules={[Navigation]}
-        spaceBetween={10}
+        spaceBetween={20}
         slidesPerView="auto"
         navigation={{
           nextEl: ".swiper-button-next-custom",
@@ -123,10 +123,11 @@ const StoriesBar = () => {
           <SwiperSlide key={index} className="!w-auto">
             <div className="flex flex-col items-center gap-2 cursor-pointer">
               <div
-                className={`w-[79px] h-[79px] rounded-full p-[3px] ${story.live
+                className={`w-[79px] h-[79px] rounded-full p-[3px] ${
+                  story.live
                     ? " rounded-full bg-gradient-to-b from-[#EF373D] via-[#B01C9E] to-[#7100FF]"
                     : ""
-                  }`}
+                }`}
               >
                 <div className="bg-white rounded-full">
                   <Image

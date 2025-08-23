@@ -82,7 +82,7 @@ const DashboardContent = () => {
   return (
     <div className="h-full flex">
       {/* Center Content - Independent Scroll */}
-      <div className="flex-1 overflow-y-auto scrollbar-hide xl:min-w-[700px] xl:max-w-[1000px]">
+      <div className="flex-1 overflow-y-auto scrollbar-hide xl:min-w-[700px] xl:max-w-[1000px] 2xl:max-w-full">
         <div className="px-6 py-2">
           <div className="mx-auto flex flex-col gap-3">
             <StoriesBar />
@@ -92,15 +92,18 @@ const DashboardContent = () => {
               setAdvisoryModal={setAdvisoryModal}
               setTipModal={setTipModal}
             />
-            <div className="bg-white shadow-sm flex justify-between items-center h-[50px] rounded-xl">
-              <h2 className="text-[18px] font-[600] leading-[100%] tracking-[-3%]  text-[#000000] p-4 md:p-6 pb-2 font-gilroy border-[#EEEEEE] ">
-                Trip Schedule
+            <div className="bg-gradient-to-r from-[#9243AC] via-[#B6459F] to-[#E74294] shadow-sm flex justify-between items-center p-3 md:p-4 rounded-xl">
+              <h2 className="text-[16px] md:text-[20px] font-[900] leading-[100%] tracking-[-3%]  text-white font-gilroy ">
+                Explore what’s Happening Around You!
               </h2>
 
               <Link
                 href={"/explore"}
-                className="text-white font-bold cursor-pointer outline-none text-[12px] flex gap-4 justify-center font-poppins bg-gradient-to-r from-[#9243AC] via-[#B6459F] to-[#E74294] rounded-full w-[148px] h-[32px] p-1 items-center opacity-100 mr-4"
+                className="text-black font-bold cursor-pointer outline-none text-[12px] flex gap-4 justify-center font-poppins bg-white rounded-full py-3 px-5 items-center opacity-100"
               >
+                <span className="transition-all duration-300 rounded-full p-1 text-[12px] font-gilroy font-[600] leading-[100%] tracking-[-3%] ">
+                  Lets Plan
+                </span>
                 <Image
                   src={"/dashboard/map.svg"}
                   alt={"footprint3"}
@@ -108,9 +111,6 @@ const DashboardContent = () => {
                   height={12}
                   className="md:w-[20px] md:h-[20px]"
                 />
-                <span className="transition-all duration-300 rounded-full p-1 text-[12px] font-gilroy font-[600] leading-[100%] tracking-[-3%] ">
-                  Lets Plan
-                </span>
               </Link>
             </div>
 
@@ -122,7 +122,7 @@ const DashboardContent = () => {
       </div>
 
       {/* Right Sidebar - Independent Scroll */}
-      <div className="xl:min-w-[280px] max-w-[300px] xl:w-full xl:max-w-[380px] hidden lg:block lg:flex-1 overflow-y-auto scrollbar-hide">
+      <div className="xl:min-w-[280px] max-w-[300px]  xl:w-full xl:max-w-[380px] hidden lg:block lg:flex-1 overflow-y-auto scrollbar-hide">
         <div className="pt-2  pr-8 pl-2">
           <div className="flex flex-col gap-6">
             <GroupsCard />
