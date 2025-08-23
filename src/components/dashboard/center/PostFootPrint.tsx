@@ -16,67 +16,31 @@ const PostFootPrint = ({
 }) => {
   const options = [
     {
-      name: "Journey Mapping",
-      img: (
-        <Image
-          src={"/dashboard/postsicon1.png"}
-          alt={"footprint1"}
-          width={35}
-          height={35}
-          className="md:w-[35px] md:h-[35px] w-[24px] h-[24px]"
-        />
-      ),
-      onclick: () => {
-        setJournyMap(true);
-      },
+      name: "Map your Trip",
+      src: "/dashboard/postsicon/MapTrip.png",
+      onClick: () => setJournyMap(true),
+
     },
     {
       name: "Foot Print",
-      img: (
-        <Image
-          src={"/dashboard/postsicon2.png"}
-          alt={"footprint1"}
-          width={35}
-          height={35}
-          className="md:w-[35px] md:h-[35px] w-[24px] h-[24px]"
-        />
-      ),
-      onclick: () => {
-        setFootprintModal(true);
-      },
-    },
+      src: "/dashboard/postsicon/FootPrint.png",
+      onClick: () => setFootprintModal(true),
 
+    },
     {
       name: "Travel Tip",
-      img: (
-        <Image
-          src={"/dashboard/postsicon3.png"}
-          alt={"footprint3"}
-          width={35}
-          height={35}
-          className="md:w-[35px] md:h-[35px] w-[24px] h-[24px]"
-        />
-      ),
-      onclick: () => {
-        setTipModal(true);
-      },
+      src: "/dashboard/postsicon/TravelTip.png",
+      onClick: () => setTipModal(true),
+
     },
     {
       name: "Travel Advisory",
-      img: (
-        <Image
-          src={"/dashboard/postsicon4.png"}
-          alt={"footprint2"}
-          width={35}
-          height={35}
-          className="md:w-[35px] md:h-[35px] w-[24px] h-[24px]"
-        />
-      ),
-      onclick: () => {
-        setAdvisoryModal(true);
-      },
+      src: "/dashboard/postsicon/TripAdvisory.png",
+      onClick: () => setAdvisoryModal(true),
+
     },
   ];
+
   const addSvg = () => {
     return (
       <svg
@@ -123,23 +87,34 @@ const PostFootPrint = ({
           </button>
         </div>
       </div>
-      <div className="flex items-center gap-3   p-4 rounded-b-lg justify-end bg-[#F9F9F9]">
-        {options.map((option, i) => (
+      <div className="flex items-center gap-3 p-4 rounded-b-lg justify-end bg-[#F9F9F9]">
+        {options.map((opt, i) => (
           <button
-            type="button"
             key={i}
-            onClick={option?.onclick || (() => {})}
-            className="flex items-center text-[9px] md:text-[11px] gap-1 border border-[#E6E6E6] cursor-pointer hover:shadow-md transition-all duration-300 pr-2 md:pr-4 rounded-full bg-white"
+            type="button"
+            onClick={opt.onClick}
+            className="group flex items-center gap-3 rounded-full bg-white border border-[#E6E6E6]
+                 pl-1 pr-4 py-1.5 shadow-sm hover:shadow-md transition-all"
           >
-            {option?.img && option?.img}
-            {option?.name && (
-              <p className="text-[10px] leading-[100%]  font-gilroy text-[#000000] md:text-[12px]">
-                {option.name}
-              </p>
-            )}
+            {/* Circular icon holder with gradient */}
+
+            <Image
+              src={opt.src}
+              alt={opt.name}
+              width={35}
+              height={35}
+              className="w-[35px] h-[35px] object-contain"
+            />
+
+
+            {/* Label */}
+            <span className="text-[12px] md:text-[13px] font-gilroy text-[#000] whitespace-nowrap">
+              {opt.name}
+            </span>
           </button>
         ))}
       </div>
+
     </div>
   );
 };

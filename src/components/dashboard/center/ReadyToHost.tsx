@@ -194,22 +194,22 @@ const RightArrow = () => (
 
 const cardDetails = [
   {
-    img: "/dashboard/cardbgblue.svg",
+    img: "/dashboard/cardbgblue.png",
   },
   {
-    img: "/dashboard/cardbgorange.svg",
+    img: "/dashboard/cardbgorange.png",
   },
   {
-    img: "/dashboard/cardbgyellow.svg",
+    img: "/dashboard/cardbgyellow.png",
   },
   {
-    img: "/dashboard/cardbgblue.svg",
+    img: "/dashboard/cardbgblue.png",
   },
   {
-    img: "/dashboard/cardbgorange.svg",
+    img: "/dashboard/cardbgorange.png",
   },
   {
-    img: "/dashboard/cardbgyellow.svg",
+    img: "/dashboard/cardbgyellow.png",
   },
 ];
 
@@ -237,17 +237,7 @@ const star = (
 );
 
 const ReadyToHost: React.FC = () => {
-  const [currentIndex, setCurrentIndex] = useState(0);
 
-  const nextCard = () => {
-    setCurrentIndex((prev) => (prev + 1) % cardDetails.length);
-  };
-
-  const prevCard = () => {
-    setCurrentIndex(
-      (prev) => (prev - 1 + cardDetails.length) % cardDetails.length
-    );
-  };
 
   return (
     <section className="bg-white overflow-hidden rounded-[10px] shadow-md  opacity-100">

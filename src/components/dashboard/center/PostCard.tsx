@@ -423,6 +423,8 @@ export const PostCard = ({
   const [replyTo, setReplyTo] = useState<string | null>(null);
   const [replyContent, setReplyContent] = useState("");
   const [isSubmittingReply, setIsSubmittingReply] = useState(false);
+  const [isCommentsModalOpen, setIsCommentsModalOpen] = useState(false);
+
 
   // Handle media click
   const handleMediaClick = (
@@ -484,15 +486,10 @@ export const PostCard = ({
     if (showComments && comments.length === 0) {
       fetchComments();
     }
-  }, [showComments]);
+  }, [post.id]);
 
-  // Toggle comments visibility
-  const toggleComments = () => {
-    setShowComments(!showComments);
-    if (!showComments && comments.length === 0) {
-      fetchComments();
-    }
-  };
+
+
 
   // Handle comment submission
   const handleCommentSubmit = async (e: React.FormEvent) => {
@@ -635,6 +632,11 @@ export const PostCard = ({
     setReplyContent("");
   };
 
+  useEffect(() => {
+    fetchComments();  // load comments once when the post loads
+  }, [post.id]);
+
+
   return (
     <div className="bg-white rounded-lg shadow-md my-4 overflow-hidden">
       {/* Trip Board Header */}
@@ -734,13 +736,12 @@ export const PostCard = ({
         <div className="">
           {post?.content && (
             <p
-              className={`${
-                post?.media
-                  ? "text-[#959595] text-[12px] mt-4"
-                  : post?.journeyHead
+              className={`${post?.media
+                ? "text-[#959595] text-[12px] mt-4"
+                : post?.journeyHead
                   ? "text-[#959595] text-[16px] mt-1"
                   : "text-black text-[35px] font-medium mt-4"
-              }`}
+                }`}
             >
               {post.content}
             </p>
@@ -946,19 +947,17 @@ export const PostCard = ({
             </div>
             <div className="flex items-center gap-4">
               <button
-                onClick={toggleComments}
+                onClick={() => setIsCommentsModalOpen(true)} // or toggle
                 className="text-sm text-[#656565] hover:text-blue-600 transition-colors"
               >
-                {post.comments} Comments {showComments ? "(Hide)" : "(Show)"}
+                {comments.length} Comments
               </button>
-              <span className="text-sm text-[#656565]">
-                {post.shares} Share
-              </span>
+              <span className="text-sm text-[#656565]">0 Share</span>
             </div>
           </div>
 
           {/* Comments Section */}
-          {showComments && (
+          {isCommentsModalOpen && (
             <>
               {console.log("Comments state:", {
                 comments,
@@ -1305,9 +1304,8 @@ export const PostCard = ({
                 />
                 <button
                   type="submit"
-                  className={`group-hover:flex bg-gradient-to-r from-[#247CFF] to-[#0F62DE] text-white px-4 py-1.5 rounded-full text-sm font-semibold hidden cursor-pointer items-center gap-2 h-fit w-fit ${
-                    isSubmittingComment ? "opacity-50 cursor-not-allowed" : ""
-                  }`}
+                  className={`group-hover:flex bg-gradient-to-r from-[#247CFF] to-[#0F62DE] text-white px-4 py-1.5 rounded-full text-sm font-semibold hidden cursor-pointer items-center gap-2 h-fit w-fit ${isSubmittingComment ? "opacity-50 cursor-not-allowed" : ""
+                    }`}
                   disabled={isSubmittingComment || !commentContent.trim()}
                 >
                   {isSubmittingComment ? (

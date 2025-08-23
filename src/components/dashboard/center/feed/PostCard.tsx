@@ -410,6 +410,15 @@ export const PostCard = ({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentMedia, setCurrentMedia] = useState<Media[]>([]);
   const [currentMediaIndex, setCurrentMediaIndex] = useState(0);
+  const [isCommentsModalOpen, setIsCommentsModalOpen] = useState(false);
+
+  useEffect(() => {
+    console.log("PostCard - Post ID:", post.id);
+    if (post.id) {
+      fetchComments();
+    }
+
+  }, [post.id]);
 
   // Journey map modal state
   const [isJourneyMapModalOpen, setIsJourneyMapModalOpen] = useState(false);
@@ -443,8 +452,7 @@ export const PostCard = ({
       post.stops.forEach((stop, index) => {
         if (stop.media && stop.media.length > 0) {
           console.log(
-            `Stop ${index + 1} (${stop.title}) has ${stop.media.length
-            } media items`
+            `Stop ${index + 1} (${stop.title}) has ${stop.media.length} media items`
           );
           allMedia.push(...stop.media);
         }
@@ -489,10 +497,13 @@ export const PostCard = ({
 
   // Fetch comments for the post
   const fetchComments = async () => {
-    if (loadingComments) return;
+    console.log("PostCard - Fetching comments for post:", post.id);
+    debugger;
+    if (loadingComments || !post.id) return;
 
     setLoadingComments(true);
     try {
+      console.log("PostCard - Post ID:", post.id, "loadingComments:", loadingComments, "post.id:", post.type);
       // Determine post type based on post properties
       let postType = "posts"; // default
       if (post.type === "mapping_journey") {
@@ -526,18 +537,8 @@ export const PostCard = ({
 
   // Load comments when component mounts or when showComments changes
   useEffect(() => {
-    if (showComments && comments.length === 0) {
-      fetchComments();
-    }
-  }, [showComments]);
-
-  // Toggle comments visibility
-  const toggleComments = () => {
-    setShowComments(!showComments);
-    if (!showComments && comments.length === 0) {
-      fetchComments();
-    }
-  };
+    fetchComments();
+  }, []);
 
   // Handle comment submission
   const handleCommentSubmit = async (e: React.FormEvent) => {
@@ -681,41 +682,41 @@ export const PostCard = ({
             {/* Post Type Badge */}
             {isJourney && (
               <Image
-                src={"/dashboard/jurney.svg"}
+                src={"/dashboard/postsicon/MapTrip.png"}
                 alt={"journey"}
-                width={24}
-                height={24}
-                className="md:w-[20px] md:h-[20px] w-[14px] h-[14px]"
+                width={35}
+                height={35}
+                className="md:w-[35px] md:h-[35px] w-[24px] h-[24px]"
               />
             )}
 
             {isAdvisory && (
               <Image
-                src={"/dashboard/advisory.svg"}
+                src={"/dashboard/postsicon/TripAdvisory.png"}
                 alt={"advisory"}
-                width={24}
-                height={24}
-                className="md:w-[20px] md:h-[20px] w-[14px] h-[14px]"
+                width={35}
+                height={35}
+                className="md:w-[35px] md:h-[35px] w-[24px] h-[24px]"
               />
             )}
 
             {isFootprint && (
               <Image
-                src={"/dashboard/foot.svg"}
+                src={"/dashboard/postsicon/FootPrint.png"}
                 alt={"footprint"}
-                width={24}
-                height={24}
-                className="md:w-[20px] md:h-[20px] w-[14px] h-[14px]"
+                width={35}
+                height={35}
+                className="md:w-[35px] md:h-[35px] w-[24px] h-[24px]"
               />
             )}
 
             {isTip && (
               <Image
-                src={"/dashboard/trip.svg"}
+                src={"/dashboard/postsicon/TravelTip.png"}
                 alt={"tip"}
-                width={24}
-                height={24}
-                className="md:w-[20px] md:h-[20px] w-[14px] h-[14px]"
+                width={35}
+                height={35}
+                className="md:w-[35px] md:h-[35px] w-[24px] h-[24px]"
               />
             )}
 
@@ -725,25 +726,6 @@ export const PostCard = ({
             <button className="text-2xl text-gray-500">&times;</button>
           </div>
         </div>
-
-        {/* Post Title */}
-        {/* {displayTitle && (
-          <div className="mt-4">
-            <h3
-              className={`font-semibold text-gray-800 ${
-                isTip
-                  ? "text-[35px] font-medium"
-                  : isAdvisory
-                  ? "text-[18px] md:text-[25px] font-medium"
-                  : isFootprint
-                  ? "text-[16px] md:text-[18px] font-medium"
-                  : "text-lg font-medium"
-              }`}
-            >
-              {displayTitle}
-            </h3>
-          </div>
-        )} */}
 
         {/* Post Content */}
         {isJourney && post.start_location_name && post.end_location_name && (
@@ -955,10 +937,10 @@ export const PostCard = ({
             </div>
             <div className="flex items-center gap-4">
               <button
-                onClick={toggleComments}
+                onClick={() => setIsCommentsModalOpen(true)}
                 className="text-sm text-[#656565] hover:text-blue-600 transition-colors"
               >
-                {comments.length} Comments {showComments ? "(Hide)" : "(Show)"}
+                {comments.length} Comments
               </button>
               <span className="text-sm text-[#656565]">0 Share</span>
             </div>
@@ -999,7 +981,7 @@ export const PostCard = ({
                             </span>
                           </div>
                           <p className="text-sm text-gray-700 mb-1 break-words leading-relaxed">
-                            {comment.content}
+                            {comment.content} ({comment.content.length} characters)
                           </p>
                           <div className="flex items-center gap-3 text-xs">
                             <button className="text-gray-500 hover:text-gray-700 transition-colors">

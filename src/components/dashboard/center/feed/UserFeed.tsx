@@ -238,7 +238,7 @@ const UserFeed = () => {
       },
       {
         root: null,
-        rootMargin: "300px",
+        rootMargin: "800px",
         threshold: 0.1,
       }
     );
@@ -282,13 +282,13 @@ const UserFeed = () => {
     };
   }, [hasMore, loadingMore, loadMorePosts]);
 
-  // Manual load more function
-  const handleLoadMore = () => {
-    if (!loadingMore && hasMore) {
-      console.log("Manual load more triggered");
+  useEffect(() => {
+    if (hasMore && !loadingMore) {
       loadMorePosts();
     }
-  };
+  }, [hasMore, loadingMore, loadMorePosts]);
+
+  // Manual load more function
 
   // Initial load
   useEffect(() => {
@@ -347,13 +347,9 @@ const UserFeed = () => {
 
       {/* Manual load more button */}
       {hasMore && !loadingMore && (
-        <div className="flex justify-center py-4">
-          <button
-            onClick={handleLoadMore}
-            className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            Load More Posts
-          </button>
+        <div className="space-y-4">
+          <JourneyPostSkeleton />
+          <PostCardSkeleton />
         </div>
       )}
 
@@ -362,15 +358,15 @@ const UserFeed = () => {
         ref={loadingRef}
         className="h-8 bg-gray-50 border-t border-gray-200 flex items-center justify-center"
       >
-        <span className="text-xs text-gray-400">Scroll to load more</span>
+
       </div>
 
       {/* End of feed message */}
       {!hasMore && posts.length > 0 && (
         <div className="text-center py-8">
-          <p className="text-gray-500">You've reached the end of the feed</p>
+
           <p className="text-sm text-gray-400 mt-2">
-            Total posts loaded: {posts.length}
+            No more posts found
           </p>
         </div>
       )}

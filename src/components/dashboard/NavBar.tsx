@@ -56,7 +56,7 @@ const NavBar = ({ onMenuClick }: NavBarProps) => {
   };
 
   return (
-    <div className="sticky top-0 lg:z-50 z-40 bg-white ">
+    <div className="sticky top-0 lg:z-50 z-40 bg-white p-2 ">
       <div className="flex items-center justify-between   max-w-[1920px] mx-auto">
         {/* Left Section - Logo and Mobile Menu */}
         <div className="flex items-center gap-2 py-2 px-4">
@@ -89,31 +89,35 @@ const NavBar = ({ onMenuClick }: NavBarProps) => {
         </div>
 
         {/* Center Section - Search */}
-        <div className="hidden lg:flex flex-1 justify-center max-w-3xl mx-4 py-2">
-          <div className="relative w-[360px]">
-            <div className="absolute inset-y-0 gap-1 left-3 flex items-center pointer-events-none text-[#000000]">
-              <svg
-                className="w-4 h-4 text-[#000000]"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                />
-              </svg>
-              <span className="text-[#000000] mx-0.5 text-[12px] font-gilroy font-[400] leading-[100%] tracking-[-3%]">|</span>
-            </div>
-            <input
-              type="text"
-              placeholder="Search people, trips, places..."
-              className="w-full pl-11 pr-4 py-[6px] rounded-full text-[12px] text-[#000000] font-gilroy font-[400] leading-[100%] tracking-[-3%] focus:outline-none focus:border-blue-500 placeholder:text-[#000000]"
+        <div className="relative w-[380px]">
+          <input
+            type="text"
+            placeholder="Search people, trips, places...."
+            className="w-full pl-10 pr-4 py-4 rounded-full bg-[#F7F7F7]
+               text-[12px] text-[#000000] font-gilroy font-[400] 
+               leading-[100%] tracking-[-0.03em] 
+               focus:outline-none focus:ring-2 focus:ring-blue-400 placeholder:text-[#000000]"
+          />
+
+          {/* Search Icon */}
+          <svg
+            className="absolute left-3 right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#000000]"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
             />
-          </div>
+          </svg>
+
+          {/* Divider Line */}
+          <span className="absolute left-9 right-9 top-1/2 -translate-y-1/2 h-5 w-px bg-[#000000]"></span>
         </div>
+
 
         {/* Right Section - Navigation Icons & Profile */}
         <div className="flex items-center gap-4">
