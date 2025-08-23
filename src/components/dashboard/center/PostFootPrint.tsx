@@ -16,26 +16,26 @@ const PostFootPrint = ({
 }) => {
   const options = [
     {
-      name: "Map your Trip",
-      src: "/dashboard/postsicon/maptrip.png",
+      name: "Map Your Trip",
+      src: "/dashboard/postsicon/map1.png",
       onClick: () => setJournyMap(true),
 
     },
     {
       name: "Foot Print",
-      src: "/dashboard/postsicon/FootPrint.png",
+      src: "/dashboard/postsicon/foot.png",
       onClick: () => setFootprintModal(true),
 
     },
     {
       name: "Travel Tip",
-      src: "/dashboard/postsicon/TravelTip.png",
+      src: "/dashboard/postsicon/travel1.png",
       onClick: () => setTipModal(true),
 
     },
     {
       name: "Travel Advisory",
-      src: "/dashboard/postsicon/TripAdvisory.png",
+      src: "/dashboard/postsicon/adv.png",
       onClick: () => setAdvisoryModal(true),
 
     },
@@ -94,16 +94,16 @@ const PostFootPrint = ({
             type="button"
             onClick={opt.onClick}
             className="group flex items-center gap-3 rounded-full bg-white border border-[#E6E6E6]
-                 pl-1 pr-4 py-1.5 shadow-sm hover:shadow-md transition-all"
+                  pr-4  shadow-sm hover:shadow-md transition-all"
           >
             {/* Circular icon holder with gradient */}
 
             <Image
               src={opt.src}
               alt={opt.name}
-              width={35}
-              height={35}
-              className="w-[35px] h-[35px] object-contain"
+              width={40}
+              height={40}
+              className="w-[40px] h-[40px] object-contain  "
             />
 
 
