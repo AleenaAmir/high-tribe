@@ -1,4 +1,4 @@
-"use client"
+"use client";
 import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -25,15 +25,10 @@ const journeyFormSchema = z
       .min(2, "End point must be at least 2 characters"),
     startDate: z.string().min(1, "Start date is required"),
     endDate: z.string().min(1, "End date is required"),
-    who: z
-      .enum(["solo", "couple", "family", "group"], {
-        required_error: "Please select who is traveling",
-      })
-      .or(z.string().min(1, "Please select who is traveling")),
-    budget: z
+    noOfPeople: z
       .string()
-      .min(1, "Budget is required")
-      .regex(/^\d+$/, "Budget must be a number"),
+      .min(1, "No of people is required")
+      .regex(/^\d+$/, "No of people must be a number"),
   })
   .refine(
     (data) => {
@@ -71,21 +66,22 @@ export default function NewJourneyExplore({
       endLocationName: "",
       startDate: "",
       endDate: "",
-      who: "",
-      budget: "",
+      noOfPeople: "",
     },
   });
 
   // Debug (remove in production)
 
   const onSubmit = async (data: JourneyFormData) => {
-    debugger
+    // debugger;
     try {
       // ⚠️ Move these to env/secure storage, not hardcoded
       const API_BASE = "https://api.hightribe.com";
-      const TOKEN = typeof window !== "undefined" ? localStorage.getItem("token") || "<PASTE_VALID_TOKEN_HERE>" : "<PASTE_VALID_TOKEN_HERE>";
-      console.log(TOKEN, "TOKEN")
-
+      const TOKEN =
+        typeof window !== "undefined"
+          ? localStorage.getItem("token") || "<PASTE_VALID_TOKEN_HERE>"
+          : "<PASTE_VALID_TOKEN_HERE>";
+      console.log(TOKEN, "TOKEN");
 
       const user_id = JSON.parse(localStorage.getItem("user") || "{}").id;
       // Prepare payload for your API (map to their expected snake_case keys)
@@ -95,13 +91,12 @@ export default function NewJourneyExplore({
         start_lat: "31.5497", // TODO: replace with geocoded value
         start_lng: "74.3436",
         end_location_name: data.endLocationName,
-        end_lat: "36.3167",   // TODO: replace with geocoded value
+        end_lat: "36.3167", // TODO: replace with geocoded value
         end_lng: "74.6500",
         start_date: data.startDate,
         end_date: data.endDate,
-        user_id: user_id,         // TODO: replace with actual auth/user context
-        budget: data.budget,
-        who: data.who,
+        user_id: user_id, // TODO: replace with actual auth/user context
+        no_of_people: data.noOfPeople,
       };
 
       const response = await fetch(`${API_BASE}/api/journeys`, {
@@ -118,7 +113,9 @@ export default function NewJourneyExplore({
       }
       if (!response.ok) {
         const text = await response.text().catch(() => "");
-        throw new Error(`API request failed: ${response.status} ${response.statusText} ${text}`);
+        throw new Error(
+          `API request failed: ${response.status} ${response.statusText} ${text}`
+        );
       }
 
       const result = await response.json();
@@ -144,21 +141,13 @@ export default function NewJourneyExplore({
       <GlobalModalBorderLess
         isOpen={newJourney}
         onClose={handleClose}
-        maxWidth="max-w-[900px]"
+        maxWidth="max-w-[500px]"
         customPadding="p-0"
       >
-        <div
-          className="overflow-y-scroll w-full
-        [&::-webkit-scrollbar]:w-1
-       [&::-webkit-scrollbar-track]:bg-[#1063E0]
-       [&::-webkit-scrollbar-thumb]:bg-[#D9D9D9] 
-       dark:[&::-webkit-scrollbar-track]:bg-[#D9D9D9]
-       dark:[&::-webkit-scrollbar-thumb]:bg-[#1063E0]
-        "
-        >
-          <div className="grid grid-cols-1 lg:grid-cols-2 h-full rounded-lg">
+        <div className="overflow-y-scroll w-full rounded-[20px] scrollbar-hide">
+          <div className="h-full rounded-lg">
             {/* Left: Visual */}
-            <div
+            {/* <div
               className="relative bg-cover bg-center rounded-l-lg hidden lg:grid"
               style={{
                 backgroundImage:
@@ -170,25 +159,28 @@ export default function NewJourneyExplore({
                 <h2 className="text-2xl font-bold mb-1">Start New Journey</h2>
                 <p className="text-sm opacity-90">5 Days • 4 Travelers</p>
               </div>
-            </div>
+            </div> */}
 
             {/* Right: Form */}
-            <div className="p-6 flex flex-col rounded-r-lg bg-white justify-center h-full">
-              <div className="flex justify-between items-start mb-6">
+            <div className=" flex flex-col  bg-white justify-center h-full">
+              <div className="flex justify-center items-center p-6 border-b border-[#EDEDED]">
                 <div className="text-center">
-                  <h2 className="text-[16px] font-semibold">Start New Journey</h2>
-                  <p className="text-[10px] leading-relaxed">
-                    Plan your next adventure by sharing the details of your trip.
-                    Fill in where you’re going, when you’re leaving, and who’s traveling with you.
-                  </p>
+                  <h2 className="text-[22px] font-bold">Start New Journey</h2>
+                  {/* <p className="text-[10px] leading-relaxed">
+                    Plan your next adventure by sharing the details of your
+                    trip. Fill in where you’re going, when you’re leaving, and
+                    who’s traveling with you.
+                  </p> */}
                 </div>
               </div>
 
-              <form onSubmit={handleSubmit(onSubmit)} className="w-full relative z-10">
+              <form
+                onSubmit={handleSubmit(onSubmit)}
+                className="w-full relative z-10 p-6"
+              >
                 {/* Title */}
                 <GlobalTextInput
                   label="Journey Name"
-                  placeholder="Enter journey name"
                   error={errors.title?.message}
                   {...register("title")}
                 />
@@ -197,7 +189,6 @@ export default function NewJourneyExplore({
                 <div className="relative">
                   <GlobalTextInput
                     label="Starting Point"
-                    placeholder="Enter starting location"
                     error={errors.startLocationName?.message}
                     {...register("startLocationName")}
                   />
@@ -210,7 +201,6 @@ export default function NewJourneyExplore({
                 <div className="relative">
                   <GlobalTextInput
                     label="End Point"
-                    placeholder="Enter destination"
                     error={errors.endLocationName?.message}
                     {...register("endLocationName")}
                   />
@@ -220,46 +210,51 @@ export default function NewJourneyExplore({
                 </div>
 
                 {/* Dates */}
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="relative">
-                    <GlobalDateInput
-                      label="Start Date"
-                      placeholder="Select date"
-                      error={errors.startDate?.message}
-                      value={watch("startDate")}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                        setValue("startDate", e.target.value, { shouldValidate: true })
-                      }
-                    />
-                  </div>
 
-                  <div className="relative">
-                    <GlobalDateInput
-                      label="End Date"
-                      placeholder="Select date"
-                      error={errors.endDate?.message}
-                      value={watch("endDate")}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                        setValue("endDate", e.target.value, { shouldValidate: true })
-                      }
-                    />
-                  </div>
+                <div className="relative">
+                  <GlobalDateInput
+                    label="Start Date"
+                    error={errors.startDate?.message}
+                    value={watch("startDate")}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                      setValue("startDate", e.target.value, {
+                        shouldValidate: true,
+                      })
+                    }
+                  />
+                </div>
+
+                <div className="relative">
+                  <GlobalDateInput
+                    label="End Date"
+                    error={errors.endDate?.message}
+                    value={watch("endDate")}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                      setValue("endDate", e.target.value, {
+                        shouldValidate: true,
+                      })
+                    }
+                  />
                 </div>
 
                 {/* Who */}
-                <GlobalSelect label="Who" error={errors.who?.message} {...register("who")}>
+                {/* <GlobalSelect
+                  label="Who"
+                  error={errors.who?.message}
+                  {...register("who")}
+                >
                   <option value="">Select travelers</option>
                   <option value="solo">Solo Traveler</option>
                   <option value="couple">Couple</option>
                   <option value="family">Family</option>
                   <option value="group">Group</option>
-                </GlobalSelect>
+                </GlobalSelect> */}
 
                 {/* Budget */}
-                <div className="relative">
+                {/* <div className="relative">
                   <GlobalTextInput
                     label="Budget"
-                    placeholder="Enter budget"
+                   
                     error={errors.budget?.message}
                     {...register("budget")}
                   />
@@ -277,6 +272,14 @@ export default function NewJourneyExplore({
                       <path d="M8.21 13.89L7 23l5-3 5 3-1.21-9.12"></path>
                     </svg>
                   </div>
+                </div> */}
+                <div className="relative">
+                  <GlobalTextInput
+                    label="No of People"
+                    type="number"
+                    error={errors.noOfPeople?.message}
+                    {...register("noOfPeople")}
+                  />
                 </div>
 
                 {/* Create */}
@@ -284,9 +287,9 @@ export default function NewJourneyExplore({
                   type="submit"
                   disabled={isSubmitting}
                   onClick={handleSubmit(onSubmit)}
-                  className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200 mt-6 disabled:cursor-not-allowed"
+                  className="w-full max-w-[320px] flex items-center justify-center mx-auto bg-gradient-to-r from-[#9743AA] to-[#E54295] text-white font-semibold text-[18px] py-2 px-4 rounded-full transition-colors duration-200 mt-6 disabled:cursor-not-allowed"
                 >
-                  {isSubmitting ? "Creating..." : "Create"}
+                  {isSubmitting ? "Creating..." : "Checkout"}
                 </button>
               </form>
             </div>

@@ -9,6 +9,7 @@ import NewJourneyExplore from "@/components/explore/NewJourneyExplore";
 import JourneySidebar from "@/components/explore/JourneySidebar";
 import StepDetailsPanel from "@/components/explore/StepDetailsPanel";
 import { Step } from "@/components/dashboard/modals/components/newjourney/types";
+import ExploreJourneyList from "@/components/explore/ExploreJourneyList";
 
 /** === API & Local Types === */
 type ApiJourney = {
@@ -21,7 +22,7 @@ type ApiJourney = {
   end_lat?: string | number | null;
   end_lng?: string | number | null;
   start_date?: string; // "YYYY-MM-DD"
-  end_date?: string;   // "YYYY-MM-DD"
+  end_date?: string; // "YYYY-MM-DD"
   budget?: string | number;
   travelers?: string;
   user?: any;
@@ -41,7 +42,7 @@ type JourneyData = {
   startingPoint: string;
   endPoint: string;
   startDate: string; // YYYY-MM-DD
-  endDate: string;   // YYYY-MM-DD
+  endDate: string; // YYYY-MM-DD
   who: string;
   budget: string;
   days: JourneyDay[];
@@ -108,10 +109,12 @@ const Page = () => {
   const [activeFilter, setActiveFilter] = useState<string>("All feeds");
   const [isExplorePanelOpen, setIsExplorePanelOpen] = useState<boolean>(false);
   const [newJourney, setNewJourney] = useState<boolean>(false);
-  const [isJourneySidebarOpen, setIsJourneySidebarOpen] = useState<boolean>(false);
+  const [isJourneySidebarOpen, setIsJourneySidebarOpen] =
+    useState<boolean>(false);
 
   // 🔹 No mock: start empty until user picks or creates a journey
   const [journeyData, setJourneyData] = useState<JourneyData | null>(null);
+  const [showJourneyList, setShowJourneyList] = useState<boolean>(false);
 
   const [selectedStep, setSelectedStep] = useState<{
     dayIndex: number;
@@ -121,7 +124,7 @@ const Page = () => {
   const [isStepDetailsOpen, setIsStepDetailsOpen] = useState<boolean>(false);
 
   /** === Handlers === */
-  const handleMenuClick = () => { };
+  const handleMenuClick = () => {};
 
   const handleStepSelect = (dayIndex: number, stepIndex: number) => {
     setSelectedStep({ dayIndex, stepIndex });
@@ -155,7 +158,11 @@ const Page = () => {
     const lng = toNumberOrNull(journey.start_lng);
     const lat = toNumberOrNull(journey.start_lat);
     if (lng != null && lat != null) {
-      mapRef.current?.centerMap(lng, lat, journey.start_location_name || "Start");
+      mapRef.current?.centerMap(
+        lng,
+        lat,
+        journey.start_location_name || "Start"
+      );
     }
   };
 
@@ -178,6 +185,7 @@ const Page = () => {
           }}
           onFilterChange={(filter: string) => setActiveFilter(filter)}
           onNewJourneyClick={() => setNewJourney(true)}
+          onShowJourneyList={() => setShowJourneyList(!showJourneyList)}
         />
 
         <div className="flex h-full">
@@ -195,10 +203,13 @@ const Page = () => {
 
           {/* Main Content */}
           <div className="flex flex-1">
-            <SideExplore
+            {/* <SideExplore
               onExploreClick={() => setIsExplorePanelOpen(true)}
               onJourneyClick={handleJourneyClick} // <-- consumes ApiJourney
-            />
+            /> */}
+            {showJourneyList && (
+              <ExploreJourneyList onJourneyClick={handleJourneyClick} />
+            )}
             <div className="flex-1">
               <ExploreMap
                 ref={mapRef}
