@@ -1,7 +1,9 @@
+
 "use client";
 import React, { useState } from "react";
 import NavBar from "@/components/dashboard/NavBar";
 import SideBar from "@/components/dashboard/SideBar";
+import { usePathname } from "next/navigation";
 
 export default function DashboardLayout({
   children,
@@ -9,47 +11,52 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const pathname = usePathname();
 
   return (
-    <div className="relative h-screen flex flex-col">
-      {/* Fixed Header */}
-      <div className="h-fit sticky top-0 z-50 bg-white flex-shrink-0">
-        <NavBar onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)} />
-      </div>
+    <div className="relative min-h-screen flex flex-col">
+      {/* Sticky Header */}
+      <header className="sticky top-0 z-50 bg-white flex-shrink-0">
+        <NavBar onMenuClick={() => setIsSidebarOpen((v) => !v)} />
+      </header>
 
-      {/* Main Container with fixed height */}
-      <div className="flex-1 flex overflow-hidden h-[calc(100vh-80px)]">
+      {/* Content Row: sidebar + main (no height hacks, just flex with min-h-0) */}
+      <div className="flex-1 min-h-0 flex overflow-hidden">
         {/* Mobile/Tablet Sidebar Overlay */}
         {isSidebarOpen && (
-          <div
+          <button
+            aria-label="Close sidebar overlay"
             className="fixed inset-0 bg-black/15 z-40 lg:hidden"
             onClick={() => setIsSidebarOpen(false)}
           />
         )}
 
-        {/* Left Sidebar - Independent Scroll */}
-        <aside
-          className={`
-            fixed lg:relative inset-y-0 left-0 lg:z-40 z-50
-            xl:min-w-[280px] w-[280px] xl:w-full xl:max-w-[300px] flex-shrink-0
-            bg-white flex flex-col
-            transform transition-transform duration-300 ease-in-out
-            lg:transform-none
-            h-full
-            ${
-              isSidebarOpen
-                ? "translate-x-0"
-                : "-translate-x-full lg:translate-x-0"
-            }
-          `}
-        >
-          <div className="flex-1 flex flex-col pl-8 pr-2 pt-2 overflow-y-auto scrollbar-hide">
-            <SideBar onItemClick={() => setIsSidebarOpen(false)} />
-          </div>
-        </aside>
+        {/* Sidebar (slides in on mobile, static on lg+) */}
+        {pathname === "/dashboard" && (
+          <aside
+            className={[
+              "fixed inset-y-0 left-0 z-50 bg-white flex flex-col",
+              "transform transition-transform duration-300 ease-in-out",
+              "w-[280px] xl:w-[300px] flex-shrink-0",
+              isSidebarOpen ? "translate-x-0" : "-translate-x-full",
+              "lg:static lg:translate-x-0 lg:z-40",
+            ].join(" ")}
+            aria-hidden={!isSidebarOpen && typeof window !== "undefined" ? true : undefined}
+          >
+            <div className="flex-1 flex flex-col pl-8 pr-2 pt-2 overflow-y-auto">
 
-        {/* Main Content Area - Independent Scroll */}
-        <main className="flex-1 overflow-hidden bg-[#f9f9f9]">{children}</main>
+
+              <SideBar onItemClick={() => setIsSidebarOpen(false)} />
+
+
+            </div>
+          </aside>
+        )}
+
+        {/* Main content (scrollable) */}
+        <main className="flex-1 overflow-y-auto bg-[#f9f9f9]">
+          {children}
+        </main>
       </div>
     </div>
   );

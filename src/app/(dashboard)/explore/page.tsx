@@ -124,7 +124,7 @@ const Page = () => {
   const [isStepDetailsOpen, setIsStepDetailsOpen] = useState<boolean>(false);
 
   /** === Handlers === */
-  const handleMenuClick = () => {};
+  const handleMenuClick = () => { };
 
   const handleStepSelect = (dayIndex: number, stepIndex: number) => {
     setSelectedStep({ dayIndex, stepIndex });
@@ -178,7 +178,7 @@ const Page = () => {
   return (
     <>
       <div className="h-[calc(100vh-210px)] bg-gray-50">
-        <Explore
+        {/* <Explore
           onMenuClick={handleMenuClick}
           onPlaceSelected={(lng: number, lat: number, name?: string) => {
             mapRef.current?.centerMap(lng, lat, name);
@@ -186,7 +186,7 @@ const Page = () => {
           onFilterChange={(filter: string) => setActiveFilter(filter)}
           onNewJourneyClick={() => setNewJourney(true)}
           onShowJourneyList={() => setShowJourneyList(!showJourneyList)}
-        />
+        /> */}
 
         <div className="flex h-full">
           {/* Sidebar only when journeyData exists */}
