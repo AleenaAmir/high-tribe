@@ -26,6 +26,28 @@ type ApiJourney = {
   budget?: string | number;
   travelers?: string;
   user?: any;
+  stops?: ApiJourneyStop[];
+};
+
+type ApiJourneyStop = {
+  id: number;
+  title?: string;
+  location_name?: string;
+  lat?: string | number;
+  lng?: string | number;
+  notes?: string;
+  transport_mode?: string;
+  start_date?: string;
+  end_date?: string;
+  stop_category_id?: string | number;
+  category?: {
+    id: number;
+    name: string;
+  };
+  media?: Array<{
+    url: string;
+    type: string;
+  }>;
 };
 
 type JourneyDay = {
@@ -76,6 +98,86 @@ const normalizeDays = (raw: any): JourneyDay[] => {
 
 /** API → Local mapper */
 const toJourneyDataFromApi = (j: ApiJourney): JourneyData => {
+  // Transform stops into days and steps
+  const transformStopsToDays = (stops: ApiJourneyStop[] = []): JourneyDay[] => {
+    // If no stops, create empty days based on journey date range
+    if (!stops.length) {
+      const startDate = new Date(j.start_date || new Date());
+      const endDate = new Date(j.end_date || new Date());
+      const daysDiff =
+        Math.ceil(
+          (endDate.getTime() - startDate.getTime()) / (1000 * 3600 * 24)
+        ) + 1;
+
+      return Array.from({ length: daysDiff }, (_, i) => ({
+        id: i + 1,
+        dayNumber: i + 1,
+        date: new Date(startDate.getTime() + i * 24 * 60 * 60 * 1000),
+        steps: [],
+        isOpen: false,
+      }));
+    }
+
+    // Group stops by date
+    const stopsByDate = new Map<string, ApiJourneyStop[]>();
+
+    stops.forEach((stop) => {
+      const date =
+        stop.start_date ||
+        j.start_date ||
+        new Date().toISOString().split("T")[0];
+      if (!stopsByDate.has(date)) {
+        stopsByDate.set(date, []);
+      }
+      stopsByDate.get(date)!.push(stop);
+    });
+
+    // Convert to days array
+    const days: JourneyDay[] = [];
+    const sortedDates = Array.from(stopsByDate.keys()).sort();
+
+    sortedDates.forEach((date, index) => {
+      const dayStops = stopsByDate.get(date) || [];
+      const steps: Step[] = dayStops.map((stop) => ({
+        name: stop.title || `Stop ${index + 1}`,
+        location: {
+          coords:
+            stop.lat && stop.lng
+              ? ([
+                  parseFloat(String(stop.lng)),
+                  parseFloat(String(stop.lat)),
+                ] as [number, number])
+              : null,
+          name: stop.location_name || "",
+        },
+        notes: stop.notes || "",
+        media:
+          stop.media?.map((m) => ({
+            url: m.url,
+            type: m.type,
+            file_name: "",
+            fileObject: null as any,
+          })) || [],
+        mediumOfTravel: stop.transport_mode || "",
+        startDate: stop.start_date || "",
+        endDate: stop.end_date || "",
+        category:
+          stop.category?.name || stop.stop_category_id?.toString() || "",
+        dateError: "",
+      }));
+
+      days.push({
+        id: index + 1,
+        dayNumber: index + 1,
+        date: new Date(date),
+        steps,
+        isOpen: false,
+      });
+    });
+
+    return days;
+  };
+
   return {
     id: j.id,
     journeyName: j.title || "Untitled Journey",
@@ -85,8 +187,7 @@ const toJourneyDataFromApi = (j: ApiJourney): JourneyData => {
     endDate: toISODate(j.end_date),
     who: j.travelers || "couple",
     budget: j.budget != null ? String(j.budget) : "1000",
-    // API doesn't provide days/steps in your example; keep empty array
-    days: [],
+    days: transformStopsToDays(j.stops),
   };
 };
 
@@ -150,7 +251,11 @@ const Page = () => {
 
   // Called when a journey is clicked in SideExplore (uses your API shape)
   const handleJourneyClick = (journey: ApiJourney) => {
+    console.log("Journey clicked:", journey);
+
     const transformed = toJourneyDataFromApi(journey);
+    console.log("Transformed journey data:", transformed);
+
     setJourneyData(transformed);
     setIsJourneySidebarOpen(true);
 
@@ -242,21 +347,6 @@ const Page = () => {
         newJourney={newJourney}
         setNewJourney={setNewJourney}
         setShowJourneyList={setShowJourneyList}
-        // onJourneyCreated={(data: any) => {
-        //   const transformed = toJourneyDataFromApi(data);
-        //   setJourneyData(transformed);
-        //   setIsJourneySidebarOpen(true);
-
-        //   const lng = toNumberOrNull(data.start_lng);
-        //   const lat = toNumberOrNull(data.start_lat);
-        //   if (lng != null && lat != null) {
-        //     mapRef.current?.centerMap(
-        //       lng,
-        //       lat,
-        //       data.start_location_name || "Start"
-        //     );
-        //   }
-        // }}
       />
     </>
   );

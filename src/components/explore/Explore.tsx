@@ -3,6 +3,7 @@ import Image from "next/image";
 import React, { useState, useEffect, useRef } from "react";
 import { fetchGooglePlaceSuggestions } from "@/lib/googlePlaces";
 import Menuicon from "./Menuicon";
+import PlusIcon from "./icons/PlusIcon";
 
 interface NavBarProps {
   onPlaceSelected?: (lng: number, lat: number, name?: string) => void;
@@ -443,19 +444,7 @@ const ExploreFeeds = ({
             >
               <span className="whitespace-nowrap">Start New January</span>
               <div className="w-4 h-4 bg-white border border-black rounded-full flex items-center justify-center hover:bg-gray-100 transition-colors cursor-pointer active:scale-95">
-                <svg
-                  className="w-2.5 h-2.5 text-black"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 4v16m8-8H4"
-                  />
-                </svg>
+                <PlusIcon className="text-black w-2.5 h-2.5" />
               </div>
             </div>
           </button>

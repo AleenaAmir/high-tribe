@@ -21,6 +21,7 @@ import GlobalFileUpload from "@/components/global/GlobalFileUpload";
 import { generateDaysFromRange } from "@/app/querry/getDays";
 import api from "@/lib/api";
 import { toast } from "react-hot-toast";
+import PlusIcon from "./icons/PlusIcon";
 
 interface JourneyData {
   id: number;
@@ -66,13 +67,14 @@ const JourneySidebar: React.FC<JourneySidebarProps> = ({
   console.log(journeyData, "journeyData");
   const [selectedDay, setSelectedDay] = useState<number | null>(null);
   const [addDayDisabled, setAddDayDisabled] = useState(false);
+  const [isAddingDay, setIsAddingDay] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [openDayIndex, setOpenDayIndex] = useState<number | null>(null);
   const [editingStepIndex, setEditingStepIndex] = useState<number | null>(null);
   const [savedSteps, setSavedSteps] = useState<{ [key: string]: boolean }>({});
-  const [activeTab, setActiveTab] = useState<
-    "itinerary" | "bookings" | "chat"
-  >("itinerary");
+  const [activeTab, setActiveTab] = useState<"itinerary" | "bookings" | "chat">(
+    "itinerary"
+  );
   const isInitialLoad = React.useRef(true);
 
   // Calculate number of days early so it can be used in useEffects
@@ -98,11 +100,12 @@ const JourneySidebar: React.FC<JourneySidebarProps> = ({
   // Reset addDayDisabled when journey data changes
   useEffect(() => {
     if (journeyData) {
-      const currentDaysCount = journeyData.days?.length || 0;
-      const totalAllowedDays = daysDiff;
+      // Allow adding days up to a reasonable maximum (e.g., 30 days)
+      const maxAllowedDays = 30;
+      const currentDaysCount = daysDiff;
 
       // Enable the button if we haven't reached the maximum days
-      if (currentDaysCount < totalAllowedDays) {
+      if (currentDaysCount < maxAllowedDays) {
         setAddDayDisabled(false);
       } else {
         setAddDayDisabled(true);
@@ -215,132 +218,110 @@ const JourneySidebar: React.FC<JourneySidebarProps> = ({
     { id: 5, name: "Activity", label: "Activity" },
   ];
 
-  const handleAddDay = () => {
+  /**
+   * Extends the journey by one day by updating the end date
+   * This function:
+   * 1. Calculates the new end date (current end date + 1 day)
+   * 2. Calls the API to update the journey with the new end date
+   * 3. Updates the local state to reflect the change
+   * 4. Regenerates the days display automatically
+   */
+  const handleAddDay = async () => {
     console.log("Adding new day...");
     console.log("Current journeyData:", journeyData);
 
-    // If we have sample data, update it directly
-    if (journeyData?.days) {
-      console.log("Using sample data path");
-      const updatedJourneyData = { ...journeyData };
-      const currentDaysCount = updatedJourneyData.days?.length || 0;
-      const newDayNumber = currentDaysCount + 1;
-      const newDayDate = new Date(
-        startDate.getTime() + (newDayNumber - 1) * 24 * 60 * 60 * 1000
+    if (isAddingDay) return; // Prevent multiple simultaneous requests
+
+    // Check if we're already at the maximum allowed days
+    const maxAllowedDays = 30;
+    if (daysDiff >= maxAllowedDays) {
+      toast.error(`Journey cannot exceed ${maxAllowedDays} days.`);
+      return;
+    }
+
+    setIsAddingDay(true);
+    try {
+      // Get current end date and add one day
+      const currentEndDate = new Date(journeyData.endDate);
+      const newEndDate = new Date(currentEndDate);
+      newEndDate.setDate(newEndDate.getDate() + 1);
+
+      // Format the new end date as YYYY-MM-DD
+      const newEndDateString = newEndDate.toISOString().split("T")[0];
+
+      // Get token for API call
+      const TOKEN =
+        typeof window !== "undefined"
+          ? localStorage.getItem("token") || "<PASTE_VALID_TOKEN_HERE>"
+          : "<PASTE_VALID_TOKEN_HERE>";
+
+      // Prepare form data for API call
+      const formData = new FormData();
+      formData.append(
+        "start_lat",
+        journeyData.start_lat?.toString() || "31.5497"
+      );
+      formData.append(
+        "start_lng",
+        journeyData.start_lng?.toString() || "74.3436"
+      );
+      formData.append("end_location_name", journeyData.endPoint);
+      formData.append("end_lat", journeyData.end_lat?.toString() || "36.3167");
+      formData.append("end_lng", journeyData.end_lng?.toString() || "74.6500");
+      formData.append("start_date", journeyData.startDate);
+      formData.append("end_date", newEndDateString);
+      formData.append("user_id", "1"); // This should come from user context
+      formData.append("budget", journeyData.budget);
+      formData.append("_method", "PUT");
+
+      // Call API to update the journey
+      const response = await fetch(
+        `https://api.hightribe.com/api/journeys/${journeyData.id}`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${TOKEN}`,
+            Accept: "application/json",
+          },
+          body: formData,
+        }
       );
 
-      // Check if adding a new day would exceed the total allowed days
-      if (currentDaysCount >= daysDiff) {
-        setAddDayDisabled(true);
-        toast.error(
-          "You have reached the maximum number of days for this journey."
-        );
+      if (!response.ok) {
+        const errorData = await response.text();
+        console.error("API Error:", errorData);
+        toast.error("Failed to extend journey. Please try again.");
         return;
       }
 
-      const newDay: Day = {
-        id: newDayNumber,
-        dayNumber: newDayNumber,
-        date: newDayDate,
-        steps: [],
-        isOpen: false,
+      // Update local journey data with new end date
+      const updatedJourneyData = {
+        ...journeyData,
+        endDate: newEndDateString,
       };
-
-      console.log("New day to add:", newDay);
-
-      if (updatedJourneyData.days) {
-        updatedJourneyData.days.push(newDay);
-      }
-
-      console.log("Updated journeyData:", updatedJourneyData);
 
       // Update the journeyData in the parent component
       if (onJourneyDataUpdate) {
         onJourneyDataUpdate(updatedJourneyData);
-        console.log("✅ Day added successfully!");
+        console.log(
+          "✅ Day added successfully! New end date:",
+          newEndDateString
+        );
+        toast.success("Journey extended by one day!");
       }
-      return;
+    } catch (error) {
+      console.error("Error adding day:", error);
+      toast.error("Failed to extend journey. Please try again.");
+    } finally {
+      setIsAddingDay(false);
     }
-
-    console.log("Using form data path");
-    // Original form-based logic
-    const currentDaysCount = days.length;
-    const newDayNumber = currentDaysCount + 1;
-
-    // Check if adding a new day would exceed the total allowed days
-    if (currentDaysCount >= daysDiff) {
-      setAddDayDisabled(true);
-      toast.error(
-        "You have reached the maximum number of days for this journey."
-      );
-      return;
-    }
-
-    const newDay: Day = {
-      id: newDayNumber,
-      dayNumber: newDayNumber,
-      date: new Date(
-        startDate.getTime() + currentDaysCount * 24 * 60 * 60 * 1000
-      ),
-      steps: [],
-      isOpen: false,
-    };
-    appendDay(newDay);
   };
 
-  useEffect(() => {
-    handleAddDay()
-  }, []);
   const handleAddStop = (dayIndex: number) => {
-    // --- SAMPLE DATA PATH (journeyData.days exists) ---
-    if (journeyData?.days) {
-      const updatedJourneyData = { ...journeyData };
-      const currentDay = updatedJourneyData.days?.[dayIndex];
-      if (!currentDay) return;
+    // Get the current day from the generated days
+    const currentDay = finalDisplayDays[dayIndex];
+    if (!currentDay) return;
 
-      const newStep: Step = {
-        name: `Stop ${(currentDay.steps?.length || 0) + 1}`,
-        location: { coords: null, name: "" },
-        notes: "",
-        media: [],
-        mediumOfTravel: "",
-        startDate: "",
-        endDate: "",
-        category: "",
-        dateError: "",
-      };
-
-      // add the step
-      currentDay.steps = [...(currentDay.steps || []), newStep];
-
-      // ⬇️ mark the new step as UNSAVED so the form appears
-      const newIndex = currentDay.steps.length - 1;
-      setSavedSteps((m) => ({ ...m, [`${dayIndex}-${newIndex}`]: false }));
-
-      // Update the journeyData in the parent component
-      if (onJourneyDataUpdate) {
-        onJourneyDataUpdate(updatedJourneyData);
-        console.log("✅ Stop added successfully!");
-      }
-
-      // Ensure the new step starts in edit mode (form visible)
-      const newStepIndex = (currentDay.steps?.length || 1) - 1;
-      const stepKey = `${dayIndex}-${newStepIndex}`;
-      // Force the new step to be in edit mode by setting it to false
-      setSavedSteps((prev) => ({ ...prev, [stepKey]: false }));
-      console.log("Set new step to edit mode:", stepKey);
-
-      setOpenDayIndex(dayIndex);
-
-      if (onJourneyDataUpdate) onJourneyDataUpdate(updatedJourneyData);
-      return;
-    }
-
-    // --- FORM-BASED PATH (react-hook-form days) ---
-    const currentDays = getValues("days");
-    if (!currentDays || !currentDays[dayIndex]) return;
-
-    const currentDay = currentDays[dayIndex];
     const newStep: Step = {
       name: `Stop ${(currentDay.steps?.length || 0) + 1}`,
       location: { coords: null, name: "" },
@@ -353,56 +334,49 @@ const JourneySidebar: React.FC<JourneySidebarProps> = ({
       dateError: "",
     };
 
+    // Update the day with the new step
     const updatedDay = {
       ...currentDay,
       steps: [...(currentDay.steps || []), newStep],
     };
 
-    setValue(`days.${dayIndex}`, updatedDay, { shouldValidate: true });
-    watch("days");
+    // Update the finalDisplayDays array
+    const updatedDays = [...finalDisplayDays];
+    updatedDays[dayIndex] = updatedDay;
 
-    // Ensure the new step starts in edit mode (form visible)
-    const newStepIndex = (currentDay.steps?.length || 1) - 1;
-    const stepKey = `${dayIndex}-${newStepIndex}`;
-    // Force the new step to be in edit mode by setting it to false
-    setSavedSteps((prev) => ({ ...prev, [stepKey]: false }));
-    console.log("Set new step to edit mode:", stepKey);
-
-    setOpenDayIndex(dayIndex);
-  };
-
-  const handleStepDelete = (dayIndex: number, stepIndex: number) => {
-    // If we have sample data, update it directly
-    if (journeyData?.days) {
+    // Update journeyData if it exists
+    if (journeyData) {
       const updatedJourneyData = { ...journeyData };
-      const currentDay = updatedJourneyData.days?.[dayIndex];
-
-      if (!currentDay || !currentDay.steps) {
-        console.error("Day or steps not found");
-        return;
+      if (!updatedJourneyData.days) {
+        updatedJourneyData.days = [];
       }
+      updatedJourneyData.days[dayIndex] = updatedDay;
 
-      currentDay.steps = currentDay.steps.filter(
-        (_: any, index: any) => index !== stepIndex
-      );
-
-      // Update the journeyData in the parent component
       if (onJourneyDataUpdate) {
         onJourneyDataUpdate(updatedJourneyData);
       }
+    }
 
-      // Remove from saved steps
-      const stepKey = `${dayIndex}-${stepIndex}`;
-      const newSavedSteps = { ...savedSteps };
-      delete newSavedSteps[stepKey];
-      setSavedSteps(newSavedSteps);
-      console.log("✅ Stop deleted successfully!");
+    // Mark the new step as unsaved so the form appears
+    const newStepIndex = currentDay.steps?.length || 0;
+    const stepKey = `${dayIndex}-${newStepIndex}`;
+    setSavedSteps((prev) => ({ ...prev, [stepKey]: false }));
+
+    // Open the day to show the new step
+    setOpenDayIndex(dayIndex);
+
+    console.log("✅ Stop added successfully!");
+  };
+
+  const handleStepDelete = (dayIndex: number, stepIndex: number) => {
+    // Get the current day from the generated days
+    const currentDay = finalDisplayDays[dayIndex];
+    if (!currentDay || !currentDay.steps) {
+      console.error("Day or steps not found");
       return;
     }
 
-    // Original form-based logic
-    const currentDays = getValues("days");
-    const currentDay = currentDays[dayIndex];
+    // Remove the step
     const updatedSteps = currentDay.steps.filter(
       (_, index) => index !== stepIndex
     );
@@ -412,8 +386,18 @@ const JourneySidebar: React.FC<JourneySidebarProps> = ({
       steps: updatedSteps,
     };
 
-    setValue(`days.${dayIndex}`, updatedDay, { shouldValidate: true });
-    watch("days");
+    // Update journeyData if it exists
+    if (journeyData) {
+      const updatedJourneyData = { ...journeyData };
+      if (!updatedJourneyData.days) {
+        updatedJourneyData.days = [];
+      }
+      updatedJourneyData.days[dayIndex] = updatedDay;
+
+      if (onJourneyDataUpdate) {
+        onJourneyDataUpdate(updatedJourneyData);
+      }
+    }
 
     // Remove from saved steps
     const stepKey = `${dayIndex}-${stepIndex}`;
@@ -428,31 +412,14 @@ const JourneySidebar: React.FC<JourneySidebarProps> = ({
     stepIndex: number,
     updatedStep: Partial<Step>
   ) => {
-    // If we have sample data, update it directly
-    if (journeyData?.days) {
-      const updatedJourneyData = { ...journeyData };
-      const currentDay = updatedJourneyData.days?.[dayIndex];
-
-      if (!currentDay || !currentDay.steps) {
-        console.error("Day or steps not found");
-        return;
-      }
-
-      currentDay.steps[stepIndex] = {
-        ...currentDay.steps[stepIndex],
-        ...updatedStep,
-      };
-
-      // Update the journeyData in the parent component
-      if (onJourneyDataUpdate) {
-        onJourneyDataUpdate(updatedJourneyData);
-      }
+    // Get the current day from the generated days
+    const currentDay = finalDisplayDays[dayIndex];
+    if (!currentDay || !currentDay.steps) {
+      console.error("Day or steps not found");
       return;
     }
 
-    // Original form-based logic
-    const currentDays = getValues("days");
-    const currentDay = currentDays[dayIndex];
+    // Update the step
     const updatedSteps = [...currentDay.steps];
     updatedSteps[stepIndex] = { ...updatedSteps[stepIndex], ...updatedStep };
 
@@ -461,8 +428,18 @@ const JourneySidebar: React.FC<JourneySidebarProps> = ({
       steps: updatedSteps,
     };
 
-    setValue(`days.${dayIndex}`, updatedDay, { shouldValidate: true });
-    watch("days");
+    // Update journeyData if it exists
+    if (journeyData) {
+      const updatedJourneyData = { ...journeyData };
+      if (!updatedJourneyData.days) {
+        updatedJourneyData.days = [];
+      }
+      updatedJourneyData.days[dayIndex] = updatedDay;
+
+      if (onJourneyDataUpdate) {
+        onJourneyDataUpdate(updatedJourneyData);
+      }
+    }
   };
 
   const handleDayToggle = (dayIndex: number) => {
@@ -487,10 +464,44 @@ const JourneySidebar: React.FC<JourneySidebarProps> = ({
   // Use watchedDays for rendering to ensure real-time updates
   const displayDays = watchedDays || days;
 
-  // If we have sample data with days, use that instead
-  const finalDisplayDays = journeyData?.days || displayDays;
+  // Generate all available days from start date to end date
+  const generateAllDays = (): Day[] => {
+    const startDate = new Date(journeyData.startDate);
+    const endDate = new Date(journeyData.endDate);
+    const daysDiff =
+      Math.ceil(
+        (endDate.getTime() - startDate.getTime()) / (1000 * 3600 * 24)
+      ) + 1;
 
+    const allDays: Day[] = Array.from({ length: daysDiff }, (_, i) => {
+      const dayDate = new Date(startDate.getTime() + i * 24 * 60 * 60 * 1000);
+      return {
+        id: i + 1,
+        dayNumber: i + 1,
+        date: dayDate,
+        steps: [] as Step[],
+        isOpen: false,
+      };
+    });
 
+    // If we have existing journey data with days, merge them
+    if (journeyData?.days && journeyData.days.length > 0) {
+      journeyData.days.forEach((existingDay: any, index: number) => {
+        if (allDays[index]) {
+          allDays[index] = {
+            ...allDays[index],
+            steps: existingDay.steps || [],
+            isOpen: existingDay.isOpen || false,
+          };
+        }
+      });
+    }
+
+    return allDays;
+  };
+
+  // Use all available days instead of just existing days
+  const finalDisplayDays = generateAllDays();
 
   // Travel mode icons
   const travelModes = [
@@ -533,17 +544,19 @@ const JourneySidebar: React.FC<JourneySidebarProps> = ({
 
     return (
       <div
-        className={`bg-gray-50 border border-gray-200 rounded-lg p-3 mb-3 cursor-pointer transition-all hover:bg-gray-100 ${isSelected ? "border-blue-500 bg-blue-50" : ""
-          }`}
+        className={`bg-gray-50 border border-gray-200 rounded-lg p-3 mb-3 cursor-pointer transition-all hover:bg-gray-100 ${
+          isSelected ? "border-blue-500 bg-blue-50" : ""
+        }`}
         onClick={handleStepClick}
       >
         <div className="flex items-start gap-3">
           {/* Step Number */}
           <div
-            className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center ${isSelected
-              ? "bg-blue-500 text-white"
-              : "bg-gray-300 text-gray-700"
-              }`}
+            className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center ${
+              isSelected
+                ? "bg-blue-500 text-white"
+                : "bg-gray-300 text-gray-700"
+            }`}
           >
             <span className="text-[10px] font-medium">{stepIndex + 1}</span>
           </div>
@@ -568,8 +581,9 @@ const JourneySidebar: React.FC<JourneySidebarProps> = ({
           {/* Step Content */}
           <div className="flex-1 min-w-0">
             <h3
-              className={`text-[12px] font-semibold mb-1 ${isSelected ? "text-blue-900" : "text-gray-900"
-                }`}
+              className={`text-[12px] font-semibold mb-1 ${
+                isSelected ? "text-blue-900" : "text-gray-900"
+              }`}
             >
               {step.location.name || step.name}
             </h3>
@@ -622,10 +636,10 @@ const JourneySidebar: React.FC<JourneySidebarProps> = ({
             <div className="text-[10px] text-gray-500">
               {step.startDate
                 ? new Date(step.startDate).toLocaleDateString("en-US", {
-                  weekday: "short",
-                  month: "short",
-                  day: "numeric",
-                })
+                    weekday: "short",
+                    month: "short",
+                    day: "numeric",
+                  })
                 : "No date"}
             </div>
             <button
@@ -850,10 +864,11 @@ const JourneySidebar: React.FC<JourneySidebarProps> = ({
                   <button
                     key={mode.id}
                     type="button"
-                    className={`w-8 h-8 rounded-md flex items-center justify-center transition-colors ${selectedTravelMode === mode.id
-                      ? "bg-blue-500 text-white"
-                      : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                      }`}
+                    className={`w-8 h-8 rounded-md flex items-center justify-center transition-colors ${
+                      selectedTravelMode === mode.id
+                        ? "bg-blue-500 text-white"
+                        : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                    }`}
                     onClick={() => {
                       setSelectedTravelMode(mode.id);
                       handleStepUpdate(dayIndex, stepIndex, {
@@ -953,8 +968,9 @@ const JourneySidebar: React.FC<JourneySidebarProps> = ({
     <div>
       {/* Main Sidebar */}
       <div
-        className={`fixed left-0 top-50 bottom-0 z-40 w-[524px] bg-white rounded-r-2xl shadow-2xl border border-gray-100 overflow-hidden transform transition-transform duration-300 ease-in-out flex flex-col ${isOpen ? "translate-x-0" : "-translate-x-full"
-          }`}
+        className={`fixed left-0 top-50 bottom-0 z-40 w-[524px] bg-white rounded-r-2xl shadow-2xl border border-gray-100 overflow-hidden transform transition-transform duration-300 ease-in-out flex flex-col ${
+          isOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
       >
         <form
           onSubmit={handleSubmit(onSubmit)}
@@ -969,10 +985,27 @@ const JourneySidebar: React.FC<JourneySidebarProps> = ({
                   onClick={onClose}
                   type="button"
                 >
-
-                  <svg width="13" height="13" viewBox="0 0 13 13" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M2.70801 2.70789L9.67142 9.67102" stroke="black" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
-                    <path d="M2.70801 9.67102L9.67142 2.70789" stroke="black" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                  <svg
+                    width="13"
+                    height="13"
+                    viewBox="0 0 13 13"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M2.70801 2.70789L9.67142 9.67102"
+                      stroke="black"
+                      stroke-width="1.5"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
+                    <path
+                      d="M2.70801 9.67102L9.67142 2.70789"
+                      stroke="black"
+                      stroke-width="1.5"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
                   </svg>
                 </button>
               </div>
@@ -1026,121 +1059,197 @@ const JourneySidebar: React.FC<JourneySidebarProps> = ({
                 <h2 className="text-[20px] font-medium text-[#000000] font-gilroy leading-[100%] tracking-[-3%]">
                   Trip to {journeyData.startingPoint} to {journeyData.endPoint}
                 </h2>
-                <Image src="/dashboard/Pencil.png" alt="Edit" width={16} height={16} className="w-6 h-6 cursor-pointer" />
+                <Image
+                  src="/dashboard/Pencil.png"
+                  alt="Edit"
+                  width={16}
+                  height={16}
+                  className="w-6 h-6 cursor-pointer"
+                />
               </div>
             </div>
             <div className="text-[13px] text-[#000000] font-gilroy leading-[100%] tracking-[-3%] ml-5 mb-2 flex items-center gap-3">
               <span className="">{journeyData.startingPoint}</span>
-              {selectedDay ? selectedDay : 0} days in  {journeyData.startDate} to {journeyData.endDate}
+              {finalDisplayDays.length} days in {journeyData.startDate} to{" "}
+              {journeyData.endDate}
               <span className="">{travelerCount} travelers</span>
               <span className="">${journeyData.budget}</span>
             </div>
           </div>
 
-
           {/* Navigation Tabs */}
-          <div className="flex items-center gap-1 px-4 border-b border-gray-100 overflow-x-auto">
-            <button
-              className={`px-3 py-2 text-xs font-medium whitespace-nowrap transition-colors  text-bold text-[14px] font-gilroy leading-[100%] tracking-[-3%]  ${activeTab === "itinerary"
-                ? "bg-[linear-gradient(90.76deg,#9243AC_0.54%,#B6459F_50.62%,#E74294_99.26%)] bg-clip-text text-transparent border-b-2 border-[linear-gradient(90.76deg,#9243AC_0.54%,#B6459F_50.62%,#E74294_99.26%)]"
-                : "text-gray-600 hover:text-gray-900"
+          <div className="flex items-center gap-1 justify-between px-4 border-b border-gray-100 overflow-x-auto">
+            <div className="flex items-center gap-1">
+              <button
+                className={`px-3 py-2 text-xs font-medium whitespace-nowrap transition-colors  text-bold text-[14px] font-gilroy leading-[100%] tracking-[-3%]  ${
+                  activeTab === "itinerary"
+                    ? "bg-[linear-gradient(90.76deg,#9243AC_0.54%,#B6459F_50.62%,#E74294_99.26%)] bg-clip-text text-transparent border-b-2 border-[linear-gradient(90.76deg,#9243AC_0.54%,#B6459F_50.62%,#E74294_99.26%)]"
+                    : "text-gray-600 hover:text-gray-900"
                 }`}
-              onClick={() => setActiveTab("itinerary")}
-            >
-              Itinerary ({selectedDay ? selectedDay : 0})
-            </button>
-            <button
-              className={`px-3 py-2 text-xs font-medium whitespace-nowrap transition-colors  text-bold text-[14px] font-gilroy leading-[100%] tracking-[-3%]  ${activeTab === "chat"
-                ? "bg-[linear-gradient(90.76deg,#9243AC_0.54%,#B6459F_50.62%,#E74294_99.26%)] bg-clip-text text-transparent border-b-2 border-[linear-gradient(90.76deg,#9243AC_0.54%,#B6459F_50.62%,#E74294_99.26%)]"
-                : "text-gray-600 hover:text-gray-900"
+                onClick={() => setActiveTab("itinerary")}
+              >
+                Itinerary ({daysDiff} days)
+              </button>
+              <button
+                className={`px-3 py-2 text-xs font-medium whitespace-nowrap transition-colors  text-bold text-[14px] font-gilroy leading-[100%] tracking-[-3%]  ${
+                  activeTab === "chat"
+                    ? "bg-[linear-gradient(90.76deg,#9243AC_0.54%,#B6459F_50.62%,#E74294_99.26%)] bg-clip-text text-transparent border-b-2 border-[linear-gradient(90.76deg,#9243AC_0.54%,#B6459F_50.62%,#E74294_99.26%)]"
+                    : "text-gray-600 hover:text-gray-900"
                 }`}
-              onClick={() => setActiveTab("chat")}
-            >
-              Calendar
-            </button>
-            <button
-              className={`px-3 py-2 text-xs font-medium whitespace-nowrap transition-colors  text-bold text-[14px] font-gilroy leading-[100%] tracking-[-3%]  ${activeTab === "bookings"
-                ? "bg-[linear-gradient(90.76deg,#9243AC_0.54%,#B6459F_50.62%,#E74294_99.26%)] bg-clip-text text-transparent border-b-2 border-[linear-gradient(90.76deg,#9243AC_0.54%,#B6459F_50.62%,#E74294_99.26%)]"
-                : "text-gray-600 hover:text-gray-900"
+                onClick={() => setActiveTab("chat")}
+              >
+                Calendar
+              </button>
+              <button
+                className={`px-3 py-2 text-xs font-medium whitespace-nowrap transition-colors  text-bold text-[14px] font-gilroy leading-[100%] tracking-[-3%]  ${
+                  activeTab === "bookings"
+                    ? "bg-[linear-gradient(90.76deg,#9243AC_0.54%,#B6459F_50.62%,#E74294_99.26%)] bg-clip-text text-transparent border-b-2 border-[linear-gradient(90.76deg,#9243AC_0.54%,#B6459F_50.62%,#E74294_99.26%)]"
+                    : "text-gray-600 hover:text-gray-900"
                 }`}
-              onClick={() => setActiveTab("bookings")}
-            >
-              Bookings
-            </button>
+                onClick={() => setActiveTab("bookings")}
+              >
+                Bookings
+              </button>
+            </div>
+            <div>
+              <button
+                type="button"
+                onClick={handleAddDay}
+                disabled={addDayDisabled || isAddingDay}
+                className={`text-[12px] flex items-center gap-1 py-2 px-3 rounded-full leading-none focus:outline-none transition-all ${
+                  addDayDisabled || isAddingDay
+                    ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                    : "bg-[linear-gradient(90.76deg,#9243AC_0.54%,#B6459F_50.62%,#E74294_99.26%)] text-white hover:opacity-90"
+                }`}
+              >
+                <div
+                  className={`p-0.5 border rounded-full ${
+                    addDayDisabled || isAddingDay
+                      ? "border-gray-400"
+                      : "border-white"
+                  }`}
+                >
+                  {isAddingDay ? (
+                    <div className="w-2.5 h-2.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    <PlusIcon
+                      className={`w-2.5 h-2.5 ${
+                        addDayDisabled ? "text-gray-400" : "text-white"
+                      }`}
+                    />
+                  )}
+                </div>
+                <span>{isAddingDay ? "Adding..." : "Add Day"}</span>
+              </button>
+            </div>
           </div>
 
           {/* Content based on active tab */}
           {activeTab === "itinerary" && (
             <div className="flex-1 overflow-y-auto min-h-0">
               <div className="p-3 space-y-2">
-
                 {finalDisplayDays.map((day: any, dayIndex: number) => {
                   const isOpen = openDayIndex === dayIndex;
-                  const formattedDate = new Date(day.date).toLocaleDateString("en-US", {
-                    month: "2-digit",
-                    day: "2-digit",
-                    year: "numeric",
-                  });
+                  const formattedDate = new Date(day.date).toLocaleDateString(
+                    "en-US",
+                    {
+                      month: "2-digit",
+                      day: "2-digit",
+                      year: "numeric",
+                    }
+                  );
 
                   return (
-                    <div
-                      key={day.id || dayIndex}
-                      className="flex items-center justify-between border-b border-gray-100 p-4"
-                    >
-                      {/* Left: Day label + date + chevron */}
-                      <button
-                        type="button"
-                        onClick={() => handleDayToggle(dayIndex)}
-                        className="inline-flex items-center gap-1.5 focus:outline-none"
-                      >
-                        <span className="text-[12px] font-gilroy leading-[100%] tracking-[-3%] font-medium text-[#000000]">
-                          Day {day.dayNumber}{" "}
-                          <span className="text-[#000000] text-[12px] font-gilroy leading-[100%] tracking-[-3%] font-medium">
-                            ({formattedDate})
-                          </span>
-                        </span>
-                        <svg
-                          className={`h-3 w-3 text-gray-700 transition-transform ${isOpen ? "rotate-180" : ""
-                            }`}
-                          viewBox="0 0 20 20"
-                          fill="currentColor"
+                    <div key={day.id || dayIndex}>
+                      <div className="flex items-center justify-between border-b border-gray-100 p-4">
+                        {/* Left: Day label + date + chevron */}
+                        <button
+                          type="button"
+                          onClick={() => handleDayToggle(dayIndex)}
+                          className="inline-flex items-center gap-1.5 focus:outline-none"
                         >
-                          <path
-                            fillRule="evenodd"
-                            d="M5.23 7.21a.75.75 0 011.06.02L10 10.17l3.71-2.94a.75.75 0 111.04 1.08l-4.22 3.34a.75.75 0 01-.94 0L5.21 8.31a.75.75 0 01.02-1.1z"
-                            clipRule="evenodd"
-                          />
-                        </svg>
-                      </button>
+                          <span className="text-[12px] font-gilroy leading-[100%] tracking-[-3%] font-medium text-[#000000]">
+                            Day {day.dayNumber}{" "}
+                            <span className="text-[#000000] text-[12px] font-gilroy leading-[100%] tracking-[-3%] font-medium">
+                              ({formattedDate})
+                            </span>
+                          </span>
+                          <svg
+                            className={`h-3 w-3 text-gray-700 transition-transform ${
+                              isOpen ? "rotate-180" : ""
+                            }`}
+                            viewBox="0 0 20 20"
+                            fill="currentColor"
+                          >
+                            <path
+                              fillRule="evenodd"
+                              d="M5.23 7.21a.75.75 0 011.06.02L10 10.17l3.71-2.94a.75.75 0 111.04 1.08l-4.22 3.34a.75.75 0 01-.94 0L5.21 8.31a.75.75 0 01.02-1.1z"
+                              clipRule="evenodd"
+                            />
+                          </svg>
+                        </button>
 
-                      {/* Right: + Add Stop */}
-                      <button
-                        type="button"
-                        onClick={() => handleAddStop(dayIndex)}
-                        className="text-[12px] leading-none font-semibold bg-[linear-gradient(90.76deg,#9243AC_0.54%,#B6459F_50.62%,#E74294_99.26%)] bg-clip-text text-transparent focus:outline-none"
-                      >
-                        + Add Stop
-                      </button>
+                        {/* Right: + Add Stop */}
+                        <button
+                          type="button"
+                          onClick={() => handleAddStop(dayIndex)}
+                          className="text-[12px] leading-none font-semibold bg-[linear-gradient(90.76deg,#9243AC_0.54%,#B6459F_50.62%,#E74294_99.26%)] bg-clip-text text-transparent focus:outline-none"
+                        >
+                          + Add Stop
+                        </button>
+                      </div>
+
+                      {/* Day Content - Steps */}
+                      {isOpen && (
+                        <div className="px-4 pb-4 bg-gray-50">
+                          {/* Show existing steps */}
+                          {day.steps && day.steps.length > 0 ? (
+                            <div className="space-y-3 pt-3">
+                              {day.steps.map((step: any, stepIndex: number) => (
+                                <div key={stepIndex}>
+                                  {/* Show saved steps as preview */}
+                                  <StepPreview
+                                    step={step}
+                                    dayIndex={dayIndex}
+                                    stepIndex={stepIndex}
+                                  />
+
+                                  {/* Show form for unsaved steps */}
+                                  {!savedSteps[`${dayIndex}-${stepIndex}`] && (
+                                    <StopForm
+                                      step={step}
+                                      dayIndex={dayIndex}
+                                      stepIndex={stepIndex}
+                                    />
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <div className="pt-3 text-center text-gray-500 text-[12px]">
+                              No stops planned for this day yet.
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
                   );
                 })}
-
               </div>
 
               {/* Add Day Button */}
-              <div className="text-center py-4">
+              {/* <div className="text-center py-4">
                 <button
                   type="button"
                   className="text-blue-600 hover:text-blue-800 text-[12px] font-medium disabled:text-[#7F7C7C]"
-                  onClick={handleAddDay}
+                  // onClick={handleAddDay}
                   disabled={addDayDisabled}
                 >
                   + Add Days
                 </button>
-              </div>
+              </div> */}
             </div>
           )}
-
 
           {activeTab === "chat" && (
             <JourneyCalendar
@@ -1155,9 +1264,7 @@ const JourneySidebar: React.FC<JourneySidebarProps> = ({
           )}
         </form>
       </div>
-
-
-    </div >
+    </div>
   );
 };
 

@@ -13,6 +13,7 @@ export default function ExploreJourneyList({
   onNewJourneyClick,
 }: ExploreJourneyListProps) {
   const [trips, setTrips] = useState<any[]>([]);
+  const [loadingJourneyId, setLoadingJourneyId] = useState<number | null>(null);
 
   useEffect(() => {
     const fetchTrips = async () => {
@@ -31,6 +32,41 @@ export default function ExploreJourneyList({
     };
     fetchTrips();
   }, []);
+
+  // Fetch detailed journey data when a journey is clicked
+  const handleJourneyClick = async (trip: any) => {
+    setLoadingJourneyId(trip.id);
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        console.error("No authentication token found");
+        onJourneyClick(trip); // Fallback to basic data
+        return;
+      }
+
+      const response = await api.get(`journeys/${trip.id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      const data: any = response.json ? await response.json() : response;
+      console.log("Detailed journey data:", data);
+
+      // Check if the response contains the expected data
+      if (data && (data.data || data.id)) {
+        // Pass the detailed journey data to the parent component
+        onJourneyClick(data.data || data);
+      } else {
+        console.warn("Unexpected API response structure:", data);
+        onJourneyClick(trip); // Fallback to basic data
+      }
+    } catch (error) {
+      console.error("Error fetching journey details:", error);
+      // Fallback to basic trip data if detailed fetch fails
+      onJourneyClick(trip);
+    } finally {
+      setLoadingJourneyId(null);
+    }
+  };
 
   const icon = (
     <svg
@@ -97,7 +133,7 @@ export default function ExploreJourneyList({
           <div
             key={idx}
             className="flex items-center gap-3 py-3 border-b border-gray-100 last:border-b-0 cursor-pointer hover:bg-gray-50 transition-colors"
-            onClick={() => onJourneyClick?.(trip)}
+            onClick={() => handleJourneyClick(trip)}
           >
             <div className="relative w-9 h-9 rounded-full overflow-hidden">
               <img
@@ -114,6 +150,11 @@ export default function ExploreJourneyList({
                 Date {trip.start_date}
               </div>
             </div>
+            {loadingJourneyId === trip.id && (
+              <div className="ml-auto">
+                <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+              </div>
+            )}
           </div>
         ))}
       </div>
