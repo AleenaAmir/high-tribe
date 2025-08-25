@@ -71,7 +71,7 @@ const JourneySidebar: React.FC<JourneySidebarProps> = ({
   const [editingStepIndex, setEditingStepIndex] = useState<number | null>(null);
   const [savedSteps, setSavedSteps] = useState<{ [key: string]: boolean }>({});
   const [activeTab, setActiveTab] = useState<
-    "itinerary" | "calendar" | "bookings"
+    "itinerary" | "bookings" | "chat"
   >("itinerary");
   const isInitialLoad = React.useRef(true);
 
@@ -288,6 +288,9 @@ const JourneySidebar: React.FC<JourneySidebarProps> = ({
     appendDay(newDay);
   };
 
+  useEffect(() => {
+    handleAddDay()
+  }, []);
   const handleAddStop = (dayIndex: number) => {
     // --- SAMPLE DATA PATH (journeyData.days exists) ---
     if (journeyData?.days) {
@@ -487,7 +490,7 @@ const JourneySidebar: React.FC<JourneySidebarProps> = ({
   // If we have sample data with days, use that instead
   const finalDisplayDays = journeyData?.days || displayDays;
 
-  const totalDays = finalDisplayDays.length;
+
 
   // Travel mode icons
   const travelModes = [
@@ -530,19 +533,17 @@ const JourneySidebar: React.FC<JourneySidebarProps> = ({
 
     return (
       <div
-        className={`bg-gray-50 border border-gray-200 rounded-lg p-3 mb-3 cursor-pointer transition-all hover:bg-gray-100 ${
-          isSelected ? "border-blue-500 bg-blue-50" : ""
-        }`}
+        className={`bg-gray-50 border border-gray-200 rounded-lg p-3 mb-3 cursor-pointer transition-all hover:bg-gray-100 ${isSelected ? "border-blue-500 bg-blue-50" : ""
+          }`}
         onClick={handleStepClick}
       >
         <div className="flex items-start gap-3">
           {/* Step Number */}
           <div
-            className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center ${
-              isSelected
-                ? "bg-blue-500 text-white"
-                : "bg-gray-300 text-gray-700"
-            }`}
+            className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center ${isSelected
+              ? "bg-blue-500 text-white"
+              : "bg-gray-300 text-gray-700"
+              }`}
           >
             <span className="text-[10px] font-medium">{stepIndex + 1}</span>
           </div>
@@ -567,9 +568,8 @@ const JourneySidebar: React.FC<JourneySidebarProps> = ({
           {/* Step Content */}
           <div className="flex-1 min-w-0">
             <h3
-              className={`text-[12px] font-semibold mb-1 ${
-                isSelected ? "text-blue-900" : "text-gray-900"
-              }`}
+              className={`text-[12px] font-semibold mb-1 ${isSelected ? "text-blue-900" : "text-gray-900"
+                }`}
             >
               {step.location.name || step.name}
             </h3>
@@ -622,10 +622,10 @@ const JourneySidebar: React.FC<JourneySidebarProps> = ({
             <div className="text-[10px] text-gray-500">
               {step.startDate
                 ? new Date(step.startDate).toLocaleDateString("en-US", {
-                    weekday: "short",
-                    month: "short",
-                    day: "numeric",
-                  })
+                  weekday: "short",
+                  month: "short",
+                  day: "numeric",
+                })
                 : "No date"}
             </div>
             <button
@@ -655,7 +655,7 @@ const JourneySidebar: React.FC<JourneySidebarProps> = ({
       </div>
     );
   };
-
+  console.log(journeyData, "journeyData");
   // Custom Stop Form Component
   const StopForm = ({
     step,
@@ -850,11 +850,10 @@ const JourneySidebar: React.FC<JourneySidebarProps> = ({
                   <button
                     key={mode.id}
                     type="button"
-                    className={`w-8 h-8 rounded-md flex items-center justify-center transition-colors ${
-                      selectedTravelMode === mode.id
-                        ? "bg-blue-500 text-white"
-                        : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                    }`}
+                    className={`w-8 h-8 rounded-md flex items-center justify-center transition-colors ${selectedTravelMode === mode.id
+                      ? "bg-blue-500 text-white"
+                      : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                      }`}
                     onClick={() => {
                       setSelectedTravelMode(mode.id);
                       handleStepUpdate(dayIndex, stepIndex, {
@@ -954,36 +953,30 @@ const JourneySidebar: React.FC<JourneySidebarProps> = ({
     <div>
       {/* Main Sidebar */}
       <div
-        className={`fixed left-0 top-30 bottom-2 z-40 w-[524px] bg-white rounded-r-2xl shadow-2xl border border-gray-100 overflow-hidden transform transition-transform duration-300 ease-in-out flex flex-col ${
-          isOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
+        className={`fixed left-0 top-50 bottom-0 z-40 w-[524px] bg-white rounded-r-2xl shadow-2xl border border-gray-100 overflow-hidden transform transition-transform duration-300 ease-in-out flex flex-col ${isOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
       >
         <form
           onSubmit={handleSubmit(onSubmit)}
           className="flex flex-col h-full"
         >
           <div className="p-3">
-            <div className="flex items-center gap-2 justify-between">
-              <div className="flex items-center justify-center rounded-full hover:bg-gray-100  border border-[#E5E5E5]">
+            <div className="flex items-center gap-2 justify-end">
+              <div className="flex items-center justify-center ">
                 <button
                   className="h-8 w-8 mx-auto flex items-center justify-center"
                   aria-label="Menu"
                   onClick={onClose}
                   type="button"
                 >
-                  <svg
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                  >
-                    <path d="M3 12h18M3 6h18M3 18h18"></path>
+
+                  <svg width="13" height="13" viewBox="0 0 13 13" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M2.70801 2.70789L9.67142 9.67102" stroke="black" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                    <path d="M2.70801 9.67102L9.67142 2.70789" stroke="black" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
                   </svg>
                 </button>
               </div>
-              <button type="button" className="flex items-center gap-2">
+              {/* <button type="button" className="flex items-center gap-2">
                 <Image
                   src={"/dashboard/People.svg"}
                   alt={"footprint3"}
@@ -1005,18 +998,18 @@ const JourneySidebar: React.FC<JourneySidebarProps> = ({
                     d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"
                   />
                 </svg>
-              </button>
+              </button> */}
             </div>
           </div>
 
           {/* Trip Header */}
-          <div className="px-3 pb-2 border-b border-gray-100">
+          <div className="px-3 pb-2  border-gray-100">
             <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2 bg-[#F8F8F8] w-fit rounded-full py-2 px-4">
+              <div className="flex items-center gap-2  w-fit rounded-full py-2 px-4">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  width="8"
-                  height="13"
+                  width="10"
+                  height="16"
                   fill="none"
                   viewBox="0 0 8 13"
                 >
@@ -1030,71 +1023,46 @@ const JourneySidebar: React.FC<JourneySidebarProps> = ({
                     </clipPath>
                   </defs>
                 </svg>
-                <h2 className="text-[16px] font-medium">
+                <h2 className="text-[20px] font-medium text-[#000000] font-gilroy leading-[100%] tracking-[-3%]">
                   Trip to {journeyData.startingPoint} to {journeyData.endPoint}
                 </h2>
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="10"
-                  height="10"
-                  fill="none"
-                  viewBox="0 0 10 10"
-                >
-                  <g fill="#7C7E7F" clipPath="url(#clip0_1032_52203)">
-                    <path d="M.625 9.063a.312.312 0 0 1-.313-.347l.241-2.188a.3.3 0 0 1 .09-.184L5.757 1.23a1 1 0 0 1 1.416 0l.972.972a1 1 0 0 1 0 1.416l-5.11 5.11a.3.3 0 0 1-.184.09l-2.188.24zm.54-2.36L.979 8.397l1.694-.188 5.031-5.03a.375.375 0 0 0 0-.532l-.975-.975a.375.375 0 0 0-.531 0z"></path>
-                    <path d="M7.187 4.44a.31.31 0 0 1-.222-.09l-1.94-1.947a.314.314 0 0 1 .443-.443l1.947 1.946a.313.313 0 0 1-.228.535M5.027 3.907 2.594 6.34l.442.442L5.469 4.35zM9.375 9.063h-5a.312.312 0 1 1 0-.626h5a.312.312 0 1 1 0 .626"></path>
-                  </g>
-                  <defs>
-                    <clipPath id="clip0_1032_52203">
-                      <path fill="#fff" d="M0 0h10v10H0z"></path>
-                    </clipPath>
-                  </defs>
-                </svg>
+                <Image src="/dashboard/Pencil.png" alt="Edit" width={16} height={16} className="w-6 h-6 cursor-pointer" />
               </div>
             </div>
-            <div className="text-[9px] mb-2 flex items-center gap-3">
+            <div className="text-[13px] text-[#000000] font-gilroy leading-[100%] tracking-[-3%] ml-5 mb-2 flex items-center gap-3">
               <span className="">{journeyData.startingPoint}</span>
-              {selectedDay ? selectedDay : 0} days in {monthDisplay}
+              {selectedDay ? selectedDay : 0} days in  {journeyData.startDate} to {journeyData.endDate}
               <span className="">{travelerCount} travelers</span>
               <span className="">${journeyData.budget}</span>
             </div>
-
-            {/* Heading */}
-            <div className="pb-2 pt-3">
-              <div className="text-[16px] font-semibold ">
-                Itinerary ({selectedDay ? selectedDay : 0} days)
-              </div>
-            </div>
           </div>
 
+
           {/* Navigation Tabs */}
-          <div className="flex items-center gap-1 p-3 border-b border-gray-100 overflow-x-auto">
+          <div className="flex items-center gap-1 px-4 border-b border-gray-100 overflow-x-auto">
             <button
-              className={`px-3 py-2 text-xs font-medium whitespace-nowrap transition-colors ${
-                activeTab === "itinerary"
-                  ? "text-black border-b-2 border-black"
-                  : "text-gray-600 hover:text-gray-900"
-              }`}
+              className={`px-3 py-2 text-xs font-medium whitespace-nowrap transition-colors  text-bold text-[14px] font-gilroy leading-[100%] tracking-[-3%]  ${activeTab === "itinerary"
+                ? "bg-[linear-gradient(90.76deg,#9243AC_0.54%,#B6459F_50.62%,#E74294_99.26%)] bg-clip-text text-transparent border-b-2 border-[linear-gradient(90.76deg,#9243AC_0.54%,#B6459F_50.62%,#E74294_99.26%)]"
+                : "text-gray-600 hover:text-gray-900"
+                }`}
               onClick={() => setActiveTab("itinerary")}
             >
-              Itinerary
+              Itinerary ({selectedDay ? selectedDay : 0})
             </button>
             <button
-              className={`px-3 py-2 text-xs font-medium whitespace-nowrap transition-colors ${
-                activeTab === "calendar"
-                  ? "text-black border-b-2 border-black"
-                  : "text-gray-600 hover:text-gray-900"
-              }`}
-              onClick={() => setActiveTab("calendar")}
+              className={`px-3 py-2 text-xs font-medium whitespace-nowrap transition-colors  text-bold text-[14px] font-gilroy leading-[100%] tracking-[-3%]  ${activeTab === "chat"
+                ? "bg-[linear-gradient(90.76deg,#9243AC_0.54%,#B6459F_50.62%,#E74294_99.26%)] bg-clip-text text-transparent border-b-2 border-[linear-gradient(90.76deg,#9243AC_0.54%,#B6459F_50.62%,#E74294_99.26%)]"
+                : "text-gray-600 hover:text-gray-900"
+                }`}
+              onClick={() => setActiveTab("chat")}
             >
               Calendar
             </button>
             <button
-              className={`px-3 py-2 text-xs font-medium whitespace-nowrap transition-colors ${
-                activeTab === "bookings"
-                  ? "text-black border-b-2 border-black"
-                  : "text-gray-600 hover:text-gray-900"
-              }`}
+              className={`px-3 py-2 text-xs font-medium whitespace-nowrap transition-colors  text-bold text-[14px] font-gilroy leading-[100%] tracking-[-3%]  ${activeTab === "bookings"
+                ? "bg-[linear-gradient(90.76deg,#9243AC_0.54%,#B6459F_50.62%,#E74294_99.26%)] bg-clip-text text-transparent border-b-2 border-[linear-gradient(90.76deg,#9243AC_0.54%,#B6459F_50.62%,#E74294_99.26%)]"
+                : "text-gray-600 hover:text-gray-900"
+                }`}
               onClick={() => setActiveTab("bookings")}
             >
               Bookings
@@ -1102,121 +1070,94 @@ const JourneySidebar: React.FC<JourneySidebarProps> = ({
           </div>
 
           {/* Content based on active tab */}
-          <div className="flex-1 overflow-y-auto min-h-0">
-            {activeTab === "itinerary" && (
-              <div className="p-3">
-                <div className="space-y-2">
-                  {finalDisplayDays.map((day: any, dayIndex: any) => (
-                    <div key={day.id} className="border-b border-gray-200 pb-2">
-                      {/* Day Header */}
-                      <div className="flex items-center justify-between py-2">
-                        <div
-                          className="flex items-center gap-2 cursor-pointer"
-                          onClick={() => handleDayToggle(dayIndex)}
-                        >
-                          <span className="text-[9px] font-medium">
-                            Day {day.dayNumber}
+          {activeTab === "itinerary" && (
+            <div className="flex-1 overflow-y-auto min-h-0">
+              <div className="p-3 space-y-2">
+
+                {finalDisplayDays.map((day: any, dayIndex: number) => {
+                  const isOpen = openDayIndex === dayIndex;
+                  const formattedDate = new Date(day.date).toLocaleDateString("en-US", {
+                    month: "2-digit",
+                    day: "2-digit",
+                    year: "numeric",
+                  });
+
+                  return (
+                    <div
+                      key={day.id || dayIndex}
+                      className="flex items-center justify-between border-b border-gray-100 p-4"
+                    >
+                      {/* Left: Day label + date + chevron */}
+                      <button
+                        type="button"
+                        onClick={() => handleDayToggle(dayIndex)}
+                        className="inline-flex items-center gap-1.5 focus:outline-none"
+                      >
+                        <span className="text-[12px] font-gilroy leading-[100%] tracking-[-3%] font-medium text-[#000000]">
+                          Day {day.dayNumber}{" "}
+                          <span className="text-[#000000] text-[12px] font-gilroy leading-[100%] tracking-[-3%] font-medium">
+                            ({formattedDate})
                           </span>
-                          <svg
-                            className={`w-3 h-3 transition-transform ${
-                              openDayIndex === dayIndex ? "rotate-180" : ""
+                        </span>
+                        <svg
+                          className={`h-3 w-3 text-gray-700 transition-transform ${isOpen ? "rotate-180" : ""
                             }`}
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M19 9l-7 7-7-7"
-                            />
-                          </svg>
-                        </div>
-                        <button
-                          type="button"
-                          className="text-[#7F7C7C] hover:text-blue-800 text-[9px] font-medium"
-                          onClick={() => handleAddStop(dayIndex)}
+                          viewBox="0 0 20 20"
+                          fill="currentColor"
                         >
-                          + Add Stop
-                        </button>
-                      </div>
+                          <path
+                            fillRule="evenodd"
+                            d="M5.23 7.21a.75.75 0 011.06.02L10 10.17l3.71-2.94a.75.75 0 111.04 1.08l-4.22 3.34a.75.75 0 01-.94 0L5.21 8.31a.75.75 0 01.02-1.1z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                      </button>
 
-                      {/* Day Content - Steps */}
-                      {openDayIndex === dayIndex && (
-                        <div className="mt-3 space-y-3">
-                          {!day.steps || day.steps.length === 0 ? (
-                            <div className="text-center py-4 text-gray-500">
-                              <p className="text-[12px]">
-                                No stops added for this day.
-                              </p>
-                              <p className="text-[10px]">
-                                Click '+ Add Stop' to create your first stop.
-                              </p>
-                            </div>
-                          ) : (
-                            day.steps.map((step: any, stepIndex: any) => {
-                              const stepKey = `${dayIndex}-${stepIndex}`;
-                              const isSaved = savedSteps[stepKey];
-
-                              return (
-                                <div key={`step-${stepIndex}`}>
-                                  {/* Show preview for saved steps */}
-                                  {isSaved && (
-                                    <StepPreview
-                                      step={step}
-                                      dayIndex={dayIndex}
-                                      stepIndex={stepIndex}
-                                    />
-                                  )}
-
-                                  {/* Show form for unsaved steps or when editing */}
-                                  {!isSaved && (
-                                    <StopForm
-                                      step={step}
-                                      dayIndex={dayIndex}
-                                      stepIndex={stepIndex}
-                                    />
-                                  )}
-                                </div>
-                              );
-                            })
-                          )}
-                        </div>
-                      )}
+                      {/* Right: + Add Stop */}
+                      <button
+                        type="button"
+                        onClick={() => handleAddStop(dayIndex)}
+                        className="text-[12px] leading-none font-semibold bg-[linear-gradient(90.76deg,#9243AC_0.54%,#B6459F_50.62%,#E74294_99.26%)] bg-clip-text text-transparent focus:outline-none"
+                      >
+                        + Add Stop
+                      </button>
                     </div>
-                  ))}
-                </div>
+                  );
+                })}
 
-                {/* Add Day Button */}
-                <div className="text-center pt-4 pb-4">
-                  <button
-                    type="button"
-                    className="text-blue-600 hover:text-blue-800 text-[12px] font-medium disabled:text-[#7F7C7C]"
-                    onClick={handleAddDay}
-                    disabled={addDayDisabled}
-                  >
-                    + Add Days
-                  </button>
-                </div>
               </div>
-            )}
 
-            {activeTab === "calendar" && (
-              <JourneyCalendar
-                journeyData={journeyData}
-                selectedStep={selectedStep}
-                onStepSelect={onStepSelect}
-              />
-            )}
+              {/* Add Day Button */}
+              <div className="text-center py-4">
+                <button
+                  type="button"
+                  className="text-blue-600 hover:text-blue-800 text-[12px] font-medium disabled:text-[#7F7C7C]"
+                  onClick={handleAddDay}
+                  disabled={addDayDisabled}
+                >
+                  + Add Days
+                </button>
+              </div>
+            </div>
+          )}
 
-            {activeTab === "bookings" && (
-              <JourneyBookings journeyData={journeyData} />
-            )}
-          </div>
+
+          {activeTab === "chat" && (
+            <JourneyCalendar
+              journeyData={journeyData}
+              selectedStep={selectedStep}
+              onStepSelect={onStepSelect}
+            />
+          )}
+
+          {activeTab === "bookings" && (
+            <JourneyBookings journeyData={journeyData} />
+          )}
         </form>
       </div>
-    </div>
+
+
+    </div >
   );
 };
 
