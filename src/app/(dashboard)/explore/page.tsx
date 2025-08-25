@@ -124,7 +124,7 @@ const Page = () => {
   const [isStepDetailsOpen, setIsStepDetailsOpen] = useState<boolean>(false);
 
   /** === Handlers === */
-  const handleMenuClick = () => { };
+  const handleMenuClick = () => {};
 
   const handleStepSelect = (dayIndex: number, stepIndex: number) => {
     setSelectedStep({ dayIndex, stepIndex });
@@ -178,15 +178,14 @@ const Page = () => {
   return (
     <>
       <div className="h-[calc(100vh-210px)] bg-gray-50">
-        {/* <Explore
-          onMenuClick={handleMenuClick}
+        <Explore
           onPlaceSelected={(lng: number, lat: number, name?: string) => {
             mapRef.current?.centerMap(lng, lat, name);
           }}
           onFilterChange={(filter: string) => setActiveFilter(filter)}
           onNewJourneyClick={() => setNewJourney(true)}
           onShowJourneyList={() => setShowJourneyList(!showJourneyList)}
-        /> */}
+        />
 
         <div className="flex h-full">
           {/* Sidebar only when journeyData exists */}
@@ -208,7 +207,11 @@ const Page = () => {
               onJourneyClick={handleJourneyClick} // <-- consumes ApiJourney
             /> */}
             {showJourneyList && (
-              <ExploreJourneyList onJourneyClick={handleJourneyClick} />
+              <ExploreJourneyList
+                onJourneyClick={handleJourneyClick}
+                setShowJourneyList={setShowJourneyList}
+                onNewJourneyClick={() => setNewJourney(true)}
+              />
             )}
             <div className="flex-1">
               <ExploreMap
@@ -238,21 +241,22 @@ const Page = () => {
       <NewJourneyExplore
         newJourney={newJourney}
         setNewJourney={setNewJourney}
-        onJourneyCreated={(data: any) => {
-          const transformed = toJourneyDataFromApi(data);
-          setJourneyData(transformed);
-          setIsJourneySidebarOpen(true);
+        setShowJourneyList={setShowJourneyList}
+        // onJourneyCreated={(data: any) => {
+        //   const transformed = toJourneyDataFromApi(data);
+        //   setJourneyData(transformed);
+        //   setIsJourneySidebarOpen(true);
 
-          const lng = toNumberOrNull(data.start_lng);
-          const lat = toNumberOrNull(data.start_lat);
-          if (lng != null && lat != null) {
-            mapRef.current?.centerMap(
-              lng,
-              lat,
-              data.start_location_name || "Start"
-            );
-          }
-        }}
+        //   const lng = toNumberOrNull(data.start_lng);
+        //   const lat = toNumberOrNull(data.start_lat);
+        //   if (lng != null && lat != null) {
+        //     mapRef.current?.centerMap(
+        //       lng,
+        //       lat,
+        //       data.start_location_name || "Start"
+        //     );
+        //   }
+        // }}
       />
     </>
   );

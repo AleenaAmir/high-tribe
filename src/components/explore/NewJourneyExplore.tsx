@@ -9,6 +9,7 @@ import GlobalSelect from "../global/GlobalSelect";
 import GlobalDateInput from "../global/GlobalDateInput";
 import Location from "../dashboard/svgs/Location";
 import { toast } from "react-hot-toast";
+import Image from "next/image";
 
 // ── Validation ────────────────────────────────────────────────────────────────
 const journeyFormSchema = z
@@ -45,11 +46,13 @@ type JourneyFormData = z.infer<typeof journeyFormSchema>;
 export default function NewJourneyExplore({
   newJourney,
   setNewJourney,
-  onJourneyCreated,
+  // onJourneyCreated,
+  setShowJourneyList,
 }: {
   newJourney: boolean;
   setNewJourney: (v: boolean) => void;
-  onJourneyCreated?: (journeyData: JourneyFormData) => any;
+  // onJourneyCreated?: (journeyData: JourneyFormData) => any;
+  setShowJourneyList: (v: boolean) => void;
 }) {
   const {
     register,
@@ -120,8 +123,8 @@ export default function NewJourneyExplore({
 
       const result = await response.json();
       // console.log("API response:", result);
-
-      onJourneyCreated?.(data);
+      setShowJourneyList(true);
+      // onJourneyCreated?.(data);
       reset();
       setNewJourney(false);
     } catch (err) {
@@ -141,13 +144,13 @@ export default function NewJourneyExplore({
       <GlobalModalBorderLess
         isOpen={newJourney}
         onClose={handleClose}
-        maxWidth="max-w-[500px]"
+        maxWidth="max-w-[700px]"
         customPadding="p-0"
       >
         <div className="overflow-y-scroll w-full rounded-[20px] scrollbar-hide">
-          <div className="h-full rounded-lg">
+          <div className="grid grid-cols-1 lg:grid-cols-2 h-full rounded-lg">
             {/* Left: Visual */}
-            {/* <div
+            <div
               className="relative bg-cover bg-center rounded-l-lg hidden lg:grid"
               style={{
                 backgroundImage:
@@ -156,14 +159,42 @@ export default function NewJourneyExplore({
             >
               <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent rounded-l-lg" />
               <div className="absolute bottom-6 left-6 text-white">
-                <h2 className="text-2xl font-bold mb-1">Start New Journey</h2>
-                <p className="text-sm opacity-90">5 Days • 4 Travelers</p>
+                <Image
+                  src="/logowhite.svg"
+                  alt="New Journey Explore"
+                  width={130}
+                  height={47}
+                />
+                <h2 className="text-2xl font-bold mt-3">Start New Journey</h2>
+                <p className="text-sm opacity-90">
+                  {watch("endDate") && (
+                    <>
+                      {(() => {
+                        const start = watch("startDate");
+                        const end = watch("endDate");
+                        if (start && end) {
+                          const startDate = new Date(start);
+                          const endDate = new Date(end);
+                          const diffTime =
+                            endDate.getTime() - startDate.getTime();
+                          const diffDays =
+                            Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+                          if (!isNaN(diffDays) && diffDays > 0) {
+                            return `${diffDays} day${diffDays > 1 ? "s" : ""}`;
+                          }
+                        }
+                        return null;
+                      })()}
+                    </>
+                  )}{" "}
+                  {watch("noOfPeople") && `• ${watch("noOfPeople")} Travelers`}
+                </p>
               </div>
-            </div> */}
+            </div>
 
             {/* Right: Form */}
             <div className=" flex flex-col  bg-white justify-center h-full">
-              <div className="flex justify-center items-center p-6 border-b border-[#EDEDED]">
+              <div className="flex justify-center items-center p-4">
                 <div className="text-center">
                   <h2 className="text-[22px] font-bold">Start New Journey</h2>
                   {/* <p className="text-[10px] leading-relaxed">
@@ -176,7 +207,7 @@ export default function NewJourneyExplore({
 
               <form
                 onSubmit={handleSubmit(onSubmit)}
-                className="w-full relative z-10 p-6"
+                className="w-full relative z-10 p-6 pt-0"
               >
                 {/* Title */}
                 <GlobalTextInput
@@ -287,9 +318,9 @@ export default function NewJourneyExplore({
                   type="submit"
                   disabled={isSubmitting}
                   onClick={handleSubmit(onSubmit)}
-                  className="w-full max-w-[320px] flex items-center justify-center mx-auto bg-gradient-to-r from-[#9743AA] to-[#E54295] text-white font-semibold text-[18px] py-2 px-4 rounded-full transition-colors duration-200 mt-6 disabled:cursor-not-allowed"
+                  className="w-full max-w-[300px] flex items-center justify-center mx-auto bg-gradient-to-r from-[#9743AA] to-[#E54295] text-white font-semibold text-[16px] py-2 px-4 rounded-full transition-colors duration-200 mt-6 disabled:cursor-not-allowed"
                 >
-                  {isSubmitting ? "Creating..." : "Checkout"}
+                  {isSubmitting ? "Creating..." : "Create Journey"}
                 </button>
               </form>
             </div>

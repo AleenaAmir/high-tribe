@@ -3,10 +3,14 @@ import React, { useEffect, useState } from "react";
 
 interface ExploreJourneyListProps {
   onJourneyClick: (journey: any) => void;
+  setShowJourneyList: (show: boolean) => void;
+  onNewJourneyClick: () => void;
 }
 
 export default function ExploreJourneyList({
   onJourneyClick,
+  setShowJourneyList,
+  onNewJourneyClick,
 }: ExploreJourneyListProps) {
   const [trips, setTrips] = useState<any[]>([]);
 
@@ -58,13 +62,36 @@ export default function ExploreJourneyList({
       </defs>
     </svg>
   );
+  const closeIcon = (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="10"
+      height="10"
+      fill="none"
+      viewBox="0 0 10 10"
+    >
+      <path
+        stroke="#000"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="1.5"
+        d="m1.708 1.708 6.963 6.963M1.708 8.671l6.963-6.963"
+      ></path>
+    </svg>
+  );
   return (
-    <div className="w-60 bg-white shadow-sm h-full flex flex-col">
-      <div className="flex items-center gap-3 my-2 px-4 ">
+    <div className="w-72 bg-[#FAFBFB]  flex flex-col p-4">
+      <div
+        className="p-2 bg-white rounded-full cursor-pointer w-fit"
+        onClick={() => setShowJourneyList(false)}
+      >
+        {closeIcon}
+      </div>
+      <div className="flex items-center gap-3 my-2">
         <div className="p-2 bg-[#F4F4F4] rounded-sm">{icon}</div>
         <div className="text-[18px] font-semibold text-black">My Journey</div>
       </div>
-      <div className="px-4 space-y-1">
+      <div className="space-y-1 max-h-[400px] overflow-y-auto">
         <div className="text-[18px] font-medium text-[#9F40C8]">Trips</div>
         {trips.map((trip, idx) => (
           <div
@@ -89,6 +116,12 @@ export default function ExploreJourneyList({
             </div>
           </div>
         ))}
+      </div>
+      <div
+        className="bg-gradient-to-r mt-4 from-[#9743AA] to-[#E54295] text-white flex items-center justify-center text-[13px] gap-1 px-3 py-1.5 rounded-full hover:bg-gray-50 transition-colors cursor-pointer shadow-sm hover:shadow-md active:scale-95 "
+        onClick={onNewJourneyClick}
+      >
+        Add New Journey
       </div>
     </div>
   );
