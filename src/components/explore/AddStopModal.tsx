@@ -9,9 +9,9 @@ import GlobalSelect from "../global/GlobalSelect";
 import GlobalDateInput from "../global/GlobalDateInput";
 import Location from "../dashboard/svgs/Location";
 import { toast } from "react-hot-toast";
-import Image from "next/image";
 import { apiRequest } from "@/lib/api";
 import GlobalTextArea from "../global/GlobalTextArea";
+
 
 // ── Validation ────────────────────────────────────────────────────────────────
 const stopFormSchema = z.object({
@@ -29,7 +29,15 @@ export default function AddStopModal({
     open,
     onClose,
     dayIndex,
-}: any) {
+    journeyData,
+    setSavedSteps,
+}: {
+    open: boolean;
+    onClose: () => void;
+    dayIndex: number;
+    journeyData: any;
+    setSavedSteps: (steps: any) => void;
+}) {
     const {
         register,
         handleSubmit,
@@ -111,15 +119,45 @@ export default function AddStopModal({
     }, []);
 
     const onSubmit = async (data: StopFormData) => {
+        // Persist
         try {
-            console.log("Stop data:", data);
-            toast.success("Stop added successfully!");
-            reset();
-            onClose();
-        } catch (err) {
-            console.error("Error adding stop:", err);
-            toast.error("Failed to add stop");
+            const TOKEN =
+                typeof window !== "undefined"
+                    ? localStorage.getItem("token") || "<PASTE_VALID_TOKEN_HERE>"
+                    : "<PASTE_VALID_TOKEN_HERE>";
+
+            const formData = new FormData();
+
+            formData.append("stop_category_id", data.category || "1");
+            formData.append("location_name", data.location);
+            formData.append("lat", "48.8584");
+            formData.append("lng", "2.2945");
+            formData.append("transport_mode", data.modeOfTravel || "");
+            formData.append("start_date", data.date || "");
+
+            formData.append("notes", data.notes || "");
+
+            const response = await fetch(
+                `https://api.hightribe.com/api/journeys/${journeyData.id}/stops`,
+                {
+                    method: "POST",
+                    headers: {
+                        Authorization: `Bearer ${TOKEN}`,
+                        Accept: "application/json",
+                    },
+                    body: formData,
+                }
+            );
+            if (response.status === 201) {
+                toast.success("Stop saved successfully!");
+            }
+        } catch (e) {
+            console.warn("Save failed (show a toast, keep user in edit):", e);
+            return;
         }
+
+        // Switch to preview mode
+        setSavedSteps((m: any) => ({ ...m, [`${dayIndex}`]: true }));
     };
 
     return (

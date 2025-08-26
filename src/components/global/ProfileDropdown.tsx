@@ -57,7 +57,7 @@ const ProfileDropdown = ({
       <button
         onClick={onToggle}
         type="button"
-        className="flex items-center gap-2 p-1.5 hover:bg-gray-100 rounded-full"
+        className="flex items-center gap-2 p-1.5  rounded-full"
       >
         <img
           src="https://randomuser.me/api/portraits/men/32.jpg"

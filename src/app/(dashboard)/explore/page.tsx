@@ -198,8 +198,8 @@ const blankJourney: JourneyData = {
   journeyName: "",
   startingPoint: "",
   endPoint: "",
-  startDate: toISODate(),
-  endDate: toISODate(),
+  startDate: "",
+  endDate: "",
   who: "",
   budget: "",
   days: [],
@@ -359,8 +359,10 @@ const Page = () => {
       {isAddingStop ? (
         <AddStopModal
           open={isAddingStop}
-          dayIndex={addStopForDay}
+          dayIndex={addStopForDay || 0}
           onClose={() => setIsAddingStop(false)}
+          journeyData={journeyData}
+          setSavedSteps={() => { }}
         />
       ) : null}
     </>

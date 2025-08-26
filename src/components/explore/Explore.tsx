@@ -29,9 +29,7 @@ const Explore = ({
   const [isLoading, setIsLoading] = useState(false);
 
   // Add state for the modals
-  const [isJournyMap, setJournyMap] = useState(false);
-  const [isFootprintModal, setFootprintModal] = useState(false);
-  const [isAdvisoryModal, setAdvisoryModal] = useState(false);
+
   const [isTipModal, setTipModal] = useState(false);
 
   useEffect(() => {
@@ -80,19 +78,23 @@ const Explore = ({
     <div className="sticky top-0 lg:z-50 z-40 bg-white">
       {/* ExploreFeeds Component - Below Navbar */}
       <ExploreFeeds
-        setJournyMap={setJournyMap}
-        setFootprintModal={setFootprintModal}
-        setAdvisoryModal={setAdvisoryModal}
         setTipModal={setTipModal}
         onFilterChange={onFilterChange}
         onNewJourneyClick={onNewJourneyClick}
       />
       <div className="flex items-center gap-2 bg-white p-3">
-        <div className="relative w-[360px] border border-[#DFDFDF] rounded-full">
+        <button
+          onClick={onShowJourneyList}
+          type="button"
+          className="p-2 bg-white cursor-pointer"
+        >
+          <Menuicon />
+        </button>
+        <div className="relative w-[360px] border border-[#DFDFDF] rounded-full p-1">
           <input
             type="text"
             placeholder="Search"
-            className="w-full px-3 py-[6px] rounded-full text-xs text-[#3E3E3E] focus:outline-none focus:border-blue-500 placeholder:text-gray-400"
+            className="w-full px-3 py-[6px] rounded-full text-xs text-[#3E3E3E] focus:outline-none focus:border-blue-500 placeholder:text-[#909090] placeholder:text-[14px] placeholder:font-gilroy placeholder:font-[400] placeholder:leading-[100%] placeholder:tracking-[-3%]"
             value={search}
             onChange={(e) => {
               setSearch(e.target.value);
@@ -189,29 +191,19 @@ const Explore = ({
             </div>
           )}
         </div>
-        <button
-          onClick={onShowJourneyList}
-          type="button"
-          className="p-2 bg-white cursor-pointer"
-        >
-          <Menuicon />
-        </button>
+
       </div>
     </div>
   );
 };
 
 const ExploreFeeds = ({
-  setJournyMap,
-  setFootprintModal,
-  setAdvisoryModal,
+
   setTipModal,
   onFilterChange,
   onNewJourneyClick,
 }: {
-  setJournyMap: (value: boolean) => void;
-  setFootprintModal: (value: boolean) => void;
-  setAdvisoryModal: (value: boolean) => void;
+
   setTipModal: (value: boolean) => void;
   onFilterChange?: (filter: string) => void;
   onNewJourneyClick?: () => void;
@@ -221,89 +213,22 @@ const ExploreFeeds = ({
 
   const options = [
     {
-      name: "All feeds",
+      name: "All Feeds",
       img: (
         <Image
           src={"/dashboard/Feeds.svg"}
           alt={"footprint1"}
-          width={12}
-          height={12}
-          className="w-3 h-3 border-black"
+          width={14}
+          height={14}
+          className="w-6 h-6 border-black"
         />
       ),
       onclick: () => {
-        setActiveTab("All feeds");
-        onFilterChange?.("All feeds");
+        setActiveTab("All Feeds");
+        onFilterChange?.("All Feeds");
       },
     },
-    // {
-    //   name: "Footprints",
-    //   img: (
-    //     <Image
-    //       src={"/dashboard/Footicon.svg"}
-    //       alt={"footprint1"}
-    //       width={12}
-    //       height={12}
-    //       className="w-3 h-3"
-    //     />
-    //   ),
-    //   onclick: () => {
-    //     setActiveTab("Footprints");
-    //     onFilterChange?.("Footprints");
-    //     setJournyMap(true);
-    //   },
-    // },
-    // {
-    //   name: "Mapping journey",
-    //   img: (
-    //     <Image
-    //       src={"/dashboard/Guid.svg"}
-    //       alt={"footprint2"}
-    //       width={16}
-    //       height={16}
-    //       className="md:w-[16px] md:h-[16px] w-[12px] h-[12px]"
-    //     />
-    //   ),
-    //   onclick: () => {
-    //     setActiveTab("Mapping journey");
-    //     onFilterChange?.("Mapping journey");
-    //     setJournyMap(true);
-    //   },
-    // },
-    // {
-    //   name: "Travel Advisory",
-    //   img: (
-    //     <Image
-    //       src={"/dashboard/footprint2.svg"}
-    //       alt={"footprint2"}
-    //       width={16}
-    //       height={16}
-    //       className="md:w-[16px] md:h-[16px] w-[12px] h-[12px]"
-    //     />
-    //   ),
-    //   onclick: () => {
-    //     setActiveTab("Travel Advisory");
-    //     onFilterChange?.("Travel Advisory");
-    //     setAdvisoryModal(true);
-    //   },
-    // },
-    // {
-    //   name: "Travel Tip",
-    //   img: (
-    //     <Image
-    //       src={"/dashboard/footprint3.svg"}
-    //       alt={"footprint3"}
-    //       width={16}
-    //       height={16}
-    //       className="md:w-[16px] md:h-[16px] w-[12px] h-[12px]"
-    //     />
-    //   ),
-    //   onclick: () => {
-    //     setActiveTab("Travel Tip");
-    //     onFilterChange?.("Travel Tip");
-    //     setTipModal(true);
-    //   },
-    // },
+
     {
       name: "Peoples",
       img: (
@@ -405,21 +330,20 @@ const ExploreFeeds = ({
   ];
 
   return (
-    <div className="flex items-center justify-between p-3 rounded-b-lg bg-[#F9F9F9] overflow-x-auto border-[#E5E5E5] border-y ">
+    <div className="flex items-center justify-between p-3 rounded-b-lg  overflow-x-auto border-b border-[#E5E5E5] ">
       <div className="flex items-center gap-2">
         {options.map((option, i) => (
           <button
             type="button"
             key={i}
-            onClick={option?.onclick || (() => {})}
-            className={`flex items-center text-[8px] md:text-[10px] gap-0.5 p-1 md:p-1.5 cursor-pointer hover:shadow-md transition-all duration-300 px-1.5 md:px-3 rounded-full whitespace-nowrap border ${
-              activeTab === option.name
-                ? "bg-gradient-to-r from-[#9743AA] to-[#E54295] text-white"
-                : "bg-white text-gray-700 border-gray-300"
-            }`}
+            onClick={option?.onclick || (() => { })}
+            className={`flex items-center text-[8px] md:text-[10px] gap-0.5 p-1 md:p-1.5 cursor-pointer hover:shadow-md transition-all duration-300 px-1.5 md:px-3 rounded-full whitespace-nowrap border ${activeTab === option.name
+              ? "bg-gradient-to-r from-[#9743AA] to-[#E54295] text-white"
+              : "bg-white text-gray-700 border-gray-300"
+              }`}
           >
             {option?.img && option?.img}
-            {option?.name && <p>{option.name}</p>}
+            {option?.name && <p className="text-[12px] md:text-[14px] font-gilroy font-[500] leading-[100%] tracking-[-3%]">{option.name}</p>}
           </button>
         ))}
       </div>
@@ -433,14 +357,16 @@ const ExploreFeeds = ({
               setToggle("newJourney");
               onNewJourneyClick?.();
             }}
-            className="bg-gradient-to-r from-[#9743AA] to-[#E54295] rounded-full p-px transform-none hover:bg-none"
+            className="rounded-full p-[1.5px] bg-gradient-to-r from-[#9743AA] to-[#E54295]"
           >
             <div
-              className={`flex items-center text-[13px] gap-1 px-3 py-1.5 rounded-full hover:bg-gray-50 transition-colors cursor-pointer shadow-sm hover:shadow-md active:scale-95 ${
+              className={[
+                "flex items-center gap-1 px-3 py-1.5 rounded-full shadow-sm hover:shadow-md active:scale-95 transition-all",
+                // when active: fill with gradient
                 toggle === "newJourney"
-                  ? "bg-gradient-to-r from-[#9743AA] to-[#E54295] text-white"
-                  : "bg-white text-black"
-              }`}
+                  ? "bg-[linear-gradient(90.76deg,#9743AA_0.54%,#B6459F_50.62%,#E54295_99.26%)] text-white ring-1 ring-white/30"
+                  : "bg-white text-black",
+              ].join(" ")}
             >
               <span className="whitespace-nowrap">Start New January</span>
               <div className="w-4 h-4 bg-white border border-black rounded-full flex items-center justify-center hover:bg-gray-100 transition-colors cursor-pointer active:scale-95">
@@ -454,14 +380,13 @@ const ExploreFeeds = ({
             onClick={() => {
               setToggle("explore");
             }}
-            className="bg-gradient-to-r from-[#9743AA] to-[#E54295] rounded-full p-px transform-none hover:bg-none"
+            className="rounded-full p-[1.5px] bg-gradient-to-r from-[#9743AA] to-[#E54295]"
           >
             <div
-              className={`flex items-center text-[13px] gap-1 px-5 py-1.5 bg-white text-black rounded-full hover:bg-gray-50 transition-colors cursor-pointer shadow-sm hover:shadow-md active:scale-95 ${
-                toggle === "explore"
-                  ? "bg-gradient-to-r from-[#9743AA] to-[#E54295] text-white"
-                  : "bg-white text-black"
-              }`}
+              className={`flex items-center text-[13px] gap-1 px-5 py-1.5 bg-white text-black rounded-full hover:bg-gray-50 transition-colors cursor-pointer shadow-sm hover:shadow-md active:scale-95 ${toggle === "explore"
+                ? "bg-gradient-to-r from-[#9743AA] to-[#E54295] text-white"
+                : "bg-white text-black"
+                }`}
             >
               Explore
             </div>
@@ -477,45 +402,5 @@ const ExploreFeeds = ({
   );
 };
 
-// Navigation Icon Component
-const NavIcon = ({
-  icon,
-  label,
-  isActive,
-  notificationCount,
-}: {
-  icon: string;
-  label: string;
-  isActive?: boolean;
-  notificationCount?: number;
-}) => (
-  <button
-    className={`relative flex group cursor-pointer flex-col items-center ${
-      isActive ? "text-blue-600" : "text-[#6C6C6C] hover:text-blue-600"
-    }`}
-  >
-    <div className="p-1.5 relative">
-      <Image
-        src={icon}
-        alt={label}
-        width={19}
-        height={19}
-        className="w-5 h-5"
-      />
-      {notificationCount && (
-        <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-xs font-medium rounded-full flex items-center justify-center">
-          {notificationCount}
-        </span>
-      )}
-    </div>
-    <span className="text-[8px] font-medium mt-0.5">{label}</span>
-
-    <div
-      className={`absolute bottom-0 left-0 right-0 h-0.5 transition-all duration-300 transform translate-y-2 ${
-        isActive ? "bg-blue-600" : "bg-transparent group-hover:bg-blue-600"
-      }`}
-    />
-  </button>
-);
 
 export default Explore;

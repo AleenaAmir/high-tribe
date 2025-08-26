@@ -119,7 +119,7 @@ const NavBar = ({ onMenuClick }: NavBarProps) => {
               onToggle={() => setIsProfileOpen(!isProfileOpen)}
             />
 
-            <div className="bg-[#F9F9F9] py-2 px-4 -mb-1 rounded-md">
+            <div className=" py-2 px-4 -mb-1 rounded-md">
               <div className="flex flex-col items-center gap-1">
                 <label className="relative h-6 w-12 inline-block">
                   <input
