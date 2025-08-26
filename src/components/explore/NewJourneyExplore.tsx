@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -10,6 +10,10 @@ import GlobalDateInput from "../global/GlobalDateInput";
 import Location from "../dashboard/svgs/Location";
 import { toast } from "react-hot-toast";
 import Image from "next/image";
+import {
+  fetchGooglePlaceSuggestions,
+  getCoordinatesForGooglePlace,
+} from "@/lib/googlePlaces";
 
 // ── Validation ────────────────────────────────────────────────────────────────
 const journeyFormSchema = z
@@ -42,6 +46,159 @@ const journeyFormSchema = z
 
 type JourneyFormData = z.infer<typeof journeyFormSchema>;
 
+// ── Location Selector Component ───────────────────────────────────────────────
+interface LocationSelectorProps {
+  value: string;
+  onChange: (value: string) => void;
+  onLocationSelect: (coords: [number, number], name: string) => void;
+  error?: string;
+  placeholder?: string;
+  label: string;
+}
+
+function LocationSelector({
+  value,
+  onChange,
+  onLocationSelect,
+  error,
+  placeholder,
+  label,
+}: LocationSelectorProps) {
+  const [suggestions, setSuggestions] = useState<any[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
+
+  // Debounced search function
+  const debouncedSearch = useCallback(
+    (() => {
+      let timeout: NodeJS.Timeout;
+      return (query: string) => {
+        clearTimeout(timeout);
+        timeout = setTimeout(async () => {
+          if (query.length < 2) {
+            setSuggestions([]);
+            return;
+          }
+
+          setIsLoadingSuggestions(true);
+          try {
+            const suggestions = await fetchGooglePlaceSuggestions(query);
+            setSuggestions(suggestions);
+          } catch (error) {
+            console.error("Error fetching suggestions:", error);
+            setSuggestions([]);
+          } finally {
+            setIsLoadingSuggestions(false);
+          }
+        }, 300);
+      };
+    })(),
+    []
+  );
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = e.target.value;
+    onChange(newValue);
+    debouncedSearch(newValue);
+    setShowSuggestions(true);
+  };
+
+  const handleSuggestionClick = async (suggestion: any) => {
+    try {
+      let coordinates: [number, number] | null = null;
+      let selectedText = "";
+
+      // Handle both Google Places and Mapbox suggestions
+      if (suggestion.place_id) {
+        coordinates = await getCoordinatesForGooglePlace(suggestion.place_id);
+        if (coordinates) {
+          selectedText = suggestion.description || suggestion.place_name;
+          onChange(selectedText);
+          onLocationSelect(coordinates, selectedText);
+        }
+      }
+
+      setSuggestions([]);
+      setShowSuggestions(false);
+    } catch (error) {
+      console.error("Error handling suggestion click:", error);
+      toast.error("Failed to get location coordinates");
+    }
+  };
+
+  const handleFocus = () => {
+    setShowSuggestions(true);
+    if (value.length >= 2) {
+      debouncedSearch(value);
+    }
+  };
+
+  const handleBlur = () => {
+    setTimeout(() => {
+      setShowSuggestions(false);
+    }, 150);
+  };
+
+  return (
+    <div className="flex flex-col gap-1 relative">
+      <label className="text-[12px] font-medium text-[#1C231F] translate-y-3.5 translate-x-4 bg-white w-fit px-1 z-10">
+        {label}
+      </label>
+      <div className="relative">
+        <input
+          type="text"
+          className={`rounded-lg border py-3 px-5 text-[12px] w-full h-[40px] placeholder:text-[#AFACAC] focus:outline-none focus:ring-2 focus:ring-[#9743AA] transition-all ${
+            error ? "border-red-500" : "border-[#848484]"
+          }`}
+          // placeholder={placeholder || "Search for a location..."}
+          value={value}
+          onChange={handleInputChange}
+          onFocus={handleFocus}
+          onBlur={handleBlur}
+          autoComplete="off"
+        />
+        <div className="absolute right-3 top-1/2 -translate-y-1/2">
+          <Location className="text-gray-400" />
+        </div>
+        {isLoadingSuggestions && (
+          <span className="absolute right-10 top-1/2 -translate-y-1/2 text-xs text-gray-400">
+            Loading...
+          </span>
+        )}
+      </div>
+
+      {/* Suggestions dropdown */}
+      {showSuggestions && suggestions.length > 0 && (
+        <div className="absolute left-0 top-full w-full bg-white border border-gray-200 rounded-lg shadow-lg z-20 max-h-60 overflow-auto mt-1">
+          {suggestions.map((suggestion: any, index: number) => (
+            <div
+              key={suggestion.place_id || index}
+              className="p-3 hover:bg-gray-100 cursor-pointer border-b border-gray-200 last:border-b-0"
+              onMouseDown={(e) => {
+                e.preventDefault(); // Prevent blur
+                handleSuggestionClick(suggestion);
+              }}
+            >
+              <div>
+                <div className="font-medium text-gray-900">
+                  {suggestion.structured_formatting?.main_text ||
+                    suggestion.text}
+                </div>
+                <div className="text-sm text-gray-500">
+                  {suggestion.structured_formatting?.secondary_text ||
+                    suggestion.place_name}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {error && <p className="mt-1 text-sm text-red-500">{error}</p>}
+    </div>
+  );
+}
+
 // ── Component ────────────────────────────────────────────────────────────────
 export default function NewJourneyExplore({
   newJourney,
@@ -73,7 +230,78 @@ export default function NewJourneyExplore({
     },
   });
 
-  // Debug (remove in production)
+  // State for location coordinates and background image
+  const [startLocation, setStartLocation] = useState<{
+    coords: [number, number] | null;
+    name: string;
+  }>({
+    coords: null,
+    name: "",
+  });
+
+  const [endLocation, setEndLocation] = useState<{
+    coords: [number, number] | null;
+    name: string;
+  }>({
+    coords: null,
+    name: "",
+  });
+
+  const [backgroundImage, setBackgroundImage] = useState<string>(
+    "https://res.cloudinary.com/dtfzklzek/image/upload/v1755211203/794_1_x4c1uv.png"
+  );
+
+  console.log(backgroundImage, "backgroundImage=============================");
+
+  // Function to get Mapbox static image for location
+  const getMapboxStaticImage = useCallback(async (coords: [number, number]) => {
+    try {
+      const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
+      if (!MAPBOX_TOKEN) return null;
+
+      // Get a static map image from Mapbox
+      const [lng, lat] = coords;
+      const width = 800;
+      const height = 600;
+      const zoom = 12;
+
+      // Fixed URL format with proper pin marker syntax
+      const imageUrl = `https://api.mapbox.com/styles/v1/mapbox/streets-v11/static/pin-s+ff0000(${lng},${lat})/${lng},${lat},${zoom}/${width}x${height}@2x?access_token=${MAPBOX_TOKEN}`;
+
+      return imageUrl;
+    } catch (error) {
+      console.error("Error getting Mapbox static image:", error);
+      return null;
+    }
+  }, []);
+
+  // Handle start location selection
+  const handleStartLocationSelect = (
+    coords: [number, number],
+    name: string
+  ) => {
+    setStartLocation({ coords, name });
+    setValue("startLocationName", name, { shouldValidate: true });
+  };
+
+  // Handle end location selection
+  const handleEndLocationSelect = async (
+    coords: [number, number],
+    name: string
+  ) => {
+    setEndLocation({ coords, name });
+    setValue("endLocationName", name, { shouldValidate: true });
+
+    // Update background image with the selected end location
+    try {
+      const newBackgroundImage = await getMapboxStaticImage(coords);
+      if (newBackgroundImage) {
+        setBackgroundImage(newBackgroundImage);
+      }
+    } catch (error) {
+      console.error("Error updating background image:", error);
+    }
+  };
 
   const onSubmit = async (data: JourneyFormData) => {
     // debugger;
@@ -87,15 +315,30 @@ export default function NewJourneyExplore({
       console.log(TOKEN, "TOKEN");
 
       const user_id = JSON.parse(localStorage.getItem("user") || "{}").id;
+
+      // Use actual coordinates if available, otherwise fallback to dummy values
+      const startLat = startLocation.coords
+        ? startLocation.coords[1].toString()
+        : "31.5497";
+      const startLng = startLocation.coords
+        ? startLocation.coords[0].toString()
+        : "74.3436";
+      const endLat = endLocation.coords
+        ? endLocation.coords[1].toString()
+        : "36.3167";
+      const endLng = endLocation.coords
+        ? endLocation.coords[0].toString()
+        : "74.6500";
+
       // Prepare payload for your API (map to their expected snake_case keys)
       const payload = {
         title: data.title,
         start_location_name: data.startLocationName,
-        start_lat: "31.5497", // TODO: replace with geocoded value
-        start_lng: "74.3436",
+        start_lat: startLat,
+        start_lng: startLng,
         end_location_name: data.endLocationName,
-        end_lat: "36.3167", // TODO: replace with geocoded value
-        end_lng: "74.6500",
+        end_lat: endLat,
+        end_lng: endLng,
         start_date: data.startDate,
         end_date: data.endDate,
         user_id: user_id, // TODO: replace with actual auth/user context
@@ -136,6 +379,11 @@ export default function NewJourneyExplore({
   const handleClose = () => {
     if (isSubmitting) return; // prevent closing while submitting
     reset();
+    setStartLocation({ coords: null, name: "" });
+    setEndLocation({ coords: null, name: "" });
+    setBackgroundImage(
+      "https://res.cloudinary.com/dtfzklzek/image/upload/v1755211203/794_1_x4c1uv.png"
+    );
     setNewJourney(false);
   };
 
@@ -153,8 +401,7 @@ export default function NewJourneyExplore({
             <div
               className="relative bg-cover bg-center rounded-l-lg hidden lg:grid"
               style={{
-                backgroundImage:
-                  "url(https://res.cloudinary.com/dtfzklzek/image/upload/v1755211203/794_1_x4c1uv.png)",
+                backgroundImage: `url(${backgroundImage})`,
               }}
             >
               <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent rounded-l-lg" />
@@ -199,8 +446,8 @@ export default function NewJourneyExplore({
                   <h2 className="text-[22px] font-bold">Start New Journey</h2>
                   {/* <p className="text-[10px] leading-relaxed">
                     Plan your next adventure by sharing the details of your
-                    trip. Fill in where you’re going, when you’re leaving, and
-                    who’s traveling with you.
+                    trip. Fill in where you're going, when you're leaving, and
+                    who's traveling with you.
                   </p> */}
                 </div>
               </div>
@@ -216,32 +463,33 @@ export default function NewJourneyExplore({
                   {...register("title")}
                 />
 
-                {/* Start */}
-                <div className="relative">
-                  <GlobalTextInput
-                    label="Starting Point"
-                    error={errors.startLocationName?.message}
-                    {...register("startLocationName")}
-                  />
-                  <div className="absolute right-3 top-9">
-                    <Location className="text-gray-400" />
-                  </div>
-                </div>
+                {/* Start Location with suggestions */}
+                <LocationSelector
+                  value={watch("startLocationName")}
+                  onChange={(value) =>
+                    setValue("startLocationName", value, {
+                      shouldValidate: true,
+                    })
+                  }
+                  onLocationSelect={handleStartLocationSelect}
+                  error={errors.startLocationName?.message}
+                  placeholder=""
+                  label="Starting Point"
+                />
 
-                {/* End */}
-                <div className="relative">
-                  <GlobalTextInput
-                    label="End Point"
-                    error={errors.endLocationName?.message}
-                    {...register("endLocationName")}
-                  />
-                  <div className="absolute right-3 top-9">
-                    <Location className="text-gray-400" />
-                  </div>
-                </div>
+                {/* End Location with suggestions */}
+                <LocationSelector
+                  value={watch("endLocationName")}
+                  onChange={(value) =>
+                    setValue("endLocationName", value, { shouldValidate: true })
+                  }
+                  onLocationSelect={handleEndLocationSelect}
+                  error={errors.endLocationName?.message}
+                  placeholder=""
+                  label="End Point"
+                />
 
                 {/* Dates */}
-
                 <div className="relative">
                   <GlobalDateInput
                     label="Start Date"
