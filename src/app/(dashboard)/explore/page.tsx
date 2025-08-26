@@ -9,7 +9,7 @@ import JourneySidebar from "@/components/explore/JourneySidebar";
 import StepDetailsPanel from "@/components/explore/StepDetailsPanel";
 import { Step } from "@/components/dashboard/modals/components/newjourney/types";
 import ExploreJourneyList from "@/components/explore/ExploreJourneyList";
-import AddStopModal from "@/components/explore/AddStopModal";
+import StopModal from "@/components/explore/StopModal";
 import DayStopsModal from "@/components/explore/components/DayStopsModal";
 import { apiRequest } from "@/lib/api";
 
@@ -147,9 +147,9 @@ const toJourneyDataFromApi = (j: ApiJourney): JourneyData => {
           coords:
             stop.lat && stop.lng
               ? ([
-                parseFloat(String(stop.lng)),
-                parseFloat(String(stop.lat)),
-              ] as [number, number])
+                  parseFloat(String(stop.lng)),
+                  parseFloat(String(stop.lat)),
+                ] as [number, number])
               : null,
           name: stop.location_name || "",
         },
@@ -232,7 +232,6 @@ const Page = () => {
 
   /** === Handlers === */
 
-
   const handleStepSelect = (dayIndex: number, stepIndex: number) => {
     setSelectedStep({ dayIndex, stepIndex });
     setIsStepDetailsOpen(true);
@@ -252,13 +251,16 @@ const Page = () => {
   useEffect(() => {
     fetchJourneyData(journeyData?.id);
     console.log(dayStops, "dayStops");
-    console.log(Array.isArray(dayStops) ? dayStops : [], "dayStopsssssssssssssss");
+    console.log(
+      Array.isArray(dayStops) ? dayStops : [],
+      "dayStopsssssssssssssss"
+    );
   }, [journeyData?.id]);
   console.log(journeyData, "journeyData");
 
   const extractStops = (r: any): ApiJourneyStop[] => {
-    const p = r?.data ?? r;          // axios: r.data, fetch/custom: r
-    if (Array.isArray(p)) return p;  // payload is array
+    const p = r?.data ?? r; // axios: r.data, fetch/custom: r
+    if (Array.isArray(p)) return p; // payload is array
     if (Array.isArray(p?.data)) return p.data; // payload.data is array
     return [];
   };
@@ -270,8 +272,25 @@ const Page = () => {
     const stops = extractStops(response);
 
     console.log("isArray?", Array.isArray(stops), stops); // ✅ yahan sahi array milega
-    setAllStops(stops);           // full list as-is
-    setDayStops([]);              // modal ke liye blank start (ya default filter lagani ho to wo)
+    setAllStops(stops); // full list as-is
+
+    // If modal is open, refilter the stops for the current day
+    if (openDayIndex && formattedDate) {
+      const targetISO = toISOyyyyMMdd(formattedDate);
+      const filtered = stops.filter((s) => toISOyyyyMMdd(s.date) === targetISO);
+      setDayStops(filtered);
+    } else {
+      setDayStops([]); // modal ke liye blank start (ya default filter lagani ho to wo)
+    }
+
+    // Also update the journey data to reflect the new stops
+    if (journeyData) {
+      const updatedJourneyData = {
+        ...journeyData,
+        stops: stops,
+      };
+      setJourneyData(updatedJourneyData);
+    }
   };
 
   const handleStepDetailsClose = () => {
@@ -303,7 +322,11 @@ const Page = () => {
   const [isAddingStop, setIsAddingStop] = useState<boolean>(false);
   const [addStopForDay, setAddStopForDay] = useState<number | null>(null);
   const [dayNumber, setDayNumber] = useState<number | null>(null);
-  const handleAddStop = (dayIndex: number, formattedDate: string, dayNumber: number) => {
+  const handleAddStop = (
+    dayIndex: number,
+    formattedDate: string,
+    dayNumber: number
+  ) => {
     debugger;
     setFormattedDate(formattedDate);
     setDayNumber(dayNumber);
@@ -331,31 +354,70 @@ const Page = () => {
     return isNaN(dt.getTime()) ? "" : dt.toISOString().slice(0, 10);
   };
 
-
-  const handleViewDayStops = (formattedDate: string, maybeDayNumber?: number) => {
+  const handleViewDayStops = async (
+    formattedDate: string,
+    maybeDayNumber?: number
+  ) => {
+    console.log("handleViewDayStops called with formattedDate:", formattedDate);
     setOpenDayIndex(true);
+    setFormattedDate(formattedDate); // Set the formattedDate state
 
     // Normalize date once
     const targetISO = toISOyyyyMMdd(formattedDate);
+    console.log("targetISO:", targetISO);
 
     // Prefer the one passed in; otherwise compute from journeyData.days
     const computed =
       maybeDayNumber ??
       (() => {
         const idx = journeyData?.days?.findIndex(
-          d => toISOyyyyMMdd(d.date as any) === targetISO
+          (d) => toISOyyyyMMdd(d.date as any) === targetISO
         );
         return idx != null && idx >= 0 ? idx + 1 : null;
       })();
 
-    setModalDayNumber(computed);              // <-- use this for the modal
-    setOpenDayNumber(computed);               // (optional: if you still want this)
+    setModalDayNumber(computed); // <-- use this for the modal
+    setOpenDayNumber(computed); // (optional: if you still want this)
 
-    const filtered = allStops.filter(s => toISOyyyyMMdd(s.date) === targetISO);
-    setDayStops(filtered);
+    // Fetch fresh data and filter immediately
+    if (journeyData?.id) {
+      try {
+        const response = await apiRequest(`journeys/${journeyData.id}/stops`);
+        const stops = extractStops(response);
+        console.log("Fetched stops:", stops.length);
+
+        // Filter stops for the current date
+        const filtered = stops.filter(
+          (s) => toISOyyyyMMdd(s.date) === targetISO
+        );
+        console.log(
+          "Filtered stops for date:",
+          targetISO,
+          "count:",
+          filtered.length
+        );
+        setDayStops(filtered);
+
+        // Also update allStops for consistency
+        setAllStops(stops);
+      } catch (error) {
+        console.error("Failed to fetch stops:", error);
+        setDayStops([]);
+      }
+    } else {
+      // Fallback to existing allStops if no journeyId
+      const filtered = allStops.filter(
+        (s) => toISOyyyyMMdd(s.date) === targetISO
+      );
+      console.log(
+        "Filtered stops for date:",
+        targetISO,
+        "count:",
+        filtered.length
+      );
+      setDayStops(filtered);
+    }
   };
-
-
 
   // Selected step for details panel
   const getSelectedStepData = (): Step | null => {
@@ -385,7 +447,9 @@ const Page = () => {
               isOpen={isJourneySidebarOpen}
               onClose={() => setIsJourneySidebarOpen(false)}
               journeyData={journeyData}
-              handleViewDayStops={(formattedDate: string) => handleViewDayStops(formattedDate)}
+              handleViewDayStops={(formattedDate: string) =>
+                handleViewDayStops(formattedDate)
+              }
               selectedStep={selectedStep}
               onStepSelect={handleStepSelect}
               onJourneyDataUpdate={updateJourneyData}
@@ -438,27 +502,51 @@ const Page = () => {
         setShowJourneyList={setShowJourneyList}
       />
       {isAddingStop ? (
-        <AddStopModal
+        <StopModal
           open={isAddingStop}
+          mode="add"
           dayIndex={addStopForDay || 0}
           onClose={() => setIsAddingStop(false)}
-
           journeyData={journeyData}
           formattedDate={formattedDate}
           dayNumber={dayNumber}
-
+          onStopAdded={() => {
+            // Refresh the journey data after a stop is added
+            if (journeyData?.id) {
+              fetchJourneyData(journeyData.id);
+            }
+          }}
         />
       ) : null}
 
       {openDayIndex && (
         <DayStopsModal
+          key={`day-stops-modal-${dayStops.length}-${formattedDate}`}
           open={openDayIndex}
           onClose={() => setOpenDayIndex(false)}
           dayStops={dayStops as unknown as ApiJourneyStop[]}
           dayNumber={modalDayNumber}
           journeyName={journeyData?.journeyName || ""}
-
-
+          journeyId={journeyData?.id}
+          formattedDate={formattedDate}
+          onStopDeleted={() => {
+            // Refresh the journey data after a stop is deleted
+            if (journeyData?.id) {
+              fetchJourneyData(journeyData.id);
+            }
+          }}
+          onStopAdded={() => {
+            // Refresh the journey data after a stop is added
+            if (journeyData?.id) {
+              fetchJourneyData(journeyData.id);
+            }
+          }}
+          onStopUpdated={() => {
+            // Refresh the journey data after a stop is updated
+            if (journeyData?.id) {
+              fetchJourneyData(journeyData.id);
+            }
+          }}
         />
       )}
     </>
