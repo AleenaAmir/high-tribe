@@ -40,7 +40,10 @@ interface JourneySidebarProps {
   selectedStep?: { dayIndex: number; stepIndex: number } | null;
   onStepSelect?: (dayIndex: number, stepIndex: number) => void;
   onJourneyDataUpdate?: (updatedData: JourneyData) => void;
-  onAddStop?: (dayIndex: number) => void;
+  dayStops: any[];
+
+  onAddStop?: (dayIndex: number, formattedDate: string, dayNumber: number) => void;
+  handleViewDayStops?: (formattedDate: string) => void;
 }
 
 interface FormData {
@@ -54,7 +57,9 @@ const JourneySidebar: React.FC<JourneySidebarProps> = ({
   selectedStep,
   onStepSelect,
   onJourneyDataUpdate,
+  handleViewDayStops,
   onAddStop,
+  dayStops,
 }) => {
   console.log(journeyData, "journeyData");
   const [selectedDay, setSelectedDay] = useState<number | null>(null);
@@ -432,9 +437,8 @@ const JourneySidebar: React.FC<JourneySidebarProps> = ({
     <div>
       {/* Main Sidebar */}
       <div
-        className={`fixed left-0 top-50 bottom-0 z-40 w-[524px] bg-white rounded-r-2xl shadow-2xl border border-gray-100 overflow-hidden transform transition-transform duration-300 ease-in-out flex flex-col ${
-          isOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
+        className={`fixed left-0 top-50 bottom-0 z-40 w-[524px] bg-white rounded-r-2xl shadow-2xl border border-gray-100 overflow-hidden transform transition-transform duration-300 ease-in-out flex flex-col ${isOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
       >
         <form
           onSubmit={handleSubmit(onSubmit)}
@@ -477,15 +481,10 @@ const JourneySidebar: React.FC<JourneySidebarProps> = ({
               finalDisplayDays={finalDisplayDays}
               openDayIndex={openDayIndex}
               journeyData={journeyData}
-              selectedStep={selectedStep}
-              onDayToggle={handleDayToggle}
-              onAddStop={onAddStop || (() => {})}
-              onStepSelect={onStepSelect || (() => {})}
-              onStepUpdate={handleStepUpdate}
-              onStepDelete={handleStepDelete}
-              onSaveStep={handleSaveStep}
-              onEditStep={handleEditStep}
-              savedSteps={savedSteps}
+              handleViewDayStops={handleViewDayStops || (() => { })}
+              dayStops={dayStops}
+              onAddStop={onAddStop || (() => { })}
+
             />
           )}
 

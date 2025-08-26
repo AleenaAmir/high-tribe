@@ -6,34 +6,21 @@ interface ItineraryContentProps {
   finalDisplayDays: any[];
   openDayIndex: number | null;
   journeyData: any;
-  selectedStep?: { dayIndex: number; stepIndex: number } | null;
-  onDayToggle: (dayIndex: number) => void;
-  onAddStop: (dayIndex: number) => void;
-  onStepSelect: (dayIndex: number, stepIndex: number) => void;
-  onStepUpdate: (
-    dayIndex: number,
-    stepIndex: number,
-    updatedStep: Partial<Step>
-  ) => void;
-  onStepDelete: (dayIndex: number, stepIndex: number) => void;
-  onSaveStep: (dayIndex: number, stepIndex: number) => void;
-  onEditStep: (dayIndex: number, stepIndex: number) => void;
-  savedSteps: { [key: string]: boolean };
+  dayStops: any[];
+
+
+  onAddStop: (dayIndex: number, formattedDate: string, dayNumber: number) => void;
+
+  handleViewDayStops: (formattedDate: string) => void;
 }
 
 const ItineraryContent: React.FC<ItineraryContentProps> = ({
   finalDisplayDays,
   openDayIndex,
-  journeyData,
-  selectedStep,
-  onDayToggle,
+  handleViewDayStops,
+  dayStops,
   onAddStop,
-  onStepSelect,
-  onStepUpdate,
-  onStepDelete,
-  onSaveStep,
-  onEditStep,
-  savedSteps,
+
 }) => {
   return (
     <div className="flex-1 overflow-y-auto min-h-0">
@@ -46,17 +33,10 @@ const ItineraryContent: React.FC<ItineraryContentProps> = ({
               key={day.id || dayIndex}
               day={day}
               dayIndex={dayIndex}
-              isOpen={isOpen}
-              journeyData={journeyData}
-              onDayToggle={onDayToggle}
+              dayStops={dayStops}
               onAddStop={onAddStop}
-              selectedStep={selectedStep}
-              onStepSelect={onStepSelect}
-              onStepUpdate={onStepUpdate}
-              onStepDelete={onStepDelete}
-              onSaveStep={onSaveStep}
-              onEditStep={onEditStep}
-              savedSteps={savedSteps}
+
+              handleViewDayStops={(formattedDate: string) => handleViewDayStops(formattedDate)}
             />
           );
         })}

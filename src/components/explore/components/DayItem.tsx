@@ -1,49 +1,40 @@
-import React from "react";
+import React, { useState } from "react";
 import { Step } from "@/components/dashboard/modals/components/newjourney/types";
 import ChevronDownIcon from "../icons/ChevronDownIcon";
-import StepPreview from "./StepPreview";
-import StopForm from "./StopForm";
+
+import ViewDayStop from "./ViewDayStop";
 
 interface DayItemProps {
   day: any;
   dayIndex: number;
-  isOpen: boolean;
-  journeyData: any;
-  onDayToggle: (dayIndex: number) => void;
-  onAddStop: (dayIndex: number) => void;
-  selectedStep?: { dayIndex: number; stepIndex: number } | null;
-  onStepSelect: (dayIndex: number, stepIndex: number) => void;
-  onStepUpdate: (
-    dayIndex: number,
-    stepIndex: number,
-    updatedStep: Partial<Step>
-  ) => void;
-  onStepDelete: (dayIndex: number, stepIndex: number) => void;
-  onSaveStep: (dayIndex: number, stepIndex: number) => void;
-  onEditStep: (dayIndex: number, stepIndex: number) => void;
-  savedSteps: { [key: string]: boolean };
+  dayStops: any[];
+
+
+  onAddStop: (dayIndex: number, formattedDate: string, dayNumber: number) => void;
+
+
+
+  handleViewDayStops: (formattedDate: string) => void;
 }
 
 const DayItem: React.FC<DayItemProps> = ({
   day,
   dayIndex,
-  isOpen,
-  journeyData,
-  onDayToggle,
+  dayStops,
   onAddStop,
-  selectedStep,
-  onStepSelect,
-  onStepUpdate,
-  onStepDelete,
-  onSaveStep,
-  onEditStep,
-  savedSteps,
+  handleViewDayStops,
+
 }) => {
   const formattedDate = new Date(day.date).toLocaleDateString("en-US", {
     month: "2-digit",
     day: "2-digit",
     year: "numeric",
   });
+  const [openDayIndex, setOpenDayIndex] = useState<number | null>(null);
+
+  const handleDayToggle = () => {
+    setOpenDayIndex((prevIndex) => (prevIndex === dayIndex ? null : dayIndex));
+  };
 
   return (
     <div>
@@ -51,7 +42,7 @@ const DayItem: React.FC<DayItemProps> = ({
         {/* Left: Day label + date + chevron */}
         <button
           type="button"
-          onClick={() => onDayToggle(dayIndex)}
+          onClick={handleDayToggle}
           className="inline-flex items-center gap-1.5 focus:outline-none"
         >
           <span className="text-[12px] font-gilroy leading-[100%] tracking-[-3%] font-medium text-[#000000]">
@@ -60,13 +51,13 @@ const DayItem: React.FC<DayItemProps> = ({
               ({formattedDate})
             </span>
           </span>
-          <ChevronDownIcon isOpen={isOpen} />
+          <ChevronDownIcon isOpen={openDayIndex === dayIndex} />
         </button>
 
         {/* Right: + Add Stop */}
         <button
           type="button"
-          onClick={() => onAddStop(dayIndex)}
+          onClick={() => onAddStop(dayIndex, formattedDate, day.dayNumber)}
           className="text-[12px] leading-none font-semibold bg-[linear-gradient(90.76deg,#9243AC_0.54%,#B6459F_50.62%,#E74294_99.26%)] bg-clip-text text-transparent focus:outline-none"
         >
           + Add Stop
@@ -74,55 +65,8 @@ const DayItem: React.FC<DayItemProps> = ({
       </div>
 
       {/* Day Content - Steps */}
-      {isOpen && (
-        <div className="px-4 pb-4 bg-gray-50">
-          {/* Show existing steps */}
-          {day.steps && day.steps.length > 0 ? (
-            <div className="space-y-3 pt-3">
-              {day.steps.map((step: any, stepIndex: number) => {
-                const stepKey = `${dayIndex}-${stepIndex}`;
-                const isSaved = savedSteps[stepKey];
-                const isSelected =
-                  selectedStep?.dayIndex === dayIndex &&
-                  selectedStep?.stepIndex === stepIndex;
-
-                return (
-                  <div key={stepIndex}>
-                    {/* Show saved steps as preview */}
-                    {isSaved && (
-                      <StepPreview
-                        step={step}
-                        dayIndex={dayIndex}
-                        stepIndex={stepIndex}
-                        isSelected={isSelected}
-                        onStepSelect={onStepSelect}
-                        onEditStep={onEditStep}
-                      />
-                    )}
-
-                    {/* Show form for unsaved steps */}
-                    {!isSaved && (
-                      <StopForm
-                        step={step}
-                        dayIndex={dayIndex}
-                        stepIndex={stepIndex}
-                        journeyData={journeyData}
-                        onStepUpdate={onStepUpdate}
-                        onStepDelete={onStepDelete}
-                        onSaveStep={onSaveStep}
-                        isSaved={false}
-                      />
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          ) : (
-            <div className="pt-3 text-center text-gray-500 text-[12px]">
-              No stops planned for this day yet.
-            </div>
-          )}
-        </div>
+      {openDayIndex === dayIndex && (
+        <ViewDayStop handleViewDayStops={(formattedDate: string) => handleViewDayStops(formattedDate)} dayStops={dayStops} formattedDate={formattedDate} />
       )}
     </div>
   );

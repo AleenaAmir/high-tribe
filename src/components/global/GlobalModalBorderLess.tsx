@@ -8,6 +8,7 @@ interface GlobalModalBorderLessProps {
   className?: string;
   maxWidth?: string;
   customPadding?: string;
+  customHeight?: string;
 }
 
 const GlobalModalBorderLess: React.FC<GlobalModalBorderLessProps> = ({
@@ -17,6 +18,7 @@ const GlobalModalBorderLess: React.FC<GlobalModalBorderLessProps> = ({
   children,
   className,
   maxWidth = "max-w-[434px]",
+  customHeight = "h-[80vh]",
   customPadding = "p-6",
 }) => {
   const modalRef = useRef<HTMLDivElement>(null);
@@ -67,13 +69,12 @@ const GlobalModalBorderLess: React.FC<GlobalModalBorderLessProps> = ({
       aria-modal="true"
       role="dialog"
       tabIndex={-1}
-      // onClick={onClose}
+    // onClick={onClose}
     >
-      <div className={`rounded-[20px] p-2 ${maxWidth} w-full`}>
+      <div className={`rounded-[20px] p-2 ${maxWidth} w-full ${customHeight}`}>
         <div
-          className={`bg-white rounded-[20px] shadow-lg  w-full ${customPadding} relative ${
-            className || ""
-          } `}
+          className={`bg-white rounded-[20px] shadow-lg  w-full ${customPadding} relative ${className || ""
+            } `}
           ref={modalRef}
           tabIndex={0}
           onClick={(e) => e.stopPropagation()}

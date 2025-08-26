@@ -27,6 +27,7 @@ export interface ApiJourneyStop {
   id: number;
   post_id: number;
   stop_category_id: number;
+  date: string;
   title: string;
   location_name: string;
   lat: string;
@@ -64,7 +65,7 @@ export interface ApiPost {
   updated_at?: string;
   reactions_count?: number;
   comments_count?: number;
-  
+
   // Journey-specific fields
   start_location_name?: string;
   start_lat?: string;
@@ -146,7 +147,7 @@ export interface Post {
   updated_at?: string;
   reactions_count?: number;
   comments_count?: number;
-  
+
   // Journey-specific fields
   start_location_name?: string;
   start_lat?: string;
@@ -352,7 +353,7 @@ export const transformApiPostToPost = (apiPost: ApiPost): Post => {
     updated_at: apiPost.updated_at,
     reactions_count: apiPost.reactions_count,
     comments_count: apiPost.comments_count,
-    
+
     // Journey-specific fields
     start_location_name: apiPost.start_location_name,
     start_lat: apiPost.start_lat,
@@ -414,17 +415,17 @@ export const getPostType = (post: Post | ApiPost): 'journey' | 'footprint' | 'ti
   if ('type' in post && post.type === 'mapping_journey') {
     return 'journey';
   }
-  
+
   // Check for advisory (has expires_on and is_resolved)
   if ('expires_on' in post && post.expires_on && 'is_resolved' in post && post.is_resolved !== undefined) {
     return 'advisory';
   }
-  
+
   // Check for footprint (has story and mood_tags)
   if ('story' in post && post.story && 'mood_tags' in post) {
     return 'footprint';
   }
-  
+
   // Default to tip (has title and description but no other specific fields)
   return 'tip';
 };

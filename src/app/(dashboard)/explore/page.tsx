@@ -1,8 +1,7 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Explore from "@/components/explore/Explore";
-import SideExplore from "@/components/explore/SideExplore";
 import ExploreMap, { InteractiveMapRef } from "@/components/explore/ExploreMap";
 import ExploreHotels from "@/components/explore/ExploreHotels";
 import NewJourneyExplore from "@/components/explore/NewJourneyExplore";
@@ -11,6 +10,8 @@ import StepDetailsPanel from "@/components/explore/StepDetailsPanel";
 import { Step } from "@/components/dashboard/modals/components/newjourney/types";
 import ExploreJourneyList from "@/components/explore/ExploreJourneyList";
 import AddStopModal from "@/components/explore/AddStopModal";
+import DayStopsModal from "@/components/explore/components/DayStopsModal";
+import { apiRequest } from "@/lib/api";
 
 /** === API & Local Types === */
 type ApiJourney = {
@@ -31,6 +32,7 @@ type ApiJourney = {
 };
 
 type ApiJourneyStop = {
+  date: string;
   id: number;
   title?: string;
   location_name?: string;
@@ -217,6 +219,7 @@ const Page = () => {
   // 🔹 No mock: start empty until user picks or creates a journey
   const [journeyData, setJourneyData] = useState<JourneyData | null>(null);
   const [showJourneyList, setShowJourneyList] = useState<boolean>(false);
+  const [formattedDate, setFormattedDate] = useState<string>("");
 
   const [selectedStep, setSelectedStep] = useState<{
     dayIndex: number;
@@ -224,9 +227,11 @@ const Page = () => {
   } | null>(null);
 
   const [isStepDetailsOpen, setIsStepDetailsOpen] = useState<boolean>(false);
+  const [dayStops, setDayStops] = useState<any[]>([]);
+  const [allStops, setAllStops] = useState<ApiJourneyStop[]>([]);
 
   /** === Handlers === */
-  const handleMenuClick = () => { };
+
 
   const handleStepSelect = (dayIndex: number, stepIndex: number) => {
     setSelectedStep({ dayIndex, stepIndex });
@@ -243,6 +248,30 @@ const Page = () => {
       }
       return merged;
     });
+  };
+  useEffect(() => {
+    fetchJourneyData(journeyData?.id);
+    console.log(dayStops, "dayStops");
+    console.log(Array.isArray(dayStops) ? dayStops : [], "dayStopsssssssssssssss");
+  }, [journeyData?.id]);
+  console.log(journeyData, "journeyData");
+
+  const extractStops = (r: any): ApiJourneyStop[] => {
+    const p = r?.data ?? r;          // axios: r.data, fetch/custom: r
+    if (Array.isArray(p)) return p;  // payload is array
+    if (Array.isArray(p?.data)) return p.data; // payload.data is array
+    return [];
+  };
+
+  const fetchJourneyData = async (journeyId: number | undefined) => {
+    if (!journeyId) return;
+
+    const response = await apiRequest(`journeys/${journeyId}/stops`);
+    const stops = extractStops(response);
+
+    console.log("isArray?", Array.isArray(stops), stops); // ✅ yahan sahi array milega
+    setAllStops(stops);           // full list as-is
+    setDayStops([]);              // modal ke liye blank start (ya default filter lagani ho to wo)
   };
 
   const handleStepDetailsClose = () => {
@@ -273,10 +302,60 @@ const Page = () => {
   };
   const [isAddingStop, setIsAddingStop] = useState<boolean>(false);
   const [addStopForDay, setAddStopForDay] = useState<number | null>(null);
-  const handleAddStop = (dayIndex: number) => {
+  const [dayNumber, setDayNumber] = useState<number | null>(null);
+  const handleAddStop = (dayIndex: number, formattedDate: string, dayNumber: number) => {
+    debugger;
+    setFormattedDate(formattedDate);
+    setDayNumber(dayNumber);
     setAddStopForDay(dayIndex);
     setIsAddingStop(true);
   };
+  const [openDayIndex, setOpenDayIndex] = useState<boolean>(false);
+  const [openDayNumber, setOpenDayNumber] = useState<number | null>(null);
+  const [modalDayNumber, setModalDayNumber] = useState<number | null>(null);
+  // Put this near your helpers
+  const toISOyyyyMMdd = (d: string | Date): string => {
+    if (d instanceof Date) return d.toISOString().slice(0, 10);
+
+    // If already ISO (YYYY-MM-DD), keep it
+    if (/^\d{4}-\d{2}-\d{2}$/.test(d)) return d;
+
+    // If MM/DD/YYYY -> convert to YYYY-MM-DD
+    if (/^\d{2}\/\d{2}\/\d{4}$/.test(d)) {
+      const [mm, dd, yyyy] = d.split("/");
+      return `${yyyy}-${mm.padStart(2, "0")}-${dd.padStart(2, "0")}`;
+    }
+
+    // Fallback: parse and format
+    const dt = new Date(d);
+    return isNaN(dt.getTime()) ? "" : dt.toISOString().slice(0, 10);
+  };
+
+
+  const handleViewDayStops = (formattedDate: string, maybeDayNumber?: number) => {
+    setOpenDayIndex(true);
+
+    // Normalize date once
+    const targetISO = toISOyyyyMMdd(formattedDate);
+
+    // Prefer the one passed in; otherwise compute from journeyData.days
+    const computed =
+      maybeDayNumber ??
+      (() => {
+        const idx = journeyData?.days?.findIndex(
+          d => toISOyyyyMMdd(d.date as any) === targetISO
+        );
+        return idx != null && idx >= 0 ? idx + 1 : null;
+      })();
+
+    setModalDayNumber(computed);              // <-- use this for the modal
+    setOpenDayNumber(computed);               // (optional: if you still want this)
+
+    const filtered = allStops.filter(s => toISOyyyyMMdd(s.date) === targetISO);
+    setDayStops(filtered);
+  };
+
+
 
   // Selected step for details panel
   const getSelectedStepData = (): Step | null => {
@@ -306,10 +385,12 @@ const Page = () => {
               isOpen={isJourneySidebarOpen}
               onClose={() => setIsJourneySidebarOpen(false)}
               journeyData={journeyData}
+              handleViewDayStops={(formattedDate: string) => handleViewDayStops(formattedDate)}
               selectedStep={selectedStep}
               onStepSelect={handleStepSelect}
               onJourneyDataUpdate={updateJourneyData}
               onAddStop={handleAddStop}
+              dayStops={dayStops}
             />
           )}
 
@@ -361,10 +442,25 @@ const Page = () => {
           open={isAddingStop}
           dayIndex={addStopForDay || 0}
           onClose={() => setIsAddingStop(false)}
+
           journeyData={journeyData}
-          setSavedSteps={() => { }}
+          formattedDate={formattedDate}
+          dayNumber={dayNumber}
+
         />
       ) : null}
+
+      {openDayIndex && (
+        <DayStopsModal
+          open={openDayIndex}
+          onClose={() => setOpenDayIndex(false)}
+          dayStops={dayStops as unknown as ApiJourneyStop[]}
+          dayNumber={modalDayNumber}
+          journeyName={journeyData?.journeyName || ""}
+
+
+        />
+      )}
     </>
   );
 };
