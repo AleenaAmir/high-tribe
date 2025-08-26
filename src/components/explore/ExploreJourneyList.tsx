@@ -116,47 +116,49 @@ export default function ExploreJourneyList({
     </svg>
   );
   return (
-    <div className="w-72 bg-[#FAFBFB]  flex flex-col p-4">
-      <div
-        className="p-2 bg-white rounded-full cursor-pointer w-fit"
-        onClick={() => setShowJourneyList(false)}
-      >
-        {closeIcon}
-      </div>
-      <div className="flex items-center gap-3 my-2">
-        <div className="p-2 bg-[#F4F4F4] rounded-sm">{icon}</div>
-        <div className="text-[18px] font-semibold text-black">My Journey</div>
-      </div>
-      <div className="space-y-1 max-h-[400px] overflow-y-auto">
-        <div className="text-[18px] font-medium text-[#9F40C8]">Trips</div>
-        {trips.map((trip, idx) => (
-          <div
-            key={idx}
-            className="flex items-center gap-3 py-3 border-b border-gray-100 last:border-b-0 cursor-pointer hover:bg-gray-50 transition-colors"
-            onClick={() => handleJourneyClick(trip)}
-          >
-            <div className="relative w-9 h-9 rounded-full overflow-hidden">
-              <img
-                src="https://placehold.co/400"
-                alt="trip image"
-                className="object-cover"
-              />
+    <div className="w-72 bg-[#FAFBFB]  flex flex-col h-full justify-between p-4">
+      <div>
+        <div
+          className="p-2 bg-white rounded-full cursor-pointer w-fit"
+          onClick={() => setShowJourneyList(false)}
+        >
+          {closeIcon}
+        </div>
+        <div className="flex items-center gap-3 my-2">
+          <div className="p-2 bg-[#F4F4F4] rounded-sm">{icon}</div>
+          <div className="text-[18px] font-semibold text-black">My Journey</div>
+        </div>
+        <div className="space-y-1 max-h-[400px] overflow-y-auto">
+          <div className="text-[18px] font-medium text-[#9F40C8]">Trips</div>
+          {trips.map((trip, idx) => (
+            <div
+              key={idx}
+              className="flex items-center gap-3 py-3 border-b border-gray-100 last:border-b-0 cursor-pointer hover:bg-gray-50 transition-colors"
+              onClick={() => handleJourneyClick(trip)}
+            >
+              <div className="relative w-9 h-9 rounded-full overflow-hidden">
+                <img
+                  src="https://placehold.co/400"
+                  alt="trip image"
+                  className="object-cover"
+                />
+              </div>
+              <div className="min-w-0">
+                <div className="text-sm text-gray-900 truncate max-w-[180px]">
+                  {trip.title}
+                </div>
+                <div className="text-[11px] text-gray-500">
+                  Date {trip.start_date}
+                </div>
+              </div>
+              {loadingJourneyId === trip.id && (
+                <div className="ml-auto">
+                  <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                </div>
+              )}
             </div>
-            <div className="min-w-0">
-              <div className="text-sm text-gray-900 truncate max-w-[180px]">
-                {trip.title}
-              </div>
-              <div className="text-[11px] text-gray-500">
-                Date {trip.start_date}
-              </div>
-            </div>
-            {loadingJourneyId === trip.id && (
-              <div className="ml-auto">
-                <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-              </div>
-            )}
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
       <div
         className="bg-gradient-to-r mt-4 from-[#9743AA] to-[#E54295] text-white flex items-center justify-center text-[13px] gap-1 px-3 py-1.5 rounded-full hover:bg-gray-50 transition-colors cursor-pointer shadow-sm hover:shadow-md active:scale-95 "

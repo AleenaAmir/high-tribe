@@ -11,6 +11,7 @@ const envSchema = z.object({
   DB_PORT: z.coerce.number().min(1),
   DATABASE_URL: z.string().min(1),
   NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN: z.string().min(1),
+  NEXT_PUBLIC_GOOGLE_LOCATION_API_KEY: z.string().optional(),
   // NEXTAUTH_SECRET: z.string().min(1),
 });
 
