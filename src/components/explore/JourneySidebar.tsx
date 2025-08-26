@@ -1,11 +1,10 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
-import { useForm, useFieldArray, Controller } from "react-hook-form";
+import { useForm, useFieldArray } from "react-hook-form";
 import {
   Step,
-  StopCategory,
-  MapboxFeature,
+  StopCategory
 } from "@/components/dashboard/modals/components/newjourney/types";
 import PlaneIcon from "@/components/dashboard/svgs/PlaneIcon";
 import TrainIcon from "@/components/dashboard/svgs/TrainIcon";
@@ -19,9 +18,9 @@ import GlobalTextInput from "@/components/global/GlobalTextInput";
 import GlobalTextArea from "@/components/global/GlobalTextArea";
 import GlobalFileUpload from "@/components/global/GlobalFileUpload";
 import { generateDaysFromRange } from "@/app/querry/getDays";
-import api from "@/lib/api";
 import { toast } from "react-hot-toast";
 import PlusIcon from "./icons/PlusIcon";
+
 
 interface JourneyData {
   id: number;
@@ -50,6 +49,7 @@ interface JourneySidebarProps {
   selectedStep?: { dayIndex: number; stepIndex: number } | null;
   onStepSelect?: (dayIndex: number, stepIndex: number) => void;
   onJourneyDataUpdate?: (updatedData: JourneyData) => void;
+  onAddStop?: (dayIndex: number) => void;
 }
 
 interface FormData {
@@ -63,6 +63,7 @@ const JourneySidebar: React.FC<JourneySidebarProps> = ({
   selectedStep,
   onStepSelect,
   onJourneyDataUpdate,
+  onAddStop,
 }) => {
   console.log(journeyData, "journeyData");
   const [selectedDay, setSelectedDay] = useState<number | null>(null);
@@ -218,14 +219,7 @@ const JourneySidebar: React.FC<JourneySidebarProps> = ({
     { id: 5, name: "Activity", label: "Activity" },
   ];
 
-  /**
-   * Extends the journey by one day by updating the end date
-   * This function:
-   * 1. Calculates the new end date (current end date + 1 day)
-   * 2. Calls the API to update the journey with the new end date
-   * 3. Updates the local state to reflect the change
-   * 4. Regenerates the days display automatically
-   */
+
   const handleAddDay = async () => {
     console.log("Adding new day...");
     console.log("Current journeyData:", journeyData);
@@ -315,57 +309,6 @@ const JourneySidebar: React.FC<JourneySidebarProps> = ({
     } finally {
       setIsAddingDay(false);
     }
-  };
-
-  const handleAddStop = (dayIndex: number) => {
-    // Get the current day from the generated days
-    const currentDay = finalDisplayDays[dayIndex];
-    if (!currentDay) return;
-
-    const newStep: Step = {
-      name: `Stop ${(currentDay.steps?.length || 0) + 1}`,
-      location: { coords: null, name: "" },
-      notes: "",
-      media: [],
-      mediumOfTravel: "",
-      startDate: "",
-      endDate: "",
-      category: "",
-      dateError: "",
-    };
-
-    // Update the day with the new step
-    const updatedDay = {
-      ...currentDay,
-      steps: [...(currentDay.steps || []), newStep],
-    };
-
-    // Update the finalDisplayDays array
-    const updatedDays = [...finalDisplayDays];
-    updatedDays[dayIndex] = updatedDay;
-
-    // Update journeyData if it exists
-    if (journeyData) {
-      const updatedJourneyData = { ...journeyData };
-      if (!updatedJourneyData.days) {
-        updatedJourneyData.days = [];
-      }
-      updatedJourneyData.days[dayIndex] = updatedDay;
-
-      if (onJourneyDataUpdate) {
-        onJourneyDataUpdate(updatedJourneyData);
-      }
-    }
-
-    // Mark the new step as unsaved so the form appears
-    const newStepIndex = currentDay.steps?.length || 0;
-    const stepKey = `${dayIndex}-${newStepIndex}`;
-    setSavedSteps((prev) => ({ ...prev, [stepKey]: false }));
-
-    // Open the day to show the new step
-    setOpenDayIndex(dayIndex);
-
-    console.log("✅ Stop added successfully!");
   };
 
   const handleStepDelete = (dayIndex: number, stepIndex: number) => {
@@ -543,130 +486,131 @@ const JourneySidebar: React.FC<JourneySidebarProps> = ({
     };
 
     return (
-      <div
-        className={`bg-gray-50 border border-gray-200 rounded-lg p-3 mb-3 cursor-pointer transition-all hover:bg-gray-100 ${
-          isSelected ? "border-blue-500 bg-blue-50" : ""
-        }`}
-        onClick={handleStepClick}
-      >
-        <div className="flex items-start gap-3">
-          {/* Step Number */}
-          <div
-            className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center ${
-              isSelected
+      <>
+        <div
+          className={`bg-gray-50 border border-gray-200 rounded-lg p-3 mb-3 cursor-pointer transition-all hover:bg-gray-100 ${isSelected ? "border-blue-500 bg-blue-50" : ""
+            }`}
+          onClick={handleStepClick}
+        >
+          <div className="flex items-start gap-3">
+            {/* Step Number */}
+            <div
+              className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center ${isSelected
                 ? "bg-blue-500 text-white"
                 : "bg-gray-300 text-gray-700"
-            }`}
-          >
-            <span className="text-[10px] font-medium">{stepIndex + 1}</span>
-          </div>
-
-          {/* Step Image */}
-          <div className="flex-shrink-0 w-12 h-12 bg-gray-200 rounded-md overflow-hidden">
-            <div className="w-full h-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center">
-              <svg
-                className="w-6 h-6 text-white"
-                fill="currentColor"
-                viewBox="0 0 20 20"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z"
-                  clipRule="evenodd"
-                />
-              </svg>
-            </div>
-          </div>
-
-          {/* Step Content */}
-          <div className="flex-1 min-w-0">
-            <h3
-              className={`text-[12px] font-semibold mb-1 ${
-                isSelected ? "text-blue-900" : "text-gray-900"
-              }`}
+                }`}
             >
-              {step.location.name || step.name}
-            </h3>
+              <span className="text-[10px] font-medium">{stepIndex + 1}</span>
+            </div>
 
-            {/* Step Details */}
-            <div className="flex items-center gap-4 text-[10px] text-gray-600">
-              <div className="flex items-center gap-1">
+            {/* Step Image */}
+            <div className="flex-shrink-0 w-12 h-12 bg-gray-200 rounded-md ">
+              <div className="w-full h-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center">
                 <svg
-                  className="w-3 h-3"
+                  className="w-6 h-6 text-white"
                   fill="currentColor"
                   viewBox="0 0 20 20"
                 >
                   <path
                     fillRule="evenodd"
-                    d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z"
+                    d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z"
                     clipRule="evenodd"
                   />
                 </svg>
-                <span>0 Mi</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <svg
-                  className="w-3 h-3"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-                <span>0h 0m</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <svg
-                  className="w-3 h-3"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
-                  <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3z" />
-                </svg>
-                <span>1</span>
               </div>
             </div>
-          </div>
 
-          {/* Step Actions */}
-          <div className="flex flex-col items-end gap-1">
-            <div className="text-[10px] text-gray-500">
-              {step.startDate
-                ? new Date(step.startDate).toLocaleDateString("en-US", {
+            {/* Step Content */}
+            <div className="flex-1 min-w-0">
+              <h3
+                className={`text-[12px] font-semibold mb-1 ${isSelected ? "text-blue-900" : "text-gray-900"
+                  }`}
+              >
+                {step.location.name || step.name}
+              </h3>
+
+              {/* Step Details */}
+              <div className="flex items-center gap-4 text-[10px] text-gray-600">
+                <div className="flex items-center gap-1">
+                  <svg
+                    className="w-3 h-3"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                  <span>0 Mi</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <svg
+                    className="w-3 h-3"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                  <span>0h 0m</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <svg
+                    className="w-3 h-3"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3z" />
+                  </svg>
+                  <span>1</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Step Actions */}
+            <div className="flex flex-col items-end gap-1">
+              <div className="text-[10px] text-gray-500">
+                {step.startDate
+                  ? new Date(step.startDate).toLocaleDateString("en-US", {
                     weekday: "short",
                     month: "short",
                     day: "numeric",
                   })
-                : "No date"}
+                  : "No date"}
+              </div>
+              <button
+                type="button"
+                className="text-[10px] text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleEditStep(dayIndex, stepIndex);
+                }}
+              >
+                <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z" />
+                </svg>
+                Edit
+              </button>
+              <button
+                type="button"
+                className="text-[10px] text-gray-500 hover:text-gray-700"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z" />
+                </svg>
+              </button>
             </div>
-            <button
-              type="button"
-              className="text-[10px] text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleEditStep(dayIndex, stepIndex);
-              }}
-            >
-              <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z" />
-              </svg>
-              Edit
-            </button>
-            <button
-              type="button"
-              className="text-[10px] text-gray-500 hover:text-gray-700"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z" />
-              </svg>
-            </button>
           </div>
+
         </div>
-      </div>
+
+      </>
     );
   };
   console.log(journeyData, "journeyData");
@@ -864,11 +808,10 @@ const JourneySidebar: React.FC<JourneySidebarProps> = ({
                   <button
                     key={mode.id}
                     type="button"
-                    className={`w-8 h-8 rounded-md flex items-center justify-center transition-colors ${
-                      selectedTravelMode === mode.id
-                        ? "bg-blue-500 text-white"
-                        : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                    }`}
+                    className={`w-8 h-8 rounded-md flex items-center justify-center transition-colors ${selectedTravelMode === mode.id
+                      ? "bg-blue-500 text-white"
+                      : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                      }`}
                     onClick={() => {
                       setSelectedTravelMode(mode.id);
                       handleStepUpdate(dayIndex, stepIndex, {
@@ -968,9 +911,8 @@ const JourneySidebar: React.FC<JourneySidebarProps> = ({
     <div>
       {/* Main Sidebar */}
       <div
-        className={`fixed left-0 top-50 bottom-0 z-40 w-[524px] bg-white rounded-r-2xl shadow-2xl border border-gray-100 overflow-hidden transform transition-transform duration-300 ease-in-out flex flex-col ${
-          isOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
+        className={`fixed left-0 top-50 bottom-0 z-40 w-[524px] bg-white rounded-r-2xl shadow-2xl border border-gray-100 overflow-hidden transform transition-transform duration-300 ease-in-out flex flex-col ${isOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
       >
         <form
           onSubmit={handleSubmit(onSubmit)}
@@ -1009,29 +951,7 @@ const JourneySidebar: React.FC<JourneySidebarProps> = ({
                   </svg>
                 </button>
               </div>
-              {/* <button type="button" className="flex items-center gap-2">
-                <Image
-                  src={"/dashboard/People.svg"}
-                  alt={"footprint3"}
-                  width={16}
-                  height={16}
-                  className="md:w-[16px] md:h-[16px] w-[12px] h-[12px]"
-                />
-                <span className="text-[10px] ">Add People</span>
-                <svg
-                  className="w-4 h-4 text-gray-400 cursor-pointer rotate-90"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"
-                  />
-                </svg>
-              </button> */}
+
             </div>
           </div>
 
@@ -1067,6 +987,35 @@ const JourneySidebar: React.FC<JourneySidebarProps> = ({
                   className="w-6 h-6 cursor-pointer"
                 />
               </div>
+              <div>
+                <div>
+                  <button type="button" className="flex gap-2 items-center border border-[#B2AFAF] rounded-full p-2">
+                    <Image
+                      src={"/dashboard/People.svg"}
+                      alt={"footprint3"}
+                      width={16}
+                      height={16}
+                      className="md:w-[16px] md:h-[16px] w-[12px] h-[12px] "
+                    />
+                    <span className="text-[12px] text-[#000000]">Add People</span>
+                  </button>
+                </div>
+
+                {/* <svg
+                  className="w-4 h-4 text-gray-400 cursor-pointer rotate-90"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"
+                  />
+                </svg> */}
+
+              </div>
             </div>
             <div className="text-[13px] text-[#000000] font-gilroy leading-[100%] tracking-[-3%] ml-5 mb-2 flex items-center gap-3">
               <span className="">{journeyData.startingPoint}</span>
@@ -1081,31 +1030,28 @@ const JourneySidebar: React.FC<JourneySidebarProps> = ({
           <div className="flex items-center gap-1 justify-between px-4 border-b border-gray-100 overflow-x-auto">
             <div className="flex items-center gap-1">
               <button
-                className={`px-3 py-2 text-xs font-medium whitespace-nowrap transition-colors  text-bold text-[14px] font-gilroy leading-[100%] tracking-[-3%]  ${
-                  activeTab === "itinerary"
-                    ? "bg-[linear-gradient(90.76deg,#9243AC_0.54%,#B6459F_50.62%,#E74294_99.26%)] bg-clip-text text-transparent border-b-2 border-[linear-gradient(90.76deg,#9243AC_0.54%,#B6459F_50.62%,#E74294_99.26%)]"
-                    : "text-gray-600 hover:text-gray-900"
-                }`}
+                className={`px-3 py-2 text-xs font-medium whitespace-nowrap transition-colors  text-bold text-[14px] font-gilroy leading-[100%] tracking-[-3%]  ${activeTab === "itinerary"
+                  ? "bg-[linear-gradient(90.76deg,#9243AC_0.54%,#B6459F_50.62%,#E74294_99.26%)] bg-clip-text text-transparent border-b-2 border-[linear-gradient(90.76deg,#9243AC_0.54%,#B6459F_50.62%,#E74294_99.26%)]"
+                  : "text-gray-600 hover:text-gray-900"
+                  }`}
                 onClick={() => setActiveTab("itinerary")}
               >
                 Itinerary ({daysDiff} days)
               </button>
               <button
-                className={`px-3 py-2 text-xs font-medium whitespace-nowrap transition-colors  text-bold text-[14px] font-gilroy leading-[100%] tracking-[-3%]  ${
-                  activeTab === "chat"
-                    ? "bg-[linear-gradient(90.76deg,#9243AC_0.54%,#B6459F_50.62%,#E74294_99.26%)] bg-clip-text text-transparent border-b-2 border-[linear-gradient(90.76deg,#9243AC_0.54%,#B6459F_50.62%,#E74294_99.26%)]"
-                    : "text-gray-600 hover:text-gray-900"
-                }`}
+                className={`px-3 py-2 text-xs font-medium whitespace-nowrap transition-colors  text-bold text-[14px] font-gilroy leading-[100%] tracking-[-3%]  ${activeTab === "chat"
+                  ? "bg-[linear-gradient(90.76deg,#9243AC_0.54%,#B6459F_50.62%,#E74294_99.26%)] bg-clip-text text-transparent border-b-2 border-[linear-gradient(90.76deg,#9243AC_0.54%,#B6459F_50.62%,#E74294_99.26%)]"
+                  : "text-gray-600 hover:text-gray-900"
+                  }`}
                 onClick={() => setActiveTab("chat")}
               >
                 Calendar
               </button>
               <button
-                className={`px-3 py-2 text-xs font-medium whitespace-nowrap transition-colors  text-bold text-[14px] font-gilroy leading-[100%] tracking-[-3%]  ${
-                  activeTab === "bookings"
-                    ? "bg-[linear-gradient(90.76deg,#9243AC_0.54%,#B6459F_50.62%,#E74294_99.26%)] bg-clip-text text-transparent border-b-2 border-[linear-gradient(90.76deg,#9243AC_0.54%,#B6459F_50.62%,#E74294_99.26%)]"
-                    : "text-gray-600 hover:text-gray-900"
-                }`}
+                className={`px-3 py-2 text-xs font-medium whitespace-nowrap transition-colors  text-bold text-[14px] font-gilroy leading-[100%] tracking-[-3%]  ${activeTab === "bookings"
+                  ? "bg-[linear-gradient(90.76deg,#9243AC_0.54%,#B6459F_50.62%,#E74294_99.26%)] bg-clip-text text-transparent border-b-2 border-[linear-gradient(90.76deg,#9243AC_0.54%,#B6459F_50.62%,#E74294_99.26%)]"
+                  : "text-gray-600 hover:text-gray-900"
+                  }`}
                 onClick={() => setActiveTab("bookings")}
               >
                 Bookings
@@ -1116,26 +1062,23 @@ const JourneySidebar: React.FC<JourneySidebarProps> = ({
                 type="button"
                 onClick={handleAddDay}
                 disabled={addDayDisabled || isAddingDay}
-                className={`text-[12px] flex items-center gap-1 py-2 px-3 rounded-full leading-none focus:outline-none transition-all ${
-                  addDayDisabled || isAddingDay
-                    ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                    : "bg-[linear-gradient(90.76deg,#9243AC_0.54%,#B6459F_50.62%,#E74294_99.26%)] text-white hover:opacity-90"
-                }`}
+                className={`text-[12px] flex items-center gap-1 py-2 px-3 rounded-full leading-none focus:outline-none transition-all ${addDayDisabled || isAddingDay
+                  ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                  : "bg-[linear-gradient(90.76deg,#9243AC_0.54%,#B6459F_50.62%,#E74294_99.26%)] text-white hover:opacity-90"
+                  }`}
               >
                 <div
-                  className={`p-0.5 border rounded-full ${
-                    addDayDisabled || isAddingDay
-                      ? "border-gray-400"
-                      : "border-white"
-                  }`}
+                  className={`p-0.5 border rounded-full ${addDayDisabled || isAddingDay
+                    ? "border-gray-400"
+                    : "border-white"
+                    }`}
                 >
                   {isAddingDay ? (
                     <div className="w-2.5 h-2.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
                   ) : (
                     <PlusIcon
-                      className={`w-2.5 h-2.5 ${
-                        addDayDisabled ? "text-gray-400" : "text-white"
-                      }`}
+                      className={`w-2.5 h-2.5 ${addDayDisabled ? "text-gray-400" : "text-white"
+                        }`}
                     />
                   )}
                 </div>
@@ -1175,9 +1118,8 @@ const JourneySidebar: React.FC<JourneySidebarProps> = ({
                             </span>
                           </span>
                           <svg
-                            className={`h-3 w-3 text-gray-700 transition-transform ${
-                              isOpen ? "rotate-180" : ""
-                            }`}
+                            className={`h-3 w-3 text-gray-700 transition-transform ${isOpen ? "rotate-180" : ""
+                              }`}
                             viewBox="0 0 20 20"
                             fill="currentColor"
                           >
@@ -1192,7 +1134,7 @@ const JourneySidebar: React.FC<JourneySidebarProps> = ({
                         {/* Right: + Add Stop */}
                         <button
                           type="button"
-                          onClick={() => handleAddStop(dayIndex)}
+                          onClick={() => onAddStop?.(dayIndex)}
                           className="text-[12px] leading-none font-semibold bg-[linear-gradient(90.76deg,#9243AC_0.54%,#B6459F_50.62%,#E74294_99.26%)] bg-clip-text text-transparent focus:outline-none"
                         >
                           + Add Stop
@@ -1237,17 +1179,7 @@ const JourneySidebar: React.FC<JourneySidebarProps> = ({
                 })}
               </div>
 
-              {/* Add Day Button */}
-              {/* <div className="text-center py-4">
-                <button
-                  type="button"
-                  className="text-blue-600 hover:text-blue-800 text-[12px] font-medium disabled:text-[#7F7C7C]"
-                  // onClick={handleAddDay}
-                  disabled={addDayDisabled}
-                >
-                  + Add Days
-                </button>
-              </div> */}
+
             </div>
           )}
 

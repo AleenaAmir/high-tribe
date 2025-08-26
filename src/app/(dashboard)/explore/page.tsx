@@ -10,6 +10,7 @@ import JourneySidebar from "@/components/explore/JourneySidebar";
 import StepDetailsPanel from "@/components/explore/StepDetailsPanel";
 import { Step } from "@/components/dashboard/modals/components/newjourney/types";
 import ExploreJourneyList from "@/components/explore/ExploreJourneyList";
+import AddStopModal from "@/components/explore/AddStopModal";
 
 /** === API & Local Types === */
 type ApiJourney = {
@@ -144,9 +145,9 @@ const toJourneyDataFromApi = (j: ApiJourney): JourneyData => {
           coords:
             stop.lat && stop.lng
               ? ([
-                  parseFloat(String(stop.lng)),
-                  parseFloat(String(stop.lat)),
-                ] as [number, number])
+                parseFloat(String(stop.lng)),
+                parseFloat(String(stop.lat)),
+              ] as [number, number])
               : null,
           name: stop.location_name || "",
         },
@@ -225,7 +226,7 @@ const Page = () => {
   const [isStepDetailsOpen, setIsStepDetailsOpen] = useState<boolean>(false);
 
   /** === Handlers === */
-  const handleMenuClick = () => {};
+  const handleMenuClick = () => { };
 
   const handleStepSelect = (dayIndex: number, stepIndex: number) => {
     setSelectedStep({ dayIndex, stepIndex });
@@ -270,6 +271,12 @@ const Page = () => {
       );
     }
   };
+  const [isAddingStop, setIsAddingStop] = useState<boolean>(false);
+  const [addStopForDay, setAddStopForDay] = useState<number | null>(null);
+  const handleAddStop = (dayIndex: number) => {
+    setAddStopForDay(dayIndex);
+    setIsAddingStop(true);
+  };
 
   // Selected step for details panel
   const getSelectedStepData = (): Step | null => {
@@ -302,6 +309,7 @@ const Page = () => {
               selectedStep={selectedStep}
               onStepSelect={handleStepSelect}
               onJourneyDataUpdate={updateJourneyData}
+              onAddStop={handleAddStop}
             />
           )}
 
@@ -348,6 +356,13 @@ const Page = () => {
         setNewJourney={setNewJourney}
         setShowJourneyList={setShowJourneyList}
       />
+      {isAddingStop ? (
+        <AddStopModal
+          open={isAddingStop}
+          dayIndex={addStopForDay}
+          onClose={() => setIsAddingStop(false)}
+        />
+      ) : null}
     </>
   );
 };
