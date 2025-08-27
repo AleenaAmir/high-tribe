@@ -35,7 +35,7 @@ const JourneyHeader: React.FC<JourneyHeaderProps> = ({
             {journeyData.journeyName}
           </h2>
           <Image
-            src="/dashboard/Pencil.png"
+            src="/dashboard/editpencil.png"
             alt="Edit"
             width={16}
             height={16}
