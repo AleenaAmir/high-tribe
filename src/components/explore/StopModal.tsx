@@ -332,14 +332,18 @@ export default function StopModal({
     }
 
     try {
-      // Fix date conversion logic for MM/DD/YYYY format
+      // Use the date from the form data, which should be the formattedDate
+      console.log("Form data date:", data.date);
       console.log("Original formattedDate:", formattedDate);
 
       let apiDate;
-      if (formattedDate && formattedDate.includes("/")) {
+      if (data.date && data.date.includes("/")) {
         // Format: MM/DD/YYYY (from toLocaleDateString)
-        const [month, day, year] = formattedDate.split("/");
+        const [month, day, year] = data.date.split("/");
         apiDate = `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
+      } else if (data.date && data.date.includes("-")) {
+        // Format: YYYY-MM-DD (already in correct format)
+        apiDate = data.date;
       } else {
         // Fallback to current date
         apiDate = new Date().toISOString().split("T")[0];

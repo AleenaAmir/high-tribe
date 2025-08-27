@@ -267,7 +267,7 @@ export default function DayStopsModal({
         mode={stopModalMode}
         dayIndex={0}
         journeyData={{ id: journeyId }}
-        formattedDate={dayStops[0]?.date || ""}
+        formattedDate={formattedDate || ""}
         dayNumber={dayNumber}
         stopData={stopModalData}
         onStopAdded={handleStopAdded}
