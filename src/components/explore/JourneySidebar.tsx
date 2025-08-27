@@ -65,9 +65,7 @@ const JourneySidebar: React.FC<JourneySidebarProps> = ({
   const [selectedDay, setSelectedDay] = useState<number | null>(null);
   const [addDayDisabled, setAddDayDisabled] = useState(false);
   const [isAddingDay, setIsAddingDay] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
   const [openDayIndex, setOpenDayIndex] = useState<number | null>(null);
-  const [editingStepIndex, setEditingStepIndex] = useState<number | null>(null);
   const [savedSteps, setSavedSteps] = useState<{ [key: string]: boolean }>({});
   const [activeTab, setActiveTab] = useState<"itinerary" | "bookings" | "chat">(
     "itinerary"
@@ -110,7 +108,7 @@ const JourneySidebar: React.FC<JourneySidebarProps> = ({
     }
   }, [journeyData, daysDiff]);
 
-  const { control, handleSubmit, watch, setValue, getValues } =
+  const { control, handleSubmit, setValue } =
     useForm<FormData>({
       defaultValues: {
         days: [],
@@ -126,8 +124,7 @@ const JourneySidebar: React.FC<JourneySidebarProps> = ({
     name: "days",
   });
 
-  // Watch the form data for real-time updates
-  const watchedDays = watch("days");
+
 
   // Initialize days if empty
   React.useEffect(() => {
@@ -291,102 +288,6 @@ const JourneySidebar: React.FC<JourneySidebarProps> = ({
       setIsAddingDay(false);
     }
   };
-
-  const handleStepDelete = (dayIndex: number, stepIndex: number) => {
-    // Get the current day from the generated days
-    const currentDay = finalDisplayDays[dayIndex];
-    if (!currentDay || !currentDay.steps) {
-      console.error("Day or steps not found");
-      return;
-    }
-
-    // Remove the step
-    const updatedSteps = currentDay.steps.filter(
-      (_, index) => index !== stepIndex
-    );
-
-    const updatedDay = {
-      ...currentDay,
-      steps: updatedSteps,
-    };
-
-    // Update journeyData if it exists
-    if (journeyData) {
-      const updatedJourneyData = { ...journeyData };
-      if (!updatedJourneyData.days) {
-        updatedJourneyData.days = [];
-      }
-      updatedJourneyData.days[dayIndex] = updatedDay;
-
-      if (onJourneyDataUpdate) {
-        onJourneyDataUpdate(updatedJourneyData);
-      }
-    }
-
-    // Remove from saved steps
-    const stepKey = `${dayIndex}-${stepIndex}`;
-    const newSavedSteps = { ...savedSteps };
-    delete newSavedSteps[stepKey];
-    setSavedSteps(newSavedSteps);
-    console.log("✅ Stop deleted successfully!");
-  };
-
-  const handleStepUpdate = (
-    dayIndex: number,
-    stepIndex: number,
-    updatedStep: Partial<Step>
-  ) => {
-    // Get the current day from the generated days
-    const currentDay = finalDisplayDays[dayIndex];
-    if (!currentDay || !currentDay.steps) {
-      console.error("Day or steps not found");
-      return;
-    }
-
-    // Update the step
-    const updatedSteps = [...currentDay.steps];
-    updatedSteps[stepIndex] = { ...updatedSteps[stepIndex], ...updatedStep };
-
-    const updatedDay = {
-      ...currentDay,
-      steps: updatedSteps,
-    };
-
-    // Update journeyData if it exists
-    if (journeyData) {
-      const updatedJourneyData = { ...journeyData };
-      if (!updatedJourneyData.days) {
-        updatedJourneyData.days = [];
-      }
-      updatedJourneyData.days[dayIndex] = updatedDay;
-
-      if (onJourneyDataUpdate) {
-        onJourneyDataUpdate(updatedJourneyData);
-      }
-    }
-  };
-
-  const handleDayToggle = (dayIndex: number) => {
-    setOpenDayIndex(openDayIndex === dayIndex ? null : dayIndex);
-  };
-
-  const handleStepToggleEdit = (stepIndex: number) => {
-    setEditingStepIndex(editingStepIndex === stepIndex ? null : stepIndex);
-  };
-
-  const handleSaveStep = (dayIndex: number, stepIndex: number) => {
-    const stepKey = `${dayIndex}-${stepIndex}`;
-    setSavedSteps((prev) => ({ ...prev, [stepKey]: true }));
-    console.log("Step saved:", stepKey);
-  };
-
-  const handleEditStep = (dayIndex: number, stepIndex: number) => {
-    const stepKey = `${dayIndex}-${stepIndex}`;
-    setSavedSteps((prev) => ({ ...prev, [stepKey]: false }));
-  };
-
-  // Use watchedDays for rendering to ensure real-time updates
-  const displayDays = watchedDays || days;
 
   // Generate all available days from start date to end date
   const generateAllDays = (): Day[] => {

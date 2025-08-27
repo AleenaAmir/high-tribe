@@ -63,9 +63,9 @@ export default function DayStopsModal({
     const fmt = (d?: string) =>
       d
         ? new Date(d).toLocaleDateString(undefined, {
-            day: "2-digit",
-            month: "short",
-          })
+          day: "2-digit",
+          month: "short",
+        })
         : "";
     const start = fmt(date);
     const end = fmt(endDate || date);
@@ -134,8 +134,6 @@ export default function DayStopsModal({
     // Close the stop modal first
     handleStopModalClose();
 
-    // The parent will refresh the data, which will update the prop
-    // and trigger the useEffect to update localDayStops
     if (onStopAdded) {
       onStopAdded();
     }
@@ -145,8 +143,6 @@ export default function DayStopsModal({
     // Close the stop modal first
     handleStopModalClose();
 
-    // The parent will refresh the data, which will update the prop
-    // and trigger the useEffect to update localDayStops
     if (onStopUpdated) {
       onStopUpdated();
     }
@@ -165,12 +161,12 @@ export default function DayStopsModal({
             {/* Left: Stops List */}
             <div className="flex flex-col bg-white h-full">
               <div className="flex justify-center items-center p-6 border-b border-gray-200">
-                <h2 className="text-[22px] font-bold font-gilroy text-center">
+                <h2 className="text-[22px]  text-[#424242] leading-[100%] font-medium font-gilroy text-center">
                   {journeyName}
                 </h2>
               </div>
               <div className="flex  justify-between  p-6 border-b border-gray-200">
-                <h3 className="text-[14px] font-bold font-gilroy ">
+                <h3 className="text-[14px] font-medium font-gilroy ">
                   Day {dayNumber}
                 </h3>
                 <div className="flex gap-2">
@@ -178,9 +174,9 @@ export default function DayStopsModal({
 
                   <button
                     onClick={handleAddStop}
-                    className="text-[12px] font-bold font-gilroy  flex items-center gap-2  text-[#0000000]  transition-colors"
+                    className="text-[16px] font-medium font-gilroy  flex items-center gap-2  text-[#0000000]  transition-colors"
                   >
-                    <span className="text-[14px] font-semibold font-gilroy bg-[#9743AA] text-white p-1 w-8 h-8 flex items-center justify-center rounded-full transition-colors">
+                    <span className="text-[14px] font-medium font-gilroy bg-[#9743AA] text-white p-1 w-8 h-8 flex items-center justify-center rounded-full transition-colors">
                       +
                     </span>
                     Add Stop
@@ -196,10 +192,7 @@ export default function DayStopsModal({
                   localDayStops.map((stop, index) => (
                     <DayStopCard
                       key={stop.id}
-                      dayNumber={
-                        (typeof dayNumber === "number" && dayNumber) ||
-                        index + 1
-                      }
+                      dayNumber={pad2(index + 1)}
                       title={stop.location_name || stop.title || "Untitled"}
                       subtitle={formatRange(stop.date, stop.end_date)}
                       onEdit={() => handleEditStop(stop)}

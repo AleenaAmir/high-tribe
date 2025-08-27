@@ -127,9 +127,8 @@ function LocationSelector({
       <div className="relative">
         <input
           type="text"
-          className={`rounded-lg border py-3 px-5 text-[12px] w-full h-[40px] placeholder:text-[#AFACAC] focus:outline-none focus:ring-2 focus:ring-[#9743AA] transition-all ${
-            error ? "border-red-500" : "border-[#848484]"
-          }`}
+          className={`rounded-lg border py-3 px-5 text-[12px] w-full h-[40px] placeholder:text-[#AFACAC] focus:outline-none focus:ring-2 focus:ring-[#9743AA] transition-all ${error ? "border-red-500" : "border-[#848484]"
+            }`}
           placeholder={placeholder || "Search for a location..."}
           value={value}
           onChange={handleInputChange}
@@ -448,13 +447,13 @@ export default function StopModal({
             <div className="flex flex-col bg-white h-full">
               {/* Header */}
               <div className="flex justify-center items-center p-6 border-b border-gray-200">
-                <h2 className="text-[22px] font-bold font-gilroy text-center">
+                <h2 className="text-[22px] font-medium text-[#424242] leading-[100%] font-gilroy text-center">
                   {mode === "edit" ? "Edit Stop" : "Add New Stop"}
                 </h2>
               </div>
 
               <div className="flex p-6 border-b border-gray-200">
-                <h3 className="text-[14px] font-bold font-gilroy">
+                <h3 className="text-[14px] font-medium text-[#000000] leading-[100%] font-gilroy">
                   Day {dayNumber} ({formattedDate})
                 </h3>
               </div>
@@ -462,25 +461,7 @@ export default function StopModal({
               {/* Form Content */}
               <div className="flex-1 p-6">
                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-                  {/* Title */}
-                  {/* <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Title
-                    </label>
-                    <input
-                      type="text"
-                      {...register("title")}
-                      placeholder="Enter stop title..."
-                      className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#9743AA] ${
-                        errors.title ? "border-red-500" : "border-gray-300"
-                      }`}
-                    />
-                    {errors.title && (
-                      <p className="text-red-500 text-xs mt-1">
-                        {errors.title.message}
-                      </p>
-                    )}
-                  </div> */}
+
 
                   {/* Category */}
                   <GlobalSelect
@@ -497,8 +478,8 @@ export default function StopModal({
                       {loadingCategories
                         ? "Loading categories..."
                         : stopCategories.length === 0
-                        ? "No categories available"
-                        : "Select a category"}
+                          ? "No categories available"
+                          : "Select a category"}
                     </option>
                     {stopCategories.map((category) => (
                       <option key={category.id} value={category.id.toString()}>
@@ -541,17 +522,20 @@ export default function StopModal({
                   </GlobalSelect>
 
                   {/* Notes */}
-                  <GlobalTextArea
-                    label="Notes"
-                    rows={3}
-                    placeholder="Add notes about this stop..."
-                    value={watch("notes")}
-                    onChange={(e) => setValue("notes", e.target.value)}
-                    error={errors.notes?.message}
-                  />
+                  <div className="mb-25">
+                    <GlobalTextArea
+                      label="Notes"
+                      rows={3}
+                      placeholder="Add notes about this stop..."
+                      value={watch("notes")}
+                      onChange={(e) => setValue("notes", e.target.value)}
+                      error={errors.notes?.message}
+                    />
+                  </div>
+
 
                   {/* Save Button */}
-                  <div className="flex justify-end items-center pt-4">
+                  <div className="flex justify-end items-center pt-4 border-t border-gray-200">
                     <button
                       type="submit"
                       disabled={isSubmitting}
@@ -562,8 +546,8 @@ export default function StopModal({
                           ? "Updating..."
                           : "Saving..."
                         : mode === "edit"
-                        ? "Update"
-                        : "Save"}
+                          ? "Update"
+                          : "Save"}
                     </button>
                   </div>
                 </form>

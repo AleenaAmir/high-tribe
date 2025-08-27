@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 
 type DayStopCardProps = {
-    dayNumber?: number;
+    dayNumber?: string;
     title: string;
     subtitle?: string;        // e.g., "19 Jun → 20 Jun"
     onEdit?: () => void;
@@ -12,7 +12,7 @@ type DayStopCardProps = {
 const defaultPad2 = (n: number) => String(n).padStart(2, "0");
 
 const DayStopCard = ({
-    dayNumber = 1,
+    dayNumber = "01",
     title,
     subtitle,
     onEdit,
@@ -42,20 +42,20 @@ const DayStopCard = ({
     }, [open]);
 
     return (
-        <div className="group relative flex items-center justify-between rounded-2xl bg-[#F3F3F3] shadow-sm px-4 py-3 hover:shadow-md transition">
+        <div className="group relative flex items-center justify-between rounded-2xl bg-[#F1F1F1]  px-4 py-6 hover:shadow-md transition">
             {/* Left: day badge + text */}
-            <div className="flex items-center gap-3 min-w-0">
-                <div className="h-9 w-9 rounded-full flex items-center justify-center text-white text-xs font-bold
+            <div className="flex items-center gap-4 min-w-0">
+                <div className="h-10 w-10 rounded-full flex items-center justify-center text-white text-[14px] font-medium
                         bg-[linear-gradient(90.76deg,#9243AC_0.54%,#B6459F_50.62%,#E74294_99.26%)]">
-                    {pad2(dayNumber)}
+                    {dayNumber}
                 </div>
 
                 <div className="min-w-0">
-                    <div className="text-sm font-semibold text-gray-900 truncate max-w-[18rem]">
+                    <div className="text-[14px] font-medium font-gilroy text-[#1E1D1D] truncate max-w-[18rem]">
                         {title}
                     </div>
                     {subtitle ? (
-                        <div className="text-xs text-gray-500">{subtitle}</div>
+                        <div className="text-[12px]   font-gilroy text-gray-400">{subtitle}</div>
                     ) : null}
                 </div>
             </div>

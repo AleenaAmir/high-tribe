@@ -349,55 +349,51 @@ const ExploreFeeds = ({
       </div>
 
       {/* Right Side - Start New January Button and Three Dots */}
-      <div className="flex items-center gap-2">
-        {/* Start New January Button */}
-        <div className="relative">
+      <div className="flex items-center gap-3">
+        {/* Start New Journey */}
+        <div className="p-[1.5px] rounded-full bg-gradient-to-r from-[#9743AA] to-[#E54295]">
           <button
             onClick={() => {
               setToggle("newJourney");
               onNewJourneyClick?.();
             }}
-            className="rounded-full p-[1.5px] bg-gradient-to-r from-[#9743AA] to-[#E54295]"
-          >
-            <div
-              className={[
-                "flex items-center gap-1 px-3 py-1.5 rounded-full shadow-sm hover:shadow-md active:scale-95 transition-all",
-                // when active: fill with gradient
-                toggle === "newJourney"
-                  ? "bg-[linear-gradient(90.76deg,#9743AA_0.54%,#B6459F_50.62%,#E54295_99.26%)] text-white ring-1 ring-white/30"
-                  : "bg-white text-black",
-              ].join(" ")}
-            >
-              <span className="whitespace-nowrap">Start New January</span>
-              <div className="w-4 h-4 bg-white border border-black rounded-full flex items-center justify-center hover:bg-gray-100 transition-colors cursor-pointer active:scale-95">
-                <PlusIcon className="text-black w-2.5 h-2.5" />
-              </div>
-            </div>
-          </button>
-        </div>
-        <div className="relative">
-          <button
-            onClick={() => {
-              setToggle("explore");
-            }}
-            className="rounded-full p-[1.5px] bg-gradient-to-r from-[#9743AA] to-[#E54295]"
-          >
-            <div
-              className={`flex items-center text-[13px] gap-1 px-5 py-1.5 bg-white text-black rounded-full hover:bg-gray-50 transition-colors cursor-pointer shadow-sm hover:shadow-md active:scale-95 ${toggle === "explore"
+            className={`flex items-center gap-2 px-5 py-2 rounded-full text-[14px] font-medium font-gilroy transition-all shadow-sm hover:shadow-md active:scale-95
+        ${toggle === "newJourney"
                 ? "bg-gradient-to-r from-[#9743AA] to-[#E54295] text-white"
                 : "bg-white text-black"
+              }`}
+          >
+            <span>Start New Journey</span>
+            <span
+              className={`w-5 h-5 flex items-center justify-center rounded-full border transition-colors
+          ${toggle === "newJourney"
+                  ? "bg-white text-black border-transparent"
+                  : "bg-white text-black border-gray-300"
                 }`}
             >
-              Explore
-            </div>
+              <PlusIcon className="w-3 h-3" />
+            </span>
           </button>
         </div>
 
-        {/* Three Dots Menu Button */}
-        <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-          <Image src={"/dashboard/dots.svg"} alt="dots" width={4} height={4} />
-        </button>
+        {/* Explore */}
+        <div className="p-[1.5px] rounded-full bg-gradient-to-r from-[#9743AA] to-[#E54295]">
+          <button
+            onClick={() => setToggle("explore")}
+            className={`px-6 py-2 rounded-full text-[14px] font-medium font-gilroy transition-all shadow-sm hover:shadow-md active:scale-95
+        ${toggle === "explore"
+                ? "bg-gradient-to-r from-[#9743AA] to-[#E54295] text-white"
+                : "bg-white text-black"
+              }`}
+          >
+            Explore
+          </button>
+        </div>
+
+
       </div>
+
+
     </div>
   );
 };

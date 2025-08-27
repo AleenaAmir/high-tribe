@@ -1,19 +1,13 @@
 import React, { useState } from "react";
 import { Step } from "@/components/dashboard/modals/components/newjourney/types";
 import ChevronDownIcon from "../icons/ChevronDownIcon";
-
 import ViewDayStop from "./ViewDayStop";
 
 interface DayItemProps {
   day: any;
   dayIndex: number;
   dayStops: any[];
-
-
   onAddStop: (dayIndex: number, formattedDate: string, dayNumber: number) => void;
-
-
-
   handleViewDayStops: (formattedDate: string) => void;
 }
 
@@ -51,7 +45,9 @@ const DayItem: React.FC<DayItemProps> = ({
               ({formattedDate})
             </span>
           </span>
-          <ChevronDownIcon isOpen={openDayIndex === dayIndex} />
+          <div className="flex items-center justify-center">
+            <ChevronDownIcon isOpen={openDayIndex === dayIndex} className="h-6 w-6" />
+          </div>
         </button>
 
         {/* Right: + Add Stop */}
@@ -63,10 +59,12 @@ const DayItem: React.FC<DayItemProps> = ({
           + Add Stop
         </button>
       </div>
-
-      {/* Day Content - Steps */}
       {openDayIndex === dayIndex && (
-        <ViewDayStop handleViewDayStops={(formattedDate: string) => handleViewDayStops(formattedDate)} dayStops={dayStops} formattedDate={formattedDate} />
+        <ViewDayStop
+          handleViewDayStops={(formattedDate: string) => handleViewDayStops(formattedDate)}
+          dayStops={dayStops}
+          formattedDate={formattedDate}
+        />
       )}
     </div>
   );

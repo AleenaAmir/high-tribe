@@ -57,7 +57,7 @@ const DeleteModal: React.FC<ConfirmDeleteModalProps> = ({
             width="20"
             height="20"
             viewBox="0 0 24 24"
-            className="text-gray-500"
+            className="text-[#000000]"
           >
             <path
               d="M6 6l12 12M18 6L6 18"
@@ -69,7 +69,7 @@ const DeleteModal: React.FC<ConfirmDeleteModalProps> = ({
         </button>
 
         {/* Content */}
-        <div className="mt-3 text-center">
+        <div className="my-4 p-2 text-center">
           <div className="text-[18px] font-semibold text-gray-900">{title}</div>
           <div className="mt-1 text-[18px] font-semibold text-gray-900">
             {message}
@@ -84,7 +84,7 @@ const DeleteModal: React.FC<ConfirmDeleteModalProps> = ({
               className={`relative inline-flex items-center justify-center rounded-full px-5 py-2 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed`}
             >
               <span className={`absolute inset-0 rounded-full `} />
-              <span className="relative rounded-full border border-[#9743AA] px-5 py-2 text-[#9743AA]">
+              <span className="relative rounded-full border border-[#9743AA] px-5 py-2 text-[#9743AA] text-[14px] font-medium font-gilroy">
                 Cancel
               </span>
             </button>
@@ -93,7 +93,7 @@ const DeleteModal: React.FC<ConfirmDeleteModalProps> = ({
             <button
               onClick={onConfirm}
               disabled={isLoading}
-              className={`inline-flex items-center justify-center rounded-full px-6 py-2 text-sm font-semibold text-white ${gradient} hover:opacity-95 disabled:opacity-50 disabled:cursor-not-allowed`}
+              className={`inline-flex items-center justify-center rounded-full px-6 py-2  text-[14px]  font-medium font-gilroy text-white ${gradient} hover:opacity-95 disabled:opacity-50 disabled:cursor-not-allowed`}
             >
               {isLoading ? (
                 <div className="flex items-center gap-2">

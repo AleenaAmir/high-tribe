@@ -6,14 +6,13 @@ interface ChevronDownIconProps {
 }
 
 const ChevronDownIcon: React.FC<ChevronDownIconProps> = ({
-  className = "h-3 w-3",
+  className = "h-4 w-4",
   isOpen = false,
 }) => {
   return (
     <svg
-      className={`${className} text-gray-700 transition-transform ${
-        isOpen ? "rotate-180" : ""
-      }`}
+      className={`${className} text-gray-700 transition-transform ${isOpen ? "rotate-180" : ""
+        }`}
       viewBox="0 0 20 20"
       fill="currentColor"
     >
