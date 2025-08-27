@@ -128,7 +128,7 @@ export default function ExploreJourneyList({
           <div className="p-2 bg-[#F4F4F4] rounded-sm">{icon}</div>
           <div className="text-[18px] font-semibold text-black">My Journey</div>
         </div>
-        <div className="space-y-1 max-h-[400px] overflow-y-auto">
+        <div className="space-y-1 max-h-[400px] overflow-y-auto overflow-x-hidden">
           <div className="text-[18px] font-medium text-[#9F40C8]">Trips</div>
           {trips.map((trip, idx) => (
             <div

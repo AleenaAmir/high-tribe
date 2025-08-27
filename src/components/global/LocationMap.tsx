@@ -236,17 +236,19 @@ const LocationMap: React.FC<LocationMapProps> = ({
       el.textContent = String(index + 1);
 
       // Add hover effect
-      el.addEventListener("mouseenter", () => {
-        el.style.transform = "scale(1.1)";
-        el.style.boxShadow =
-          "0 4px 12px rgba(0,0,0,0.4), 0 0 0 3px rgba(151, 67, 170, 0.4)";
-      });
+      // el.addEventListener("mouseenter", () => {
+      //   el.style.transform = "scale(1.1)";
+      //   el.style.boxShadow =
+      //     "0 4px 12px rgba(0,0,0,0.4), 0 0 0 3px rgba(151, 67, 170, 0.4)";
+      //   el.style.zIndex = "1001"; // Ensure marker stays on top during hover
+      // });
 
-      el.addEventListener("mouseleave", () => {
-        el.style.transform = "scale(1)";
-        el.style.boxShadow =
-          "0 2px 8px rgba(0,0,0,0.3), 0 0 0 2px rgba(151, 67, 170, 0.3)";
-      });
+      // el.addEventListener("mouseleave", () => {
+      //   el.style.transform = "scale(1)";
+      //   el.style.boxShadow =
+      //     "0 2px 8px rgba(0,0,0,0.3), 0 0 0 2px rgba(151, 67, 170, 0.3)";
+      //   el.style.zIndex = "1000"; // Reset z-index
+      // });
 
       // Create popup content
       const popupContent = document.createElement("div");

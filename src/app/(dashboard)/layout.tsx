@@ -1,4 +1,3 @@
-
 "use client";
 import React, { useState } from "react";
 import NavBar from "@/components/dashboard/NavBar";
@@ -41,22 +40,16 @@ export default function DashboardLayout({
               isSidebarOpen ? "translate-x-0" : "-translate-x-full",
               "lg:static lg:translate-x-0 lg:z-40",
             ].join(" ")}
-            aria-hidden={!isSidebarOpen && typeof window !== "undefined" ? true : undefined}
+            aria-hidden={!isSidebarOpen}
           >
             <div className="flex-1 flex flex-col pl-8 pr-2 pt-2 overflow-y-auto">
-
-
               <SideBar onItemClick={() => setIsSidebarOpen(false)} />
-
-
             </div>
           </aside>
         )}
 
         {/* Main content (scrollable) */}
-        <main className="flex-1 overflow-y-auto bg-[#f9f9f9]">
-          {children}
-        </main>
+        <main className="flex-1 overflow-y-auto bg-[#f9f9f9]">{children}</main>
       </div>
     </div>
   );

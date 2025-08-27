@@ -115,6 +115,8 @@ const MediaModal: React.FC<MediaModalProps> = ({
 
   // Prevent body scroll when modal is open
   useEffect(() => {
+    if (typeof window === "undefined") return;
+
     if (isOpen) {
       document.body.style.overflow = "hidden";
     } else {
@@ -130,6 +132,15 @@ const MediaModal: React.FC<MediaModalProps> = ({
 
   const currentMedia = media[currentIndex];
   const hasMultipleMedia = media.length > 1;
+
+  // Safety check: if no current media is available, don't render
+  if (!currentMedia) {
+    console.warn("MediaModal - No current media available:", {
+      currentIndex,
+      mediaLength: media.length,
+    });
+    return null;
+  }
 
   // Debug logging
   console.log("MediaModal - Current media:", currentMedia);

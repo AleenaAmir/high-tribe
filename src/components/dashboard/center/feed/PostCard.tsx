@@ -359,7 +359,7 @@ const MediaGrid = ({
                   {renderMedia(
                     mediaItem,
                     "min-w-[117px] min-h-[117px] max-w-[117px] max-h-[117px] object-cover",
-                    index + 1
+                    index
                   )}
                 </div>
               ))}
@@ -454,7 +454,8 @@ export const PostCard = ({
       post.stops.forEach((stop, index) => {
         if (stop.media && stop.media.length > 0) {
           console.log(
-            `Stop ${index + 1} (${stop.title}) has ${stop.media.length
+            `Stop ${index + 1} (${stop.title}) has ${
+              stop.media.length
             } media items`
           );
           allMedia.push(...stop.media);
@@ -803,7 +804,8 @@ export const PostCard = ({
               <div className="mt-3 space-y-3">
                 {(() => {
                   console.log(
-                    `Comment ${comment.id} has ${comment.replies?.length || 0
+                    `Comment ${comment.id} has ${
+                      comment.replies?.length || 0
                     } replies:`,
                     comment.replies
                   );
@@ -981,14 +983,15 @@ export const PostCard = ({
         ) : (
           <div className="mt-1 font-gilroy">
             <p
-              className={`leading-relaxed ${isTip
+              className={`leading-relaxed ${
+                isTip
                   ? "text-[12px]"
                   : isAdvisory
-                    ? "text-[16px]"
-                    : isFootprint
-                      ? "text-[16px]"
-                      : "text-sm"
-                }`}
+                  ? "text-[16px]"
+                  : isFootprint
+                  ? "text-[16px]"
+                  : "text-sm"
+              }`}
             >
               {displayContent}
             </p>
@@ -1281,14 +1284,15 @@ export const PostCard = ({
             {displayContent && (
               <div className="mb-4 font-gilroy">
                 <p
-                  className={`leading-relaxed ${isTip
+                  className={`leading-relaxed ${
+                    isTip
                       ? "text-[12px]"
                       : isAdvisory
-                        ? "text-[16px]"
-                        : isFootprint
-                          ? "text-[16px]"
-                          : "text-sm"
-                    }`}
+                      ? "text-[16px]"
+                      : isFootprint
+                      ? "text-[16px]"
+                      : "text-sm"
+                  }`}
                 >
                   {displayContent}
                 </p>
@@ -1384,10 +1388,11 @@ export const PostCard = ({
               </div>
               <button
                 type="submit"
-                className={`bg-gradient-to-r from-[#9243AC] via-[#B6459F] to-[#E74294] text-white px-4 py-2 rounded-full text-sm font-semibold flex items-center gap-2 h-fit w-fit transition-all duration-200 hover:scale-105 ${isSubmittingComment || !commentContent.trim()
+                className={`bg-gradient-to-r from-[#9243AC] via-[#B6459F] to-[#E74294] text-white px-4 py-2 rounded-full text-sm font-semibold flex items-center gap-2 h-fit w-fit transition-all duration-200 hover:scale-105 ${
+                  isSubmittingComment || !commentContent.trim()
                     ? "opacity-50 cursor-not-allowed"
                     : ""
-                  }`}
+                }`}
                 disabled={isSubmittingComment || !commentContent.trim()}
               >
                 {isSubmittingComment ? (
@@ -1420,29 +1425,33 @@ export const PostCard = ({
       <MediaModal
         isOpen={isModalOpen}
         onClose={handleModalClose}
-        media={currentMedia.map((m) => {
-          // Determine media type more accurately
-          const mediaType = m.media_type || m.type;
-          let type: "image" | "video" = "image"; // default to image
+        media={
+          currentMedia.length > 0
+            ? currentMedia.map((m) => {
+                // Determine media type more accurately
+                const mediaType = m.media_type || m.type;
+                let type: "image" | "video" = "image"; // default to image
 
-          if (mediaType === "video") {
-            type = "video";
-          } else if (
-            mediaType === "image" ||
-            mediaType === "photo" ||
-            !mediaType
-          ) {
-            type = "image";
-          }
+                if (mediaType === "video") {
+                  type = "video";
+                } else if (
+                  mediaType === "image" ||
+                  mediaType === "photo" ||
+                  !mediaType
+                ) {
+                  type = "image";
+                }
 
-          const mappedMedia = {
-            type,
-            url: m.file_path || m.url || "",
-          };
+                const mappedMedia = {
+                  type,
+                  url: m.file_path || m.url || "",
+                };
 
-          console.log("PostCard - Mapping media:", m, "to:", mappedMedia);
-          return mappedMedia;
-        })}
+                console.log("PostCard - Mapping media:", m, "to:", mappedMedia);
+                return mappedMedia;
+              })
+            : []
+        }
         currentIndex={currentMediaIndex}
         onIndexChange={handleMediaIndexChange}
         postTitle={displayTitle}
