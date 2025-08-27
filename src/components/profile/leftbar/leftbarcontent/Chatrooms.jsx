@@ -25,7 +25,7 @@ export default function Chatrooms() {
     <section className='border border-gray-200 mt-2 rounded-xl'>
       {/* Header */}
       <div className='border-b border-gray-300 px-2 py-4'>
-        <h1 className='font-semibold text-sm'>Chatrooms</h1>
+        <h1 className='font-semibold text-[13px]'>Chatrooms</h1>
       </div>
 
       {/* Chatroom Items */}
@@ -48,8 +48,8 @@ export default function Chatrooms() {
               </div>
 
               <div className='flex flex-col'>
-                <h4 className='font-medium'>{chat.name}</h4>
-                <p className='text-xs text-gray-500'>{chat.date}</p>
+                <h4 className='text-xs font-semibold'>{chat.name}</h4>
+                <p className='text-[10px] text-gray-500'>{chat.date}</p>
               </div>
             </div>
 

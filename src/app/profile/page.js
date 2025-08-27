@@ -1,8 +1,5 @@
 import Image from 'next/image'
-import TravelCard from '@/components/profile/TravelCard'
-import PostFootprints from '@/components/profile/PostFootprints'
-import PostNavbar from '@/components/profile/PostNavbar'
-import PostCard from '@/components/profile/PostCard'
+import PostNavbar from '@/components/profile/center/PostNavbar'
 
 
 export default function Home() {
@@ -11,7 +8,7 @@ export default function Home() {
       <div className='relative rounded-xl w-full overflow-hidden h-[350px]'>
         <Image
           src='/images/mainPageimg.png'
-          alt='Main Page'
+          alt='MainPage'
           className='object-cover bg-center'
           priority
           fill
@@ -19,9 +16,6 @@ export default function Home() {
       </div>
 
       <PostNavbar />
-      <PostFootprints />
-      <TravelCard />
-      <PostCard/>
     </section>
   )
 }

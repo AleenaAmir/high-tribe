@@ -6,7 +6,6 @@ import { RiEdit2Fill } from 'react-icons/ri'
 import { BsFacebook } from 'react-icons/bs'
 import { RiInstagramFill } from 'react-icons/ri'
 
-
 export default function AboutModal({ open, onClose }) {
   const [isEditingBio, setIsEditingBio] = useState(false)
   const [isEditingDob, setIsEditingDob] = useState(false)
@@ -32,9 +31,9 @@ export default function AboutModal({ open, onClose }) {
         {/* Close icon */}
         <button
           onClick={onClose}
-          className='absolute top-2 right-2 text-gray-500 hover:text-gray-800'
+          className='absolute top-2 right-2 text-gray-400 hover:text-gray-800'
         >
-          <RxCross2 size={15} />
+          <RxCross2 size={20} />
         </button>
 
         {/* HEADING */}
@@ -49,7 +48,7 @@ export default function AboutModal({ open, onClose }) {
             {!isEditingBio && (
               <button onClick={() => setIsEditingBio(true)}>
                 <RiEdit2Fill
-                  size={12}
+                  size={15}
                   className='text-md text-blue-500 cursor-pointer'
                 />
               </button>
@@ -76,7 +75,7 @@ export default function AboutModal({ open, onClose }) {
             {!isEditingDob && (
               <button onClick={() => setIsEditingDob(true)}>
                 <RiEdit2Fill
-                  size={12}
+                  size={15}
                   className='text-md text-blue-500 cursor-pointer'
                 />
               </button>
@@ -108,7 +107,7 @@ export default function AboutModal({ open, onClose }) {
             {!isEditingVisibility && (
               <button onClick={() => setisEditingVisibility(true)}>
                 <RiEdit2Fill
-                  size={12}
+                  size={15}
                   className='text-md text-blue-500 cursor-pointer'
                 />
               </button>
@@ -132,7 +131,7 @@ export default function AboutModal({ open, onClose }) {
             {!isEditingJoin && (
               <button onClick={() => setIsEditingJoin(true)}>
                 <RiEdit2Fill
-                  size={12}
+                  size={15}
                   className='text-md text-blue-500 cursor-pointer'
                 />
               </button>
@@ -165,7 +164,7 @@ export default function AboutModal({ open, onClose }) {
             {!isEditingSocial && (
               <button onClick={() => setIsEditingSocial(true)}>
                 <RiEdit2Fill
-                  size={12}
+                  size={15}
                   className='text-md text-blue-500 cursor-pointer'
                 />
               </button>

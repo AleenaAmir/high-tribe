@@ -1,8 +1,8 @@
 import './globals.css'
 import { Poppins } from 'next/font/google'
 import Header from '@/components/profile/Header'
-import LeftSidebar from '@/components/profile/LeftSidebar'
-import RightSidebar from '@/components/profile/RightSidebar'
+import LeftSidebar from '@/components/profile/leftbar/LeftSidebar'
+import RightSidebar from '@/components/profile/rightbar/RightSidebar'
 
 const poppins = Poppins({
   variable: '--font-poppins',

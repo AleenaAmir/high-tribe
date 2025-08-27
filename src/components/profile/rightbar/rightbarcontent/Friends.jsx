@@ -28,8 +28,8 @@ export default function Friends() {
       {/* Header */}
       <div className='flex justify-between'>
         <div className='flex gap-2 items-center font-semibold'>
-          <h1>Friends</h1>
-          <p className='text-blue-500'>{FriendData.length}</p>
+          <h1 className='text-[13px]'>Friends</h1>
+          <p className='text-blue-500 text-[13px]'>{FriendData.length}</p>
         </div>
         <button>
           <IoIosMore />
@@ -56,8 +56,8 @@ export default function Friends() {
               </div>
 
               <div className='flex flex-col'>
-                <h4 className='text-sm font-semibold'>{friend.name}</h4>
-                <p className='text-xs text-gray-500'>
+                <h4 className='text-xs font-semibold'>{friend.name}</h4>
+                <p className='text-[10px] text-gray-500'>
                   {friend.friends} mutual friends
                 </p>
               </div>
@@ -73,7 +73,7 @@ export default function Friends() {
         <div className='flex justify-center items-center pt-3'>
           <button
             onClick={() => setShowAll(!showAll)}
-            className='bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-600 hover:to-pink-600 transition-transform duration-300 py-1 px-3 text-xs rounded-2xl text-white'
+            className='bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-600 hover:to-pink-600 transition-transform duration-300 py-1 px-3 text-[10px] rounded-2xl text-white'
           >
             {showAll ? 'Show Less' : 'See all Friends'}
           </button>
