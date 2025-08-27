@@ -345,11 +345,11 @@ const JourneySidebar: React.FC<JourneySidebarProps> = ({
           onSubmit={handleSubmit(onSubmit)}
           className="flex flex-col h-full"
         >
-          <div className="p-3">
+          <div className="p-8">
             <div className="flex items-center gap-2 justify-end">
               <div className="flex items-center justify-center ">
                 <button
-                  className="h-8 w-8 mx-auto flex items-center justify-center"
+                  className="h-10 w-10 mx-auto text-black flex items-center justify-center"
                   aria-label="Menu"
                   onClick={onClose}
                   type="button"

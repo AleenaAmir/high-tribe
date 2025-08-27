@@ -217,15 +217,7 @@ const JourneyMapModal: React.FC<JourneyMapModalProps> = ({
                 </span>
                 <span>→</span>
                 <span className="truncate">{endLocation}</span>
-                <button
-                  type="button"
-                  className="flex items-center gap-1 hover:opacity-80 transition-opacity"
-                >
-                  <MapIcon />
-                  <span className="text-[10px] font-gilroy font-bold">
-                    View Map
-                  </span>
-                </button>
+
               </div>
             </div>
           )}
@@ -246,11 +238,10 @@ const JourneyMapModal: React.FC<JourneyMapModalProps> = ({
                       return (
                         <div
                           key={stop.id || index}
-                          className={`flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer ${
-                            selectedStopIndex === index
+                          className={`flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer ${selectedStopIndex === index
                               ? "bg-gray-50"
                               : "bg-white"
-                          }`}
+                            }`}
                           onClick={() => setSelectedStopIndex(index)}
                         >
                           {/* Gradient marker */}
@@ -358,11 +349,11 @@ const JourneyMapModal: React.FC<JourneyMapModalProps> = ({
                     startLocation={startCoords}
                     endLocation={endCoords}
                     steps={stopCoords}
-                    onStartChange={() => {}} // Read-only
-                    onEndChange={() => {}} // Read-only
-                    onStepsChange={() => {}} // Read-only
+                    onStartChange={() => { }} // Read-only
+                    onEndChange={() => { }} // Read-only
+                    onStepsChange={() => { }} // Read-only
                     activeMapSelect="start"
-                    setActiveMapSelect={() => {}} // Read-only
+                    setActiveMapSelect={() => { }} // Read-only
                   />
                 </div>
               ) : (

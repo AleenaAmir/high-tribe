@@ -17,25 +17,25 @@ const PostFootPrint = ({
   const options = [
     {
       name: "Map Your Trip",
-      src: "/dashboard/postsicon/map1.png",
+      src: "/dashboard/postsicon/map2.png",
       onClick: () => setJournyMap(true),
 
     },
     {
       name: "Foot Print",
-      src: "/dashboard/postsicon/foot.png",
+      src: "/dashboard/postsicon/foot1.png",
       onClick: () => setFootprintModal(true),
 
     },
     {
       name: "Travel Tip",
-      src: "/dashboard/postsicon/travel1.png",
+      src: "/dashboard/postsicon/advisory.png",
       onClick: () => setTipModal(true),
 
     },
     {
       name: "Travel Advisory",
-      src: "/dashboard/postsicon/adv.png",
+      src: "/dashboard/postsicon/travel2.png",
       onClick: () => setAdvisoryModal(true),
 
     },
@@ -103,7 +103,7 @@ const PostFootPrint = ({
               alt={opt.name}
               width={40}
               height={40}
-              className="w-[40px] h-[40px] object-contain  "
+              className="w-[40px] h-[40px] object-contain  drop-shadow-[0_1px_1px_rgba(0,0,0,0.25)]"
             />
 
 

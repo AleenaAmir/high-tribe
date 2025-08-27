@@ -90,7 +90,7 @@ const Explore = ({
         >
           <Menuicon />
         </button>
-        <div className="relative w-[360px] border border-[#DFDFDF] rounded-full p-1">
+        <div className="relative w-[360px] border border-[#DFDFDF] rounded-full p-2">
           <input
             type="text"
             placeholder="Search"
@@ -351,30 +351,52 @@ const ExploreFeeds = ({
       {/* Right Side - Start New January Button and Three Dots */}
       <div className="flex items-center gap-3">
         {/* Start New Journey */}
-        <div className="p-[1.5px] rounded-full bg-gradient-to-r from-[#9743AA] to-[#E54295]">
+        <div className="rounded-full p-[1.5px] bg-[linear-gradient(90.76deg,#9743AA_0.54%,#B6459F_50.62%,#E54295_99.26%)]">
           <button
             onClick={() => {
               setToggle("newJourney");
               onNewJourneyClick?.();
             }}
-            className={`flex items-center gap-2 px-5 py-2 rounded-full text-[14px] font-medium font-gilroy transition-all shadow-sm hover:shadow-md active:scale-95
-        ${toggle === "newJourney"
-                ? "bg-gradient-to-r from-[#9743AA] to-[#E54295] text-white"
+            className={[
+              "flex items-center gap-2 rounded-full px-5 py-2 text-[14px] font-gilroy font-medium",
+              "transition-all hover:shadow-md active:scale-[0.99] focus:outline-none",
+              toggle === "newJourney"
+                // ACTIVE: filled gradient, white text
+                ? "bg-[linear-gradient(90.76deg,#9743AA_0.54%,#B6459F_50.62%,#E54295_99.26%)] text-white"
+                // IDLE: white fill, black text
                 : "bg-white text-black"
-              }`}
+            ].join(" ")}
           >
             <span>Start New Journey</span>
+
+            {/* Plus chip */}
             <span
-              className={`w-5 h-5 flex items-center justify-center rounded-full border transition-colors
-          ${toggle === "newJourney"
-                  ? "bg-white text-black border-transparent"
-                  : "bg-white text-black border-gray-300"
-                }`}
+              className={[
+                "inline-flex h-5 w-5 items-center justify-center rounded-full",
+                // 1.5px ring like Figma (thin, crisp)
+                "border-[1.5px]",
+                toggle === "newJourney"
+                  // ACTIVE: white chip with black plus
+                  ? "bg-white border-white/0 text-black"
+                  // IDLE: transparent chip with black ring & black plus
+                  : "bg-transparent border-black text-black"
+              ].join(" ")}
             >
-              <PlusIcon className="w-3 h-3" />
+              {/* tiny plus via SVG for consistent stroke */}
+              <svg
+                viewBox="0 0 24 24"
+                className="h-3 w-3"
+                fill="none"
+                stroke="black"
+                strokeWidth="2.2"
+                strokeLinecap="round"
+              >
+                <path d="M12 5v14M5 12h14" />
+              </svg>
             </span>
           </button>
         </div>
+
 
         {/* Explore */}
         <div className="p-[1.5px] rounded-full bg-gradient-to-r from-[#9743AA] to-[#E54295]">

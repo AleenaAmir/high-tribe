@@ -454,8 +454,7 @@ export const PostCard = ({
       post.stops.forEach((stop, index) => {
         if (stop.media && stop.media.length > 0) {
           console.log(
-            `Stop ${index + 1} (${stop.title}) has ${
-              stop.media.length
+            `Stop ${index + 1} (${stop.title}) has ${stop.media.length
             } media items`
           );
           allMedia.push(...stop.media);
@@ -804,8 +803,7 @@ export const PostCard = ({
               <div className="mt-3 space-y-3">
                 {(() => {
                   console.log(
-                    `Comment ${comment.id} has ${
-                      comment.replies?.length || 0
+                    `Comment ${comment.id} has ${comment.replies?.length || 0
                     } replies:`,
                     comment.replies
                   );
@@ -909,7 +907,7 @@ export const PostCard = ({
             {/* Post Type Badge */}
             {isJourney && (
               <Image
-                src={"/dashboard/postsicon/map1.png"}
+                src={"/dashboard/postsicon/map2.png"}
                 alt={"journey"}
                 width={35}
                 height={35}
@@ -919,7 +917,7 @@ export const PostCard = ({
 
             {isAdvisory && (
               <Image
-                src={"/dashboard/postsicon/TripAdvisory.png"}
+                src={"/dashboard/postsicon/advisory.png"}
                 alt={"advisory"}
                 width={35}
                 height={35}
@@ -929,7 +927,7 @@ export const PostCard = ({
 
             {isFootprint && (
               <Image
-                src={"/dashboard/postsicon/FootPrint.png"}
+                src={"/dashboard/postsicon/foot1.png"}
                 alt={"footprint"}
                 width={35}
                 height={35}
@@ -939,7 +937,7 @@ export const PostCard = ({
 
             {isTip && (
               <Image
-                src={"/dashboard/postsicon/TravelTip.png"}
+                src={"/dashboard/postsicon/travel2.png"}
                 alt={"tip"}
                 width={35}
                 height={35}
@@ -983,15 +981,14 @@ export const PostCard = ({
         ) : (
           <div className="mt-1 font-gilroy">
             <p
-              className={`leading-relaxed ${
-                isTip
-                  ? "text-[12px]"
-                  : isAdvisory
+              className={`leading-relaxed ${isTip
+                ? "text-[12px]"
+                : isAdvisory
                   ? "text-[16px]"
                   : isFootprint
-                  ? "text-[16px]"
-                  : "text-sm"
-              }`}
+                    ? "text-[16px]"
+                    : "text-sm"
+                }`}
             >
               {displayContent}
             </p>
@@ -1284,15 +1281,14 @@ export const PostCard = ({
             {displayContent && (
               <div className="mb-4 font-gilroy">
                 <p
-                  className={`leading-relaxed ${
-                    isTip
-                      ? "text-[12px]"
-                      : isAdvisory
+                  className={`leading-relaxed ${isTip
+                    ? "text-[12px]"
+                    : isAdvisory
                       ? "text-[16px]"
                       : isFootprint
-                      ? "text-[16px]"
-                      : "text-sm"
-                  }`}
+                        ? "text-[16px]"
+                        : "text-sm"
+                    }`}
                 >
                   {displayContent}
                 </p>
@@ -1388,11 +1384,10 @@ export const PostCard = ({
               </div>
               <button
                 type="submit"
-                className={`bg-gradient-to-r from-[#9243AC] via-[#B6459F] to-[#E74294] text-white px-4 py-2 rounded-full text-sm font-semibold flex items-center gap-2 h-fit w-fit transition-all duration-200 hover:scale-105 ${
-                  isSubmittingComment || !commentContent.trim()
-                    ? "opacity-50 cursor-not-allowed"
-                    : ""
-                }`}
+                className={`bg-gradient-to-r from-[#9243AC] via-[#B6459F] to-[#E74294] text-white px-4 py-2 rounded-full text-sm font-semibold flex items-center gap-2 h-fit w-fit transition-all duration-200 hover:scale-105 ${isSubmittingComment || !commentContent.trim()
+                  ? "opacity-50 cursor-not-allowed"
+                  : ""
+                  }`}
                 disabled={isSubmittingComment || !commentContent.trim()}
               >
                 {isSubmittingComment ? (
@@ -1428,28 +1423,28 @@ export const PostCard = ({
         media={
           currentMedia.length > 0
             ? currentMedia.map((m) => {
-                // Determine media type more accurately
-                const mediaType = m.media_type || m.type;
-                let type: "image" | "video" = "image"; // default to image
+              // Determine media type more accurately
+              const mediaType = m.media_type || m.type;
+              let type: "image" | "video" = "image"; // default to image
 
-                if (mediaType === "video") {
-                  type = "video";
-                } else if (
-                  mediaType === "image" ||
-                  mediaType === "photo" ||
-                  !mediaType
-                ) {
-                  type = "image";
-                }
+              if (mediaType === "video") {
+                type = "video";
+              } else if (
+                mediaType === "image" ||
+                mediaType === "photo" ||
+                !mediaType
+              ) {
+                type = "image";
+              }
 
-                const mappedMedia = {
-                  type,
-                  url: m.file_path || m.url || "",
-                };
+              const mappedMedia = {
+                type,
+                url: m.file_path || m.url || "",
+              };
 
-                console.log("PostCard - Mapping media:", m, "to:", mappedMedia);
-                return mappedMedia;
-              })
+              console.log("PostCard - Mapping media:", m, "to:", mappedMedia);
+              return mappedMedia;
+            })
             : []
         }
         currentIndex={currentMediaIndex}

@@ -5,6 +5,7 @@ import NavMenu from "./leftside/NavMenu";
 import ProfileDropdown from "@/components/global/ProfileDropdown";
 import { useRouter } from "next/navigation";
 import { toast } from "react-hot-toast";
+import Link from "next/link";
 
 interface NavBarProps {
   onMenuClick: () => void;
@@ -60,7 +61,9 @@ const NavBar = ({ onMenuClick }: NavBarProps) => {
     <div className="grid grid-cols-2 gap-4 ">
       <div className="flex items-center  gap-3 px-8  py-2 col-span-1">
         <div className="xl:min-w-[260px] w-[260px] xl:w-full xl:max-w-[280px] ">
-          <Image src="/logo.svg" alt="High Tribe" width={130} height={47} className="h-11 w-auto" />
+          <Link href="/dashboard">
+            <Image src="/logo.svg" alt="High Tribe" width={130} height={47} className="h-11 w-auto" />
+          </Link>
         </div>
 
         <div className="relative flex-2 min-w-[220px] max-w-[280px]">

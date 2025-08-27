@@ -41,19 +41,16 @@ const SideExplore = ({ onExploreClick, onJourneyClick }: SideExploreProps) => {
           onExploreClick?.();
           setActiveSection("explore");
         }}
-        className={`flex items-center gap-2 p-4 ${
-          activeSection === "explore" ? "bg-[#1164E2] text-white" : "bg-white"
-        } font-semibold text-left`}
+        className={`flex items-center gap-2 p-4 ${activeSection === "explore" ? "bg-[#1164E2] text-white" : "bg-white"
+          } font-semibold text-left`}
       >
         <div
-          className={`w-6 h-6 rounded flex items-center justify-center ${
-            activeSection === "explore" ? "bg-white" : "bg-black"
-          }`}
+          className={`w-6 h-6 rounded flex items-center justify-center ${activeSection === "explore" ? "bg-white" : "bg-black"
+            }`}
         >
           <svg
-            className={`w-4 h-4 ${
-              activeSection === "explore" ? "text-[#1164E2]" : "text-white"
-            }`}
+            className={`w-4 h-4 ${activeSection === "explore" ? "text-[#1164E2]" : "text-white"
+              }`}
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -77,16 +74,14 @@ const SideExplore = ({ onExploreClick, onJourneyClick }: SideExploreProps) => {
           onClick={() =>
             setActiveSection((prev) => (prev === "journey" ? null : "journey"))
           }
-          className={`w-full flex items-center gap-3 p-4 border-b border-gray-100 ${
-            activeSection === "journey"
-              ? "bg-[#1164E2] text-white"
-              : "hover:bg-gray-50"
-          }`}
+          className={`w-full flex items-center gap-3 p-4 border-b border-gray-100 ${activeSection === "journey"
+            ? "bg-[#1164E2] text-white"
+            : "hover:bg-gray-50"
+            }`}
         >
           <div
-            className={`w-8 h-8 rounded flex items-center justify-center ${
-              activeSection === "journey" ? "bg-white" : "bg-black"
-            }`}
+            className={`w-8 h-8 rounded flex items-center justify-center ${activeSection === "journey" ? "bg-white" : "bg-black"
+              }`}
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -114,16 +109,14 @@ const SideExplore = ({ onExploreClick, onJourneyClick }: SideExploreProps) => {
             </svg>
           </div>
           <span
-            className={`font-medium ${
-              activeSection === "journey" ? "text-white" : "text-gray-800"
-            }`}
+            className={`font-medium ${activeSection === "journey" ? "text-white" : "text-gray-800"
+              }`}
           >
             My Journey
           </span>
           <svg
-            className={`w-4 h-4 ml-auto ${
-              activeSection === "journey" ? "text-white" : "text-gray-400"
-            }`}
+            className={`w-4 h-4 ml-auto ${activeSection === "journey" ? "text-white" : "text-gray-400"
+              }`}
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -157,10 +150,10 @@ const SideExplore = ({ onExploreClick, onJourneyClick }: SideExploreProps) => {
                   />
                 </div>
                 <div className="min-w-0">
-                  <div className="text-sm text-gray-900 truncate max-w-[180px]">
+                  <div className="text-[12px] font-semibold font-gilroy text-[#000000] truncate max-w-[180px]">
                     {trip.title}
                   </div>
-                  <div className="text-[11px] text-gray-500">
+                  <div className="text-[10px] text-[#000000] font-gilroy font-medium">
                     Date {trip.start_date}
                   </div>
                 </div>
