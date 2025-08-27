@@ -17,7 +17,8 @@ const JourneyHeader: React.FC<JourneyHeaderProps> = ({
         <div className="flex items-center gap-2 w-fit rounded-full py-2 px-4">
           <LocationIcon className="w-4 h-4" />
           <h2 className="text-[20px] font-medium text-[#000000] font-gilroy leading-[100%] tracking-[-3%]">
-            Trip to {journeyData.startingPoint} to {journeyData.endPoint}
+            {/* Trip to {journeyData.startingPoint} to {journeyData.endPoint} */}
+            {journeyData.journeyName}
           </h2>
           <Image
             src="/dashboard/Pencil.png"
@@ -46,12 +47,12 @@ const JourneyHeader: React.FC<JourneyHeaderProps> = ({
         </div>
       </div>
       <div className="text-[13px] text-[#000000] font-gilroy leading-[100%] tracking-[-3%] ml-5 mb-2 flex items-center gap-3">
-        <span className="">{journeyData.startingPoint}</span>
+        <span className="">{journeyData.startingPoint} to {journeyData.endPoint}</span>
         <span className="">
           {journeyData.startDate} to {journeyData.endDate}
         </span>
         <span className="">{travelerCount} travelers</span>
-        <span className="">${journeyData.budget}</span>
+        {/* <span className="">${journeyData.budget}</span> */}
       </div>
     </div>
   );

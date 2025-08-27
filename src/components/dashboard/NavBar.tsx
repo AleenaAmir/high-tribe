@@ -92,7 +92,7 @@ const NavBar = ({ onMenuClick }: NavBarProps) => {
             <NavIcon icon="/dashboard/navsvg3.svg" label="Messaging" />
             <NavIcon icon="/dashboard/navsvg6.svg" label="Notifications" />
             <NavIcon icon="/dashboard/group.svg" label="Friends" />
-            <NavIcon icon="/dashboard/heart.svg" label="Wishlist" />
+            <NavIcon icon="/dashboard/Heart.svg" label="Wishlist" />
             <NavIcon icon="/dashboard/cart.png" label="Cart" />
           </nav>
 

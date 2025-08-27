@@ -454,8 +454,7 @@ export const PostCard = ({
       post.stops.forEach((stop, index) => {
         if (stop.media && stop.media.length > 0) {
           console.log(
-            `Stop ${index + 1} (${stop.title}) has ${
-              stop.media.length
+            `Stop ${index + 1} (${stop.title}) has ${stop.media.length
             } media items`
           );
           allMedia.push(...stop.media);
@@ -804,8 +803,7 @@ export const PostCard = ({
               <div className="mt-3 space-y-3">
                 {(() => {
                   console.log(
-                    `Comment ${comment.id} has ${
-                      comment.replies?.length || 0
+                    `Comment ${comment.id} has ${comment.replies?.length || 0
                     } replies:`,
                     comment.replies
                   );
@@ -909,7 +907,7 @@ export const PostCard = ({
             {/* Post Type Badge */}
             {isJourney && (
               <Image
-                src={"/dashboard/postsicon/MapTrip.png"}
+                src={"/dashboard/postsicon/map1.png"}
                 alt={"journey"}
                 width={35}
                 height={35}
@@ -983,15 +981,14 @@ export const PostCard = ({
         ) : (
           <div className="mt-1 font-gilroy">
             <p
-              className={`leading-relaxed ${
-                isTip
+              className={`leading-relaxed ${isTip
                   ? "text-[12px]"
                   : isAdvisory
-                  ? "text-[16px]"
-                  : isFootprint
-                  ? "text-[16px]"
-                  : "text-sm"
-              }`}
+                    ? "text-[16px]"
+                    : isFootprint
+                      ? "text-[16px]"
+                      : "text-sm"
+                }`}
             >
               {displayContent}
             </p>
@@ -1284,15 +1281,14 @@ export const PostCard = ({
             {displayContent && (
               <div className="mb-4 font-gilroy">
                 <p
-                  className={`leading-relaxed ${
-                    isTip
+                  className={`leading-relaxed ${isTip
                       ? "text-[12px]"
                       : isAdvisory
-                      ? "text-[16px]"
-                      : isFootprint
-                      ? "text-[16px]"
-                      : "text-sm"
-                  }`}
+                        ? "text-[16px]"
+                        : isFootprint
+                          ? "text-[16px]"
+                          : "text-sm"
+                    }`}
                 >
                   {displayContent}
                 </p>
@@ -1388,11 +1384,10 @@ export const PostCard = ({
               </div>
               <button
                 type="submit"
-                className={`bg-gradient-to-r from-[#9243AC] via-[#B6459F] to-[#E74294] text-white px-4 py-2 rounded-full text-sm font-semibold flex items-center gap-2 h-fit w-fit transition-all duration-200 hover:scale-105 ${
-                  isSubmittingComment || !commentContent.trim()
+                className={`bg-gradient-to-r from-[#9243AC] via-[#B6459F] to-[#E74294] text-white px-4 py-2 rounded-full text-sm font-semibold flex items-center gap-2 h-fit w-fit transition-all duration-200 hover:scale-105 ${isSubmittingComment || !commentContent.trim()
                     ? "opacity-50 cursor-not-allowed"
                     : ""
-                }`}
+                  }`}
                 disabled={isSubmittingComment || !commentContent.trim()}
               >
                 {isSubmittingComment ? (
