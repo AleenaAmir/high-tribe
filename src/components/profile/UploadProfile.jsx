@@ -2,6 +2,8 @@
 
 import ModalPortal from './ModalPortal'
 import { RxCross2 } from 'react-icons/rx'
+import { IoMdPhotos } from 'react-icons/io'
+import { GrUserManager } from 'react-icons/gr'
 import { LuCloudUpload } from 'react-icons/lu'
 import Image from 'next/image'
 
@@ -16,9 +18,9 @@ export default function UploadProfile({ open, onClose }) {
         {/* Close icon */}
         <button
           onClick={onClose}
-          className='absolute top-2 right-2 text-gray-400 hover:text-gray-800'
+          className='absolute top-2 right-2 text-gray-500 hover:text-gray-800'
         >
-          <RxCross2 size={20} />
+          <RxCross2 size={15} />
         </button>
 
         {/* HEADING */}
@@ -27,27 +29,14 @@ export default function UploadProfile({ open, onClose }) {
         </div>
 
         {/* BUTTONS */}
-        <div className='flex justify-center items-center text-[10px] gap-3'>
-          <button className='px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-600 hover:to-pink-600 transition-transform duration-300 rounded-4xl text-white flex gap-2 items-center'>
-            <Image
-              src='/images/uploadPic.png'
-              alt='Upload Profile'
-              width={16}
-              height={16}
-              className='w-4 h-4'
-            />
-            View or Upload Picture
+        <div className='flex justify-center items-center text-[8px] font-semibold gap-3'>
+          <button className='px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-600 hover:to-pink-600 transition-transform duration-300 rounded-4xl text-white flex gap-2'>
+            {' '}
+            <IoMdPhotos size={12} /> View or Upload Picture
           </button>
-
           <button className='px-4 py-2 border border-dotted hover:from-purple-600 hover:to-pink-600 transition-transform duration-300 rounded-4xl flex gap-2'>
-            <Image
-              src='/images/createAvatar.png'
-              alt='Upload Profile'
-              width={16}
-              height={16}
-              className='w-3 h-4'
-            />{' '}
-            Create AI Avatar
+            {' '}
+            <GrUserManager size={12} /> Create AI Avatar
           </button>
         </div>
 
@@ -55,20 +44,14 @@ export default function UploadProfile({ open, onClose }) {
         <div className='mt-4'>
           <h1 className='text-[10px] font-semibold py-2'>Suggested Photos</h1>
           <div className='flex justify-between items-center gap-2'>
-            {[
-              '/images/sug1.png',
-              '/images/sug1.png',
-              '/images/sug1.png',
-              '/images/sug1.png',
-              '/images/sug1.png',
-            ].map((pic, idx) => (
+            {['/images/sug1.png', '/images/sug1.png', '/images/sug1.png', '/images/sug1.png', '/images/sug1.png'].map((pic, idx) => (
               <div key={idx} className='w-25 h-25 rounded-md overflow-hidden '>
                 <Image
                   src={pic}
                   alt={`Pic${idx + 1}`}
                   width={56}
                   height={56}
-                  className='object-cover w-full h-full transition-transform duration-500 hover:scale-110'
+                  className='object-cover w-full h-full'
                 />
               </div>
             ))}
@@ -111,12 +94,12 @@ export default function UploadProfile({ open, onClose }) {
           <div className='flex gap-2'>
             <button
               onClick={onClose}
-              className='px-6 py-1 rounded-4xl border-1  hover:bg-gray-300 text-[10px] font-semibold'
+              className='px-4 py-1 rounded-4xl border-1  hover:bg-gray-300 text-[10px] font-semibold'
             >
               Cancel
             </button>
-            <button className='px-6 py-1 border-1 border-transparent rounded-4xl bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-600 hover:to-pink-600 transition-transform duration-300 text-white text-[10px] font-semibold'>
-              Save
+            <button className='px-4 py-1 rounded-4xl bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-600 hover:to-pink-600 transition-transform duration-300 text-white text-[10px] font-semibold'>
+              Upload
             </button>
           </div>
         </div>

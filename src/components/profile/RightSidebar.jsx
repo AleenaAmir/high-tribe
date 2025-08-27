@@ -1,5 +1,4 @@
-import Friends from "./rightbarcontent/Friends.jsx";
-
+import Friends from "./Friends";
 
 export default function RightSidebar() {
   return (

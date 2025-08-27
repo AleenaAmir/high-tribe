@@ -11,9 +11,7 @@ import { FaInstagram } from 'react-icons/fa'
 import { FaFacebookF } from 'react-icons/fa6'
 import { AiFillYoutube } from 'react-icons/ai'
 import { CiCamera } from 'react-icons/ci'
-import { RiEdit2Fill } from 'react-icons/ri'
-
-import { MdOutlineKeyboardArrowDown } from 'react-icons/md'
+import { RiEdit2Fill } from "react-icons/ri";
 
 import UploadProfile from './UploadProfile'
 import AboutModal from './AboutModal'
@@ -28,17 +26,17 @@ const UserData = {
 
 export default function ProfileCard() {
   const [openUpload, setOpenUpload] = useState(false)
-  const [openAbout, setOpenAbout] = useState(false) // state for about modal
+  const [openAbout, setOpenAbout] = useState(false)   // state for about modal
 
   return (
-    <div className='flex flex-col rounded-xl px-2 py-6 items-center justify-center bg-gray-100 shadow-md'>
+    <div className='flex flex-col rounded-xl p-4 items-center justify-center bg-gray-100 shadow-md'>
       {/* Profile Image Wrapper */}
       <div className='relative'>
         <Image
           src={UserData.image}
           alt='Profile-img'
-          width={100}
-          height={100}
+          width={120}
+          height={120}
           className='rounded-full border-8 border-slate-200'
         />
 
@@ -92,19 +90,21 @@ export default function ProfileCard() {
         </div>
 
         {/* Buttons */}
-        <div className='flex items-center justify-center border-t border-b border-gray-300 py-2 gap-1 mt-2'>
-          <button className='bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-600 hover:to-pink-600 transition-transform duration-300 py-2 px-2 border-2 boroder-transparent rounded-4xl text-white text-[8px] flex items-center justify-center gap-1'>
+        <div className='flex flex-col text-xs border-t border-b border-gray-300 w-full py-2'>
+          <button className='bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-600 hover:to-pink-600 transition-transform duration-300 border-2 py-2 px-2 rounded-4xl text-white text-xs flex items-center justify-center gap-2'>
             <BsPlusCircle />
             Add new Journey
-            <MdOutlineKeyboardArrowDown />
+            <FaChevronDown />
           </button>
-          <button className='bg-black border-2 border-blue-500 py-2 px-2 rounded-4xl text-white text-[8px] flex items-center justify-center gap-1 hover:bg-white hover:text-black transition-transform duration-300'>
-            Open to
-            <MdOutlineKeyboardArrowDown />
-          </button>
-          <button className='border-2 border-black py-2 px-2 rounded-md text-xs hover:bg-black hover:text-white transition-transform duration-300'>
-            <IoIosMore />
-          </button>
+          <div className='flex items-center justify-center gap-2 mt-2'>
+            <button className='bg-black border-2 border-blue-500 py-2 px-2 rounded-4xl text-white text-xs flex items-center justify-center gap-2 hover:bg-white hover:text-black transition-transform duration-300'>
+              Open to
+              <FaChevronDown />
+            </button>
+            <button className='border-2 border-black py-2 px-2 rounded-xl text-xs hover:bg-black hover:text-white transition-transform duration-300'>
+              <IoIosMore />
+            </button>
+          </div>
         </div>
 
         {/* Social-Media Buttons */}

@@ -1,8 +1,7 @@
-'use client'
+import React from 'react'
 import Image from 'next/image'
 import { RxCross2 } from 'react-icons/rx'
 import { MdDone } from 'react-icons/md'
-import { useState } from 'react'
 
 const reviews = [
   {
@@ -35,29 +34,16 @@ const reviews = [
 ]
 
 export default function Recommendations() {
-  const [activeTab, setActiveTab] = useState('Testimonials')
-
   return (
-    <section className='border border-gray-200 mt-2 rounded-xl'>
+    <section className='border border-gray-200 mt-2 rounded-xl shadow-md'>
       <div className='px-2 py-4'>
-        <h1 className='font-semibold text-[13px]'>Recommendations & Reviews</h1>
+        <h1 className='font-semibold text-sm'>Recommendations & Reviews</h1>
       </div>
 
       {/* Tabs */}
       <div className='p-2 border-b border-gray-300 gap-4 flex'>
-        {['Testimonials', 'Reviews'].map((tab) => (
-          <button
-            key={tab}
-            onClick={() => setActiveTab(tab)}
-            className={`text-xs pb-1 border-b-2 transition-colors duration-200 ${
-              activeTab === tab
-                ? 'border-black text-gray-900 font-semibold'
-                : 'border-transparent text-gray-600'
-            }`}
-          >
-            {tab}
-          </button>
-        ))}
+        <button className='text-xs'>Testimonials</button>
+        <button className='text-xs'>Reviews</button>
       </div>
 
       {/* Buttons */}
@@ -86,7 +72,7 @@ export default function Recommendations() {
                 />
                 <div>
                   <h1 className='font-semibold text-xs'>{review.name}</h1>
-                  <p className='text-[10px] text-gray-500'>{review.date}</p>
+                  <p className='text-xs text-gray-500'>{review.date}</p>
                 </div>
               </div>
               <div className='flex gap-1.5'>
@@ -100,15 +86,13 @@ export default function Recommendations() {
             </div>
 
             {/* Rating and Title */}
-            <div className='flex gap-2 mt-2 '>
-              <p className='text-gray-400 text-[10px]'>{review.title}</p>
-              <p className='border-l text-[10px] border-gray-400 pl-2.5 font-bold'>
-                {review.rating}
-              </p>
+            <div className='flex text-xs gap-2 mt-2 '>
+              <p className='text-gray-400'>{review.title}</p>
+              <p className='border-l border-gray-400 pl-2.5 font-semibold'>{review.rating}</p>
             </div>
 
             {/* Review Text */}
-            <p className='text-[10px] text-gray-900 mt-2'>{review.review}</p>
+            <p className='text-xs text-gray-900 mt-2'>{review.review}</p>
           </div>
         ))}
       </div>
