@@ -1,4 +1,6 @@
 import type { Config } from 'tailwindcss'
+import scrollbar from 'tailwind-scrollbar'
+
 /** @type {import('tailwindcss').Config} */
 
 export default {
@@ -27,5 +29,5 @@ export default {
       },
     },
   },
-  plugins: [require('tailwind-scrollbar')],
+  plugins: [scrollbar],
 } satisfies Config
