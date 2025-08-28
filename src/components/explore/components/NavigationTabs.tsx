@@ -20,7 +20,7 @@ const NavigationTabs: React.FC<NavigationTabsProps> = ({
 }) => {
   return (
     <div className="flex items-center gap-1 justify-between px-4">
-      <div className="flex items-center gap-1 py-4">
+      <div className="flex items-center gap-1 pb-3">
         {/* Itinerary */}
         <button
           onClick={() => setActiveTab("itinerary")}
@@ -32,7 +32,7 @@ const NavigationTabs: React.FC<NavigationTabsProps> = ({
         >
           Itinerary ({daysDiff} days)
           {activeTab === "itinerary" && (
-            <span className="absolute left-0 right-0 -bottom-[2px] h-[2px] bg-gradient-to-r from-[#9243AC] via-[#B6459F] to-[#E74294]" />
+            <span className="absolute bottom-0 left-0 right-0 mx-auto h-[2px] w-[90%] bg-gradient-to-r from-[#9243AC] via-[#B6459F] to-[#E74294]" />
           )}
         </button>
 
@@ -47,7 +47,7 @@ const NavigationTabs: React.FC<NavigationTabsProps> = ({
         >
           Bookings
           {activeTab === "bookings" && (
-            <span className="absolute left-0 right-0 -bottom-[2px] h-[2px] bg-gradient-to-r from-[#9243AC] via-[#B6459F] to-[#E74294]" />
+            <span className="absolute bottom-0 left-0 right-0 mx-auto h-[2px] w-[90%] bg-gradient-to-r from-[#9243AC] via-[#B6459F] to-[#E74294]" />
           )}
         </button>
 
@@ -62,7 +62,7 @@ const NavigationTabs: React.FC<NavigationTabsProps> = ({
         >
           Chat
           {activeTab === "chat" && (
-            <span className="absolute left-0 right-0 -bottom-[2px] h-[2px] bg-gradient-to-r from-[#9243AC] via-[#B6459F] to-[#E74294]" />
+            <span className="absolute bottom-0 left-0 right-0 mx-auto h-[2px] w-[90%] bg-gradient-to-r from-[#9243AC] via-[#B6459F] to-[#E74294]" />
           )}
         </button>
       </div>

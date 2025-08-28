@@ -1,4 +1,5 @@
 @import 'tailwindcss';
+
 :root {
   --background: #ffffff;
   --foreground: #171717;
@@ -26,6 +27,29 @@
   scrollbar-width: none;     /* Firefox */
 }
 
+/* Reusable gradient scrollbar */
+@layer utilities {
+  /* Base thickness for both axes (WebKit) */
+  .scrollbar-gradient::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  .scrollbar-gradient::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+  .scrollbar-gradient::-webkit-scrollbar-thumb {
+    @apply rounded-full bg-gradient-to-r from-[#9243AC] via-[#B6459F] to-[#E74294];
+  }
+  .scrollbar-gradient::-webkit-scrollbar-thumb:hover {
+    filter: brightness(0.95);
+  }
+
+  /* Firefox fallback (no gradient support on thumb) */
+  .scrollbar-gradient {
+    scrollbar-width: thin;                 /* thin scrollbar */
+    scrollbar-color: #B6459F transparent;  /* thumb color | track color */
+  }
+}
 
 body {
   background: var(--background);
