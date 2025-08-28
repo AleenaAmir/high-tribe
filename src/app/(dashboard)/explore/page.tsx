@@ -2,13 +2,15 @@
 
 import { useEffect, useRef, useState } from "react";
 import Explore from "@/components/explore/Explore";
-import ExploreMap, { InteractiveMapRef } from "@/components/explore/ExploreMap";
+
 import ExploreHotels from "@/components/explore/ExploreHotels";
 import NewJourneyExplore from "@/components/explore/NewJourneyExplore";
 import JourneySidebar from "@/components/explore/JourneySidebar";
 import StepDetailsPanel from "@/components/explore/StepDetailsPanel";
 import { Step } from "@/components/dashboard/modals/components/newjourney/types";
 import ExploreJourneyList from "@/components/explore/ExploreJourneyList";
+// import ExploreMap from "@/components/explore/ExploreMap";
+import ExploreMapGoogle, { InteractiveMapRef } from "@/components/explore/components/GoogleMapExplore";
 import StopModal from "@/components/explore/StopModal";
 import DayStopsModal from "@/components/explore/components/DayStopsModal";
 import { apiRequest } from "@/lib/api";
@@ -147,9 +149,9 @@ const toJourneyDataFromApi = (j: ApiJourney): JourneyData => {
           coords:
             stop.lat && stop.lng
               ? ([
-                  parseFloat(String(stop.lng)),
-                  parseFloat(String(stop.lat)),
-                ] as [number, number])
+                parseFloat(String(stop.lng)),
+                parseFloat(String(stop.lat)),
+              ] as [number, number])
               : null,
           name: stop.location_name || "",
         },
@@ -460,23 +462,22 @@ const Page = () => {
 
           {/* Main Content */}
           <div className="flex flex-1">
-            {/* <SideExplore
-              onExploreClick={() => setIsExplorePanelOpen(true)}
-              onJourneyClick={handleJourneyClick} // <-- consumes ApiJourney
-            /> */}
+
             {showJourneyList && (
               <ExploreJourneyList
                 onJourneyClick={handleJourneyClick}
                 setShowJourneyList={setShowJourneyList}
                 onNewJourneyClick={() => setNewJourney(true)}
               />
+
             )}
             <div className="flex-1">
-              <ExploreMap
+              <ExploreMapGoogle
                 ref={mapRef}
                 className="h-[calc(100vh-210px)]"
                 activeFilter={activeFilter}
               />
+
             </div>
           </div>
         </div>
