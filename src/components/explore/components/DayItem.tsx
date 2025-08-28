@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import { Step } from "@/components/dashboard/modals/components/newjourney/types";
 import ChevronDownIcon from "../icons/ChevronDownIcon";
+import { RiDeleteBin4Line } from "react-icons/ri";
 import ViewDayStop from "./ViewDayStop";
 
 interface DayItemProps {
@@ -9,6 +9,8 @@ interface DayItemProps {
   dayStops: any[];
   onAddStop: (dayIndex: number, formattedDate: string, dayNumber: number) => void;
   handleViewDayStops: (formattedDate: string) => void;
+  onDeleteDay: (dayIndex: number) => void;   
+  isLastDay: boolean;                      
 }
 
 const DayItem: React.FC<DayItemProps> = ({
@@ -17,22 +19,25 @@ const DayItem: React.FC<DayItemProps> = ({
   dayStops,
   onAddStop,
   handleViewDayStops,
-
+  onDeleteDay,
+  isLastDay,
 }) => {
   const formattedDate = new Date(day.date).toLocaleDateString("en-US", {
     month: "2-digit",
     day: "2-digit",
     year: "numeric",
   });
-  const [openDayIndex, setOpenDayIndex] = useState<number | null>(null);
+
+  // open by default
+  const [isOpen, setIsOpen] = useState<boolean>(true);
 
   const handleDayToggle = () => {
-    setOpenDayIndex((prevIndex) => (prevIndex === dayIndex ? null : dayIndex));
+    setIsOpen((prev) => !prev);
   };
 
   return (
     <div>
-      <div className="flex items-center justify-between border-b border-gray-100 p-4">
+      <div className="flex items-center justify-between border-b border-gray-100 px-4">
         {/* Left: Day label + date + chevron */}
         <button
           type="button"
@@ -46,20 +51,34 @@ const DayItem: React.FC<DayItemProps> = ({
             </span>
           </span>
           <div className="flex items-center justify-center">
-            <ChevronDownIcon isOpen={openDayIndex === dayIndex} className="h-6 w-6" />
+            <ChevronDownIcon isOpen={isOpen} className="h-6 w-6" />
           </div>
         </button>
 
-        {/* Right: + Add Stop */}
-        <button
-          type="button"
-          onClick={() => onAddStop(dayIndex, formattedDate, day.dayNumber)}
-          className="text-[12px] leading-none font-semibold bg-[linear-gradient(90.76deg,#9243AC_0.54%,#B6459F_50.62%,#E74294_99.26%)] bg-clip-text text-transparent focus:outline-none"
-        >
-          + Add Stop
-        </button>
+        {/* Right: + Add Stop & Delete */}
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => onAddStop(dayIndex, formattedDate, day.dayNumber)}
+            className="text-[12px] leading-none font-semibold bg-[linear-gradient(90.76deg,#9243AC_0.54%,#B6459F_50.62%,#E74294_99.26%)] bg-clip-text text-transparent focus:outline-none"
+          >
+            + Add Stop
+          </button>
+
+          {isLastDay && (
+            <button
+              type="button"
+              onClick={() => onDeleteDay(dayIndex)}
+              className="text-red-500 hover:text-red-700"
+            >
+              <RiDeleteBin4Line className="h-5 w-5" />
+            </button>
+          )}
+        </div>
       </div>
-      {openDayIndex === dayIndex && (
+
+      {/* Show stops if open */}
+      {isOpen && (
         <ViewDayStop
           handleViewDayStops={(formattedDate: string) => handleViewDayStops(formattedDate)}
           dayStops={dayStops}

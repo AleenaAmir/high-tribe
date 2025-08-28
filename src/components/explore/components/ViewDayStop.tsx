@@ -6,10 +6,7 @@ const ViewDayStop = ({ handleViewDayStops, dayStops, formattedDate }: { handleVi
 
     return (
         <div>
-            <button className='text-[12px] p-4 font-semibold text-[#9243AC] underline ' onClick={() => handleViewDayStops(formattedDate)}>View Added Stops</button>
-
-
-
+            <button className='text-sm px-4 py-1 font-semibold text-[#9243AC] underline ' onClick={() => handleViewDayStops(formattedDate)}>View Added Stops</button>
         </div>
     )
 }

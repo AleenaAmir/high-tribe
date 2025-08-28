@@ -80,7 +80,7 @@ const GlobalModalBorderLess: React.FC<GlobalModalBorderLessProps> = ({
           onClick={(e) => e.stopPropagation()}
         >
           <button
-            className="absolute top-3 right-4 z-10 text-gray-400 hover:text-gray-600 focus:outline-none bg-white rounded-full p-1 hover:bg-gray-100 cursor-pointer"
+            className="absolute top-3 right-4 z-10 text-black hover:text-gray-600 focus:outline-none bg-gray-200 rounded-full p-1 hover:bg-gray-100 cursor-pointer"
             onClick={onClose}
             aria-label="Close modal"
           >
@@ -90,7 +90,7 @@ const GlobalModalBorderLess: React.FC<GlobalModalBorderLessProps> = ({
               viewBox="0 0 24 24"
               strokeWidth={2}
               stroke="currentColor"
-              className="w-6 h-6"
+              className="w-5 h-5"
             >
               <path
                 strokeLinecap="round"

@@ -553,14 +553,14 @@ export default function NewJourneyExplore({
       <GlobalModalBorderLess
         isOpen={newJourney}
         onClose={handleClose}
-        maxWidth="max-w-[700px]"
+        maxWidth="max-w-[800px]"
         customPadding="p-0"
       >
-        <div className="overflow-y-scroll w-full rounded-[20px] scrollbar-hide">
+        <div className="overflow-y-scroll w-full rounded-[20px] scrollbar-hide h-[600px] max-w-[800px]">
           <div className="grid grid-cols-1 lg:grid-cols-2 h-full rounded-lg">
             {/* Left: Visual */}
             <div
-              className="relative bg-cover bg-center rounded-l-lg hidden lg:grid"
+              className="relative bg-cover bg-center rounded-l-md hidden lg:grid"
               style={{
                 backgroundImage: `url(${backgroundImage})`,
               }}
@@ -584,7 +584,7 @@ export default function NewJourneyExplore({
                   width={130}
                   height={47}
                 />
-                <h2 className="text-2xl font-bold mt-3">
+                <h2 className="text-xl text-semibold mt-3">
                   {watch("title") ? watch("title") : "Start New Journey"}
                 </h2>
                 <p className="text-sm opacity-90">
@@ -731,6 +731,7 @@ export default function NewJourneyExplore({
                   <GlobalTextInput
                     label="No of People"
                     type="number"
+                    min={1}  
                     error={errors.noOfPeople?.message}
                     {...register("noOfPeople")}
                   />
