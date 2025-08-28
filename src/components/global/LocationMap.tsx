@@ -232,7 +232,7 @@ const LocationMap: React.FC<LocationMapProps> = ({
         "0 2px 8px rgba(0,0,0,0.3), 0 0 0 2px rgba(151, 67, 170, 0.3)"; // Added glow effect
       el.style.zIndex = "1000";
       el.style.cursor = "pointer";
-      el.style.transition = "all 0.2s ease";
+      // el.style.transition = "all 0.2s ease";
       el.textContent = String(index + 1);
 
       // Add hover effect

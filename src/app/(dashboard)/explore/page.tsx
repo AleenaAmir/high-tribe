@@ -10,10 +10,14 @@ import StepDetailsPanel from "@/components/explore/StepDetailsPanel";
 import { Step } from "@/components/dashboard/modals/components/newjourney/types";
 import ExploreJourneyList from "@/components/explore/ExploreJourneyList";
 // import ExploreMap from "@/components/explore/ExploreMap";
-import ExploreMapGoogle, { InteractiveMapRef } from "@/components/explore/components/GoogleMapExplore";
+import ExploreMapWithStops, {
+  ExploreMapWithStopsRef,
+} from "@/components/explore/components/ExploreMapWithStops";
 import StopModal from "@/components/explore/StopModal";
 import DayStopsModal from "@/components/explore/components/DayStopsModal";
+import InvitePeopleModal from "@/components/explore/components/InvitePeopleModal";
 import { apiRequest } from "@/lib/api";
+import { toast } from "react-hot-toast";
 
 /** === API & Local Types === */
 type ApiJourney = {
@@ -149,9 +153,9 @@ const toJourneyDataFromApi = (j: ApiJourney): JourneyData => {
           coords:
             stop.lat && stop.lng
               ? ([
-                parseFloat(String(stop.lng)),
-                parseFloat(String(stop.lat)),
-              ] as [number, number])
+                  parseFloat(String(stop.lng)),
+                  parseFloat(String(stop.lat)),
+                ] as [number, number])
               : null,
           name: stop.location_name || "",
         },
@@ -210,13 +214,18 @@ const blankJourney: JourneyData = {
 };
 
 const Page = () => {
-  const mapRef = useRef<InteractiveMapRef>(null);
+  const mapRef = useRef<ExploreMapWithStopsRef>(null);
+  const isRefetching = useRef(false);
 
   const [activeFilter, setActiveFilter] = useState<string>("All feeds");
   const [isExplorePanelOpen, setIsExplorePanelOpen] = useState<boolean>(false);
   const [newJourney, setNewJourney] = useState<boolean>(false);
   const [isJourneySidebarOpen, setIsJourneySidebarOpen] =
     useState<boolean>(false);
+  const [editJourneyData, setEditJourneyData] = useState<JourneyData | null>(
+    null
+  );
+  const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
 
   // 🔹 No mock: start empty until user picks or creates a journey
   const [journeyData, setJourneyData] = useState<JourneyData | null>(null);
@@ -250,8 +259,99 @@ const Page = () => {
       return merged;
     });
   };
+
+  // Handle edit journey
+  const handleEditJourney = async (journeyData: JourneyData) => {
+    try {
+      // Fetch complete journey data from API
+      const response = (await apiRequest(`journeys/${journeyData.id}`)) as any;
+      const completeJourneyData = response.data || response;
+
+      console.log("API Response for journey edit:", completeJourneyData);
+
+      // Merge the complete data with existing journey data
+      const enrichedJourneyData = {
+        ...journeyData,
+        ...completeJourneyData,
+        // Map API fields to our expected format
+        journeyName: completeJourneyData.title || journeyData.journeyName,
+        startingPoint:
+          completeJourneyData.start_location_name || journeyData.startingPoint,
+        endPoint: completeJourneyData.end_location_name || journeyData.endPoint,
+        no_of_people:
+          completeJourneyData.no_of_people || completeJourneyData.travelers,
+        image_url: completeJourneyData.image_url,
+      };
+
+      console.log("Enriched journey data for editing:", enrichedJourneyData);
+
+      setEditJourneyData(enrichedJourneyData);
+      setNewJourney(true);
+    } catch (error) {
+      console.error("Error fetching journey data for editing:", error);
+      // Fallback to original data if API call fails
+      setEditJourneyData(journeyData);
+      setNewJourney(true);
+    }
+  };
+
+  // Function to refetch complete journey data
+  const refetchJourneyData = async (journeyId: number) => {
+    // Prevent multiple simultaneous refetches
+    if (isRefetching.current) {
+      console.log("Refetch already in progress, skipping...");
+      return;
+    }
+
+    isRefetching.current = true;
+
+    try {
+      console.log("Starting refetch for journey:", journeyId);
+
+      // Fetch the complete journey data from API
+      const response = (await apiRequest(`journeys/${journeyId}`)) as any;
+      const completeJourneyData = response.data || response;
+
+      console.log("Refetched journey data:", completeJourneyData);
+
+      // Transform the API data to our local format
+      const transformedJourney = toJourneyDataFromApi(completeJourneyData);
+
+      // Update the journey data
+      setJourneyData(transformedJourney);
+
+      // Also fetch the stops data (but don't update journey data to prevent loops)
+      await fetchJourneyData(journeyId);
+
+      console.log("Journey data refetched successfully");
+    } catch (error) {
+      console.error("Error refetching journey data:", error);
+      toast.error("Failed to refresh journey data");
+    } finally {
+      isRefetching.current = false;
+    }
+  };
+
+  // Handle journey update after editing
+  const handleJourneyUpdated = (updatedJourney: JourneyData | null) => {
+    if (updatedJourney) {
+      // Refetch the complete journey data to ensure we have the latest information
+      refetchJourneyData(updatedJourney.id);
+      // Also fetch the stops to update the map
+      fetchJourneyData(updatedJourney.id);
+    }
+    setEditJourneyData(null);
+    setNewJourney(false);
+  };
+
+  // Handle add people modal
+  const handleAddPeople = () => {
+    setIsInviteModalOpen(true);
+  };
   useEffect(() => {
-    fetchJourneyData(journeyData?.id);
+    if (journeyData?.id) {
+      fetchJourneyData(journeyData.id);
+    }
     console.log(dayStops, "dayStops");
     console.log(
       Array.isArray(dayStops) ? dayStops : [],
@@ -285,14 +385,8 @@ const Page = () => {
       setDayStops([]); // modal ke liye blank start (ya default filter lagani ho to wo)
     }
 
-    // Also update the journey data to reflect the new stops
-    if (journeyData) {
-      const updatedJourneyData = {
-        ...journeyData,
-        stops: stops,
-      };
-      setJourneyData(updatedJourneyData);
-    }
+    // Don't update journeyData here to prevent loops
+    // The journey data should only be updated when explicitly needed
   };
 
   const handleStepDetailsClose = () => {
@@ -309,6 +403,9 @@ const Page = () => {
 
     setJourneyData(transformed);
     setIsJourneySidebarOpen(true);
+
+    // Fetch stops for this journey
+    fetchJourneyData(journey.id);
 
     // Center map at start coordinates if present
     const lng = toNumberOrNull(journey.start_lng);
@@ -447,7 +544,12 @@ const Page = () => {
           {journeyData && (
             <JourneySidebar
               isOpen={isJourneySidebarOpen}
-              onClose={() => setIsJourneySidebarOpen(false)}
+              onClose={() => {
+                setIsJourneySidebarOpen(false);
+                // Clear stops when closing the sidebar
+                setAllStops([]);
+                setDayStops([]);
+              }}
               journeyData={journeyData}
               handleViewDayStops={(formattedDate: string) =>
                 handleViewDayStops(formattedDate)
@@ -457,27 +559,28 @@ const Page = () => {
               onJourneyDataUpdate={updateJourneyData}
               onAddStop={handleAddStop}
               dayStops={dayStops}
+              onEditJourney={handleEditJourney}
+              onRefetchJourney={() => refetchJourneyData(journeyData.id)}
+              onAddPeople={handleAddPeople}
             />
           )}
 
           {/* Main Content */}
           <div className="flex flex-1">
-
             {showJourneyList && (
               <ExploreJourneyList
                 onJourneyClick={handleJourneyClick}
                 setShowJourneyList={setShowJourneyList}
                 onNewJourneyClick={() => setNewJourney(true)}
               />
-
             )}
             <div className="flex-1">
-              <ExploreMapGoogle
+              <ExploreMapWithStops
                 ref={mapRef}
                 className="h-[calc(100vh-210px)]"
                 activeFilter={activeFilter}
+                journeyStops={journeyData ? allStops : undefined}
               />
-
             </div>
           </div>
         </div>
@@ -496,11 +599,13 @@ const Page = () => {
         stepIndex={selectedStep?.stepIndex || 0}
       />
 
-      {/* Create Journey (if your modal returns the same API shape) */}
+      {/* Create/Edit Journey Modal */}
       <NewJourneyExplore
         newJourney={newJourney}
         setNewJourney={setNewJourney}
         setShowJourneyList={setShowJourneyList}
+        editJourneyData={editJourneyData}
+        onJourneyUpdated={handleJourneyUpdated}
       />
       {isAddingStop ? (
         <StopModal
@@ -550,6 +655,14 @@ const Page = () => {
           }}
         />
       )}
+
+      {/* Invite People Modal */}
+      <InvitePeopleModal
+        isOpen={isInviteModalOpen}
+        onClose={() => setIsInviteModalOpen(false)}
+        journeyId={journeyData?.id}
+        journeyName={journeyData?.journeyName}
+      />
     </>
   );
 };

@@ -40,6 +40,7 @@ const journeyFormSchema = z
       .string()
       .min(1, "No of people is required")
       .regex(/^\d+$/, "No of people must be a number"),
+    imageUrl: z.string().optional(),
   })
   .refine(
     (data) => {
@@ -215,11 +216,15 @@ export default function NewJourneyExplore({
   setNewJourney,
   // onJourneyCreated,
   setShowJourneyList,
+  editJourneyData,
+  onJourneyUpdated,
 }: {
   newJourney: boolean;
   setNewJourney: (v: boolean) => void;
-  // onJourneyCreated?: (journeyData: JourneyFormData) => any;
+  // onJourneyCreated?: (journeyData: JourneyFormData) => void;
   setShowJourneyList: (v: boolean) => void;
+  editJourneyData?: any;
+  onJourneyUpdated?: (updatedJourney: any | null) => void;
 }) {
   const {
     register,
@@ -231,12 +236,20 @@ export default function NewJourneyExplore({
   } = useForm<JourneyFormData>({
     resolver: zodResolver(journeyFormSchema),
     defaultValues: {
-      title: "",
-      startLocationName: "",
-      endLocationName: "",
-      startDate: "",
-      endDate: "",
-      noOfPeople: "",
+      title: editJourneyData?.journeyName || editJourneyData?.title || "",
+      startLocationName:
+        editJourneyData?.startingPoint ||
+        editJourneyData?.start_location_name ||
+        "",
+      endLocationName:
+        editJourneyData?.endPoint || editJourneyData?.end_location_name || "",
+      startDate: editJourneyData?.startDate || "",
+      endDate: editJourneyData?.endDate || "",
+      noOfPeople:
+        editJourneyData?.no_of_people?.toString() ||
+        editJourneyData?.travelers?.toString() ||
+        "",
+      imageUrl: editJourneyData?.image_url || "",
     },
   });
 
@@ -263,6 +276,89 @@ export default function NewJourneyExplore({
   const [isUpdatingBackground, setIsUpdatingBackground] = useState(false);
 
   console.log(backgroundImage, "backgroundImage=============================");
+
+  // Initialize the image URL in the form when component mounts
+  useEffect(() => {
+    setValue("imageUrl", backgroundImage, { shouldValidate: true });
+  }, [setValue, backgroundImage]);
+
+  // Populate form with edit data when editJourneyData changes
+  useEffect(() => {
+    if (editJourneyData) {
+      console.log("Populating form with edit data:", editJourneyData);
+
+      setValue(
+        "title",
+        editJourneyData.journeyName || editJourneyData.title || "",
+        {
+          shouldValidate: true,
+        }
+      );
+      setValue(
+        "startLocationName",
+        editJourneyData.startingPoint ||
+          editJourneyData.start_location_name ||
+          "",
+        {
+          shouldValidate: true,
+        }
+      );
+      setValue(
+        "endLocationName",
+        editJourneyData.endPoint || editJourneyData.end_location_name || "",
+        {
+          shouldValidate: true,
+        }
+      );
+      setValue("startDate", editJourneyData.startDate || "", {
+        shouldValidate: true,
+      });
+      setValue("endDate", editJourneyData.endDate || "", {
+        shouldValidate: true,
+      });
+      setValue(
+        "noOfPeople",
+        editJourneyData.no_of_people?.toString() ||
+          editJourneyData.travelers?.toString() ||
+          "",
+        {
+          shouldValidate: true,
+        }
+      );
+      setValue("imageUrl", editJourneyData.image_url || backgroundImage, {
+        shouldValidate: true,
+      });
+
+      // Set location coordinates if available
+      if (editJourneyData.start_lat && editJourneyData.start_lng) {
+        setStartLocation({
+          coords: [
+            parseFloat(editJourneyData.start_lng.toString()),
+            parseFloat(editJourneyData.start_lat.toString()),
+          ],
+          name:
+            editJourneyData.startingPoint ||
+            editJourneyData.start_location_name ||
+            "",
+        });
+      }
+      if (editJourneyData.end_lat && editJourneyData.end_lng) {
+        setEndLocation({
+          coords: [
+            parseFloat(editJourneyData.end_lng.toString()),
+            parseFloat(editJourneyData.end_lat.toString()),
+          ],
+          name:
+            editJourneyData.endPoint || editJourneyData.end_location_name || "",
+        });
+      }
+
+      // Set background image if available
+      if (editJourneyData.image_url) {
+        setBackgroundImage(editJourneyData.image_url);
+      }
+    }
+  }, [editJourneyData, setValue, backgroundImage]);
 
   // Function to get Google Place photo for location
   const getGooglePlacePhoto = useCallback(async (placeId: string) => {
@@ -425,8 +521,12 @@ export default function NewJourneyExplore({
         if (newBackgroundImage) {
           console.log("Setting new background image:", newBackgroundImage);
           setBackgroundImage(newBackgroundImage);
+          // Update the form field with the image URL
+          setValue("imageUrl", newBackgroundImage, { shouldValidate: true });
         } else {
           console.log("No background image available, keeping default");
+          // Set the default background image URL
+          setValue("imageUrl", backgroundImage, { shouldValidate: true });
         }
       } catch (error) {
         console.error("Error updating background image:", error);
@@ -434,7 +534,7 @@ export default function NewJourneyExplore({
         setIsUpdatingBackground(false);
       }
     },
-    [getGooglePlacePhoto, getMapboxStaticImage]
+    [getGooglePlacePhoto, getMapboxStaticImage, setValue, backgroundImage]
   );
 
   // Handle start location selection
@@ -464,7 +564,6 @@ export default function NewJourneyExplore({
   };
 
   const onSubmit = async (data: JourneyFormData) => {
-    // debugger;
     try {
       // ⚠️ Move these to env/secure storage, not hardcoded
       const API_BASE = "https://api.hightribe.com";
@@ -503,20 +602,46 @@ export default function NewJourneyExplore({
         end_date: data.endDate,
         user_id: user_id, // TODO: replace with actual auth/user context
         no_of_people: data.noOfPeople,
+        image_url: data.imageUrl || backgroundImage, // Include the image URL in the payload
       };
 
-      const response = await fetch(`${API_BASE}/api/journeys`, {
-        method: "POST",
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${TOKEN}`,
-        },
-        body: JSON.stringify(payload),
-      });
-      if (response.status === 201) {
-        toast.success("Journey created successfully!");
+      let response;
+      let isEditMode = !!editJourneyData;
+
+      if (isEditMode) {
+        // Update existing journey
+        response = await fetch(
+          `${API_BASE}/api/journeys/${editJourneyData.id}`,
+          {
+            method: "PUT",
+            headers: {
+              Accept: "application/json",
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${TOKEN}`,
+            },
+            body: JSON.stringify(payload),
+          }
+        );
+      } else {
+        // Create new journey
+        response = await fetch(`${API_BASE}/api/journeys`, {
+          method: "POST",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${TOKEN}`,
+          },
+          body: JSON.stringify(payload),
+        });
       }
+
+      if (response.status === 201 || response.status === 200) {
+        const successMessage = isEditMode
+          ? "Journey updated successfully!"
+          : "Journey created successfully!";
+        toast.success(successMessage);
+      }
+
       if (!response.ok) {
         const text = await response.text().catch(() => "");
         throw new Error(
@@ -525,14 +650,26 @@ export default function NewJourneyExplore({
       }
 
       const result = await response.json();
-      // console.log("API response:", result);
-      setShowJourneyList(true);
-      // onJourneyCreated?.(data);
+
+      if (isEditMode && onJourneyUpdated) {
+        // Update the journey data in the parent component
+        const updatedJourney = {
+          ...editJourneyData,
+          ...payload,
+          journeyName: payload.title,
+          startingPoint: payload.start_location_name,
+          endPoint: payload.end_location_name,
+        };
+        onJourneyUpdated(updatedJourney);
+      } else {
+        setShowJourneyList(true);
+      }
+
       reset();
       setNewJourney(false);
     } catch (err) {
-      console.error("Error creating journey:", err);
-      // TODO: surface a toast/snackbar
+      console.error("Error saving journey:", err);
+      toast.error("Failed to save journey. Please try again.");
     }
   };
 
@@ -546,6 +683,10 @@ export default function NewJourneyExplore({
     );
     setIsUpdatingBackground(false);
     setNewJourney(false);
+    // Reset edit data when closing
+    if (editJourneyData && onJourneyUpdated) {
+      onJourneyUpdated(null);
+    }
   };
 
   return (
@@ -617,7 +758,9 @@ export default function NewJourneyExplore({
             <div className=" flex flex-col  bg-white justify-center h-full">
               <div className="flex justify-center items-center p-4">
                 <div className="text-center">
-                  <h2 className="text-[22px] font-bold">Start New Journey</h2>
+                  <h2 className="text-[22px] font-bold">
+                    {editJourneyData ? "Edit Journey" : "Start New Journey"}
+                  </h2>
 
                   {/* <p className="text-[10px] leading-relaxed">
                     Plan your next adventure by sharing the details of your
@@ -731,7 +874,8 @@ export default function NewJourneyExplore({
                   <GlobalTextInput
                     label="No of People"
                     type="number"
-                    min={1}  
+                    value={watch("noOfPeople")}
+                    min={1}
                     error={errors.noOfPeople?.message}
                     {...register("noOfPeople")}
                   />
@@ -744,7 +888,13 @@ export default function NewJourneyExplore({
                   onClick={handleSubmit(onSubmit)}
                   className="w-full max-w-[300px] flex items-center justify-center mx-auto bg-gradient-to-r from-[#9743AA] to-[#E54295] text-white font-semibold text-[16px] py-2 px-4 rounded-full transition-colors duration-200 mt-6 disabled:cursor-not-allowed"
                 >
-                  {isSubmitting ? "Creating..." : "Create Journey"}
+                  {isSubmitting
+                    ? editJourneyData
+                      ? "Updating..."
+                      : "Creating..."
+                    : editJourneyData
+                    ? "Update Journey"
+                    : "Create Journey"}
                 </button>
               </form>
             </div>

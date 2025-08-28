@@ -7,10 +7,15 @@ interface DayItemProps {
   day: any;
   dayIndex: number;
   dayStops: any[];
-  onAddStop: (dayIndex: number, formattedDate: string, dayNumber: number) => void;
+  onAddStop: (
+    dayIndex: number,
+    formattedDate: string,
+    dayNumber: number
+  ) => void;
   handleViewDayStops: (formattedDate: string) => void;
-  onDeleteDay: (dayIndex: number) => void;   
-  isLastDay: boolean;                      
+  onDeleteDay: (dayIndex: number) => void;
+  isLastDay: boolean;
+  totalDays: number; // Add total days count
 }
 
 const DayItem: React.FC<DayItemProps> = ({
@@ -21,6 +26,7 @@ const DayItem: React.FC<DayItemProps> = ({
   handleViewDayStops,
   onDeleteDay,
   isLastDay,
+  totalDays,
 }) => {
   const formattedDate = new Date(day.date).toLocaleDateString("en-US", {
     month: "2-digit",
@@ -65,7 +71,7 @@ const DayItem: React.FC<DayItemProps> = ({
             + Add Stop
           </button>
 
-          {isLastDay && (
+          {isLastDay && totalDays > 1 && (
             <button
               type="button"
               onClick={() => onDeleteDay(dayIndex)}
@@ -80,7 +86,9 @@ const DayItem: React.FC<DayItemProps> = ({
       {/* Show stops if open */}
       {isOpen && (
         <ViewDayStop
-          handleViewDayStops={(formattedDate: string) => handleViewDayStops(formattedDate)}
+          handleViewDayStops={(formattedDate: string) =>
+            handleViewDayStops(formattedDate)
+          }
           dayStops={dayStops}
           formattedDate={formattedDate}
         />

@@ -3,11 +3,11 @@ import { NextRequest, NextResponse } from 'next/server';
 const GOOGLE_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_LOCATION_API_KEY;
 
 // Debug log to check API key
-console.log('Google Places API Route - Environment Check:', {
-  hasGoogleApiKey: !!GOOGLE_API_KEY,
-  googleApiKeyLength: GOOGLE_API_KEY?.length,
-  googleApiKeyPrefix: GOOGLE_API_KEY?.substring(0, 10) + '...'
-});
+// console.log('Google Places API Route - Environment Check:', {
+//   hasGoogleApiKey: !!GOOGLE_API_KEY,
+//   googleApiKeyLength: GOOGLE_API_KEY?.length,
+//   googleApiKeyPrefix: GOOGLE_API_KEY?.substring(0, 10) + '...'
+// });
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
