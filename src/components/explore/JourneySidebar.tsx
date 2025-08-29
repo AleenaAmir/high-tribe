@@ -71,7 +71,6 @@ const JourneySidebar: React.FC<JourneySidebarProps> = ({
   onRefetchJourney,
   onAddPeople,
 }) => {
-  
   const [selectedDay, setSelectedDay] = useState<number | null>(null);
   const [addDayDisabled, setAddDayDisabled] = useState(false);
   const [isAddingDay, setIsAddingDay] = useState(false);
@@ -455,8 +454,6 @@ const JourneySidebar: React.FC<JourneySidebarProps> = ({
   // Use all available days instead of just existing days
   const finalDisplayDays = generateAllDays();
 
-  
-
   const onSubmit = (data: FormData) => {
     console.log("Form submitted:", data);
   };
@@ -508,15 +505,24 @@ const JourneySidebar: React.FC<JourneySidebarProps> = ({
 
           {/* Content based on active tab */}
           {activeTab === "itinerary" && (
-            <ItineraryContent
-              finalDisplayDays={finalDisplayDays}
-              openDayIndex={openDayIndex}
-              journeyData={journeyData}
-              handleViewDayStops={handleViewDayStops || (() => {})}
-              dayStops={dayStops}
-              onAddStop={onAddStop || (() => {})}
-              onDeleteDay={handleDeleteDay} // ✅ FIX: required prop
-            />
+            <div className="flex flex-col gap-4">
+              <ItineraryContent
+                finalDisplayDays={finalDisplayDays}
+                openDayIndex={openDayIndex}
+                journeyData={journeyData}
+                handleViewDayStops={handleViewDayStops || (() => {})}
+                dayStops={dayStops}
+                onAddStop={onAddStop || (() => {})}
+                onDeleteDay={handleDeleteDay} // ✅ FIX: required prop
+              />
+              <button
+                type="button"
+                disabled={true}
+                className="max-w-[232px] mx-auto w-full text-[16px] md:text-[18px] font-semibold text-white rounded-full px-4 py-2 disabled:bg-[#BABABA] disabled:cursor-not-allowed "
+              >
+                Publish
+              </button>
+            </div>
           )}
 
           {activeTab === "chat" && (

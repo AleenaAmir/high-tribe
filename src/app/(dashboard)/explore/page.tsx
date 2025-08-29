@@ -278,8 +278,8 @@ const Page = () => {
         startingPoint:
           completeJourneyData.start_location_name || journeyData.startingPoint,
         endPoint: completeJourneyData.end_location_name || journeyData.endPoint,
-        no_of_people:
-          completeJourneyData.no_of_people || completeJourneyData.travelers,
+        number_of_people:
+          completeJourneyData.number_of_people || completeJourneyData.travelers,
         image_url: completeJourneyData.image_url,
       };
 

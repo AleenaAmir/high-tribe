@@ -246,7 +246,7 @@ export default function NewJourneyExplore({
       startDate: editJourneyData?.startDate || "",
       endDate: editJourneyData?.endDate || "",
       noOfPeople:
-        editJourneyData?.no_of_people?.toString() ||
+        editJourneyData?.number_of_people?.toString() ||
         editJourneyData?.travelers?.toString() ||
         "",
       imageUrl: editJourneyData?.image_url || "",
@@ -274,8 +274,6 @@ export default function NewJourneyExplore({
     "https://res.cloudinary.com/dtfzklzek/image/upload/v1755211203/794_1_x4c1uv.png"
   );
   const [isUpdatingBackground, setIsUpdatingBackground] = useState(false);
-
-
 
   // Initialize the image URL in the form when component mounts
   useEffect(() => {
@@ -318,7 +316,7 @@ export default function NewJourneyExplore({
       });
       setValue(
         "noOfPeople",
-        editJourneyData.no_of_people?.toString() ||
+        editJourneyData.number_of_people?.toString() ||
           editJourneyData.travelers?.toString() ||
           "",
         {
@@ -601,7 +599,7 @@ export default function NewJourneyExplore({
         start_date: data.startDate,
         end_date: data.endDate,
         user_id: user_id, // TODO: replace with actual auth/user context
-        no_of_people: data.noOfPeople,
+        number_of_people: data.noOfPeople,
         image_url: data.imageUrl || backgroundImage, // Include the image URL in the payload
       };
 
@@ -808,31 +806,28 @@ export default function NewJourneyExplore({
                 />
 
                 {/* Dates */}
-                <div className="relative">
-                  <GlobalDateInput
-                    label="Start Date"
-                    error={errors.startDate?.message}
-                    value={watch("startDate")}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                      setValue("startDate", e.target.value, {
-                        shouldValidate: true,
-                      })
-                    }
-                  />
-                </div>
 
-                <div className="relative">
-                  <GlobalDateInput
-                    label="End Date"
-                    error={errors.endDate?.message}
-                    value={watch("endDate")}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                      setValue("endDate", e.target.value, {
-                        shouldValidate: true,
-                      })
-                    }
-                  />
-                </div>
+                <GlobalDateInput
+                  label="Start Date"
+                  error={errors.startDate?.message}
+                  value={watch("startDate")}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    setValue("startDate", e.target.value, {
+                      shouldValidate: true,
+                    })
+                  }
+                />
+
+                <GlobalDateInput
+                  label="End Date"
+                  error={errors.endDate?.message}
+                  value={watch("endDate")}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    setValue("endDate", e.target.value, {
+                      shouldValidate: true,
+                    })
+                  }
+                />
 
                 {/* Who */}
                 {/* <GlobalSelect
@@ -870,15 +865,14 @@ export default function NewJourneyExplore({
                     </svg>
                   </div>
                 </div> */}
-                <div className="relative">
-                  <GlobalTextInput
-                    label="No of People"
-                    type="number"
-                    min={1}
-                    error={errors.noOfPeople?.message}
-                    {...register("noOfPeople")}
-                  />
-                </div>
+
+                <GlobalTextInput
+                  label="No of People"
+                  type="number"
+                  min={1}
+                  error={errors.noOfPeople?.message}
+                  {...register("noOfPeople")}
+                />
 
                 {/* Create */}
                 <button

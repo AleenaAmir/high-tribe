@@ -34,20 +34,23 @@ const ItineraryContent: React.FC<ItineraryContentProps> = ({
           const isLastDay = dayIndex === finalDisplayDays.length - 1;
 
           return (
-            <DayItem
-              key={day.id ?? dayIndex}
-              day={day}
-              dayIndex={dayIndex}
-              // prefer day.stops if available, otherwise fall back to the supplied dayStops
-              dayStops={day.stops ?? dayStops}
-              onAddStop={onAddStop}
-              handleViewDayStops={(formattedDate: string) =>
-                handleViewDayStops(formattedDate)
-              }
-              onDeleteDay={onDeleteDay} // <-- required
-              isLastDay={isLastDay} // <-- required
-              totalDays={finalDisplayDays.length} // <-- required
-            />
+            
+              <DayItem
+                key={day.id ?? dayIndex}
+                day={day}
+                dayIndex={dayIndex}
+                // prefer day.stops if available, otherwise fall back to the supplied dayStops
+                dayStops={day.stops ?? dayStops}
+                onAddStop={onAddStop}
+                handleViewDayStops={(formattedDate: string) =>
+                  handleViewDayStops(formattedDate)
+                }
+                onDeleteDay={onDeleteDay} // <-- required
+                isLastDay={isLastDay} // <-- required
+                totalDays={finalDisplayDays.length} // <-- required
+              />
+             
+          
           );
         })}
       </div>
