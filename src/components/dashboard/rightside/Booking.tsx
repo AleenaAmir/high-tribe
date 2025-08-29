@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { Search, Heart, ChevronRight, Star } from "lucide-react";
-import { MoreOptionsIcon } from "../center/PostCard";
-const Booking = () => {
+import { MoreOptionsIcon } from "@/components/explore/icons/StepIcons";
 
+const Booking = () => {
   const [isLiked, setIsLiked] = useState(false);
   const [selectedType, setSelectedType] = useState<string | null>("Any type");
 
@@ -44,7 +44,7 @@ const Booking = () => {
                   "text-[10px] sm:text-xs truncate transition-colors cursor-pointer text-gilroy text-[#000000] font-[500] leading-[100%] tracking-[3%]",
                   isActive
                     ? "bg-black text-white border-black"
-                    : "bg-white text-[#030303] border-[#D1D4D9] hover:bg-black hover:text-white"
+                    : "bg-white text-[#030303] border-[#D1D4D9] hover:bg-black hover:text-white",
                 ].join(" ")}
               >
                 {tag}
@@ -52,7 +52,6 @@ const Booking = () => {
             );
           })}
         </div>
-
       </div>
 
       <div className="mt-3">
@@ -69,8 +68,9 @@ const Booking = () => {
               className="absolute top-3 right-3 w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-md hover:shadow-lg transition-shadow"
             >
               <Heart
-                className={`w-4 h-4 ${isLiked ? "fill-red-500 text-red-500" : "text-gray-600"
-                  }`}
+                className={`w-4 h-4 ${
+                  isLiked ? "fill-red-500 text-red-500" : "text-gray-600"
+                }`}
               />
             </button>
 

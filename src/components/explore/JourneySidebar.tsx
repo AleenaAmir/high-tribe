@@ -71,7 +71,7 @@ const JourneySidebar: React.FC<JourneySidebarProps> = ({
   onRefetchJourney,
   onAddPeople,
 }) => {
-  console.log(journeyData, "journeyData");
+  
   const [selectedDay, setSelectedDay] = useState<number | null>(null);
   const [addDayDisabled, setAddDayDisabled] = useState(false);
   const [isAddingDay, setIsAddingDay] = useState(false);
@@ -455,7 +455,7 @@ const JourneySidebar: React.FC<JourneySidebarProps> = ({
   // Use all available days instead of just existing days
   const finalDisplayDays = generateAllDays();
 
-  console.log(journeyData, "journeyData");
+  
 
   const onSubmit = (data: FormData) => {
     console.log("Form submitted:", data);

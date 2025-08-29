@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { toast } from "react-hot-toast";
-import { apiFormDataWrapper, apiRequest } from "@/lib/api";
+import { apiFormDataWrapper, apiRequest, addReaction } from "@/lib/api";
 import MediaModal from "@/components/global/MediaModal";
 import GlobalModalBorderLess from "@/components/global/GlobalModalBorderLess";
 import JourneyMapModal from "./JourneyMapModal";
@@ -438,6 +438,13 @@ export const PostCard = ({
   const [replyContent, setReplyContent] = useState("");
   const [isSubmittingReply, setIsSubmittingReply] = useState(false);
 
+  // Reaction state
+  const [isReacting, setIsReacting] = useState(false);
+  const [localReactionsCount, setLocalReactionsCount] = useState(
+    post.reactions_count || 0
+  );
+  const [hasReacted, setHasReacted] = useState(false); // You might want to get this from the backend
+
   // Collect all media for journey mapping posts (main post media + all stop media)
   const getAllMedia = (): Media[] => {
     const allMedia: Media[] = [];
@@ -711,6 +718,60 @@ export const PostCard = ({
   const handleCancelReply = () => {
     setReplyingTo(null);
     setReplyContent("");
+  };
+
+  // Handle reaction
+  const handleReaction = async (reactionType: string = "like") => {
+    if (isReacting) return;
+
+    setIsReacting(true);
+    try {
+      // Determine post type based on post properties
+      let postType = "posts"; // default
+      if (post.type === "mapping_journey") {
+        postType = "journeys";
+      } else if (post.expires_on && post.is_resolved !== undefined) {
+        postType = "advisories";
+      } else if (post.story) {
+        postType = "footprints";
+      } else if (post.title && !post.expires_on && !post.story) {
+        postType = "tips";
+      }
+
+      // Add reaction using the API helper
+      await addReaction(
+        postType,
+        post.id.toString(),
+        reactionType,
+        hasReacted ? "Reaction removed!" : "Reaction added!"
+      );
+
+      // Update local state optimistically
+      if (hasReacted) {
+        setLocalReactionsCount((prev) => Math.max(0, prev - 1));
+        setHasReacted(false);
+      } else {
+        setLocalReactionsCount((prev) => prev + 1);
+        setHasReacted(true);
+      }
+
+      // Call the callback to refresh the parent component if needed
+      if (onCommentAdded) {
+        onCommentAdded();
+      }
+    } catch (error) {
+      console.error("Error adding reaction:", error);
+      // Revert optimistic update on error
+      if (hasReacted) {
+        setLocalReactionsCount((prev) => prev + 1);
+        setHasReacted(false);
+      } else {
+        setLocalReactionsCount((prev) => Math.max(0, prev - 1));
+        setHasReacted(true);
+      }
+    } finally {
+      setIsReacting(false);
+    }
   };
 
   // Recursive Comment Item Component
@@ -1138,12 +1199,21 @@ export const PostCard = ({
         <div className="mt-4">
           <div className="flex justify-between items-center text-sm text-[#656565]">
             <div className="flex items-center gap-4">
-              <button className="flex items-center gap-1.5 hover:text-red-500 transition-colors">
-                <HeartIcon className="w-5 h-5" filled={true} />{" "}
-                {post.reactions_count || 0}
-              </button>
-              <button className="flex items-center gap-1.5 hover:text-[#3162E7] transition-colors">
-                <LikeIcon className="w-5 h-5" /> {post.reactions_count || 0}
+              <button
+                onClick={() => handleReaction("like")}
+                disabled={isReacting}
+                className={`flex items-center gap-1.5 transition-colors ${
+                  hasReacted
+                    ? "text-red-500"
+                    : "text-[#656565] hover:text-red-500"
+                } ${
+                  isReacting
+                    ? "opacity-50 cursor-not-allowed"
+                    : "cursor-pointer"
+                }`}
+              >
+                <HeartIcon className="w-5 h-5" filled={hasReacted} />
+                {localReactionsCount}
               </button>
               <div className="flex items-center gap-2">
                 {post.tagged_users && post.tagged_users.length > 0 && (
@@ -1319,12 +1389,36 @@ export const PostCard = ({
             {/* Post Footer in Modal */}
             <div className="flex justify-between items-center text-sm text-[#656565]">
               <div className="flex items-center gap-4">
-                <button className="flex items-center gap-1.5 hover:text-red-500 transition-colors">
-                  <HeartIcon className="w-5 h-5" filled={true} />{" "}
-                  {post.reactions_count || 0}
+                <button
+                  onClick={() => handleReaction("like")}
+                  disabled={isReacting}
+                  className={`flex items-center gap-1.5 transition-colors ${
+                    hasReacted
+                      ? "text-red-500"
+                      : "text-[#656565] hover:text-red-500"
+                  } ${
+                    isReacting
+                      ? "opacity-50 cursor-not-allowed"
+                      : "cursor-pointer"
+                  }`}
+                >
+                  <HeartIcon className="w-5 h-5" filled={hasReacted} />
+                  {localReactionsCount}
                 </button>
-                <button className="flex items-center gap-1.5 hover:text-[#3162E7] transition-colors">
-                  <LikeIcon className="w-5 h-5" /> {post.reactions_count || 0}
+                <button
+                  onClick={() => handleReaction("like")}
+                  disabled={isReacting}
+                  className={`flex items-center gap-1.5 transition-colors ${
+                    hasReacted
+                      ? "text-[#3162E7]"
+                      : "text-[#656565] hover:text-[#3162E7]"
+                  } ${
+                    isReacting
+                      ? "opacity-50 cursor-not-allowed"
+                      : "cursor-pointer"
+                  }`}
+                >
+                  <LikeIcon className="w-5 h-5" /> {localReactionsCount}
                 </button>
                 <div className="flex items-center gap-2">
                   {post.tagged_users && post.tagged_users.length > 0 && (

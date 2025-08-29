@@ -358,7 +358,7 @@ const Page = () => {
       "dayStopsssssssssssssss"
     );
   }, [journeyData?.id]);
-  console.log(journeyData, "journeyData");
+
 
   const extractStops = (r: any): ApiJourneyStop[] => {
     const p = r?.data ?? r; // axios: r.data, fetch/custom: r

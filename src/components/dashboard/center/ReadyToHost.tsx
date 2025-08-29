@@ -167,8 +167,8 @@
 
 "use client";
 import Image from "next/image";
-import { MoreOptionsIcon } from "./PostCard";
-import React, { useEffect, useState } from "react";
+
+import React from "react";
 import CardsSwiper from "./CardsSwiper";
 
 // Arrow icons for swiping
@@ -237,8 +237,6 @@ const star = (
 );
 
 const ReadyToHost: React.FC = () => {
-
-
   return (
     <section className="bg-white overflow-hidden rounded-[10px] shadow-md  opacity-100">
       {/* <div className="p-4 md:p-6 flex items-center justify-between gap-4 mt-4">

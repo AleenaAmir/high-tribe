@@ -2,8 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
-// keep your own import if you have it
-// import { MoreOptionsIcon } from "../center/PostCard";
+
 
 type FoodCard = {
   id: number;

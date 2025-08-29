@@ -1,7 +1,6 @@
 import Image from "next/image";
 import React from "react";
-import FootPrint from "../svgs/FootPrint";
-import { MoreOptionsIcon } from "./PostCard";
+
 
 const PostFootPrint = ({
   setJournyMap,

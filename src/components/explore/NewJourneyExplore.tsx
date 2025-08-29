@@ -275,7 +275,7 @@ export default function NewJourneyExplore({
   );
   const [isUpdatingBackground, setIsUpdatingBackground] = useState(false);
 
-  console.log(backgroundImage, "backgroundImage=============================");
+
 
   // Initialize the image URL in the form when component mounts
   useEffect(() => {
@@ -874,7 +874,6 @@ export default function NewJourneyExplore({
                   <GlobalTextInput
                     label="No of People"
                     type="number"
-                    value={watch("noOfPeople")}
                     min={1}
                     error={errors.noOfPeople?.message}
                     {...register("noOfPeople")}

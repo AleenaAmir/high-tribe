@@ -373,6 +373,152 @@ export function removeTokenCookie() {
  * );
  * ```
  */
+/**
+ * Reaction API helper function
+ * 
+ * @example
+ * ```typescript
+ * const result = await addReaction(
+ *   "posts",
+ *   "123",
+ *   "like",
+ *   "Reaction added successfully!"
+ * );
+ * ```
+ */
+export async function addReaction<T>(
+  postType: string,
+  postId: string,
+  reactionType: string,
+  successMessage?: string
+): Promise<T> {
+  try {
+    // Get token from localStorage
+    let token = "";
+    if (typeof window !== "undefined") {
+      token = localStorage.getItem("token") || "";
+      // TEMP: Hardcoded token for testing. REMOVE after testing!
+      if (!token) {
+        token = "<PASTE_VALID_TOKEN_HERE>";
+      }
+    }
+
+    // Create FormData for the reaction
+    const formData = new FormData();
+    formData.append("type", reactionType);
+
+    // Debug: Log reaction request in development
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`🚀 Adding reaction to: ${postType}/${postId}`);
+      console.log(`📦 Reaction type: ${reactionType}`);
+    }
+
+    // Prepare headers
+    const headers: HeadersInit = {
+      Accept: "application/json",
+    };
+
+    if (token) {
+      headers.Authorization = `Bearer ${token}`;
+    }
+
+    // Make the request to our Next.js API route
+    const response = await fetch(`/api/${postType}/${postId}/reactions`, {
+      method: "POST",
+      headers,
+      body: formData,
+    });
+
+    // Parse response
+    let data: T;
+    try {
+      data = await response.json();
+    } catch (parseError) {
+      throw new Error("Failed to parse response");
+    }
+
+    // Check if the response contains an error message even with 200 status
+    if (data && typeof data === 'object' && 'error' in data && !('user' in data) && !('token' in data)) {
+      const errorMessage = (data as any).message || (data as any).error || "An error occurred";
+      const error = new Error(errorMessage) as Error & { status?: number };
+      error.name = "ApiError";
+      error.status = 400; // Treat as client error
+
+      toast.error(errorMessage);
+      throw error;
+    }
+
+    // Handle HTTP error status codes
+    if (!response.ok) {
+      let message = "An error occurred while adding the reaction.";
+      
+      if (data && typeof data === 'object' && 'message' in data) {
+        message = (data as any).message;
+      } else if (data && typeof data === 'object' && 'error' in data) {
+        message = (data as any).error;
+      } else {
+        // Provide meaningful messages based on HTTP status codes
+        switch (response.status) {
+          case 400:
+            message = "Invalid reaction type. Please try again.";
+            break;
+          case 401:
+            message = "Authentication failed. Please check your credentials.";
+            break;
+          case 403:
+            message = "Access denied. You don't have permission to react to this post.";
+            break;
+          case 404:
+            message = "Post not found. Please check the URL and try again.";
+            break;
+          case 500:
+            message = "Server error. Please try again later.";
+            break;
+          default:
+            message = `Request failed (${response.status}). Please try again.`;
+        }
+      }
+
+      const error = new Error(message) as Error & { status?: number };
+      error.name = "ApiError";
+      error.status = response.status;
+      toast.error(message);
+      throw error;
+    }
+
+    // Only show success message if no error was found
+    if (successMessage) {
+      toast.success(successMessage);
+    }
+    return data;
+  } catch (err: any) {
+    // If it's already an ApiError, re-throw it
+    if (err.name === "ApiError") {
+      throw err;
+    }
+
+    let message = "An unexpected error occurred while adding the reaction.";
+
+    if (err?.message) {
+      // Handle network errors
+      if (err.message.includes("fetch")) {
+        message = "Network error. Please check your internet connection and try again.";
+      } else if (err.message.includes("timeout")) {
+        message = "Request timed out. Please try again.";
+      } else {
+        message = err.message;
+      }
+    }
+
+    // Create a new error with the proper message
+    const error = new Error(message) as Error & { status?: number };
+    error.name = "ApiError";
+
+    toast.error(message);
+    throw error;
+  }
+}
+
 export async function apiFormDataWrapper<T>(
   endpoint: string,
   formData: FormData,
