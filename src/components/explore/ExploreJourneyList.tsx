@@ -139,10 +139,10 @@ export default function ExploreJourneyList({
             {trips.map((trip, idx) => (
               <div
                 key={idx}
-                className="flex items-center justify-between gap-3 py-3 border-b border-gray-200 last:border-b-0 cursor-pointer transition-colors"
+                className="flex items-center  gap-3 py-3 border-b border-gray-200 last:border-b-0 cursor-pointer transition-colors"
                 onClick={() => handleJourneyClick(trip)}
               >
-                <div className="relative w-9 h-9 rounded-full overflow-hidden">
+                <div className="relative w-12 h-12 flex-shrink-0 rounded-full overflow-hidden">
                   <img
                     src={
                       trip.image_url
@@ -153,15 +153,17 @@ export default function ExploreJourneyList({
                     className="w-full h-full object-cover"
                   />
                 </div>
-                <div className="min-w-0">
-                  <div className=" text-sm text-gray-900 truncate max-w-[180px]">
-                    {trip.title}
+                <div className="flex items-center justify-between gap-2 w-full">
+                  <div className="min-w-0">
+                    <div className=" text-sm text-gray-900 truncate max-w-[150px]">
+                      {trip.title}
+                    </div>
+                    <div className="text-[11px] text-gray-500">
+                      Date {trip.start_date}
+                    </div>
                   </div>
-                  <div className="text-[11px] text-gray-500">
-                    Date {trip.start_date}
-                  </div>
+                  <MdOutlineArrowForwardIos />
                 </div>
-                <MdOutlineArrowForwardIos />
                 {/* {loadingJourneyId === trip.id && (
                   <div className='ml-auto'>
                     <div className='w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin'></div>

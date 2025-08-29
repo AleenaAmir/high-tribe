@@ -92,27 +92,25 @@ const DashboardContent = () => {
               setAdvisoryModal={setAdvisoryModal}
               setTipModal={setTipModal}
             />
-            <Link href="/explore">
-              <div className="bg-gradient-to-r from-[#9243AC] via-[#B6459F] to-[#E74294] shadow-sm flex justify-between items-center p-3 md:p-4 rounded-xl">
-                <h2 className="text-[16px] md:text-[20px] font-[800] leading-[100%] tracking-[-3%]  text-white font-gilroy ">
-                  Explore what’s Happening Around You!
-                </h2>
+            <Link
+              href={"/explore"}
+              className="bg-gradient-to-r from-[#9243AC] via-[#B6459F] to-[#E74294] shadow-sm flex justify-between items-center p-3 md:p-4 rounded-xl"
+            >
+              <h2 className="text-[16px] md:text-[20px] font-[800] leading-[100%] tracking-[-3%]  text-white font-gilroy ">
+                Explore what's Happening Around You!
+              </h2>
 
-                <Link
-                  href={"/explore"}
-                  className="text-black font-bold cursor-pointer outline-none text-[12px] flex gap-4 justify-center font-poppins bg-white rounded-full py-3 px-5 items-center opacity-100"
-                >
-                  <span className="transition-all duration-300 rounded-full px-3 py-1 text-[12px] font-gilroy font-[600] leading-[100%] tracking-[-3%] ">
-                    Lets Plan
-                  </span>
-                  <Image
-                    src={"/dashboard/map.svg"}
-                    alt={"footprint3"}
-                    width={12}
-                    height={12}
-                    className="md:w-[20px] md:h-[20px]"
-                  />
-                </Link>
+              <div className="text-black font-bold cursor-pointer outline-none text-[12px] flex gap-4 justify-center font-poppins bg-white rounded-full py-3 px-5 items-center opacity-100">
+                <span className="transition-all duration-300 rounded-full px-3 py-1 text-[12px] font-gilroy font-[600] leading-[100%] tracking-[-3%] ">
+                  Lets Plan
+                </span>
+                <Image
+                  src={"/dashboard/map.svg"}
+                  alt={"footprint3"}
+                  width={12}
+                  height={12}
+                  className="md:w-[20px] md:h-[20px]"
+                />
               </div>
             </Link>
 

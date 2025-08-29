@@ -465,7 +465,7 @@ const JourneySidebar: React.FC<JourneySidebarProps> = ({
     <div>
       {/* Main Sidebar */}
       <div
-        className={`fixed left-0 top-50 bottom-0 z-[999] w-[524px] bg-white rounded-r-2xl shadow-2xl border border-gray-100 overflow-hidden transform transition-transform duration-300 ease-in-out flex flex-col ${
+        className={`fixed left-0 top-50 bottom-0 z-[1001] w-[524px] bg-white rounded-r-2xl shadow-2xl border border-gray-100 overflow-hidden transform transition-transform duration-300 ease-in-out flex flex-col ${
           isOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >

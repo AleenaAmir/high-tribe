@@ -121,17 +121,69 @@ const ExploreMapWithStops = forwardRef<
     if (!showMapbox || !mapboxContainerRef.current || mapboxMapRef.current)
       return;
 
+    // Calculate initial center and zoom based on available stops
+    let initialCenter: [number, number] = [74.3587, 31.5204]; // Default to Lahore
+    let initialZoom = 10;
+
+    if (journeyStops && journeyStops.length > 0) {
+      const validStops = journeyStops.filter((stop) => {
+        const lat = parseFloat(String(stop.lat));
+        const lng = parseFloat(String(stop.lng));
+        return !isNaN(lat) && !isNaN(lng);
+      });
+
+      if (validStops.length > 0) {
+        const lats = validStops.map((stop) => parseFloat(String(stop.lat)));
+        const lngs = validStops.map((stop) => parseFloat(String(stop.lng)));
+
+        const avgLat = lats.reduce((sum, lat) => sum + lat, 0) / lats.length;
+        const avgLng = lngs.reduce((sum, lng) => sum + lng, 0) / lngs.length;
+
+        initialCenter = [avgLng, avgLat];
+        initialZoom = validStops.length === 1 ? 12 : 8; // Zoom in more for single stop
+      }
+    }
+
     mapboxMapRef.current = new mapboxgl.Map({
       container: mapboxContainerRef.current,
       style: "mapbox://styles/mapbox/streets-v12",
-      center: [74.3587, 31.5204], // Default to Lahore
-      zoom: 10,
+      center: initialCenter,
+      zoom: initialZoom,
       preserveDrawingBuffer: false,
       antialias: true,
     });
 
     mapboxMapRef.current.on("style.load", () => {
       setStyleLoaded(true);
+    });
+
+    // Add load event listener to ensure map is fully ready
+    mapboxMapRef.current.on("load", () => {
+      // Fit to stops after map is fully loaded
+      if (journeyStops && journeyStops.length > 0) {
+        const validStops = journeyStops.filter((stop) => {
+          const lat = parseFloat(String(stop.lat));
+          const lng = parseFloat(String(stop.lng));
+          return !isNaN(lat) && !isNaN(lng);
+        });
+
+        if (validStops.length > 0) {
+          const stopCoords: [number, number][] = validStops.map((stop) => {
+            const lat = parseFloat(String(stop.lat));
+            const lng = parseFloat(String(stop.lng));
+            return [lng, lat] as [number, number];
+          });
+
+          const bounds = new mapboxgl.LngLatBounds();
+          stopCoords.forEach((coord) => bounds.extend(coord));
+
+          mapboxMapRef.current!.fitBounds(bounds, {
+            padding: 50,
+            duration: 1000,
+            maxZoom: 15,
+          });
+        }
+      }
     });
 
     // Add navigation controls
@@ -384,15 +436,21 @@ const ExploreMapWithStops = forwardRef<
       });
     }
 
-    // Fit map to show all stops
+    // Fit map to show all stops with improved logic
     if (stopCoords.length > 0) {
       const bounds = new mapboxgl.LngLatBounds();
       stopCoords.forEach((coord) => bounds.extend(coord));
 
-      mapboxMapRef.current.fitBounds(bounds, {
-        padding: 50,
-        duration: 1000,
-      });
+      // Use a small delay to ensure the map is fully ready
+      setTimeout(() => {
+        if (mapboxMapRef.current && mapboxMapRef.current.isStyleLoaded()) {
+          mapboxMapRef.current.fitBounds(bounds, {
+            padding: 50,
+            duration: 1000,
+            maxZoom: 15, // Prevent over-zooming
+          });
+        }
+      }, 100);
     }
 
     // Cleanup function
@@ -407,6 +465,48 @@ const ExploreMapWithStops = forwardRef<
     removeRouteLine,
     addRouteLine,
   ]);
+
+  // Additional effect to ensure map fits to stops on initial load
+  useEffect(() => {
+    if (
+      !mapboxMapRef.current ||
+      !styleLoaded ||
+      !journeyStops ||
+      journeyStops.length === 0
+    )
+      return;
+
+    const validStops = journeyStops.filter((stop) => {
+      const lat = parseFloat(String(stop.lat));
+      const lng = parseFloat(String(stop.lng));
+      return !isNaN(lat) && !isNaN(lng);
+    });
+
+    if (validStops.length === 0) return;
+
+    const stopCoords: [number, number][] = validStops.map((stop) => {
+      const lat = parseFloat(String(stop.lat));
+      const lng = parseFloat(String(stop.lng));
+      return [lng, lat] as [number, number];
+    });
+
+    // Fit map to show all stops on initial load
+    if (stopCoords.length > 0) {
+      const bounds = new mapboxgl.LngLatBounds();
+      stopCoords.forEach((coord) => bounds.extend(coord));
+
+      // Use a small delay to ensure the map is fully ready
+      setTimeout(() => {
+        if (mapboxMapRef.current && mapboxMapRef.current.isStyleLoaded()) {
+          mapboxMapRef.current.fitBounds(bounds, {
+            padding: 50,
+            duration: 1000,
+            maxZoom: 15, // Prevent over-zooming
+          });
+        }
+      }, 200);
+    }
+  }, [styleLoaded, journeyStops]);
 
   // Expose methods to parent
   useImperativeHandle(ref, () => ({

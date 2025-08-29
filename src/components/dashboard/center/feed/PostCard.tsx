@@ -410,6 +410,12 @@ export const PostCard = ({
   post: Post;
   onCommentAdded?: () => void;
 }) => {
+  // Safety check - if post is undefined, don't render
+  if (!post) {
+    console.warn("PostCard: post prop is undefined");
+    return null;
+  }
+
   // Modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentMedia, setCurrentMedia] = useState<Media[]>([]);
@@ -417,8 +423,8 @@ export const PostCard = ({
   const [isCommentsModalOpen, setIsCommentsModalOpen] = useState(false);
 
   useEffect(() => {
-    console.log("PostCard - Post ID:", post.id);
-  }, [post.id]);
+    console.log("PostCard - Post ID:", post?.id);
+  }, [post?.id]);
 
   // Journey map modal state
   const [isJourneyMapModalOpen, setIsJourneyMapModalOpen] = useState(false);
@@ -437,24 +443,25 @@ export const PostCard = ({
     const allMedia: Media[] = [];
 
     // Add main post media
-    if (post.media && post.media.length > 0) {
+    if (post?.media && post.media.length > 0) {
       allMedia.push(...post.media);
     }
 
     // Add media from all stops for journey mapping posts
     if (
-      post.type === "mapping_journey" &&
-      post.stops &&
+      post?.type === "mapping_journey" &&
+      post?.stops &&
       post.stops.length > 0
     ) {
       console.log(
         "Processing journey mapping post with stops:",
-        post.stops.length
+        post?.stops?.length || 0
       );
-      post.stops.forEach((stop, index) => {
-        if (stop.media && stop.media.length > 0) {
+      post?.stops?.forEach((stop, index) => {
+        if (stop && stop.media && stop.media.length > 0) {
           console.log(
-            `Stop ${index + 1} (${stop.title}) has ${stop.media.length
+            `Stop ${index + 1} (${stop.title || "Untitled"}) has ${
+              stop.media.length
             } media items`
           );
           allMedia.push(...stop.media);
@@ -463,7 +470,7 @@ export const PostCard = ({
     }
 
     console.log(
-      `Total media collected for post ${post.id}: ${allMedia.length} items`
+      `Total media collected for post ${post?.id}: ${allMedia.length} items`
     );
     return allMedia;
   };
@@ -500,35 +507,35 @@ export const PostCard = ({
 
   // Fetch comments for the post
   const fetchComments = async () => {
-    console.log("PostCard - Fetching comments for post:", post.id);
-    if (loadingComments || !post.id) return;
+    console.log("PostCard - Fetching comments for post:", post?.id);
+    if (loadingComments || !post?.id) return;
 
     setLoadingComments(true);
     try {
       console.log(
         "PostCard - Post ID:",
-        post.id,
+        post?.id,
         "loadingComments:",
         loadingComments,
         "post.type:",
-        post.type
+        post?.type
       );
       // Determine post type based on post properties
       let postType = "posts"; // default
-      if (post.type === "mapping_journey") {
+      if (post?.type === "mapping_journey") {
         postType = "journeys";
-      } else if (post.expires_on && post.is_resolved !== undefined) {
+      } else if (post?.expires_on && post?.is_resolved !== undefined) {
         postType = "advisories";
-      } else if (post.story) {
+      } else if (post?.story) {
         postType = "footprints";
-      } else if (post.title && !post.expires_on && !post.story) {
+      } else if (post?.title && !post?.expires_on && !post?.story) {
         postType = "tips";
       }
 
-      console.log("Fetching comments for post:", post.id, "type:", postType);
+      console.log("Fetching comments for post:", post?.id, "type:", postType);
 
       const response = await apiRequest<ApiCommentsResponse>(
-        `${postType}/${post.id}/comments?per_page=10&page=1&with_replies=true`
+        `${postType}/${post?.id}/comments?per_page=10&page=1&with_replies=true`
       );
 
       console.log("Comments response:", response);
@@ -803,7 +810,8 @@ export const PostCard = ({
               <div className="mt-3 space-y-3">
                 {(() => {
                   console.log(
-                    `Comment ${comment.id} has ${comment.replies?.length || 0
+                    `Comment ${comment.id} has ${
+                      comment.replies?.length || 0
                     } replies:`,
                     comment.replies
                   );
@@ -840,9 +848,9 @@ export const PostCard = ({
   const isTip = postType === "tip";
 
   // Get display content
-  const displayTitle = post.title || post.story;
-  const displayContent = post.description || post.story;
-  const displayLocation = post.location || post.location_name;
+  const displayTitle = post?.title || post?.story;
+  const displayContent = post?.description || post?.story;
+  const displayLocation = post?.location || post?.location_name;
 
   return (
     <div className="bg-white rounded-lg shadow-md my-4 overflow-hidden">
@@ -981,14 +989,15 @@ export const PostCard = ({
         ) : (
           <div className="mt-1 font-gilroy">
             <p
-              className={`leading-relaxed ${isTip
-                ? "text-[12px]"
-                : isAdvisory
+              className={`leading-relaxed ${
+                isTip
+                  ? "text-[12px]"
+                  : isAdvisory
                   ? "text-[16px]"
                   : isFootprint
-                    ? "text-[16px]"
-                    : "text-sm"
-                }`}
+                  ? "text-[16px]"
+                  : "text-sm"
+              }`}
             >
               {displayContent}
             </p>
@@ -1281,14 +1290,15 @@ export const PostCard = ({
             {displayContent && (
               <div className="mb-4 font-gilroy">
                 <p
-                  className={`leading-relaxed ${isTip
-                    ? "text-[12px]"
-                    : isAdvisory
+                  className={`leading-relaxed ${
+                    isTip
+                      ? "text-[12px]"
+                      : isAdvisory
                       ? "text-[16px]"
                       : isFootprint
-                        ? "text-[16px]"
-                        : "text-sm"
-                    }`}
+                      ? "text-[16px]"
+                      : "text-sm"
+                  }`}
                 >
                   {displayContent}
                 </p>
@@ -1384,10 +1394,11 @@ export const PostCard = ({
               </div>
               <button
                 type="submit"
-                className={`bg-gradient-to-r from-[#9243AC] via-[#B6459F] to-[#E74294] text-white px-4 py-2 rounded-full text-sm font-semibold flex items-center gap-2 h-fit w-fit transition-all duration-200 hover:scale-105 ${isSubmittingComment || !commentContent.trim()
-                  ? "opacity-50 cursor-not-allowed"
-                  : ""
-                  }`}
+                className={`bg-gradient-to-r from-[#9243AC] via-[#B6459F] to-[#E74294] text-white px-4 py-2 rounded-full text-sm font-semibold flex items-center gap-2 h-fit w-fit transition-all duration-200 hover:scale-105 ${
+                  isSubmittingComment || !commentContent.trim()
+                    ? "opacity-50 cursor-not-allowed"
+                    : ""
+                }`}
                 disabled={isSubmittingComment || !commentContent.trim()}
               >
                 {isSubmittingComment ? (
@@ -1423,28 +1434,28 @@ export const PostCard = ({
         media={
           currentMedia.length > 0
             ? currentMedia.map((m) => {
-              // Determine media type more accurately
-              const mediaType = m.media_type || m.type;
-              let type: "image" | "video" = "image"; // default to image
+                // Determine media type more accurately
+                const mediaType = m.media_type || m.type;
+                let type: "image" | "video" = "image"; // default to image
 
-              if (mediaType === "video") {
-                type = "video";
-              } else if (
-                mediaType === "image" ||
-                mediaType === "photo" ||
-                !mediaType
-              ) {
-                type = "image";
-              }
+                if (mediaType === "video") {
+                  type = "video";
+                } else if (
+                  mediaType === "image" ||
+                  mediaType === "photo" ||
+                  !mediaType
+                ) {
+                  type = "image";
+                }
 
-              const mappedMedia = {
-                type,
-                url: m.file_path || m.url || "",
-              };
+                const mappedMedia = {
+                  type,
+                  url: m.file_path || m.url || "",
+                };
 
-              console.log("PostCard - Mapping media:", m, "to:", mappedMedia);
-              return mappedMedia;
-            })
+                console.log("PostCard - Mapping media:", m, "to:", mappedMedia);
+                return mappedMedia;
+              })
             : []
         }
         currentIndex={currentMediaIndex}
