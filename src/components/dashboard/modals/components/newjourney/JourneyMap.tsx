@@ -281,7 +281,7 @@ const JourneyMap = forwardRef<any, JourneyMapProps>(
       const currentActiveMapSelect = activeMapSelectRef.current;
       if (!currentActiveMapSelect) return;
 
-      const clickedPoint: LatLng = [e.lngLat.lng, e.lngLat.lat];
+      const clickedPoint: LatLng = [e.lngLat.lng, e.lngLat?.lat];
 
       console.log("Map clicked, activeMapSelect:", currentActiveMapSelect);
 
@@ -298,7 +298,7 @@ const JourneyMap = forwardRef<any, JourneyMapProps>(
       }
 
       // Fly to the clicked location
-      flyToOnMap(e.lngLat.lng, e.lngLat.lat);
+      flyToOnMap(e.lngLat.lng, e.lngLat?.lat);
     };
 
     // Initialize map

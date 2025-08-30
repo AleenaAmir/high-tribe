@@ -96,7 +96,7 @@ const SitesLocationMap = React.memo(
         // Add click handler with reverse geocoding
         const handleMapClick = async (e: mapboxgl.MapMouseEvent) => {
           if (onLocationSelect) {
-            const coords: [number, number] = [e.lngLat.lng, e.lngLat.lat];
+            const coords: [number, number] = [e.lngLat.lng, e.lngLat?.lat];
             const locationName = await reverseGeocode(coords);
             onLocationSelect(coords, locationName);
           }
@@ -166,8 +166,8 @@ const SitesLocationMap = React.memo(
                 <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #eee;">
                   <div style="font-size: 12px; color: #999;">
                     <strong>Coordinates:</strong> ${selectedLocation.coords[1].toFixed(
-                      6
-                    )}, ${selectedLocation.coords[0].toFixed(6)}
+            6
+          )}, ${selectedLocation.coords[0].toFixed(6)}
                   </div>
                 </div>
               </div>
@@ -242,8 +242,8 @@ const SitesLocationMap = React.memo(
                 <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #eee;">
                   <div style="font-size: 12px; color: #999;">
                     <strong>Coordinates:</strong> ${lat.toFixed(
-                      6
-                    )}, ${lng.toFixed(6)}
+            6
+          )}, ${lng.toFixed(6)}
                   </div>
                 </div>
               </div>

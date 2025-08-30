@@ -211,8 +211,8 @@ export default function ExistingJourneyComponent({
             name: stop.title || "",
             location: {
               coords:
-                stop.lat && stop.lng
-                  ? ([parseFloat(stop.lng), parseFloat(stop.lat)] as LatLng)
+                stop?.lat && stop.lng
+                  ? ([parseFloat(stop.lng), parseFloat(stop?.lat)] as LatLng)
                   : null,
               name: stop.location_name || "",
             },
@@ -753,8 +753,8 @@ export default function ExistingJourneyComponent({
               {/* Integrated Steps Section - Always Visible */}
               <div
                 className={`mb-4 ${!selectedJourney || loadingSelectedJourney
-                    ? "opacity-50 pointer-events-none"
-                    : ""
+                  ? "opacity-50 pointer-events-none"
+                  : ""
                   }`}
               >
                 <div className="border-t border-gray-200 pt-4">
@@ -792,8 +792,8 @@ export default function ExistingJourneyComponent({
               {/* Tagged Friends Section */}
               <div
                 className={`mb-4 ${!selectedJourney || loadingSelectedJourney
-                    ? "opacity-50 pointer-events-none"
-                    : ""
+                  ? "opacity-50 pointer-events-none"
+                  : ""
                   }`}
               >
                 <GlobalMultiSelect
@@ -823,8 +823,8 @@ export default function ExistingJourneyComponent({
                     !selectedJourney || isSubmitting || loadingSelectedJourney
                   }
                   className={`ml-4 px-6 py-2 text-[12px] text-white rounded-lg border font-semibold transition-all ${!selectedJourney || isSubmitting || loadingSelectedJourney
-                      ? "border-gray-300 text-gray-400 bg-gray-100 cursor-not-allowed"
-                      : "border-blue-600 text-black bg-white bg-gradient-to-r from-[#257CFF] to-[#1063E0] cursor-pointer"
+                    ? "border-gray-300 text-gray-400 bg-gray-100 cursor-not-allowed"
+                    : "border-blue-600 text-black bg-white bg-gradient-to-r from-[#257CFF] to-[#1063E0] cursor-pointer"
                     }`}
                 >
                   {isEndAndPublish ? (
@@ -843,8 +843,8 @@ export default function ExistingJourneyComponent({
                     !selectedJourney || isSubmitting || loadingSelectedJourney
                   }
                   className={`ml-4 px-6 py-2 text-[12px] rounded-lg border font-semibold transition-all ${!selectedJourney || isSubmitting || loadingSelectedJourney
-                      ? "border-gray-300 text-gray-400 bg-gray-100 cursor-not-allowed"
-                      : "border-blue-600 text-black bg-white hover:bg-blue-50 cursor-pointer"
+                    ? "border-gray-300 text-gray-400 bg-gray-100 cursor-not-allowed"
+                    : "border-blue-600 text-black bg-white hover:bg-blue-50 cursor-pointer"
                     }`}
                 >
                   {isSubmitting ? (

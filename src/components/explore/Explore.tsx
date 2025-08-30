@@ -336,12 +336,11 @@ const ExploreFeeds = ({
           <button
             type='button'
             key={i}
-            onClick={option?.onclick || (() => {})}
-            className={`flex items-center text-[8px] md:text-[10px] gap-0.5 p-1 md:p-1.5 cursor-pointer hover:shadow-md transition-all duration-300 px-1.5 md:px-3 rounded-full whitespace-nowrap border ${
-              activeTab === option.name
-                ? 'bg-gradient-to-r from-[#9743AA] to-[#E54295] text-white'
-                : 'bg-white text-gray-700 border-gray-300'
-            }`}
+            onClick={option?.onclick || (() => { })}
+            className={`flex items-center text-[8px] md:text-[10px] gap-0.5 p-1 md:p-1.5 cursor-pointer hover:shadow-md transition-all duration-300 px-1.5 md:px-3 rounded-full whitespace-nowrap border ${activeTab === option.name
+              ? 'bg-gradient-to-r from-[#9743AA] to-[#E54295] text-white'
+              : 'bg-white text-gray-700 border-gray-300'
+              }`}
           >
             {option?.img && option?.img}
             {option?.name && (
@@ -367,9 +366,9 @@ const ExploreFeeds = ({
               'transition-all hover:shadow-md active:scale-[0.99] focus:outline-none',
               toggle === 'newJourney'
                 ? // ACTIVE: filled gradient, white text
-                  'bg-[linear-gradient(90.76deg,#9743AA_0.54%,#B6459F_50.62%,#E54295_99.26%)] text-white'
+                'bg-[linear-gradient(90.76deg,#9743AA_0.54%,#B6459F_50.62%,#E54295_99.26%)] text-white'
                 : // IDLE: white fill, black text
-                  'bg-white text-black',
+                'bg-white text-black',
             ].join(' ')}
           >
             <span>Start New Journey</span>
@@ -382,9 +381,9 @@ const ExploreFeeds = ({
                 'border-[1.5px]',
                 toggle === 'newJourney'
                   ? // ACTIVE: white chip with black plus
-                    'bg-white border-white/0 text-black'
+                  'bg-white border-white/0 text-black'
                   : // IDLE: transparent chip with black ring & black plus
-                    'bg-transparent border-black text-black',
+                  'bg-transparent border-black text-black',
               ].join(' ')}
             >
               {/* tiny plus via SVG for consistent stroke */}
@@ -407,11 +406,10 @@ const ExploreFeeds = ({
           <button
             onClick={() => setToggle('explore')}
             className={`px-6 py-2 rounded-full text-[14px] font-medium font-gilroy transition-all shadow-sm hover:shadow-md active:scale-95
-        ${
-          toggle === 'explore'
-            ? 'bg-gradient-to-r from-[#9743AA] to-[#E54295] text-white'
-            : 'bg-white text-black'
-        }`}
+        ${toggle === 'explore'
+                ? 'bg-gradient-to-r from-[#9743AA] to-[#E54295] text-white'
+                : 'bg-white text-black'
+              }`}
           >
             Explore
           </button>

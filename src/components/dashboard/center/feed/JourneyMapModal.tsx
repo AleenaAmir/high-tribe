@@ -141,8 +141,8 @@ const JourneyMapModal: React.FC<JourneyMapModalProps> = ({
   const getStopCoords = (): [number, number][] => {
     return stops
       .map((stop) => {
-        if (stop && stop.lat && stop.lng) {
-          return [parseFloat(stop.lng), parseFloat(stop.lat)] as [
+        if (stop && stop?.lat && stop.lng) {
+          return [parseFloat(stop.lng), parseFloat(stop?.lat)] as [
             number,
             number
           ];
@@ -156,8 +156,8 @@ const JourneyMapModal: React.FC<JourneyMapModalProps> = ({
   const getSelectedStopCoords = (): [number, number] | null => {
     if (selectedStopIndex < stops.length) {
       const selectedStop = stops[selectedStopIndex];
-      if (selectedStop && selectedStop.lat && selectedStop.lng) {
-        return [parseFloat(selectedStop.lng), parseFloat(selectedStop.lat)];
+      if (selectedStop && selectedStop?.lat && selectedStop.lng) {
+        return [parseFloat(selectedStop.lng), parseFloat(selectedStop?.lat)];
       }
     }
     return null;
@@ -242,11 +242,10 @@ const JourneyMapModal: React.FC<JourneyMapModalProps> = ({
                       return (
                         <div
                           key={stop.id || index}
-                          className={`flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer ${
-                            selectedStopIndex === index
+                          className={`flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer ${selectedStopIndex === index
                               ? "bg-gray-50"
                               : "bg-white"
-                          }`}
+                            }`}
                           onClick={() => setSelectedStopIndex(index)}
                         >
                           {/* Gradient marker */}
@@ -354,11 +353,11 @@ const JourneyMapModal: React.FC<JourneyMapModalProps> = ({
                     startLocation={startCoords}
                     endLocation={endCoords}
                     steps={stopCoords}
-                    onStartChange={() => {}} // Read-only
-                    onEndChange={() => {}} // Read-only
-                    onStepsChange={() => {}} // Read-only
+                    onStartChange={() => { }} // Read-only
+                    onEndChange={() => { }} // Read-only
+                    onStepsChange={() => { }} // Read-only
                     activeMapSelect="start"
-                    setActiveMapSelect={() => {}} // Read-only
+                    setActiveMapSelect={() => { }} // Read-only
                   />
                 </div>
               ) : (

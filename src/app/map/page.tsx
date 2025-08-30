@@ -43,7 +43,7 @@ export default function page() {
     map.current.on("move", () => {
       if (!map.current) return;
       setLng(Number(map.current.getCenter().lng.toFixed(4)));
-      setLat(Number(map.current.getCenter().lat.toFixed(4)));
+      setLat(Number(map.current.getCenter()?.lat.toFixed(4)));
       setZoom(Number(map.current.getZoom().toFixed(2)));
     });
   }, [lng, lat, zoom]);

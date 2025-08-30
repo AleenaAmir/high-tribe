@@ -151,11 +151,11 @@ const toJourneyDataFromApi = (j: ApiJourney): JourneyData => {
         name: stop.title || `Stop ${index + 1}`,
         location: {
           coords:
-            stop.lat && stop.lng
+            stop?.lat && stop?.lng
               ? ([
-                  parseFloat(String(stop.lng)),
-                  parseFloat(String(stop.lat)),
-                ] as [number, number])
+                parseFloat(String(stop.lng)),
+                parseFloat(String(stop?.lat)),
+              ] as [number, number])
               : null,
           name: stop.location_name || "",
         },

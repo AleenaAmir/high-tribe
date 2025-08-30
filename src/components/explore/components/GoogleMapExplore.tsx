@@ -411,25 +411,25 @@ const ExploreMapGoogle = forwardRef<InteractiveMapRef, ExploreMapGoogleProps>(
         const next: FamousPlace[] = raw
           .map((p, i) => {
             const pos =
-              p.location && typeof p.location.lat === "function"
-                ? { lat: p.location.lat(), lng: p.location.lng() }
+              p.location && typeof p.location?.lat === "function"
+                ? { lat: p.location?.lat(), lng: p.location.lng() }
                 : p.geometry?.location
-                ? {
-                    lat: p.geometry.location.lat(),
+                  ? {
+                    lat: p.geometry.location?.lat(),
                     lng: p.geometry.location.lng(),
                   }
-                : null;
+                  : null;
             const pid =
               p.id || p.place_id || p.name || p.displayName?.text || `p-${i}`;
             return pos
               ? ({
-                  ...p,
-                  place_id: pid,
-                  name: p.displayName?.text || p.name,
-                  vicinity: p.formattedAddress || p.vicinity,
-                  user_ratings_total: p.userRatingCount ?? p.user_ratings_total,
-                  position: pos,
-                } as FamousPlace)
+                ...p,
+                place_id: pid,
+                name: p.displayName?.text || p.name,
+                vicinity: p.formattedAddress || p.vicinity,
+                user_ratings_total: p.userRatingCount ?? p.user_ratings_total,
+                position: pos,
+              } as FamousPlace)
               : null;
           })
           .filter(Boolean) as FamousPlace[];
@@ -478,10 +478,10 @@ const ExploreMapGoogle = forwardRef<InteractiveMapRef, ExploreMapGoogleProps>(
           radius
             ? doSearch({ ...base, radius, type: t })
             : doSearch({
-                ...base,
-                rankBy: google.maps.places.RankBy.DISTANCE,
-                type: t,
-              });
+              ...base,
+              rankBy: google.maps.places.RankBy.DISTANCE,
+              type: t,
+            });
 
         queryTypes.forEach((t) => calls.push(build(t)));
         const buckets = await Promise.all(calls);
@@ -494,7 +494,7 @@ const ExploreMapGoogle = forwardRef<InteractiveMapRef, ExploreMapGoogleProps>(
           byId.set(p.place_id, {
             ...p,
             position: {
-              lat: p.geometry.location.lat(),
+              lat: p.geometry.location?.lat(),
               lng: p.geometry.location.lng(),
             },
           });
@@ -519,7 +519,7 @@ const ExploreMapGoogle = forwardRef<InteractiveMapRef, ExploreMapGoogleProps>(
       if (!mapRef.current) return;
       const c = mapRef.current.getCenter();
       if (!c) return;
-      const newCenter = { lat: c.lat(), lng: c.lng() };
+      const newCenter = { lat: c?.lat(), lng: c.lng() };
       setCenter(newCenter);
       debouncedFetchNearby(newCenter, effectiveFilter);
     };
@@ -535,7 +535,7 @@ const ExploreMapGoogle = forwardRef<InteractiveMapRef, ExploreMapGoogleProps>(
       const validPlaces = loadedPlaces.filter(
         (p: any) =>
           p.position &&
-          typeof p.position.lat === "number" &&
+          typeof p.position?.lat === "number" &&
           typeof p.position.lng === "number"
       );
       if (validPlaces.length > 0 && places.length === 0) {
@@ -563,7 +563,7 @@ const ExploreMapGoogle = forwardRef<InteractiveMapRef, ExploreMapGoogleProps>(
       }
       navigator.geolocation.getCurrentPosition(
         (pos) => {
-          const c = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+          const c = { lat: pos.coords?.latitude, lng: pos.coords.longitude };
           setMyLocation(c);
           setAccuracy(pos.coords.accuracy ?? null);
           setGeoError(null);
@@ -692,7 +692,7 @@ const ExploreMapGoogle = forwardRef<InteractiveMapRef, ExploreMapGoogleProps>(
             .filter(
               (p) =>
                 p.position &&
-                typeof p.position.lat === "number" &&
+                typeof p.position?.lat === "number" &&
                 typeof p.position.lng === "number"
             )
             .map((p, idx) => {
@@ -706,7 +706,7 @@ const ExploreMapGoogle = forwardRef<InteractiveMapRef, ExploreMapGoogleProps>(
                 return (
                   <BubbleMarker
                     key={
-                      p.place_id || `${p.position.lat},${p.position.lng},${idx}`
+                      p.place_id || `${p.position?.lat},${p.position.lng},${idx}`
                     }
                     position={p.position}
                     text={p.name || "Restaurant"}
@@ -721,7 +721,7 @@ const ExploreMapGoogle = forwardRef<InteractiveMapRef, ExploreMapGoogleProps>(
                 return (
                   <BubbleMarker
                     key={
-                      p.place_id || `${p.position.lat},${p.position.lng},${idx}`
+                      p.place_id || `${p.position?.lat},${p.position.lng},${idx}`
                     }
                     position={p.position}
                     text={p.name || "Hotel"}
@@ -736,7 +736,7 @@ const ExploreMapGoogle = forwardRef<InteractiveMapRef, ExploreMapGoogleProps>(
                 return (
                   <BubbleMarker
                     key={
-                      p.place_id || `${p.position.lat},${p.position.lng},${idx}`
+                      p.place_id || `${p.position?.lat},${p.position.lng},${idx}`
                     }
                     position={p.position}
                     text={p.name || "Museum"}
@@ -752,7 +752,7 @@ const ExploreMapGoogle = forwardRef<InteractiveMapRef, ExploreMapGoogleProps>(
 
           {selected &&
             selected.position &&
-            typeof selected.position.lat === "number" &&
+            typeof selected.position?.lat === "number" &&
             typeof selected.position.lng === "number" && (
               <InfoWindow
                 position={selected.position}

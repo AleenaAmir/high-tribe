@@ -300,9 +300,9 @@ export default function StopModal({
       //   setValue("title", stopData.title || "");
 
       // Set location coordinates if available
-      if (stopData.lat && stopData.lng) {
+      if (stopData?.lat && stopData.lng) {
         setSelectedLocation({
-          coords: [parseFloat(stopData.lng), parseFloat(stopData.lat)],
+          coords: [parseFloat(stopData.lng), parseFloat(stopData?.lat)],
           name: stopData.location_name || "",
         });
       }

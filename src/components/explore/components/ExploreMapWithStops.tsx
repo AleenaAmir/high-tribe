@@ -105,12 +105,12 @@ const ExploreMapWithStops = forwardRef<
   useEffect(() => {
     const hasValidStops = Boolean(
       journeyStops &&
-        journeyStops.length > 0 &&
-        journeyStops.some((stop) => {
-          const lat = parseFloat(String(stop.lat));
-          const lng = parseFloat(String(stop.lng));
-          return !isNaN(lat) && !isNaN(lng);
-        })
+      journeyStops.length > 0 &&
+      journeyStops.some((stop) => {
+        const lat = parseFloat(String(stop?.lat));
+        const lng = parseFloat(String(stop.lng));
+        return !isNaN(lat) && !isNaN(lng);
+      })
     );
 
     setShowMapbox(hasValidStops);
@@ -127,13 +127,13 @@ const ExploreMapWithStops = forwardRef<
 
     if (journeyStops && journeyStops.length > 0) {
       const validStops = journeyStops.filter((stop) => {
-        const lat = parseFloat(String(stop.lat));
+        const lat = parseFloat(String(stop?.lat));
         const lng = parseFloat(String(stop.lng));
         return !isNaN(lat) && !isNaN(lng);
       });
 
       if (validStops.length > 0) {
-        const lats = validStops.map((stop) => parseFloat(String(stop.lat)));
+        const lats = validStops.map((stop) => parseFloat(String(stop?.lat)));
         const lngs = validStops.map((stop) => parseFloat(String(stop.lng)));
 
         const avgLat = lats.reduce((sum, lat) => sum + lat, 0) / lats.length;
@@ -162,14 +162,14 @@ const ExploreMapWithStops = forwardRef<
       // Fit to stops after map is fully loaded
       if (journeyStops && journeyStops.length > 0) {
         const validStops = journeyStops.filter((stop) => {
-          const lat = parseFloat(String(stop.lat));
+          const lat = parseFloat(String(stop?.lat));
           const lng = parseFloat(String(stop.lng));
           return !isNaN(lat) && !isNaN(lng);
         });
 
         if (validStops.length > 0) {
           const stopCoords: [number, number][] = validStops.map((stop) => {
-            const lat = parseFloat(String(stop.lat));
+            const lat = parseFloat(String(stop?.lat));
             const lng = parseFloat(String(stop.lng));
             return [lng, lat] as [number, number];
           });
@@ -354,7 +354,7 @@ const ExploreMapWithStops = forwardRef<
     removeRouteLine();
 
     const validStops = journeyStops.filter((stop) => {
-      const lat = parseFloat(String(stop.lat));
+      const lat = parseFloat(String(stop?.lat));
       const lng = parseFloat(String(stop.lng));
       return !isNaN(lat) && !isNaN(lng);
     });
@@ -365,7 +365,7 @@ const ExploreMapWithStops = forwardRef<
 
     // Create stop markers
     validStops.forEach((stop, index) => {
-      const lat = parseFloat(String(stop.lat));
+      const lat = parseFloat(String(stop?.lat));
       const lng = parseFloat(String(stop.lng));
       const coords: [number, number] = [lng, lat];
       stopCoords.push(coords);
@@ -477,7 +477,7 @@ const ExploreMapWithStops = forwardRef<
       return;
 
     const validStops = journeyStops.filter((stop) => {
-      const lat = parseFloat(String(stop.lat));
+      const lat = parseFloat(String(stop?.lat));
       const lng = parseFloat(String(stop.lng));
       return !isNaN(lat) && !isNaN(lng);
     });
@@ -485,7 +485,7 @@ const ExploreMapWithStops = forwardRef<
     if (validStops.length === 0) return;
 
     const stopCoords: [number, number][] = validStops.map((stop) => {
-      const lat = parseFloat(String(stop.lat));
+      const lat = parseFloat(String(stop?.lat));
       const lng = parseFloat(String(stop.lng));
       return [lng, lat] as [number, number];
     });
@@ -526,7 +526,7 @@ const ExploreMapWithStops = forwardRef<
 
       const validStops = stops
         .map((stop) => {
-          const lat = parseFloat(String(stop.lat));
+          const lat = parseFloat(String(stop?.lat));
           const lng = parseFloat(String(stop.lng));
           return isNaN(lat) || isNaN(lng)
             ? null

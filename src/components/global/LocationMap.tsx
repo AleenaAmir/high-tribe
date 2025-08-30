@@ -104,7 +104,7 @@ const LocationMap: React.FC<LocationMapProps> = ({
     // Add click handler with reverse geocoding
     map.current.on("click", async (e) => {
       if (onLocationSelect) {
-        const coords: [number, number] = [e.lngLat.lng, e.lngLat.lat];
+        const coords: [number, number] = [e.lngLat.lng, e.lngLat?.lat];
         const locationName = await reverseGeocode(coords);
         onLocationSelect(coords, locationName);
       }
@@ -184,9 +184,9 @@ const LocationMap: React.FC<LocationMapProps> = ({
     // Filter stops with valid coordinates
     const validStops = stops.filter(
       (stop) =>
-        stop.lat &&
+        stop?.lat &&
         stop.lng &&
-        !isNaN(parseFloat(String(stop.lat))) &&
+        !isNaN(parseFloat(String(stop?.lat))) &&
         !isNaN(parseFloat(String(stop.lng)))
     );
 
@@ -205,7 +205,7 @@ const LocationMap: React.FC<LocationMapProps> = ({
 
     // Create stop markers
     validStops.forEach((stop, index) => {
-      const lat = parseFloat(String(stop.lat));
+      const lat = parseFloat(String(stop?.lat));
       const lng = parseFloat(String(stop.lng));
       const coords: [number, number] = [lng, lat];
       stopCoords.push(coords);

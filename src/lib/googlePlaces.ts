@@ -42,7 +42,7 @@ async function fetchMapboxSuggestions(input: string): Promise<GooglePlace[]> {
     const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(input)}.json?access_token=${MAPBOX_API_KEY}&limit=10`;
     const response = await fetch(url);
     const data = await response.json();
-    
+
     return (data.features || []).map((feature: MapboxFeature) => ({
       place_id: feature.id,
       description: feature.place_name,
@@ -72,7 +72,7 @@ export async function fetchGooglePlaceSuggestions(
 
       // Only add location and radius if location is provided
       if (location) {
-        params.append('location', `${location.lat},${location.lng}`);
+        params.append('location', `${location?.lat},${location.lng}`);
         params.append('radius', '500000');
       }
 
@@ -83,13 +83,13 @@ export async function fetchGooglePlaceSuggestions(
       }
 
       const data = await response.json();
-      
+
       // Check if Google API returned an error
       if (data.status === 'REQUEST_DENIED' || data.status === 'OVER_QUERY_LIMIT') {
         // Silently fall back to Mapbox - this is expected behavior when Google API is unavailable
         return await fetchMapboxSuggestions(input);
       }
-      
+
       return data.predictions || [];
     } else {
       // No Google API key, use Mapbox directly
@@ -107,7 +107,7 @@ async function getMapboxPlaceDetails(placeId: string): Promise<GooglePlaceDetail
     const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(placeId)}.json?access_token=${MAPBOX_API_KEY}&limit=1`;
     const response = await fetch(url);
     const data = await response.json();
-    
+
     if (data.features && data.features.length > 0) {
       const feature = data.features[0];
       return {
@@ -146,13 +146,13 @@ export async function getGooglePlaceDetails(placeId: string): Promise<GooglePlac
       }
 
       const data = await response.json();
-      
+
       // Check if Google API returned an error
       if (data.status === 'REQUEST_DENIED' || data.status === 'OVER_QUERY_LIMIT') {
         // Silently fall back to Mapbox - this is expected behavior when Google API is unavailable
         return await getMapboxPlaceDetails(placeId);
       }
-      
+
       return data.result || null;
     } else {
       // No Google API key, use Mapbox directly
@@ -168,14 +168,14 @@ export async function getCoordinatesForGooglePlace(placeId: string): Promise<[nu
   try {
     const details = await getGooglePlaceDetails(placeId);
     if (details && details.geometry) {
-      return [details.geometry.location.lng, details.geometry.location.lat];
+      return [details.geometry.location.lng, details.geometry.location?.lat];
     }
     return null;
   } catch (error) {
     console.error('Error getting coordinates for Google Place:', error);
     return null;
   }
-} 
+}
 
 export async function getGooglePlacePhoto(placeId: string): Promise<string | null> {
   try {
@@ -186,7 +186,7 @@ export async function getGooglePlacePhoto(placeId: string): Promise<string | nul
 
     // First, get place details to check if photos are available
     const details = await getGooglePlaceDetails(placeId);
-    
+
     if (!details || !details.photos || details.photos.length === 0) {
       // Silently return null if no photos - this is expected behavior
       return null;
@@ -194,7 +194,7 @@ export async function getGooglePlacePhoto(placeId: string): Promise<string | nul
 
     // Use the first photo (usually the best one)
     const photo = details.photos[0];
-    
+
     // Fetch the photo using Google Places Photos API
     const params = new URLSearchParams({
       maxwidth: '800',
@@ -211,12 +211,12 @@ export async function getGooglePlacePhoto(placeId: string): Promise<string | nul
     // The photo API returns the image directly, so we need to get the URL
     // Since we're proxying through our API, we'll return the URL that our API returns
     const data = await response.json();
-    
+
     if (data.status === 'REQUEST_DENIED' || data.status === 'OVER_QUERY_LIMIT') {
       // Silently return null for API errors - fallback will handle this
       return null;
     }
-    
+
     return data.photo_url || null;
   } catch (error) {
     // Silently return null for any errors - fallback will handle this
