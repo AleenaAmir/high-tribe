@@ -14,7 +14,7 @@ const Booking = () => {
         <h1 className="font-roboto font-semibold text-[15px] leading-[100%] tracking-[0.01em]">
           Room Booking
         </h1>
-        <MoreOptionsIcon className="hover:text-[#0F62DE]" />
+        <MoreOptionsIcon className="hover:text-[#0F62DE] w-4 h-4" />
       </div>
 
       <div className="mt-4">
@@ -68,8 +68,9 @@ const Booking = () => {
               className="absolute top-3 right-3 w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-md hover:shadow-lg transition-shadow"
             >
               <Heart
-                className={`w-4 h-4 ${isLiked ? "fill-red-500 text-red-500" : "text-gray-600"
-                  }`}
+                className={`w-4 h-4 ${
+                  isLiked ? "fill-red-500 text-red-500" : "text-gray-600"
+                }`}
               />
             </button>
 

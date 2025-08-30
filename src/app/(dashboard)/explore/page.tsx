@@ -10,9 +10,9 @@ import StepDetailsPanel from "@/components/explore/StepDetailsPanel";
 import { Step } from "@/components/dashboard/modals/components/newjourney/types";
 import ExploreJourneyList from "@/components/explore/ExploreJourneyList";
 // import ExploreMap from "@/components/explore/ExploreMap";
-import ExploreMapWithStops, {
-  ExploreMapWithStopsRef,
-} from "@/components/explore/components/ExploreMapWithStops";
+import GlobalRouteMap, { RoutePoint } from "@/components/global/GlobalRouteMap";
+import LocationMap from "@/components/global/LocationMap";
+import GoogleMapExplore from "@/components/explore/components/GoogleMapExplore";
 import StopModal from "@/components/explore/StopModal";
 import DayStopsModal from "@/components/explore/components/DayStopsModal";
 import InvitePeopleModal from "@/components/explore/components/InvitePeopleModal";
@@ -94,6 +94,57 @@ const toNumberOrNull = (v: unknown): number | null => {
   return null;
 };
 
+// Helper function to convert stops to RoutePoint format
+const convertStopsToRoutePoints = (stops: ApiJourneyStop[]): RoutePoint[] => {
+  return stops
+    .map((stop, index) => {
+      if (stop?.lat && stop?.lng) {
+        return {
+          id: stop.id || `stop-${index}`,
+          coords: [parseFloat(String(stop.lng)), parseFloat(String(stop?.lat))],
+          name: stop.location_name || stop.title || `Stop ${index + 1}`,
+          color: "#9743AA", // Purple color to match the theme
+          metadata: stop,
+        } as RoutePoint;
+      }
+      return null;
+    })
+    .filter(Boolean) as RoutePoint[];
+};
+
+// Helper function to get journey start/end points from API data
+const getJourneyRoutePoints = (
+  journey: ApiJourney
+): { startPoint?: RoutePoint; endPoint?: RoutePoint } => {
+  const startPoint =
+    journey.start_lat && journey.start_lng
+      ? {
+          id: "journey-start",
+          coords: [
+            parseFloat(String(journey.start_lng)),
+            parseFloat(String(journey.start_lat)),
+          ] as [number, number],
+          name: journey.start_location_name || "Start",
+          color: "#22c55e",
+        }
+      : undefined;
+
+  const endPoint =
+    journey.end_lat && journey.end_lng
+      ? {
+          id: "journey-end",
+          coords: [
+            parseFloat(String(journey.end_lng)),
+            parseFloat(String(journey.end_lat)),
+          ] as [number, number],
+          name: journey.end_location_name || "End",
+          color: "#ef4444",
+        }
+      : undefined;
+
+  return { startPoint, endPoint };
+};
+
 const normalizeDays = (raw: any): JourneyDay[] => {
   if (!raw || !Array.isArray(raw)) return [];
   return raw.map((d: any, i: number) => ({
@@ -153,9 +204,9 @@ const toJourneyDataFromApi = (j: ApiJourney): JourneyData => {
           coords:
             stop?.lat && stop?.lng
               ? ([
-                parseFloat(String(stop.lng)),
-                parseFloat(String(stop?.lat)),
-              ] as [number, number])
+                  parseFloat(String(stop.lng)),
+                  parseFloat(String(stop?.lat)),
+                ] as [number, number])
               : null,
           name: stop.location_name || "",
         },
@@ -214,7 +265,7 @@ const blankJourney: JourneyData = {
 };
 
 const Page = () => {
-  const mapRef = useRef<ExploreMapWithStopsRef>(null);
+  const mapRef = useRef<any>(null);
   const isRefetching = useRef(false);
 
   const [activeFilter, setActiveFilter] = useState<string>("All feeds");
@@ -359,7 +410,6 @@ const Page = () => {
     );
   }, [journeyData?.id]);
 
-
   const extractStops = (r: any): ApiJourneyStop[] => {
     const p = r?.data ?? r; // axios: r.data, fetch/custom: r
     if (Array.isArray(p)) return p; // payload is array
@@ -411,11 +461,19 @@ const Page = () => {
     const lng = toNumberOrNull(journey.start_lng);
     const lat = toNumberOrNull(journey.start_lat);
     if (lng != null && lat != null) {
-      mapRef.current?.centerMap(
-        lng,
-        lat,
-        journey.start_location_name || "Start"
-      );
+      // Handle both map types
+      if (mapRef.current?.flyTo) {
+        mapRef.current.flyTo({
+          center: [lng, lat],
+          zoom: 8,
+        });
+      } else if (mapRef.current?.centerMap) {
+        mapRef.current.centerMap(
+          lng,
+          lat,
+          journey.start_location_name || "Start"
+        );
+      }
     }
   };
   const [isAddingStop, setIsAddingStop] = useState<boolean>(false);
@@ -532,7 +590,12 @@ const Page = () => {
       <div className="h-[calc(100vh-210px)] bg-gray-50">
         <Explore
           onPlaceSelected={(lng: number, lat: number, name?: string) => {
-            mapRef.current?.centerMap(lng, lat, name);
+            // Handle all map types
+            if (mapRef.current?.flyTo) {
+              mapRef.current.flyTo({ center: [lng, lat], zoom: 8 });
+            } else if (mapRef.current?.centerMap) {
+              mapRef.current.centerMap(lng, lat, name);
+            }
           }}
           onFilterChange={(filter: string) => setActiveFilter(filter)}
           onNewJourneyClick={() => setNewJourney(true)}
@@ -575,12 +638,47 @@ const Page = () => {
               />
             )}
             <div className="flex-1">
-              <ExploreMapWithStops
-                ref={mapRef}
-                className="h-[calc(100vh-210px)]"
-                activeFilter={activeFilter}
-                journeyStops={journeyData ? allStops : undefined}
-              />
+              {journeyData ? (
+                // Show route map when journey is selected
+                allStops.length > 0 ? (
+                  <GlobalRouteMap
+                    ref={mapRef}
+                    height="100%"
+                    className="h-full"
+                    {...getJourneyRoutePoints(journeyData as ApiJourney)}
+                    waypoints={convertStopsToRoutePoints(allStops)}
+                    showRoute={true}
+                    showRouteInfo={false}
+                    routeColor="#000000"
+                    routeWidth={3}
+                    routeStyle="dashed"
+                    markerSize={16}
+                    interactive={true}
+                    autoFitBounds={true}
+                  />
+                ) : (
+                  // Show regular map when journey selected but no stops
+                  <LocationMap
+                    location={{
+                      coords: journeyData?.startingPoint ? [69.2, 41.3] : null,
+                      name: journeyData?.startingPoint || "Select a location",
+                    }}
+                    onLocationSelect={(coords, name) => {
+                      console.log("Location selected:", coords, name);
+                    }}
+                    markerColor="#9743AA"
+                    stops={[]}
+                    showRoute={false}
+                  />
+                )
+              ) : (
+                // Show GoogleMapExplore when no journey is selected
+                <GoogleMapExplore
+                  ref={mapRef}
+                  className="h-full"
+                  activeFilter={activeFilter}
+                />
+              )}
             </div>
           </div>
         </div>

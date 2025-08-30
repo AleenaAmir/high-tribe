@@ -1,7 +1,7 @@
 import React, { useState, useRef } from "react";
 import Image from "next/image";
 import GlobalModalBorderLess from "@/components/global/GlobalModalBorderLess";
-import JourneyMap from "@/components/dashboard/modals/components/newjourney/JourneyMap";
+import GlobalRouteMap, { RoutePoint } from "@/components/global/GlobalRouteMap";
 import { Post, formatDate } from "@/lib/adapters/postAdapter";
 
 // SVG Icons
@@ -113,6 +113,42 @@ const JourneyMapModal: React.FC<JourneyMapModalProps> = ({
   const stops = post?.stops || [];
   const mainMedia = post?.media || [];
 
+  // Convert post data to RoutePoint format for GlobalRouteMap
+  const startPoint: RoutePoint | undefined =
+    post?.start_lat && post?.start_lng
+      ? {
+          id: "start",
+          coords: [parseFloat(post.start_lng), parseFloat(post.start_lat)],
+          name: post.start_location_name,
+          color: "#22c55e",
+        }
+      : undefined;
+
+  const endPoint: RoutePoint | undefined =
+    post?.end_lat && post?.end_lng
+      ? {
+          id: "end",
+          coords: [parseFloat(post.end_lng), parseFloat(post.end_lat)],
+          name: post.end_location_name,
+          color: "#ef4444",
+        }
+      : undefined;
+
+  const waypoints: RoutePoint[] = stops
+    .map((stop, index) => {
+      if (stop?.lat && stop?.lng) {
+        return {
+          id: stop.id || `stop-${index}`,
+          coords: [parseFloat(stop?.lng), parseFloat(stop?.lat)],
+          name: stop.location_name || stop.title || `Stop ${index + 1}`,
+          color: "#2563eb",
+          metadata: stop,
+        } as RoutePoint;
+      }
+      return null;
+    })
+    .filter(Boolean) as RoutePoint[];
+
   // Get media for the selected stop
   const getSelectedStopMedia = () => {
     if (selectedStopIndex < stops.length && stops[selectedStopIndex].media) {
@@ -122,51 +158,6 @@ const JourneyMapModal: React.FC<JourneyMapModalProps> = ({
   };
 
   const selectedStopMedia = getSelectedStopMedia();
-
-  // Get coordinates for map
-  const getStartCoords = (): [number, number] | null => {
-    if (post?.start_lat && post?.start_lng) {
-      return [parseFloat(post.start_lng), parseFloat(post.start_lat)];
-    }
-    return null;
-  };
-
-  const getEndCoords = (): [number, number] | null => {
-    if (post?.end_lat && post?.end_lng) {
-      return [parseFloat(post.end_lng), parseFloat(post.end_lat)];
-    }
-    return null;
-  };
-
-  const getStopCoords = (): [number, number][] => {
-    return stops
-      .map((stop) => {
-        if (stop && stop?.lat && stop.lng) {
-          return [parseFloat(stop.lng), parseFloat(stop?.lat)] as [
-            number,
-            number
-          ];
-        }
-        return null;
-      })
-      .filter(Boolean) as [number, number][];
-  };
-
-  // Get coordinates for the selected stop
-  const getSelectedStopCoords = (): [number, number] | null => {
-    if (selectedStopIndex < stops.length) {
-      const selectedStop = stops[selectedStopIndex];
-      if (selectedStop && selectedStop?.lat && selectedStop.lng) {
-        return [parseFloat(selectedStop.lng), parseFloat(selectedStop?.lat)];
-      }
-    }
-    return null;
-  };
-
-  const startCoords = getStartCoords();
-  const endCoords = getEndCoords();
-  const stopCoords = getStopCoords();
-  const selectedStopCoords = getSelectedStopCoords();
 
   // Format date for display
   const formatStopDate = (dateString: string) => {
@@ -242,10 +233,11 @@ const JourneyMapModal: React.FC<JourneyMapModalProps> = ({
                       return (
                         <div
                           key={stop.id || index}
-                          className={`flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer ${selectedStopIndex === index
+                          className={`flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer ${
+                            selectedStopIndex === index
                               ? "bg-gray-50"
                               : "bg-white"
-                            }`}
+                          }`}
                           onClick={() => setSelectedStopIndex(index)}
                         >
                           {/* Gradient marker */}
@@ -346,18 +338,23 @@ const JourneyMapModal: React.FC<JourneyMapModalProps> = ({
                 )}
               </div>
 
-              {startCoords || endCoords ? (
-                <div className="w-full min-h-[200px]  h-full">
-                  <JourneyMap
+              {startPoint || endPoint ? (
+                <div className="w-full min-h-[200px] h-full">
+                  <GlobalRouteMap
                     ref={mapRef}
-                    startLocation={startCoords}
-                    endLocation={endCoords}
-                    steps={stopCoords}
-                    onStartChange={() => { }} // Read-only
-                    onEndChange={() => { }} // Read-only
-                    onStepsChange={() => { }} // Read-only
-                    activeMapSelect="start"
-                    setActiveMapSelect={() => { }} // Read-only
+                    startPoint={startPoint}
+                    endPoint={endPoint}
+                    waypoints={waypoints}
+                    interactive={false}
+                    showRouteInfo={false}
+                    routeColor="#000000"
+                    routeWidth={4}
+                    routeStyle="dashed"
+                    onPointClick={(point, index) => {
+                      if (index > 0 && index <= waypoints.length) {
+                        setSelectedStopIndex(index - 1);
+                      }
+                    }}
                   />
                 </div>
               ) : (

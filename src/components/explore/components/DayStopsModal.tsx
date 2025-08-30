@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from "react";
 import DayStopCard from "./DayStopCard";
 import GlobalModalBorderLess from "@/components/global/GlobalModalBorderLess";
+import GlobalRouteMap, { RoutePoint } from "@/components/global/GlobalRouteMap";
 import LocationMap from "@/components/global/LocationMap";
 import DeleteModal from "./DeleteModat";
 import StopModal from "../StopModal";
@@ -36,13 +37,26 @@ export default function DayStopsModal({
   // Local state to manage stops
   const [localDayStops, setLocalDayStops] = useState<any[]>([]);
 
-  const [selectedLocation, setSelectedLocation] = useState<{
-    coords: [number, number] | null;
-    name: string;
-  }>({
-    coords: null,
-    name: "",
-  });
+  // Convert stops to RoutePoint format for GlobalRouteMap
+  const convertStopsToRoutePoints = (stops: any[]): RoutePoint[] => {
+    return stops
+      .map((stop, index) => {
+        if (stop?.lat && stop?.lng) {
+          return {
+            id: stop.id || `stop-${index}`,
+            coords: [parseFloat(stop?.lng), parseFloat(stop?.lat)],
+            name: stop.location_name || stop.title || `Stop ${index + 1}`,
+            color: "#9743AA", // Purple color to match the theme
+            metadata: stop,
+          } as RoutePoint;
+        }
+        return null;
+      })
+      .filter(Boolean) as RoutePoint[];
+  };
+
+  // Get route points for the map
+  const routePoints = convertStopsToRoutePoints(localDayStops);
 
   // Sync local state with prop
   useEffect(() => {
@@ -54,18 +68,15 @@ export default function DayStopsModal({
   }, [dayStops, formattedDate]);
 
   console.log(dayStops, "dayStops----0-00-00-0-0-0-0--00-0-0-");
-  const handleLocationSelect = (coords: [number, number], name: string) => {
-    setSelectedLocation({ coords, name });
-  };
 
   const pad2 = (n: number) => String(n).padStart(2, "0");
   const formatRange = (date?: string, endDate?: string) => {
     const fmt = (d?: string) =>
       d
         ? new Date(d).toLocaleDateString(undefined, {
-          day: "2-digit",
-          month: "short",
-        })
+            day: "2-digit",
+            month: "short",
+          })
         : "";
     const start = fmt(date);
     const end = fmt(endDate || date);
@@ -209,13 +220,35 @@ export default function DayStopsModal({
 
             {/* Right: Map */}
             <div className="bg-gray-100 h-full relative">
-              <LocationMap
-                location={selectedLocation}
-                onLocationSelect={handleLocationSelect}
-                markerColor="#9743AA"
-                stops={localDayStops}
-                showRoute={true}
-              />
+              {routePoints.length > 0 ? (
+                // Show route map when there are stops
+                <GlobalRouteMap
+                  waypoints={routePoints}
+                  showRoute={true}
+                  showRouteInfo={true}
+                  routeColor="#9743AA"
+                  routeWidth={4}
+                  routeStyle="solid"
+                  markerSize={18}
+                  interactive={false}
+                  autoFitBounds={true}
+                  className="h-full"
+                />
+              ) : (
+                // Show regular map when no stops
+                <LocationMap
+                  location={{
+                    coords: null,
+                    name: "No stops for this day",
+                  }}
+                  onLocationSelect={(coords, name) => {
+                    console.log("Location selected:", coords, name);
+                  }}
+                  markerColor="#9743AA"
+                  stops={[]}
+                  showRoute={false}
+                />
+              )}
               <button
                 onClick={onClose}
                 className="absolute top-4 right-4 w-8 h-8 bg-gray-800 text-white rounded-full flex items-center justify-center hover:bg-gray-700 transition-colors z-10"

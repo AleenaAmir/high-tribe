@@ -260,10 +260,10 @@ export default function NewTip({ onClose }: NewTipProps) {
     <div
       className="max-h-[90vh]  h-full  overflow-y-auto
 [&::-webkit-scrollbar]:w-1
-       [&::-webkit-scrollbar-track]:bg-[#1063E0]
+       [&::-webkit-scrollbar-track]:bg-[#9743AB]
        [&::-webkit-scrollbar-thumb]:bg-[#D9D9D9] 
        dark:[&::-webkit-scrollbar-track]:bg-[#D9D9D9]
-       dark:[&::-webkit-scrollbar-thumb]:bg-[#1063E0]
+       dark:[&::-webkit-scrollbar-thumb]:bg-[#9743AB]
 "
     >
       <div className="grid lg:grid-cols-2 grid-cols-1">
@@ -284,10 +284,10 @@ export default function NewTip({ onClose }: NewTipProps) {
             <div
               className="flex flex-col gap-2 max-h-[500px] lg:min-h-[500px] h-full overflow-y-auto px-6 py-2 
            [&::-webkit-scrollbar]:w-1
-           [&::-webkit-scrollbar-track]:bg-[#1063E0]
+           [&::-webkit-scrollbar-track]:bg-[#9743AB]
            [&::-webkit-scrollbar-thumb]:bg-[#D9D9D9] 
            dark:[&::-webkit-scrollbar-track]:bg-[#D9D9D9]
-           dark:[&::-webkit-scrollbar-thumb]:bg-[#1063E0]"
+           dark:[&::-webkit-scrollbar-thumb]:bg-[#9743AB]"
             >
               {/* Location Input */}
               <LocationSelector
@@ -368,7 +368,7 @@ export default function NewTip({ onClose }: NewTipProps) {
                   !tip.trim() ||
                   !location.trim()
                     ? "border-gray-300 text-gray-400 bg-gray-100 cursor-not-allowed"
-                    : "border-blue-600 bg-gradient-to-r from-[#257CFF] to-[#1063E0] cursor-pointer hover:from-[#1a6be0] hover:to-[#0d5ac7]"
+                    : "border-blue-600 bg-gradient-to-r from-[#257CFF] to-[#9743AB] cursor-pointer hover:from-[#1a6be0] hover:to-[#0d5ac7]"
                 }`}
               >
                 {isSubmitting ? (

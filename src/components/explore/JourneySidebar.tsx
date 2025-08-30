@@ -506,15 +506,27 @@ const JourneySidebar: React.FC<JourneySidebarProps> = ({
           {/* Content based on active tab */}
           {activeTab === "itinerary" && (
             <div className="flex flex-col gap-4">
-              <ItineraryContent
-                finalDisplayDays={finalDisplayDays}
-                openDayIndex={openDayIndex}
-                journeyData={journeyData}
-                handleViewDayStops={handleViewDayStops || (() => {})}
-                dayStops={dayStops}
-                onAddStop={onAddStop || (() => {})}
-                onDeleteDay={handleDeleteDay} // ✅ FIX: required prop
-              />
+              <div
+                className="max-h-[280px] overflow-y-auto
+               [&::-webkit-scrollbar]:w-[3px]
+       [&::-webkit-scrollbar-track]:bg-[#9743AB]
+       [&::-webkit-scrollbar-thumb]:bg-[#D9D9D9] 
+       dark:[&::-webkit-scrollbar-track]:bg-[#D9D9D9]
+       dark:[&::-webkit-scrollbar-thumb]:bg-[#9743AB]
+       dark:[&::-webkit-scrollbar-thumb]:rounded-3xl
+       [&::-webkit-scrollbar-thumb]:rounded-3xl
+              "
+              >
+                <ItineraryContent
+                  finalDisplayDays={finalDisplayDays}
+                  openDayIndex={openDayIndex}
+                  journeyData={journeyData}
+                  handleViewDayStops={handleViewDayStops || (() => {})}
+                  dayStops={dayStops}
+                  onAddStop={onAddStop || (() => {})}
+                  onDeleteDay={handleDeleteDay} // ✅ FIX: required prop
+                />
+              </div>
               <button
                 type="button"
                 disabled={true}

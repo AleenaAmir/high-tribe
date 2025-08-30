@@ -304,10 +304,10 @@ export default function NewJourney({ onClose }: NewJourneyProps) {
     <div
       className="max-h-[90vh]  h-full  overflow-y-auto rounded-[20px] bg-white shadow-lg
           [&::-webkit-scrollbar]:w-1
-           [&::-webkit-scrollbar-track]:bg-[#1063E0]
+           [&::-webkit-scrollbar-track]:bg-[#9743AB]
            [&::-webkit-scrollbar-thumb]:bg-[#D9D9D9] 
            dark:[&::-webkit-scrollbar-track]:bg-[#D9D9D9]
-           dark:[&::-webkit-scrollbar-thumb]:bg-[#1063E0]
+           dark:[&::-webkit-scrollbar-thumb]:bg-[#9743AB]
     "
     >
       <div className="grid lg:grid-cols-2 grid-cols-1 ">
@@ -334,10 +334,10 @@ export default function NewJourney({ onClose }: NewJourneyProps) {
             <div
               className="flex flex-col gap-2 max-h-[500px] overflow-y-auto px-6 py-2 
            [&::-webkit-scrollbar]:w-1
-           [&::-webkit-scrollbar-track]:bg-[#1063E0]
+           [&::-webkit-scrollbar-track]:bg-[#9743AB]
            [&::-webkit-scrollbar-thumb]:bg-[#D9D9D9] 
            dark:[&::-webkit-scrollbar-track]:bg-[#D9D9D9]
-           dark:[&::-webkit-scrollbar-thumb]:bg-[#1063E0]"
+           dark:[&::-webkit-scrollbar-thumb]:bg-[#9743AB]"
             >
               {/* Title Input */}
               <GlobalTextInput
@@ -459,7 +459,7 @@ export default function NewJourney({ onClose }: NewJourneyProps) {
             }
             onStartChange={handleStartChange}
             onEndChange={handleEndChange}
-            onStepsChange={() => { }}
+            onStepsChange={() => {}}
             activeMapSelect={activeMapSelect}
             setActiveMapSelect={setActiveMapSelect}
           />

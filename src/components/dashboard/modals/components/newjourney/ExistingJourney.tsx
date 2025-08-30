@@ -191,9 +191,9 @@ export default function ExistingJourneyComponent({
           coords:
             post.start_lat && post.start_lng
               ? ([
-                parseFloat(post.start_lng),
-                parseFloat(post.start_lat),
-              ] as LatLng)
+                  parseFloat(post.start_lng),
+                  parseFloat(post.start_lat),
+                ] as LatLng)
               : null,
           name: post.start_location_name || "",
         },
@@ -208,39 +208,39 @@ export default function ExistingJourneyComponent({
         endDate: post.end_date || "",
         steps: Array.isArray(post.stops)
           ? post.stops.map((stop: any) => ({
-            name: stop.title || "",
-            location: {
-              coords:
-                stop?.lat && stop.lng
-                  ? ([parseFloat(stop.lng), parseFloat(stop?.lat)] as LatLng)
-                  : null,
-              name: stop.location_name || "",
-            },
-            notes: stop.notes || "",
-            media: Array.isArray(stop.media)
-              ? stop.media.map((m: any) => ({
-                url: m.url,
-                type: m.type,
-              }))
-              : [],
-            mediumOfTravel: stop.transport_mode || "",
-            startDate: stop.start_date || "",
-            endDate: stop.end_date || "",
-            category: stop.category?.name || "",
-          }))
+              name: stop.title || "",
+              location: {
+                coords:
+                  stop?.lat && stop?.lng
+                    ? ([parseFloat(stop.lng), parseFloat(stop?.lat)] as LatLng)
+                    : null,
+                name: stop.location_name || "",
+              },
+              notes: stop.notes || "",
+              media: Array.isArray(stop.media)
+                ? stop.media.map((m: any) => ({
+                    url: m.url,
+                    type: m.type,
+                  }))
+                : [],
+              mediumOfTravel: stop.transport_mode || "",
+              startDate: stop.start_date || "",
+              endDate: stop.end_date || "",
+              category: stop.category?.name || "",
+            }))
           : [],
         friends: Array.isArray(post.tagged_users)
           ? post.tagged_users.map((user: any) => ({
-            id: user.id,
-            name: user.name,
-            email: user.email,
-          }))
+              id: user.id,
+              name: user.name,
+              email: user.email,
+            }))
           : [],
         visibility: (post.privacy === "public"
           ? "public"
           : post.privacy === "private"
-            ? "private"
-            : "tribe") as VisibilityType,
+          ? "private"
+          : "tribe") as VisibilityType,
         createdAt: post.created_at || "",
         updatedAt: post.updated_at || "",
         userId: post.user?.id?.toString() || "",
@@ -250,11 +250,11 @@ export default function ExistingJourneyComponent({
           "draft",
         userData: post.user
           ? {
-            id: post.user.id,
-            name: post.user.name,
-            email: post.user.email,
-            avatar: post.user.avatar,
-          }
+              id: post.user.id,
+              name: post.user.name,
+              email: post.user.email,
+              avatar: post.user.avatar,
+            }
           : undefined,
       };
 
@@ -363,8 +363,9 @@ export default function ExistingJourneyComponent({
         // When there's a query, perform global search
         url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(
           query
-        )}.json?limit=20&access_token=${process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN
-          }`;
+        )}.json?limit=20&access_token=${
+          process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN
+        }`;
       }
 
       try {
@@ -645,7 +646,8 @@ export default function ExistingJourneyComponent({
       onClose?.();
     } catch (error) {
       console.error(
-        `Error ${status === "draft" ? "updating" : "publishing"
+        `Error ${
+          status === "draft" ? "updating" : "publishing"
         } journey with ${status} status:`,
         error
       );
@@ -686,10 +688,10 @@ export default function ExistingJourneyComponent({
     <div
       className="max-h-[90vh]  h-full  overflow-y-auto
   [&::-webkit-scrollbar]:w-1
-         [&::-webkit-scrollbar-track]:bg-[#1063E0]
+         [&::-webkit-scrollbar-track]:bg-[#9743AB]
          [&::-webkit-scrollbar-thumb]:bg-[#D9D9D9] 
          dark:[&::-webkit-scrollbar-track]:bg-[#D9D9D9]
-         dark:[&::-webkit-scrollbar-thumb]:bg-[#1063E0]
+         dark:[&::-webkit-scrollbar-thumb]:bg-[#9743AB]
   "
     >
       <div className="grid lg:grid-cols-2 grid-cols-1">
@@ -710,10 +712,10 @@ export default function ExistingJourneyComponent({
             <div
               className="flex flex-col gap-2 max-h-[500px] lg:min-h-[500px] h-full overflow-y-auto px-6 py-2 
            [&::-webkit-scrollbar]:w-1
-           [&::-webkit-scrollbar-track]:bg-[#1063E0]
+           [&::-webkit-scrollbar-track]:bg-[#9743AB]
            [&::-webkit-scrollbar-thumb]:bg-[#D9D9D9] 
            dark:[&::-webkit-scrollbar-track]:bg-[#D9D9D9]
-           dark:[&::-webkit-scrollbar-thumb]:bg-[#1063E0]"
+           dark:[&::-webkit-scrollbar-thumb]:bg-[#9743AB]"
             >
               {/* Journey Selection Dropdown */}
               <div className="relative">
@@ -726,8 +728,8 @@ export default function ExistingJourneyComponent({
                     {loadingJourneysList
                       ? "Loading journeys..."
                       : journeysList.length === 0
-                        ? "No journeys found"
-                        : "Select your journey"}
+                      ? "No journeys found"
+                      : "Select your journey"}
                   </option>
                   {journeyOptions.map((option) => (
                     <option key={option.value} value={option.value}>
@@ -752,10 +754,11 @@ export default function ExistingJourneyComponent({
               {/* Journey Details */}
               {/* Integrated Steps Section - Always Visible */}
               <div
-                className={`mb-4 ${!selectedJourney || loadingSelectedJourney
-                  ? "opacity-50 pointer-events-none"
-                  : ""
-                  }`}
+                className={`mb-4 ${
+                  !selectedJourney || loadingSelectedJourney
+                    ? "opacity-50 pointer-events-none"
+                    : ""
+                }`}
               >
                 <div className="border-t border-gray-200 pt-4">
                   <StepsList
@@ -777,12 +780,12 @@ export default function ExistingJourneyComponent({
                     journeyData={
                       selectedJourney
                         ? {
-                          title: selectedJourney.title,
-                          startLocation: selectedJourney.startLocation,
-                          endLocation: selectedJourney.endLocation,
-                          startDate: selectedJourney.startDate,
-                          endDate: selectedJourney.endDate,
-                        }
+                            title: selectedJourney.title,
+                            startLocation: selectedJourney.startLocation,
+                            endLocation: selectedJourney.endLocation,
+                            startDate: selectedJourney.startDate,
+                            endDate: selectedJourney.endDate,
+                          }
                         : undefined
                     }
                   />
@@ -791,10 +794,11 @@ export default function ExistingJourneyComponent({
 
               {/* Tagged Friends Section */}
               <div
-                className={`mb-4 ${!selectedJourney || loadingSelectedJourney
-                  ? "opacity-50 pointer-events-none"
-                  : ""
-                  }`}
+                className={`mb-4 ${
+                  !selectedJourney || loadingSelectedJourney
+                    ? "opacity-50 pointer-events-none"
+                    : ""
+                }`}
               >
                 <GlobalMultiSelect
                   label="Tag Friends"
@@ -822,10 +826,11 @@ export default function ExistingJourneyComponent({
                   disabled={
                     !selectedJourney || isSubmitting || loadingSelectedJourney
                   }
-                  className={`ml-4 px-6 py-2 text-[12px] text-white rounded-lg border font-semibold transition-all ${!selectedJourney || isSubmitting || loadingSelectedJourney
-                    ? "border-gray-300 text-gray-400 bg-gray-100 cursor-not-allowed"
-                    : "border-blue-600 text-black bg-white bg-gradient-to-r from-[#257CFF] to-[#1063E0] cursor-pointer"
-                    }`}
+                  className={`ml-4 px-6 py-2 text-[12px] text-white rounded-lg border font-semibold transition-all ${
+                    !selectedJourney || isSubmitting || loadingSelectedJourney
+                      ? "border-gray-300 text-gray-400 bg-gray-100 cursor-not-allowed"
+                      : "border-blue-600 text-black bg-white bg-gradient-to-r from-[#257CFF] to-[#9743AB] cursor-pointer"
+                  }`}
                 >
                   {isEndAndPublish ? (
                     <div className="flex items-center gap-2">
@@ -842,10 +847,11 @@ export default function ExistingJourneyComponent({
                   disabled={
                     !selectedJourney || isSubmitting || loadingSelectedJourney
                   }
-                  className={`ml-4 px-6 py-2 text-[12px] rounded-lg border font-semibold transition-all ${!selectedJourney || isSubmitting || loadingSelectedJourney
-                    ? "border-gray-300 text-gray-400 bg-gray-100 cursor-not-allowed"
-                    : "border-blue-600 text-black bg-white hover:bg-blue-50 cursor-pointer"
-                    }`}
+                  className={`ml-4 px-6 py-2 text-[12px] rounded-lg border font-semibold transition-all ${
+                    !selectedJourney || isSubmitting || loadingSelectedJourney
+                      ? "border-gray-300 text-gray-400 bg-gray-100 cursor-not-allowed"
+                      : "border-blue-600 text-black bg-white hover:bg-blue-50 cursor-pointer"
+                  }`}
                 >
                   {isSubmitting ? (
                     <div className="flex items-center gap-2">
@@ -868,24 +874,24 @@ export default function ExistingJourneyComponent({
             ref={journeyForm.mapRef}
             startLocation={
               selectedJourney?.startLocation?.coords &&
-                Array.isArray(selectedJourney.startLocation.coords) &&
-                selectedJourney.startLocation.coords.length >= 2
+              Array.isArray(selectedJourney.startLocation.coords) &&
+              selectedJourney.startLocation.coords.length >= 2
                 ? selectedJourney.startLocation.coords
                 : null
             }
             endLocation={
               selectedJourney?.endLocation?.coords &&
-                Array.isArray(selectedJourney.endLocation.coords) &&
-                selectedJourney.endLocation.coords.length >= 2
+              Array.isArray(selectedJourney.endLocation.coords) &&
+              selectedJourney.endLocation.coords.length >= 2
                 ? selectedJourney.endLocation.coords
                 : null
             }
             steps={selectedJourney ? allStepCoordinates : []}
-            onStartChange={() => { }} // Disable editing existing locations
-            onEndChange={() => { }} // Disable editing existing locations
-            onStepsChange={() => { }} // Disable bulk step changes
+            onStartChange={() => {}} // Disable editing existing locations
+            onEndChange={() => {}} // Disable editing existing locations
+            onStepsChange={() => {}} // Disable bulk step changes
             activeMapSelect="start" // Map stays non-interactive
-            setActiveMapSelect={() => { }} // Disable map selection mode changes
+            setActiveMapSelect={() => {}} // Disable map selection mode changes
           />
         </div>
       </div>

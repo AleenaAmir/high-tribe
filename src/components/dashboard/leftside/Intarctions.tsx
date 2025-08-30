@@ -35,7 +35,7 @@
 //           Share
 //         </button>
 //       </div>
-//       <button className="w-full bg-gradient-to-r from-[#247BFE] to-[#1063E0] text-white rounded-md py-2 hover:bg-blue-500 transition-colors">
+//       <button className="w-full bg-gradient-to-r from-[#247BFE] to-[#9743AB] text-white rounded-md py-2 hover:bg-blue-500 transition-colors">
 //         Bucket list
 //       </button>
 //     </div>

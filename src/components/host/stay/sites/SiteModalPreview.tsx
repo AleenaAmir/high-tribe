@@ -27,10 +27,10 @@ const SiteModalPreview = ({}) => {
     //   customPadding="p-0"
     // >
     //     <div className="w-full h-full max-h-[90vh] overflow-y-auto [&::-webkit-scrollbar]:w-1
-    //    [&::-webkit-scrollbar-track]:bg-[#1063E0]
+    //    [&::-webkit-scrollbar-track]:bg-[#9743AB]
     //    [&::-webkit-scrollbar-thumb]:bg-[#D9D9D9]
     //     dark:[&::-webkit-scrollbar-track]:bg-[#D9D9D9]
-    //    dark:[&::-webkit-scrollbar-thumb]:bg-[#1063E0]">
+    //    dark:[&::-webkit-scrollbar-thumb]:bg-[#9743AB]">
     //   <SitesPreview onClose={() => { const params = new URLSearchParams(searchParams?.toString());
     //     params.set("sitepreview", "false");
     //     window.history.replaceState(null, "", `?${params.toString()}`);
@@ -51,8 +51,8 @@ const SiteModalPreview = ({}) => {
     >
       <div
         className="w-full h-full max-h-[90vh] overflow-y-auto scroll-smooth
-    scrollbar-thin scrollbar-thumb-[#D9D9D9] scrollbar-track-[#1063E0]
-    dark:scrollbar-thumb-[#1063E0] dark:scrollbar-track-[#D9D9D9]
+    scrollbar-thin scrollbar-thumb-[#D9D9D9] scrollbar-track-[#9743AB]
+    dark:scrollbar-thumb-[#9743AB] dark:scrollbar-track-[#D9D9D9]
     rounded-md"
       >
         <SitesPreview

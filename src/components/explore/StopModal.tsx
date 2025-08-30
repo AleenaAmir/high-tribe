@@ -127,8 +127,9 @@ function LocationSelector({
       <div className="relative">
         <input
           type="text"
-          className={`rounded-lg border py-3 px-5 text-[12px] w-full h-[40px] placeholder:text-[#AFACAC] focus:outline-none focus:ring-2 focus:ring-[#9743AA] transition-all ${error ? "border-red-500" : "border-[#848484]"
-            }`}
+          className={`rounded-lg border py-3 px-5 text-[12px] w-full h-[40px] placeholder:text-[#AFACAC] focus:outline-none focus:ring-2 focus:ring-[#9743AA] transition-all ${
+            error ? "border-red-500" : "border-[#848484]"
+          }`}
           placeholder={placeholder || "Search for a location..."}
           value={value}
           onChange={handleInputChange}
@@ -461,8 +462,6 @@ export default function StopModal({
               {/* Form Content */}
               <div className="flex-1 p-6">
                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-
-
                   {/* Category */}
                   <GlobalSelect
                     label="Category"
@@ -478,8 +477,8 @@ export default function StopModal({
                       {loadingCategories
                         ? "Loading categories..."
                         : stopCategories.length === 0
-                          ? "No categories available"
-                          : "Select a category"}
+                        ? "No categories available"
+                        : "Select a category"}
                     </option>
                     {stopCategories.map((category) => (
                       <option key={category.id} value={category.id.toString()}>
@@ -533,7 +532,6 @@ export default function StopModal({
                     />
                   </div>
 
-
                   {/* Save Button */}
                   <div className="flex justify-end items-center pt-4 border-t border-gray-200">
                     <button
@@ -546,8 +544,8 @@ export default function StopModal({
                           ? "Updating..."
                           : "Saving..."
                         : mode === "edit"
-                          ? "Update"
-                          : "Save"}
+                        ? "Update"
+                        : "Save"}
                     </button>
                   </div>
                 </form>

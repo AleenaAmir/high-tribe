@@ -3,8 +3,7 @@ import Image from 'next/image'
 import React, { useState, useEffect, useRef } from 'react'
 import { fetchGooglePlaceSuggestions } from '@/lib/googlePlaces'
 import Menuicon from './Menuicon'
-import PlusIcon from './icons/PlusIcon'
-import ScrollArea from '@/components/ui/ScrollArea'
+
 
 interface NavBarProps {
   onPlaceSelected?: (lng: number, lat: number, name?: string) => void

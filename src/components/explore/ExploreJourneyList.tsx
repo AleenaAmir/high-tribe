@@ -117,25 +117,36 @@ export default function ExploreJourneyList({
     </svg>
   );
   return (
-    <div className="w-72 bg-[#FAFBFB] p-2">
-      <div className="flex justify-end">
-        <div
-          className=" p-2 rounded-full cursor-pointer bg-[#F4F4F4]"
-          onClick={() => setShowJourneyList(false)}
-        >
-          {closeIcon}
+    <div className="w-72 bg-[#FAFBFB] h-full flex flex-col justify-between p-2">
+      <div>
+        <div className="flex justify-end">
+          <div
+            className=" p-2 rounded-full cursor-pointer bg-[#F4F4F4]"
+            onClick={() => setShowJourneyList(false)}
+          >
+            {closeIcon}
+          </div>
         </div>
-      </div>
-      <div className="flex flex-col h-full gap-2 justify-between p-2">
-        <div>
+
+        <div className="">
           <div className="flex items-center gap-3 my-2">
             <div className="p-2 bg-[#F4F4F4] rounded-sm">{icon}</div>
             <div className="text-[18px] font-semibold text-black">
               My Journey
             </div>
           </div>
-          <div className="space-y-1 max-h-[400px] overflow-y-auto overflow-x-hidden">
-            <div className="text-[18px] font-medium text-[#9F40C8]">Trips</div>
+          <div className="text-[18px] font-medium text-[#9F40C8]">Trips</div>
+          <div
+            className="space-y-1 max-h-[350px] overflow-y-auto overflow-x-hidden 
+          [&::-webkit-scrollbar]:w-[3px]
+       [&::-webkit-scrollbar-track]:bg-[#9743AB]
+       [&::-webkit-scrollbar-thumb]:bg-[#D9D9D9] 
+       dark:[&::-webkit-scrollbar-track]:bg-[#D9D9D9]
+       dark:[&::-webkit-scrollbar-thumb]:bg-[#9743AB]
+       dark:[&::-webkit-scrollbar-thumb]:rounded-3xl
+       [&::-webkit-scrollbar-thumb]:rounded-3xl
+          "
+          >
             {trips.map((trip, idx) => (
               <div
                 key={idx}
@@ -173,13 +184,15 @@ export default function ExploreJourneyList({
             ))}
           </div>
         </div>
-        <div
-          className="bg-gradient-to-r mt-4 from-[#9743AA] to-[#E54295] text-white flex items-center justify-center text-[13px] gap-1 px-3 py-1.5 rounded-full hover:bg-gray-50 transition-colors cursor-pointer shadow-sm hover:shadow-md active:scale-95 "
-          onClick={onNewJourneyClick}
-        >
-          Add New Journey
-        </div>
       </div>
+
+      <button
+        type="button"
+        className="bg-gradient-to-r my-2 from-[#9743AA] to-[#E54295] text-white flex items-center justify-center text-[13px] gap-1 px-3 py-1.5 rounded-full hover:bg-gray-50 transition-colors cursor-pointer shadow-sm hover:shadow-md active:scale-95 "
+        onClick={onNewJourneyClick}
+      >
+        Add New Journey
+      </button>
     </div>
   );
 }

@@ -247,10 +247,10 @@ const GlobalFileUpload: React.FC<GlobalFileUploadProps> = ({
         <div
           className="flex gap-2 mb-2 w-full overflow-x-auto 
         [&::-webkit-scrollbar]:h-1
-       [&::-webkit-scrollbar-track]:bg-[#1063E0]
+       [&::-webkit-scrollbar-track]:bg-[#9743AB]
        [&::-webkit-scrollbar-thumb]:bg-[#D9D9D9] 
        dark:[&::-webkit-scrollbar-track]:bg-[#D9D9D9]
-       dark:[&::-webkit-scrollbar-thumb]:bg-[#1063E0]
+       dark:[&::-webkit-scrollbar-thumb]:bg-[#9743AB]
         "
         >
           {fileUrls.map(({ file, url, key }, idx) => {

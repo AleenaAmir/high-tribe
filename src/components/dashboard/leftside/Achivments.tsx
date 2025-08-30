@@ -9,7 +9,7 @@
 //       <h3 className="text-[#6C6868] text-[16px]">Achieved milestones</h3>
 
 //       <div className="flex items-center gap-2 justify-between">
-//         <div className="flex items-center justify-center p-2 rounded-full bg-gradient-to-r from-[#247BFE] to-[#1063E0]">
+//         <div className="flex items-center justify-center p-2 rounded-full bg-gradient-to-r from-[#247BFE] to-[#9743AB]">
 //           <Msg fill="#fff" />
 //         </div>
 //         <div className=" w-full">
@@ -20,35 +20,35 @@
 //         Next milestones Badges
 //       </p>
 //       <div className="flex items-center gap-2 justify-between">
-//         <div className="flex items-center justify-center p-2 rounded-full bg-gradient-to-r from-[#247BFE] to-[#1063E0]">
+//         <div className="flex items-center justify-center p-2 rounded-full bg-gradient-to-r from-[#247BFE] to-[#9743AB]">
 //           <Clock fill="#fff" />
 //         </div>
 //         <div className=" w-full">
 //           <h3 className="text-[10px] text-[#6C6868]">Level 1</h3>
 //           <div className="w-full h-1 bg-[#ebedf2] dark:bg-dark/40 rounded-full flex">
-//             <div className="bg-[#1063E0] h-1 rounded-full rounded-bl-full w-5/12 text-center text-white text-xs"></div>
+//             <div className="bg-[#9743AB] h-1 rounded-full rounded-bl-full w-5/12 text-center text-white text-xs"></div>
 //           </div>
 //         </div>
 //       </div>
 //       <div className="flex items-center gap-2 justify-between">
-//         <div className="flex items-center justify-center p-2 rounded-full bg-gradient-to-r from-[#247BFE] to-[#1063E0]">
+//         <div className="flex items-center justify-center p-2 rounded-full bg-gradient-to-r from-[#247BFE] to-[#9743AB]">
 //           <Clock fill="#fff" />
 //         </div>
 //         <div className=" w-full">
 //           <h3 className="text-[10px] text-[#6C6868]">Level 2</h3>
 //           <div className="w-full h-1 bg-[#ebedf2] dark:bg-dark/40 rounded-full flex">
-//             <div className="bg-[#1063E0] h-1 rounded-full rounded-bl-full w-5/12 text-center text-white text-xs"></div>
+//             <div className="bg-[#9743AB] h-1 rounded-full rounded-bl-full w-5/12 text-center text-white text-xs"></div>
 //           </div>
 //         </div>
 //       </div>
 //       <div className="flex items-center gap-2 justify-between">
-//         <div className="flex items-center justify-center p-2 rounded-full bg-gradient-to-r from-[#247BFE] to-[#1063E0]">
+//         <div className="flex items-center justify-center p-2 rounded-full bg-gradient-to-r from-[#247BFE] to-[#9743AB]">
 //           <Clock fill="#fff" />
 //         </div>
 //         <div className=" w-full">
 //           <h3 className="text-[10px] text-[#6C6868]">Level 3</h3>
 //           <div className="w-full h-1 bg-[#ebedf2] dark:bg-dark/40 rounded-full flex">
-//             <div className="bg-[#1063E0] h-1 rounded-full rounded-bl-full w-5/12 text-center text-white text-xs"></div>
+//             <div className="bg-[#9743AB] h-1 rounded-full rounded-bl-full w-5/12 text-center text-white text-xs"></div>
 //           </div>
 //         </div>
 //       </div>
@@ -58,10 +58,8 @@
 
 // export default Achivments;
 
-
-
-import React, { useState } from 'react';
-import { ChevronUp } from 'lucide-react';
+import React, { useState } from "react";
+import { ChevronUp } from "lucide-react";
 
 const Achievements = () => {
   const [showAchievements, setShowAchievements] = useState(false);
@@ -71,10 +69,30 @@ const Achievements = () => {
   };
   const milestones = [
     { id: 1, title: "Chats", imageUrl: "/dashboard/chats.svg", achieved: true },
-    { id: 2, title: "Level 4", imageUrl: "/dashboard/level-4.svg", achieved: false },
-    { id: 3, title: "Level 3", imageUrl: "/dashboard/level-3.svg", achieved: false },
-    { id: 4, title: "Level 2", imageUrl: "/dashboard/level-2.svg", achieved: false },
-    { id: 5, title: "Level 1", imageUrl: "/dashboard/level-1.svg", achieved: false }
+    {
+      id: 2,
+      title: "Level 4",
+      imageUrl: "/dashboard/level-4.svg",
+      achieved: false,
+    },
+    {
+      id: 3,
+      title: "Level 3",
+      imageUrl: "/dashboard/level-3.svg",
+      achieved: false,
+    },
+    {
+      id: 4,
+      title: "Level 2",
+      imageUrl: "/dashboard/level-2.svg",
+      achieved: false,
+    },
+    {
+      id: 5,
+      title: "Level 1",
+      imageUrl: "/dashboard/level-1.svg",
+      achieved: false,
+    },
   ];
 
   // Timeline images URLs
@@ -82,17 +100,19 @@ const Achievements = () => {
     verticalLine: "/dashboard/line-1.svg",
     inactiveVerticalLine: "/dashboard/line-2.svg",
     activeDot: "/dashboard/dot-1.svg",
-    inactiveDot: "/dashboard/dot-2.svg"
-
+    inactiveDot: "/dashboard/dot-2.svg",
   };
 
   return (
-    <div className={`w-full mx-auto bg-[#FFFFFF] border border-[#F2F2F1] p-4 mb-2 rounded-lg shadow-sm font-gilroy transition-all duration-300 `}>
-
+    <div
+      className={`w-full mx-auto bg-[#FFFFFF] border border-[#F2F2F1] p-4 mb-2 rounded-lg shadow-sm font-gilroy transition-all duration-300 `}
+    >
       {/* Header */}
 
       <div className="flex justify-between items-center">
-        <h1 className="text-[16px] font-[500] text-[#000000] leading-[100%] tracking-[0%] font-gilroy ">Achieved Milestones</h1>
+        <h1 className="text-[16px] font-[500] text-[#000000] leading-[100%] tracking-[0%] font-gilroy ">
+          Achieved Milestones
+        </h1>
         <div className="relative">
           <div
             className="w-6 h-6 rounded-full flex items-center justify-center bg-gradient-to-br from-[#9243AC] via-[#B6459F] to-[#E74294] cursor-pointer hover:opacity-80 transition-opacity"
@@ -101,7 +121,9 @@ const Achievements = () => {
             <img
               src="/dashboard/upArrow.svg"
               alt="Arrow"
-              className={`w-3 h-3 transition-transform duration-200 ${showAchievements ? 'rotate-180' : ''}`}
+              className={`w-3 h-3 transition-transform duration-200 ${
+                showAchievements ? "rotate-180" : ""
+              }`}
             />
           </div>
         </div>
@@ -112,31 +134,49 @@ const Achievements = () => {
         <div className="relative pt-8">
           {/* Vertical Timeline Line - Custom Image */}
           <div className="absolute left-1 top-16 bottom-0 w-6 flex justify-center ">
-            <div className="h-[95px] w-0 border-l-2 border-dashed opacity-100" style={{ borderColor: '#E24295' }}></div>
+            <div
+              className="h-[95px] w-0 border-l-2 border-dashed opacity-100"
+              style={{ borderColor: "#E24295" }}
+            ></div>
           </div>
           {/* invertical lines  */}
           <div className="absolute left-1 w-6 flex justify-center top-[110px] bottom-0">
-            <div className="h-[215px] w-0 border-l-2 border-dashed opacity-100" style={{ borderColor: '#B7B8B8' }}></div>
+            <div
+              className="h-[215px] w-0 border-l-2 border-dashed opacity-100"
+              style={{ borderColor: "#B7B8B8" }}
+            ></div>
           </div>
           {/* Achieved Section */}
           <div className="relative mb-4">
             {/* Timeline Dot - Active Custom Image */}
             <div className="absolute left-3 top-8 w-2.5 h-2.5">
-              <img src={timelineImages.activeDot} alt="Active Dot" className="w-full h-full object-contain" />
+              <img
+                src={timelineImages.activeDot}
+                alt="Active Dot"
+                className="w-full h-full object-contain"
+              />
             </div>
             {/* Milestone Card */}
             <div className="ml-8 bg-white rounded border border-gray-200 p-2 shadow-[0px_4px_4px_0px_rgba(0,0,0,0.12)] w-[162.83px] h-[54.76px]">
               <div className="flex items-center space-x-1">
                 <div className="w-10 h-10 rounded-full flex items-center justify-center overflow-hidden">
-                  <img src={milestones[0].imageUrl} alt={milestones[0].title} className="w-7 h-7 object-contain" />
+                  <img
+                    src={milestones[0].imageUrl}
+                    alt={milestones[0].title}
+                    className="w-7 h-7 object-contain"
+                  />
                 </div>
-                <span className="text-xs font-gilroy font-medium text-gray-800 leading-[100%] tracking-[0%] capitalize">{milestones[0].title}</span>
+                <span className="text-xs font-gilroy font-medium text-gray-800 leading-[100%] tracking-[0%] capitalize">
+                  {milestones[0].title}
+                </span>
               </div>
             </div>
           </div>
           {/* Next Milestones Section */}
           <div className="mb-3">
-            <h2 className="text-xs font-gilroy font-medium text-gray-800 leading-[100%] tracking-[0%] capitalize ml-8">Next Milestones Badges</h2>
+            <h2 className="text-xs font-gilroy font-medium text-gray-800 leading-[100%] tracking-[0%] capitalize ml-8">
+              Next Milestones Badges
+            </h2>
           </div>
 
           {/* Remaining Milestones */}
@@ -144,16 +184,26 @@ const Achievements = () => {
             <div key={milestone.id} className="relative mb-3">
               {/* Timeline Dot - Inactive Custom Image */}
               <div className="absolute left-3 top-6 w-2.5 h-2.5">
-                <img src={timelineImages.inactiveDot} alt="Inactive Dot" className="w-full h-full object-contain" />
+                <img
+                  src={timelineImages.inactiveDot}
+                  alt="Inactive Dot"
+                  className="w-full h-full object-contain"
+                />
               </div>
 
               {/* Milestone Card */}
               <div className="ml-8 bg-white rounded border border-gray-200 p-2 shadow-[0px_4px_4px_0px_rgba(0,0,0,0.12)] w-[162.83px] h-[54.76px]">
                 <div className="flex items-center space-x-1">
                   <div className="w-10 h-10 rounded-full flex items-center justify-center overflow-hidden">
-                    <img src={milestone.imageUrl} alt={milestone.title} className="w-7 h-7 object-contain" />
+                    <img
+                      src={milestone.imageUrl}
+                      alt={milestone.title}
+                      className="w-7 h-7 object-contain"
+                    />
                   </div>
-                  <span className="text-xs font-gilroy font-medium text-gray-800 leading-[100%] tracking-[0%] capitalize">{milestone.title}</span>
+                  <span className="text-xs font-gilroy font-medium text-gray-800 leading-[100%] tracking-[0%] capitalize">
+                    {milestone.title}
+                  </span>
                 </div>
               </div>
             </div>
@@ -162,5 +212,5 @@ const Achievements = () => {
       )}
     </div>
   );
-}
+};
 export default Achievements;
