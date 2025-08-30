@@ -25,7 +25,7 @@ const Badges = ({ badges }: BadgesProps) => {
             onClick={toggleBadges}
           >
             <img
-              src="dashboard/upArrow.svg"
+              src="/dashboard/upArrow.svg"
               alt="Arrow"
               className={`w-3 h-3 transition-transform duration-200 ${showBadges ? 'rotate-180' : ''}`}
             />
@@ -39,7 +39,7 @@ const Badges = ({ badges }: BadgesProps) => {
            onClick={toggleBadges}
          >
            <img
-             src="dashboard/upArrow.svg" 
+             src="/dashboard/upArrow.svg" 
              alt="Arrow" 
              className={`w-2.5 h-2.5 transition-transform duration-200 ${showBadges ? 'rotate-180' : ''}`}
            />
@@ -51,7 +51,7 @@ const Badges = ({ badges }: BadgesProps) => {
         <div className="flex justify-center">
           <div className="w-36 h-40">
             <Image
-              src="dashboard/bage.svg"
+              src="/dashboard/bage.svg"
               alt="Badge"
               width={140}
               height={150}
@@ -82,7 +82,7 @@ export default Badges;
 //       <div className="flex justify-center mb-12">
 //         <div className="w-64 h-72">
 //           <Image
-//             src="dashboard/bage.svg"
+//             src="/dashboard/bage.svg"
 //             alt="Badge"
 //             className="w-full h-full object-contain"
 //           />

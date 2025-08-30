@@ -36,7 +36,7 @@ const FriendsList = ({ friends, onItemClick }: FriendsListProps) => {
                 onClick={toggleFriendsList}
               >
                 <img
-                  src="dashboard/upArrow.svg"
+                  src="/dashboard/upArrow.svg"
                   alt="Arrow"
                   className={`w-3 h-3 transition-transform duration-200 ${showFriendsList ? 'rotate-180' : ''}`}
                 />

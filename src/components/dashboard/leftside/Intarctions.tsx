@@ -86,7 +86,7 @@ const Intarctions = ({
         >
           <div className="w-16 h-16   flex items-center justify-center mb-3 mx-auto transition-colors overflow-hidden">
             <img
-              src="dashboard/foot.svg"
+              src="/dashboard/foot.svg"
               alt="Footsteps"
               className="w-8 h-8 object-cover"
             />
@@ -107,7 +107,7 @@ const Intarctions = ({
         >
           <div className="w-16 h-16 flex items-center justify-center mb-3 mx-auto  transition-colors overflow-hidden">
             <img
-              src="dashboard/photo.svg"
+              src="/dashboard/photo.svg"
               alt="Photos"
               className="w-8 h-8 object-cover"
             />
@@ -128,7 +128,7 @@ const Intarctions = ({
         >
           <div className="w-16 h-16  flex items-center justify-center mb-3 mx-auto transition-colors overflow-hidden">
             <img
-              src="dashboard/like.svg"
+              src="/dashboard/like.svg"
               alt="Likes"
               className="w-8 h-8 object-cover"
             />

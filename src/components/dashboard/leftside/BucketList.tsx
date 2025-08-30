@@ -9,28 +9,28 @@ const BucketList = () => {
       id: 1,
       title: "Dream Apartment",
       saved: "208 saved",
-      image: "dashboard/b-1.svg",
+      image: "/dashboard/b-1.svg",
       isLiked: true
     },
     {
       id: 2,
       title: "Fashion Inspiration",
       saved: "175 saved",
-      image: "dashboard/b-2.svg",
+      image: "/dashboard/b-2.svg",
       isLiked: false
     },
     {
       id: 3,
       title: "Pretty Florals",
       saved: "125 saved",
-      image: "dashboard/b-3.svg",
+      image: "/dashboard/b-3.svg",
       isLiked: false
     },
     {
       id: 4,
       title: "Pretty Florals",
       saved: "125 saved",
-      image: "dashboard/b-4.svg",
+      image: "/dashboard/b-4.svg",
       isLiked: false
     }
   ]);
@@ -59,7 +59,7 @@ const BucketList = () => {
             onClick={toggleBucketList}
           >
             <img
-              src="dashboard/upArrow.svg"
+              src="/dashboard/upArrow.svg"
               alt="Arrow"
               className={`w-3 h-3 transition-transform duration-200 ${showBucketList ? 'rotate-180' : ''}`}
             />

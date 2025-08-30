@@ -70,19 +70,19 @@ const Achievements = () => {
     setShowAchievements(!showAchievements);
   };
   const milestones = [
-    { id: 1, title: "Chats", imageUrl: "dashboard/chats.svg", achieved: true },
-    { id: 2, title: "Level 4", imageUrl: "dashboard/level-4.svg", achieved: false },
-    { id: 3, title: "Level 3", imageUrl: "dashboard/level-3.svg", achieved: false },
-    { id: 4, title: "Level 2", imageUrl: "dashboard/level-2.svg", achieved: false },
-    { id: 5, title: "Level 1", imageUrl: "dashboard/level-1.svg", achieved: false }
+    { id: 1, title: "Chats", imageUrl: "/dashboard/chats.svg", achieved: true },
+    { id: 2, title: "Level 4", imageUrl: "/dashboard/level-4.svg", achieved: false },
+    { id: 3, title: "Level 3", imageUrl: "/dashboard/level-3.svg", achieved: false },
+    { id: 4, title: "Level 2", imageUrl: "/dashboard/level-2.svg", achieved: false },
+    { id: 5, title: "Level 1", imageUrl: "/dashboard/level-1.svg", achieved: false }
   ];
 
   // Timeline images URLs
   const timelineImages = {
-    verticalLine: "dashboard/line-1.svg",
-    inactiveVerticalLine: "dashboard/line-2.svg",
-    activeDot: "dashboard/dot-1.svg",
-    inactiveDot: "dashboard/dot-2.svg"
+    verticalLine: "/dashboard/line-1.svg",
+    inactiveVerticalLine: "/dashboard/line-2.svg",
+    activeDot: "/dashboard/dot-1.svg",
+    inactiveDot: "/dashboard/dot-2.svg"
 
   };
 
@@ -99,7 +99,7 @@ const Achievements = () => {
             onClick={toggleAchievements}
           >
             <img
-              src="dashboard/upArrow.svg"
+              src="/dashboard/upArrow.svg"
               alt="Arrow"
               className={`w-3 h-3 transition-transform duration-200 ${showAchievements ? 'rotate-180' : ''}`}
             />

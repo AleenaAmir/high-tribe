@@ -58,7 +58,7 @@ const Booking = () => {
         <div className="relative bg-white rounded-lg w-full border border-[#F0F0F0] shadow">
           <div className="relative bg-gradient-to-br">
             <img
-              src="dashboard/Room.svg"
+              src="/dashboard/Room.svg"
               alt="Bedroom"
               className="object-contain rounded-lg w-full h-full"
             />
@@ -68,9 +68,8 @@ const Booking = () => {
               className="absolute top-3 right-3 w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-md hover:shadow-lg transition-shadow"
             >
               <Heart
-                className={`w-4 h-4 ${
-                  isLiked ? "fill-red-500 text-red-500" : "text-gray-600"
-                }`}
+                className={`w-4 h-4 ${isLiked ? "fill-red-500 text-red-500" : "text-gray-600"
+                  }`}
               />
             </button>
 

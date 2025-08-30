@@ -11,6 +11,7 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "api.hightribe.com", pathname: "/**" },
       { protocol: "https", hostname: "via.placeholder.com", pathname: "/**" }, // ✅
       { protocol: "https", hostname: "placehold.co", pathname: "/**" },       // (optional)
+
     ],
     // SVG chahiye ho to enable karna hota hai (risk samajh kar):
     // dangerouslyAllowSVG: true,
